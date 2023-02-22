@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
+
+
 import feeControllerData from "../artifacts/@arcadexyz/v2-contracts/contracts/FeeController.sol/FeeController.json";
 import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
@@ -92,7 +94,6 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
             /////////////// Create proposal to update originationFee in FeeController ////////////////////
             // check current originationFee value
             const currentOgFee = (await feeController.getOriginationFee()).toString();
-            console.log(`Before governance execution, originationFee vaule is: ${currentOgFee.toString()}`);
 
             const newFee = 60;
             const targetAddress = [feeController.address];
@@ -116,6 +117,7 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
             /////////////// Winning proposal is executed ////////////////////
             await coreVoting.connect(signers[0]).execute(0, targetAddress, [feeContCalldata]);
             const originationFee = await feeController.getOriginationFee();
+            expect(originationFee).to.not.equal(currentOgFee);
             expect(originationFee).to.equal(newFee);
         });
     });
