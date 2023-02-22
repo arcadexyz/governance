@@ -24,7 +24,8 @@ export interface TestContextCouncil {
 }
 export let coreVotingAddress: string;
 /**
- * Sets up a council test context, deploying contracts and returning them for use in a test
+ * This fixture creates a coreVoting deployment with a timelock and lockingVault,
+ * with the parameters for each.
  */
 export const councilFixture = async (): Promise<TestContextCouncil> => {
     const signers: Signer[] = await ethers.getSigners();
@@ -54,9 +55,11 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVault = lockingVaultBase.attach(lockingVaultProxy.address);
 
+    // push lockingVault into the votingVaults array which is
+    // used as an argument in coreVoting's deployment
     votingVaults.push(lockingVault.address);
 
-    // Give users some balance and set their allowance
+    // give users some balance and set their allowance
     for (const signer of signers) {
         await token.setBalance(signer.address, ethers.utils.parseEther("100000"));
         await token.setAllowance(signer.address, lockingVault.address, ethers.constants.MaxUint256);
@@ -64,23 +67,28 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
 
     const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", timelock);
 
+    // setup coreVoting with parameters as follows:
+    // for initial testing purposes, we are setting the default quorum to 4
+    // min voting power needed for propoasal submission is set to 3
+    // GSC contract address is set to zero - GSC not used
+    // array of voting vaults which will be used in coreVoting
     const coreVoting = await coreVotingDeployer.deploy(
         signers[0].address, // deployer address at first, then ownership set to timelock contract
-        four, // base quorum: default quorum
+        four, // base quorum / default quorum
         three, // min voting power needed to submit a proposal
         ethers.constants.AddressZero, // GSC contract address
         votingVaults, // voting vaults array
     );
 
-    // Override default lock duration for test purposes
+    // override default lock duration, for the purposes of testing, make it zero
     await coreVoting.connect(signers[0]).setLockDuration(0);
-    await coreVoting.connect(signers[0]).changeExtraVotingTime(500);
 
-    // grant roles
-    await coreVoting.connect(signers[0]).setOwner(timelock.address);
-    await timelock.connect(signers[0]).deauthorize(signers[0].address);
-    await timelock.connect(signers[0]).setOwner(coreVoting.address);
+    // grant roles and update owner role
+    await coreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns coreVoting
+    await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
+    await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock
 
+    // update coreVoting address. This address will be set as owner of FeeController.sol
     coreVotingAddress = coreVoting.address;
 
     const getBlock = async () => {
