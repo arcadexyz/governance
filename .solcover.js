@@ -3,5 +3,6 @@ module.exports = {
   providerOptions: {
     mnemonic: process.env.MNEMONIC,
   },
-  skipFiles: ["test"],
+  skipFiles: ["mocks", "test", "external"],
+  configureYulOptimizer: true,
 };
