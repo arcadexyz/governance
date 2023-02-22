@@ -10,10 +10,9 @@ contract CoreVoting is Authorizable, ReentrancyBlock, ICoreVoting {
     // if a function selector does not have a set quorum we use this default quorum
     uint256 public baseQuorum;
 
-    // Assumes avg block time of 12 seconds. The Council protocol uses 13.3 seconds
-    // per block. We are using 12 seconds because block times are more predictable
-    // since the merge.
-    uint256 public constant DAY_IN_BLOCKS = 7200;
+    // Assumes avg block time of 13.3 seconds. May be longer or shorter due
+    // to ice ages or short term changes in hash power.
+    uint256 public constant DAY_IN_BLOCKS = 6496;
 
     // minimum time a proposal must be active for before executing
     // Default to 3 days, this avoids weekend surprise proposals
