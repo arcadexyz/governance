@@ -6,8 +6,6 @@ import { TestContextCouncil, councilFixture } from "./utils/external/council/cou
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { SUBSECTION_SEPARATOR, TestContext, fixture } from "./utils/fixture";
 
-
-
 const { loadFixture, provider } = waffle;
 
 const one = ethers.utils.parseEther("1");
@@ -54,7 +52,7 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             // load the Council fixture
             ctxCouncil = await loadFixture(councilFixture);
-            const { signers, coreVoting, lockingVault, getBlock, votingVaults } = ctxCouncil;
+            const { signers, coreVoting, lockingVault, votingVaults } = ctxCouncil;
             // load the Aracde fixture
             ctx = await loadFixture(fixture);
             // get the feeController contract which will be called to set the new origination fee
