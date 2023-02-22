@@ -104,7 +104,7 @@ export const fixture = async (): Promise<TestContext> => {
     const feeController = <FeeController>await deploy("FeeController", signers[0], []);
     await feeController.deployed();
 
-    // set FeeController admin
+    // set FeeController admin to be set to CoreVoting.sol
     const updateFeeControllerAdmin = await feeController.transferOwnership(coreVotingAddress);
     await updateFeeControllerAdmin.wait();
 

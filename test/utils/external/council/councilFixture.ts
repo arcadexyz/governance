@@ -65,7 +65,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", timelock);
 
     const coreVoting = await coreVotingDeployer.deploy(
-        signers[0].address, // timelock contract
+        signers[0].address, // deployer address at first, then ownership set to timelock contract
         four, // base quorum: default quorum
         three, // min voting power needed to submit a proposal
         ethers.constants.AddressZero, // GSC contract address
