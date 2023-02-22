@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
 import feeControllerData from "../artifacts/@arcadexyz/v2-contracts/contracts/FeeController.sol/FeeController.json";
-import { TestContextCouncil, councilFixture } from "./utils/external/council/councilFixture";
+import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { SUBSECTION_SEPARATOR, TestContext, fixture } from "./utils/fixture";
 

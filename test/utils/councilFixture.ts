@@ -2,11 +2,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
-import { MockERC20Council } from "../../../../src/types/contracts/external/council/mocks/MockERC20Council";
-import { LockingVault } from "../../../../src/types/contracts/external/council/vaults/LockingVault.sol";
-import { CoreVoting } from "../../../../src/types/contracts/external/council/CoreVoting";
-import { Timelock } from "../../../../src/types";
-import { ZERO_ADDRESS } from "../../erc20";
+import { Timelock } from "../../src/types";
+import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
+import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
+import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
+import { ZERO_ADDRESS } from "./erc20";
 
 type Signer = SignerWithAddress;
 const baseVotingPower = 1e10;
@@ -35,11 +35,8 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const [wallet] = provider.getWallets();
 
     // init vars
-    const one = ethers.utils.parseEther("1");
-    const two = ethers.utils.parseEther("2");
     const three = ethers.utils.parseEther("3");
     const four = ethers.utils.parseEther("4");
-    const ten = ethers.utils.parseEther("10");
 
     // deploy the token;
     const erc20Deployer = await ethers.getContractFactory("MockERC20Council", signers[10]);
@@ -92,15 +89,16 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     coreVotingAddress = coreVoting.address;
 
     const getBlock = async () => {
+        // eslint-disable-next-line prefer-const
         let latestBlock: number = (await ethers.provider.getBlock("latest")).number;
         return latestBlock;
-    }
+    };
 
     const increaseBlocknumber = async (provider: any, times: number) => {
-    for (let i = 0; i < times; i++) {
-        await provider.send("evm_mine", []);
-    }
-}
+        for (let i = 0; i < times; i++) {
+            await provider.send("evm_mine", []);
+        }
+    };
 
     return {
         signers,
@@ -111,6 +109,6 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         getBlock,
         baseVotingPower,
         increaseBlocknumber,
-        timelock
+        timelock,
     };
-}
+};

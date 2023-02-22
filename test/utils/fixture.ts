@@ -18,10 +18,9 @@ import type {
     VaultFactory,
 } from "../../src/types";
 import { LoanTerms } from "../types/types";
-import { coreVotingAddress } from "../utils/external/council/councilFixture";
-import "../utils/external/council/councilFixture";
 import { ADMIN_ROLE, FEE_CLAIMER_ROLE, ORIGINATOR_ROLE, REPAYER_ROLE } from "./constants";
 import { deploy } from "./contracts";
+import { coreVotingAddress } from "./councilFixture";
 import { BlockchainTime } from "./time";
 
 export const SECTION_SEPARATOR = "\n" + "=".repeat(80) + "\n";
