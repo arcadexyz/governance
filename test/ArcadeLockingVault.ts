@@ -4,7 +4,7 @@ import { ethers, waffle } from "hardhat";
 import feeControllerData from "../artifacts/@arcadexyz/v2-contracts/contracts/FeeController.sol/FeeController.json";
 import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
-import { SUBSECTION_SEPARATOR, TestContext, fixture } from "./utils/fixture";
+import { TestContext, fixture } from "./utils/fixture";
 
 const { loadFixture, provider } = waffle;
 
@@ -26,8 +26,12 @@ const zeroExtraData = ["0x", "0x", "0x", "0x"];
 describe("Arcade Vote Execution via Council Locking Vault", function () {
     let ctxCouncil: TestContextCouncil;
     let ctx: TestContext;
+
     before(async function () {
-        // Create a before snapshot
+        // Helper function in Council test utils that utilizes the hardhat network method
+        // "evm_snapshot" to get and store ids of snapshots of the state of the blockchain
+        // at various blocks in an array for use in testing. These IDs help track users'
+        // voting power and delegations at different blocks.
         await createSnapshot(provider);
 
         ctxCouncil = await loadFixture(councilFixture);
@@ -35,19 +39,24 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
 
         return { signers, token, lockingVault, coreVoting, votingVaults };
     });
+
     after(async () => {
-        // Reset state in the fork
+        // Helper function that utilizes the hardhat network method "evm_revert", to clear
+        // the array of snapshot ids.
         await restoreSnapshot(provider);
     });
+
     beforeEach(async () => {
         // Before each get a snapshot
         await createSnapshot(provider);
-        console.log(SUBSECTION_SEPARATOR);
+        console.log(); // to add a blank space
     });
+
     afterEach(async () => {
         // After each, reset our state in the fork
         await restoreSnapshot(provider);
     });
+
     describe("Arcade/Council governance flow", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             // load the Council fixture

@@ -1,5 +1,4 @@
 import { MockProvider } from "ethereum-waffle";
-import { BigNumber } from "ethers";
 
 
 const snapshotIdStack: number[] = [];

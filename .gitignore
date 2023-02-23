@@ -16,6 +16,7 @@
 **/node_modules
 **/types
 **/src/types
+**/.vscode
 
 **/.openzeppelin/unknown-1337.json
 

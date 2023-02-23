@@ -19,7 +19,7 @@ export interface TestContextCouncil {
     votingVaults: string[];
     getBlock: () => Promise<number>;
     baseVotingPower: number;
-    increaseBlocknumber: (provider: any, times: number) => Promise<void>;
+    increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     timelock: Timelock;
 }
 export let coreVotingAddress: string;
@@ -48,7 +48,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     // deploy the voting vault contract
     const proxyDeployer = await ethers.getContractFactory("SimpleProxy", wallet);
     const deployer = await ethers.getContractFactory("LockingVault", timelock);
-    const lockingVaultBase = await deployer.deploy(token.address, 60); //199350
+    const lockingVaultBase = await deployer.deploy(token.address, 55); // use 199350 with fork of mainnet
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVault = lockingVaultBase.attach(lockingVaultProxy.address);
 
@@ -94,7 +94,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         return latestBlock;
     };
 
-    const increaseBlocknumber = async (provider: any, times: number) => {
+    const increaseBlockNumber = async (provider: any, times: number) => {
         for (let i = 0; i < times; i++) {
             await provider.send("evm_mine", []);
         }
@@ -108,7 +108,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         votingVaults,
         getBlock,
         baseVotingPower,
-        increaseBlocknumber,
+        increaseBlockNumber,
         timelock,
     };
 };
