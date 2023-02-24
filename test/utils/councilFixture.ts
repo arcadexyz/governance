@@ -1,4 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
@@ -6,7 +7,6 @@ import { Timelock } from "../../src/types";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
-import { ZERO_ADDRESS } from "./erc20";
 
 type Signer = SignerWithAddress;
 const baseVotingPower = 1e10;
@@ -44,7 +44,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const token = await erc20Deployer.deploy("Arc", "test Arc", signers[0].address);
 
     const timelockDeployer = await ethers.getContractFactory("Timelock", signers[0]);
-    const timelock = await timelockDeployer.deploy(1000, signers[0].address, ZERO_ADDRESS);
+    const timelock = await timelockDeployer.deploy(1000, signers[0].address, constants.AddressZero);
 
     // deploy the voting vault contract
     const proxyDeployer = await ethers.getContractFactory("SimpleProxy", wallet);
