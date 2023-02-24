@@ -23,6 +23,7 @@ export interface TestContextCouncil {
     timelock: Timelock;
 }
 export let coreVotingAddress: string;
+
 /**
  * This fixture creates a coreVoting deployment with a timelock and lockingVault,
  * with the parameters for each.
