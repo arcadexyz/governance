@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import feeControllerData from "../artifacts/@arcadexyz/v2-contracts/contracts/FeeController.sol/FeeController.json";
 import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContext, fixture } from "./utils/fixture";
@@ -105,9 +104,9 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
             const newFee = 60;
             const targetAddress = [feeController.address];
             // create an interface to access feeController abi
-            const fcInterface = new ethers.utils.Interface(feeControllerData.abi);
+            const fcFactory = await ethers.getContractFactory("FeeController");
             // encode function signature and new fee amount to pass in proposal execution if majority votes YES
-            const feeContCalldata = fcInterface.encodeFunctionData("setOriginationFee", [newFee]);
+            const feeContCalldata = fcFactory.interface.encodeFunctionData("setOriginationFee", [newFee]);
 
             // a signer that holds enough voting power for proposal creation, creates the proposal
             // with a YES ballot
