@@ -10,6 +10,9 @@
 **/dist
 **/node_modules
 **/types
+contracts/external
+typechain/
+test/utils/external/**/*
 
 # files
 *.env
@@ -19,3 +22,6 @@ coverage.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.solcover.js
+tsconfig.json
+contracts/test/cryptoPunks.sol

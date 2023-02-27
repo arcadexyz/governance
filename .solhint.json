@@ -1,18 +1,25 @@
 {
-  "extends": "solhint:recommended",
-  "plugins": ["prettier"],
-  "rules": {
-    "code-complexity": ["error", 8],
-    "compiler-version": ["error", ">=0.8.4"],
-    "func-visibility": ["error", { "ignoreConstructors": true }],
-    "max-line-length": ["error", 120],
-    "not-rely-on-time": "off",
-    "prettier/prettier": [
-      "error",
-      {
-        "endOfLine": "auto"
-      }
-    ],
-    "reason-string": ["warn", { "maxLength": 64 }]
-  }
+    "extends": "solhint:recommended",
+    "plugins": ["prettier"],
+    "rules": {
+        "no-inline-assembly": "off",
+        "avoid-low-level-calls": "off",
+        "function-max-lines": "off",
+        "code-complexity": ["warn", 24],
+        "compiler-version": ["error", ">=0.8.3"],
+        "const-name-snakecase": "off",
+        "constructor-syntax": "error",
+        "func-visibility": ["error", { "ignoreConstructors": true }],
+        "max-line-length": ["error", 120],
+        "not-rely-on-time": "off",
+        "no-empty-blocks": "off",
+        "no-unused-vars": "off",
+        "prettier/prettier": [
+            "error",
+            {
+                "endOfLine": "auto"
+            }
+        ],
+        "reason-string": ["warn", { "maxLength": 64 }]
+    }
 }

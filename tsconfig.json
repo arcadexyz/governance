@@ -16,7 +16,7 @@
     "strict": true,
     "target": "es6"
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "test/utils/external/**/*", "test/utils/external/***/**/*", "contracts/test/CryptoPunks.sol" ],
   "files": ["./hardhat.config.ts"],
-  "include": ["src/**/*", "tasks/**/*", "test/**/*"]
+  "include": ["src/*","src/**/*", "tasks/*", "tasks/**/*", "test/**/*", "scripts/*","scripts/**/*", "test/utils/*"]
 }
