@@ -68,16 +68,15 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
             ctxCouncil = await loadFixture(councilFixture);
             const { signers, coreVoting, delegateVotingPower, lockingVault, votingVaults, increaseBlockNumber } =
                 ctxCouncil;
-            // load the Aracde fixture
+            // load the Arcade fixture
             ctx = await loadFixture(fixture);
             // get the feeController contract which will be called to set the new origination fee
             const { feeController } = ctx;
 
-            /////////////// Users deposit their tokens and delegate voting power ////////////////////
+            // users deposit their tokens and delegate voting power
             await delegateVotingPower(signers);
 
-            ////////////////////// Query VotingPower to Initialize Memory for Every Governance Participant  /////////////////////////////////
-
+            // query voting power to initialize history for every governance participant
             const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();
             // view query voting power of signer 0
             const votingPower = await lockingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
@@ -93,7 +92,7 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
             const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
-            /////////////// Create proposal to update originationFee in FeeController ////////////////////
+            // create proposal to update originationFee in FeeController
             // check current originationFee value
             const currentOgFee = (await feeController.getOriginationFee()).toString();
 
@@ -110,15 +109,14 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
                 .connect(signers[0])
                 .proposal(votingVaults, zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
-            /////////////// Create proposal to update originationFee in FeeController ////////////////////
             // pass proposal with YES majority
             await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 0, 0); // yes vote
             await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 0, 1); // no vote
 
-            /////////////// Winning proposal is executed ////////////////////
             //increase blockNumber to exceed 3 day default lock duration set in coreVoting
             await increaseBlockNumber(provider, 19488);
 
+            // proposal execution
             await coreVoting.connect(signers[0]).execute(0, targetAddress, [feeContCalldata]);
             const originationFee = await feeController.getOriginationFee();
             expect(originationFee).to.not.equal(currentOgFee);
