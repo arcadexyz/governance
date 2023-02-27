@@ -7,15 +7,10 @@ import { TestContext, fixture } from "./utils/fixture";
 
 const { loadFixture, provider } = waffle;
 
-const one = ethers.utils.parseEther("1");
-const three = ethers.utils.parseEther("3");
-const MAX = ethers.constants.MaxUint256;
-const zeroExtraData = ["0x", "0x", "0x", "0x"];
-
 /**
  * In its simplest form, Arcade governance uses an Arcade/Council LockingVault
  * where users deposit their ARC tokens in exchange for delegating their
- * governance power to votes on a proposal.
+ * governance power to vote on a proposal.
  * The Arcade/Council CoreVoting contract calls the LockingVault to get the amount
  * of voting power each governance participant has accumulated to vote.
  * Protocol updates are automatically executed when a when quorum and vote
@@ -25,6 +20,10 @@ const zeroExtraData = ["0x", "0x", "0x", "0x"];
 describe("Arcade Vote Execution via Council Locking Vault", function () {
     let ctxCouncil: TestContextCouncil;
     let ctx: TestContext;
+
+    const ONE = ethers.utils.parseEther("1");
+    const MAX = ethers.constants.MaxUint256;
+    const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     before(async function () {
         // Helper function in Council test utils that utilizes the hardhat network method
@@ -48,7 +47,6 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
     beforeEach(async () => {
         // Before each get a snapshot
         await createSnapshot(provider);
-        console.log(); // to add a blank space
     });
 
     afterEach(async () => {
@@ -57,45 +55,43 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
     });
 
     describe("Arcade/Council governance flow", async () => {
+        beforeEach(async () => {
+            await createSnapshot(provider);
+        });
+
+        afterEach(async () => {
+            await restoreSnapshot(provider);
+        });
+
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             // load the Council fixture
             ctxCouncil = await loadFixture(councilFixture);
-            const { signers, coreVoting, lockingVault, votingVaults } = ctxCouncil;
+            const { signers, coreVoting, delegateVotingPower, lockingVault, votingVaults, increaseBlockNumber } =
+                ctxCouncil;
             // load the Aracde fixture
             ctx = await loadFixture(fixture);
             // get the feeController contract which will be called to set the new origination fee
             const { feeController } = ctx;
 
             /////////////// Users deposit their tokens and delegate voting power ////////////////////
-            // Initialize goverannce: signer[0] deposits their tokens and delegates to signers[2]
-            const tx = await (await lockingVault.deposit(signers[0].address, one, signers[2].address)).wait();
-            // view query voting power of signer 2
-            const votingPower = await lockingVault.queryVotePowerView(signers[2].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(one);
+            await delegateVotingPower(signers);
 
-            // signer[1] deposits and delegates to signers[2]
-            const tx2 = await (await lockingVault.deposit(signers[1].address, one, signers[2].address)).wait();
+            ////////////////////// Query VotingPower to Initialize Memory for Every Governance Participant  /////////////////////////////////
+
+            const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();
+            // view query voting power of signer 0
+            const votingPower = await lockingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            expect(votingPower).to.be.eq(ONE.mul(4));
+
+            const tx2 = await (await lockingVault.deposit(signers[1].address, ONE, signers[2].address)).wait();
             // view query voting power of signer 2
             const votingPower2 = await lockingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
-            expect(votingPower2).to.be.eq(one.mul(2));
+            expect(votingPower2).to.be.eq(ONE.mul(11));
 
-            // signer[2] deposits and delegates to self
-            const tx3 = await (await lockingVault.deposit(signers[2].address, one, signers[2].address)).wait();
-            // view query voting power of signer 2
-            const votingPower3 = await lockingVault.queryVotePowerView(signers[2].address, tx3.blockNumber);
-            expect(votingPower3).to.be.eq(one.mul(3));
-
-            // signer[3] deposits and delegates to signers[1]
-            const tx4 = await (await lockingVault.deposit(signers[3].address, one, signers[1].address)).wait();
+            const tx3 = await (await lockingVault.deposit(signers[4].address, ONE.mul(1), signers[1].address)).wait();
             // view query voting power of signer 1
-            const votingPower4 = await lockingVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
-            expect(votingPower4).to.be.eq(one);
-
-            // signer[4] deposits and delegates to signers[0]
-            const tx5 = await (await lockingVault.deposit(signers[4].address, one.mul(3), signers[0].address)).wait();
-            // view query voting power of signer 0
-            const votingPower5 = await lockingVault.queryVotePowerView(signers[0].address, tx5.blockNumber);
-            expect(votingPower5).to.be.eq(three);
+            const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
+            expect(votingPower3).to.be.eq(ONE);
 
             /////////////// Create proposal to update originationFee in FeeController ////////////////////
             // check current originationFee value
@@ -115,12 +111,14 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
                 .proposal(votingVaults, zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
             /////////////// Create proposal to update originationFee in FeeController ////////////////////
-            // pass proposal with 2/3 majority
-            await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 0, 0);
-            await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 0, 1);
-            await coreVoting.connect(signers[0]).vote(votingVaults, zeroExtraData, 0, 0);
+            // pass proposal with YES majority
+            await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 0, 0); // yes vote
+            await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 0, 1); // no vote
 
             /////////////// Winning proposal is executed ////////////////////
+            //increase blockNumber to exceed 3 day default lock duration set in coreVoting
+            await increaseBlockNumber(provider, 19488);
+
             await coreVoting.connect(signers[0]).execute(0, targetAddress, [feeContCalldata]);
             const originationFee = await feeController.getOriginationFee();
             expect(originationFee).to.not.equal(currentOgFee);

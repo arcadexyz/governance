@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { constants } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
@@ -9,7 +9,6 @@ import { MockERC20Council } from "../../src/types/contracts/external/council/moc
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
 
 type Signer = SignerWithAddress;
-const baseVotingPower = 1e10;
 
 export interface TestContextCouncil {
     token: MockERC20Council;
@@ -17,10 +16,10 @@ export interface TestContextCouncil {
     signers: Signer[];
     coreVoting: CoreVoting;
     votingVaults: string[];
-    getBlock: () => Promise<number>;
-    baseVotingPower: number;
-    increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     timelock: Timelock;
+    increaseBlockNumber: (provider: any, times: number) => Promise<void>;
+    getBlock: () => Promise<number>;
+    delegateVotingPower: (signers: SignerWithAddress[]) => Promise<BigNumber | undefined>;
 }
 export let coreVotingAddress: string;
 
@@ -36,13 +35,14 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const [wallet] = provider.getWallets();
 
     // init vars
-    const three = ethers.utils.parseEther("3");
-    const four = ethers.utils.parseEther("4");
+    const THREE = ethers.utils.parseEther("3");
+    const SEVEN = ethers.utils.parseEther("7");
 
-    // deploy the token;
-    const erc20Deployer = await ethers.getContractFactory("MockERC20Council", signers[10]);
+    // deploy the token
+    const erc20Deployer = await ethers.getContractFactory("MockERC20Council", signers[0]);
     const token = await erc20Deployer.deploy("Arc", "test Arc", signers[0].address);
 
+    // deploy the timelock contract setting the wait time, its owner and GSC address
     const timelockDeployer = await ethers.getContractFactory("Timelock", signers[0]);
     const timelock = await timelockDeployer.deploy(1000, signers[0].address, constants.AddressZero);
 
@@ -63,23 +63,20 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         await token.setAllowance(signer.address, lockingVault.address, ethers.constants.MaxUint256);
     }
 
-    const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", timelock);
+    const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", signers[0]);
 
     // setup coreVoting with parameters as follows:
-    // for initial testing purposes, we are setting the default quorum to 4
+    // for initial testing purposes, we are setting the default quorum to 7
     // min voting power needed for propoasal submission is set to 3
     // GSC contract address is set to zero - GSC not used
     // array of voting vaults which will be used in coreVoting
     const coreVoting = await coreVotingDeployer.deploy(
         signers[0].address, // deployer address at first, then ownership set to timelock contract
-        four, // base quorum / default quorum
-        three, // min voting power needed to submit a proposal
+        SEVEN, // base quorum / default quorum
+        THREE, // min voting power needed to submit a proposal
         ethers.constants.AddressZero, // GSC contract address
         votingVaults, // voting vaults array
     );
-
-    // override default lock duration, for the purposes of testing, make it zero
-    await coreVoting.connect(signers[0]).setLockDuration(0);
 
     // grant roles and update owner role
     await coreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns coreVoting
@@ -89,9 +86,30 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     // update coreVoting address. This address will be set as owner of FeeController.sol
     coreVotingAddress = coreVoting.address;
 
+    const delegateVotingPower = async (signers: SignerWithAddress[]) => {
+        const ONE = ethers.utils.parseEther("1");
+
+        // setup the users and give accounts some voting power
+        // signer[0] deposits initializes votingPower storage
+        await lockingVault.deposit(signers[0].address, ONE, signers[0].address);
+        // signer[1] deposits 0.5 voting power to signers[0]
+        await lockingVault.connect(signers[1]).deposit(signers[1].address, ONE.div(2), signers[0].address);
+        // signer[1] deposits 0.5 voting power to signers[3]
+        await lockingVault.connect(signers[1]).deposit(signers[1].address, ONE.div(2), signers[3].address);
+        // signer[2] deposits 2 voting power to signers[2]
+        await lockingVault.connect(signers[2]).deposit(signers[2].address, ONE.mul(2), signers[2].address);
+        // signer[3] deposits 1 voting power to signers[2]
+        await lockingVault.connect(signers[3]).deposit(signers[3].address, ONE, signers[2].address);
+        // signer[3] deposits 3 voting power to signers[1]
+        await lockingVault.connect(signers[3]).deposit(signers[3].address, ONE.mul(3), signers[1].address);
+        // signers[1] deposits 2 voting power to signers[0]
+        await lockingVault.connect(signers[1]).deposit(signers[1].address, ONE.mul(2), signers[0].address);
+        // signers[2] deposits 2 voting power to signers[3]
+        await lockingVault.connect(signers[2]).deposit(signers[2].address, ONE.mul(2), signers[3].address);
+    };
+
     const getBlock = async () => {
-        // eslint-disable-next-line prefer-const
-        let latestBlock: number = (await ethers.provider.getBlock("latest")).number;
+        const latestBlock: number = (await ethers.provider.getBlock("latest")).number;
         return latestBlock;
     };
 
@@ -107,9 +125,9 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         token,
         coreVoting,
         votingVaults,
-        getBlock,
-        baseVotingPower,
-        increaseBlockNumber,
         timelock,
+        increaseBlockNumber,
+        getBlock,
+        delegateVotingPower,
     };
 };

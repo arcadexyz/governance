@@ -27,9 +27,6 @@ export const fixture = async (): Promise<TestContext> => {
     const updateFeeControllerAdmin = await feeController.transferOwnership(coreVotingAddress);
     await updateFeeControllerAdmin.wait();
 
-    console.log(`FeeController ownership transferred to CoreVoting address: ${coreVotingAddress}`);
-    console.log(); // add blank space
-
     return {
         feeController,
     };
