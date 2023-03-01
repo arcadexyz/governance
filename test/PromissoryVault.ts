@@ -1,11 +1,8 @@
 import { waffle } from "hardhat";
 
-//import { tokenAddress } from "./utils/councilFixture";
 import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContext, fixture } from "./utils/fixture";
-
-// import { LoanTerms } from "./utils/types";
 
 const { loadFixture, provider } = waffle;
 
@@ -45,7 +42,6 @@ describe("Arcade Vote Execution via PromissoryVault", function () {
     beforeEach(async () => {
         // Before each get a snapshot
         await createSnapshot(provider);
-        console.log(); // to add a blank space
     });
 
     afterEach(async () => {
@@ -60,24 +56,11 @@ describe("Arcade Vote Execution via PromissoryVault", function () {
             const { votingVaults } = ctxCouncil;
             // load the Arcade fixture
             ctx = await loadFixture(fixture);
-            const { promissoryVault } = ctx;
+            const { promissoryVault, pNoteId } = ctx;
 
             votingVaults.push(promissoryVault.address);
 
-            // const terms: LoanTerms = {
-            //     durationSecs: BigNumber.from(3600000),
-            //     principal: hre.ethers.utils.parseEther("100"),
-            //     interestRate: hre.ethers.utils.parseEther("1"),
-            //     collateralId: 1,
-            //     numInstallments: 0,
-            //     deadline: 1754884800,
-            //     payableCurrency: tokenAddress,
-            //     collateralAddress: vaultFactory.address,
-            // };
-            // console.log("TST terms ==========================");
-            // const loanId = await startLoan(loanCore, borrower, lender.address, borrower.address, terms);
-
-            //console.log("Loan Id", loanId);
+            console.log("TEST 67 =============", pNoteId);
         });
     });
 });

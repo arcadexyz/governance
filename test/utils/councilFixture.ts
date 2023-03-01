@@ -17,6 +17,7 @@ export interface TestContextCouncil {
     coreVoting: CoreVoting;
     votingVaults: string[];
     timelock: Timelock;
+    tokenAddress: string;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     getBlock: () => Promise<number>;
     delegateVotingPower: (signers: SignerWithAddress[]) => Promise<BigNumber | undefined>;
@@ -133,5 +134,6 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         increaseBlockNumber,
         getBlock,
         delegateVotingPower,
+        tokenAddress,
     };
 };

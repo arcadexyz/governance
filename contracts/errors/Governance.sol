@@ -15,9 +15,13 @@ pragma solidity >=0.8.18;
 /// @notice All errors prefixed with PV_, to separate from other contracts in governance.
 
 /**
- * @notice Ensure valid loan state for PromissoryVault operations.
+ * @notice Ensure caller promissoryNote ownership PromissoryVault operations.
  *
  */
-error PV_InvalidState();
-//(LoanLibrary.LoanState state)
-// @param state                         Current state of a loan according to LoanState enum.
+error PV_DoesNotOwn();
+
+/**
+ * @notice Ensure caller has not already registered a Pnote.
+ *
+ */
+error PV_HasPnote();

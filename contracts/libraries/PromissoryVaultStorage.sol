@@ -19,11 +19,12 @@ library PromissoryVaultStorage {
 
     // A struct which represents 1 packed storage location (Pnote)
     struct Pnote {
-        uint128 loanId;
         uint128 amount; // token amount
         uint128 time; // time of txn
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from vault
+        uint128 noteId; // promissoryNote id
+        address promissoryNote; // token address
         address delegatee;
     }
 

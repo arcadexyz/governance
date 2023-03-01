@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+
 pragma solidity >=0.8.18;
 
 /* solhint-disable no-global-import */
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
@@ -9,9 +12,7 @@ import "./external/council/interfaces/IVotingVault.sol";
 import "./libraries/PromissoryVaultStorage.sol";
 // import "hardhat/console.sol";
 
-import "@arcadexyz/v2-contracts/contracts/interfaces/ILoanCore.sol";
-
-import { PV_InvalidState } from "./errors/Governance.sol";
+import { PV_DoesNotOwn, PV_HasPnote } from "./errors/Governance.sol";
 
 /**
  * @title PromissoryVault
@@ -36,8 +37,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
 
     // Immutables are in bytecode so don't need special storage treatment
     IERC20 public immutable token;
-
-    address public loanCore;
 
     // A constant which is how far back stale blocks are
     uint256 public immutable staleBlockLag;
@@ -79,15 +78,13 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      *
      * @param manager_                 The vault manager can remove balance.
      * @param timelock_                The timelock address can change the multiplier.
-     * @param loanCore_                The loanCore address to get loan state info.
      *
      */
-    function initialize(address manager_, address timelock_, address loanCore_) public {
+    function initialize(address manager_, address timelock_) public {
         require(Storage.uint256Ptr("initialized").data == 0, "initialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
-        Storage.set(Storage.addressPtr("loanCore"), loanCore_);
         Storage.set(Storage.uint256Ptr("multiplier"), 100);
     }
 
@@ -103,7 +100,14 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param _delegatee                 Optional param. The address to delegate the voting power associated
      *                                  with this Pnote to
      */
-    function addPnoteAndDelegate(uint128 _amount, uint128 _time, uint128 _loanId, address _delegatee) public {
+    function addPnoteAndDelegate(
+        uint128 _amount,
+        uint128 _time,
+        uint128 _loanId,
+        uint128 _noteId,
+        address _promissoryNote,
+        address _delegatee
+    ) public {
         address _who = msg.sender;
         uint128 withdrawn = 0;
 
@@ -120,25 +124,28 @@ abstract contract AbstractPromissoryVault is IVotingVault {
 
         // If this address already has a pNote, a different address must be provided
         // topping up or editing active pNotes is not supported.
-        require(pNote.loanId == 0, "Has Pnote");
+        if (pNote.promissoryNote != address(0)) revert PV_HasPnote();
 
-        // confirm this user is the owner of the loanId
-        require(IERC721(ILoanCore(loanCore).borrowerNote()).ownerOf(_loanId) == _who, "Not owner of loan");
-        // console.log("SOL 187 =======", IERC721(ILoanCore(loanCore).borrowerNote()).ownerOf(_loanId));
-        // confirm that the loan is active
-        LoanLibrary.LoanData memory data = ILoanCore(loanCore).getLoan(_loanId);
-        if (data.state != LoanLibrary.LoanState.Active) revert PV_InvalidState();
-        // if (data.state != LoanLibrary.LoanState.Active) revert PV_InvalidState(data.state);
+        // confirm this user is the owner of the promissoryNote
+        if (IERC721(pNote.promissoryNote).ownerOf(pNote.noteId) != _who) revert PV_DoesNotOwn();
 
         // load the delegate. Defaults to the grant owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
         // calculate the voting power. Assumes all voting power is initially locked.
         // Come back to this assumption.
-        uint128 newVotingPower = (_amount * uint128(multiplier.data)) / 100;
+        uint128 newVotingPower = _amount * uint128(multiplier.data);
 
         // set the new pNote
-        _pNotes()[_who] = PromissoryVaultStorage.Pnote(_loanId, _amount, _time, newVotingPower, withdrawn, _delegatee);
+        _pNotes()[_who] = PromissoryVaultStorage.Pnote(
+            _amount,
+            _time,
+            newVotingPower,
+            withdrawn,
+            _noteId,
+            _promissoryNote,
+            _delegatee
+        );
 
         // update this contract's balance
         balance.data += _amount;
