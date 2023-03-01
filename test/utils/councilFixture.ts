@@ -22,6 +22,10 @@ export interface TestContextCouncil {
     delegateVotingPower: (signers: SignerWithAddress[]) => Promise<BigNumber | undefined>;
 }
 export let coreVotingAddress: string;
+<<<<<<< HEAD
+=======
+export let tokenAddress: string;
+>>>>>>> c6cac4d (feat: initial commit)
 
 /**
  * This fixture creates a coreVoting deployment with a timelock and lockingVault,
