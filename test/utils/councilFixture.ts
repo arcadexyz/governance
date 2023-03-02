@@ -93,7 +93,6 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
 
     const delegateVotingPower = async (signers: SignerWithAddress[]) => {
         const ONE = ethers.utils.parseEther("1");
-
         // setup the users and give accounts some voting power
         // signer[0] deposits initializes votingPower storage
         await lockingVault.deposit(signers[0].address, ONE, signers[0].address);

@@ -74,7 +74,7 @@ describe("Arcade Vote Execution via Council Locking Vault", function () {
             const { feeController } = ctx;
 
             // users deposit their tokens and delegate voting power
-            await delegateVotingPower(signers);
+            await delegateVotingPower(signers, [lockingVault]);
 
             // query voting power to initialize history for every governance participant
             const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();

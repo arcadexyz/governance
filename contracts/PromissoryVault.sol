@@ -12,7 +12,14 @@ import "./external/council/interfaces/IVotingVault.sol";
 import "./libraries/PromissoryVaultStorage.sol";
 // import "hardhat/console.sol";
 
-import { PV_DoesNotOwn, PV_HasPnote } from "./errors/Governance.sol";
+import {
+    PV_DoesNotOwn,
+    PV_HasPnote,
+    PV_AlreadyDelegated,
+    PV_InsufficientBalance,
+    PV_Above100,
+    PV_InsufficientPnoteBalance
+} from "./errors/Governance.sol";
 
 /**
  * @title PromissoryVault
@@ -97,7 +104,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param _time                     The time of deposit. If set to zero, it will be the the block this
      *                                  is executed in.
      * @param _loanId                   The id of the user's active loan.
-     * @param _delegatee                 Optional param. The address to delegate the voting power associated
+     * @param _delegatee                Optional param. The address to delegate the voting power associated
      *                                  with this Pnote to
      */
     function addPnoteAndDelegate(
@@ -111,7 +118,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         address _who = msg.sender;
         uint128 withdrawn = 0;
 
-        // If no custom start time is needed we use this block.
+        // If no custom time is needed we use this block
         if (_time == 0) {
             _time = uint128(block.number);
         }
@@ -119,21 +126,20 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         Storage.Uint256 storage balance = _balance();
         Storage.Uint256 memory multiplier = _multiplier();
 
-        // load the PNote.
+        // load the pNote
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[_who];
 
-        // If this address already has a pNote, a different address must be provided
-        // topping up or editing active pNotes is not supported.
+        // If this user already has a pNote, a different address must be provided
+        // topping up or editing active pNotes is not supported
         if (pNote.promissoryNote != address(0)) revert PV_HasPnote();
 
         // confirm this user is the owner of the promissoryNote
         if (IERC721(pNote.promissoryNote).ownerOf(pNote.noteId) != _who) revert PV_DoesNotOwn();
 
-        // load the delegate. Defaults to the grant owner
+        // load the delegate. Defaults to the pNote owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
-        // calculate the voting power. Assumes all voting power is initially locked.
-        // Come back to this assumption.
+        // calculate the voting power
         uint128 newVotingPower = _amount * uint128(multiplier.data);
 
         // set the new pNote
@@ -152,7 +158,9 @@ abstract contract AbstractPromissoryVault is IVotingVault {
 
         // update the delegatee's voting power
         History.HistoricalBalances memory votingPower = _votingPower();
+        // loads the most recent timestamp of delgation power for this delegate
         uint256 delegateeVotes = votingPower.loadTop(pNote.delegatee);
+        // add block stamp indexed delegation power for this delegate to historical data array
         votingPower.push(pNote.delegatee, delegateeVotes + newVotingPower);
 
         emit VoteChange(pNote.delegatee, _who, int256(uint256(newVotingPower)));
@@ -179,51 +187,68 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      */
     function delegate(address _to) public {
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
-        // If the delegation has already happened we don't want the tx to send
-        require(_to != pNote.delegatee, "Already delegated");
+        // If this address is already the delegate, don't send the tx
+        if (_to != pNote.delegatee) revert PV_AlreadyDelegated();
         History.HistoricalBalances memory votingPower = _votingPower();
 
         uint256 oldDelegateeVotes = votingPower.loadTop(pNote.delegatee);
+        // returns the current voting power of a Pnote
         uint256 newVotingPower = _currentVotingPower(pNote);
 
-        // Remove old delegatee's voting power and emit event
+        // Remove voting power from old delegatee and emit event
         votingPower.push(pNote.delegatee, oldDelegateeVotes - pNote.latestVotingPower);
         emit VoteChange(pNote.delegatee, msg.sender, -1 * int256(uint256(pNote.latestVotingPower)));
 
         // Note - It is important that this is loaded here and not before the previous state change because if
-        // _to == pNote.delegatee and re-delegation was allowed we could be working with out of date state.
+        // _to == pNote.delegatee and re-delegation was allowed we could be working with out of date state
         uint256 newDelegateeVotes = votingPower.loadTop(_to);
 
         // add voting power to the target delegatee and emit event
         emit VoteChange(_to, msg.sender, int256(newVotingPower));
         votingPower.push(_to, newDelegateeVotes + newVotingPower);
 
-        // update pNote info
+        // update pNote properties
         pNote.latestVotingPower = uint128(newVotingPower);
         pNote.delegatee = _to;
     }
 
     /**
      * @notice Removes tokens from this contract and the voting power they represent.
-     *         multiplier can be updated at any time.
      *
      * @param amount                       The amount of token to withdraw.
      */
-    function withdraw(uint256 amount) external virtual {
+    function withdraw(uint128 amount) external virtual {
+        // TODO: function should be ownable where only a user can withdraw their deposited tokens
+
         // load the pNote
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(pNote);
+        // get this contract's balance
+        Storage.Uint256 storage balance = _balance();
+        if (balance.data >= amount) revert PV_InsufficientBalance();
+        if (pNote.amount < amount) revert PV_InsufficientPnoteBalance();
 
-        // transfer the amount
+        // user withdraws SOME tokens
+        if ((pNote.amount - pNote.withdrawn - amount) > 0) {
+            // update contract balance
+            balance.data -= amount;
+            // update withdrawn amount
+            pNote.withdrawn += amount;
+            // update the delegatee's voting power
+            _syncVotingPower(msg.sender, pNote);
+            // pNote withdrawn property updates
+        } else if ((pNote.amount - pNote.withdrawn - amount) = 0) {
+            // user withdraws ALL tokens
+            // update contract balance
+            balance.data -= amount;
+            // update the delegatee's voting power
+            _syncVotingPower(msg.sender, pNote);
+            // pNote deleted
+            delete _pNotes()[msg.sender];
+        }
+        // transfer the token amount to the user
         token.transfer(msg.sender, withdrawable);
-        pNote.withdrawn += uint128(withdrawable);
-
-        // update the user's voting power
-        _syncVotingPower(msg.sender, pNote);
-        // if amount withdrawn == token amount,
-        // delete pNote
-        // delete _pNotes()[_who];
     }
 
     /**
@@ -283,7 +308,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param _multiplier                The new multiplier value.
      */
     function changeMultiplier(uint256 _multiplier) public onlyTimelock {
-        require(_multiplier <= 100, "Above 100%");
+        if (_multiplier <= 100) revert PV_Above100();
         Storage.set(Storage.uint256Ptr("multiplier"), _multiplier);
     }
 

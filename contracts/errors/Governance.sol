@@ -25,3 +25,27 @@ error PV_DoesNotOwn();
  *
  */
 error PV_HasPnote();
+
+/**
+ * @notice Ensure delegatee is not already registered as the delegate in user's Pnote.
+ *
+ */
+error PV_AlreadyDelegated();
+
+/**
+ * @notice Contract balance has to be bigger than amount being withdrawn.
+ *
+ */
+error PV_InsufficientBalance();
+
+/**
+ * @notice Deposited tokens less than withdraw amount.
+ *
+ */
+error PV_InsufficientPnoteBalance();
+
+/**
+ * @notice Multiplier cannot be above 100.
+ *
+ */
+error PV_Above100();

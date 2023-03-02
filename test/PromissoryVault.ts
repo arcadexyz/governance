@@ -21,10 +21,12 @@ describe("Arcade Vote Execution via PromissoryVault", function () {
     let ctx: TestContext;
 
     before(async function () {
-        // Helper function in Council test utils that utilizes the hardhat network method
-        // "evm_snapshot" to get and store ids of snapshots of the state of the blockchain
-        // at various blocks in an array for use in testing. These IDs help track users'
-        // voting power and delegations at different blocks.
+        /**
+         * Helper function in Council test utils that utilizes the hardhat network method
+         * "evm_snapshot" to get and store ids of snapshots of the state of the blockchain
+         * at various blocks in an array for use in testing. These IDs help track users'
+         * voting power and delegations at different blocks.
+         */
         await createSnapshot(provider);
 
         ctxCouncil = await loadFixture(councilFixture);
