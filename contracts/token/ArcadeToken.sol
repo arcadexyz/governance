@@ -10,11 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
 import "../interfaces/IArcadeToken.sol";
 
-import {
-    AT_AlreadyMinted,
-    AT_ExceedsTotalSupply,
-    AT_ZeroAddress
-} from "../errors/Token.sol";
+import { AT_AlreadyMinted, AT_ExceedsTotalSupply, AT_ZeroAddress } from "../errors/Token.sol";
 
 /**
  *                                   _
@@ -134,14 +130,14 @@ contract ArcadeToken is ERC20, ERC20Burnable, ERC20Snapshot, IArcadeToken, Ownab
     /**
      * @notice Mints a predetermined amount of Arcade tokens to the treasury.
      *         This amount is equal to 25.5% of the total supply.
-     * 
+     *
      * @param to                  The address of Arcade treasure.
      */
     function mintToTreasury(address to) external onlyOwner {
         if (to == address(0)) revert AT_ZeroAddress();
         if (treasuryMinted) revert AT_AlreadyMinted();
 
-        uint256 amount = TOTAL_SUPPLY * TREASURY_PERCENTAGE / BASIS_POINTS_DENOMINATOR;
+        uint256 amount = (TOTAL_SUPPLY * TREASURY_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
 
         if (totalSupply() + amount > TOTAL_SUPPLY) {
             revert AT_ExceedsTotalSupply(amount, TOTAL_SUPPLY - totalSupply());
@@ -155,14 +151,14 @@ contract ArcadeToken is ERC20, ERC20Burnable, ERC20Snapshot, IArcadeToken, Ownab
     /**
      * @notice Mints a predetermined amount of Arcade tokens to token development
      *         partner. This amount is equal to 0.6% of the total supply.
-     * 
+     *
      * @param to                  The address of Arcade treasure.
      */
     function mintToDevPartner(address to) external onlyOwner {
         if (to == address(0)) revert AT_ZeroAddress();
         if (devPartnerMinted) revert AT_AlreadyMinted();
-         
-        uint256 amount = TOTAL_SUPPLY * DEV_PARTNER_PERCENTAGE / BASIS_POINTS_DENOMINATOR;
+
+        uint256 amount = (TOTAL_SUPPLY * DEV_PARTNER_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
 
         if (totalSupply() + amount > TOTAL_SUPPLY) {
             revert AT_ExceedsTotalSupply(amount, TOTAL_SUPPLY - totalSupply());
@@ -176,21 +172,21 @@ contract ArcadeToken is ERC20, ERC20Burnable, ERC20Snapshot, IArcadeToken, Ownab
     /**
      * @notice Mints a predetermined amount of Arcade tokens to the community
      *         rewards pool. This amount is equal to 15% of the total supply.
-     * 
+     *
      * @param to                  The address of Arcade treasure.
      */
     function mintToCommunityRewards(address to) external onlyOwner {
         if (to == address(0)) revert AT_ZeroAddress();
         if (communityRewardsMinted) revert AT_AlreadyMinted();
 
-        uint256 amount = TOTAL_SUPPLY * COMMUNITY_REWARDS_PERCENTAGE / BASIS_POINTS_DENOMINATOR;
+        uint256 amount = (TOTAL_SUPPLY * COMMUNITY_REWARDS_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
 
         if (totalSupply() + amount > TOTAL_SUPPLY) {
             revert AT_ExceedsTotalSupply(amount, TOTAL_SUPPLY - totalSupply());
         }
 
         communityRewardsMinted = true;
-        
+
         _mint(to, amount);
     }
 
@@ -204,7 +200,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, ERC20Snapshot, IArcadeToken, Ownab
         if (to == address(0)) revert AT_ZeroAddress();
         if (communityAirdropMinted) revert AT_AlreadyMinted();
 
-        uint256 amount = TOTAL_SUPPLY * COMMUNITY_AIRDROP_PERCENTAGE / BASIS_POINTS_DENOMINATOR;
+        uint256 amount = (TOTAL_SUPPLY * COMMUNITY_AIRDROP_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
 
         if (totalSupply() + amount > TOTAL_SUPPLY) {
             revert AT_ExceedsTotalSupply(amount, TOTAL_SUPPLY - totalSupply());
@@ -219,14 +215,14 @@ contract ArcadeToken is ERC20, ERC20Burnable, ERC20Snapshot, IArcadeToken, Ownab
      * @notice Mints a predetermined amount of Arcade tokens minted to a dedicated multisig.
      *         This amount is equal to 48.9% of the total supply. 32.7% to Arcade's launch
      *         partners and 16.2% to the Arcade team.
-     * 
+     *
      * @param to                  The address of Arcade treasure.
      */
     function mintToVesting(address to) external onlyOwner {
         if (to == address(0)) revert AT_ZeroAddress();
         if (vestingMinted) revert AT_AlreadyMinted();
 
-        uint256 amount = TOTAL_SUPPLY * TOTAL_VESTING_PERCENTAGE / BASIS_POINTS_DENOMINATOR;
+        uint256 amount = (TOTAL_SUPPLY * TOTAL_VESTING_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
 
         if (totalSupply() + amount > TOTAL_SUPPLY) {
             revert AT_ExceedsTotalSupply(amount, TOTAL_SUPPLY - totalSupply());
@@ -270,10 +266,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, ERC20Snapshot, IArcadeToken, Ownab
      * @notice Overrides required by Solidity since both ERC20 and ERC20Snapshot use this
      *         function name.
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount)
-        internal
-        override(ERC20, ERC20Snapshot)
-    {
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override(ERC20, ERC20Snapshot) {
         super._beforeTokenTransfer(from, to, amount);
     }
 }

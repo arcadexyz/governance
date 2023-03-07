@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import hre from "hardhat";
 import { Wallet } from "ethers";
+import hre from "hardhat";
 
 import { IArcadeToken } from "../../src/types";
 import { deploy } from "./contracts";
