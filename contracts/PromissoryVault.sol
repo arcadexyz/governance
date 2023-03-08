@@ -10,14 +10,13 @@ import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
 import "./external/council/interfaces/IVotingVault.sol";
 import "./libraries/PromissoryVaultStorage.sol";
-// import "hardhat/console.sol";
 
 import {
     PV_DoesNotOwn,
     PV_HasPnote,
     PV_AlreadyDelegated,
     PV_InsufficientBalance,
-    PV_Above100,
+    PV_MultiplierLimit,
     PV_InsufficientPnoteBalance
 } from "./errors/Governance.sol";
 
@@ -92,7 +91,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
-        Storage.set(Storage.uint256Ptr("multiplier"), 100);
+        Storage.set(Storage.uint256Ptr("multiplier"), 5);
     }
 
     /**
@@ -103,14 +102,12 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param _amount                   The deposit token amount.
      * @param _time                     The time of deposit. If set to zero, it will be the the block this
      *                                  is executed in.
-     * @param _loanId                   The id of the user's active loan.
      * @param _delegatee                Optional param. The address to delegate the voting power associated
      *                                  with this Pnote to
      */
     function addPnoteAndDelegate(
         uint128 _amount,
         uint128 _time,
-        uint128 _loanId,
         uint128 _noteId,
         address _promissoryNote,
         address _delegatee
@@ -134,7 +131,10 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         if (pNote.promissoryNote != address(0)) revert PV_HasPnote();
 
         // confirm this user is the owner of the promissoryNote
-        if (IERC721(pNote.promissoryNote).ownerOf(pNote.noteId) != _who) revert PV_DoesNotOwn();
+        if (IERC721(_promissoryNote).ownerOf(_noteId) != _who) revert PV_DoesNotOwn();
+
+        // Move the user tokens into this contract
+        token.transferFrom(_who, address(this), _amount);
 
         // load the delegate. Defaults to the pNote owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
@@ -162,6 +162,9 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         uint256 delegateeVotes = votingPower.loadTop(pNote.delegatee);
         // add block stamp indexed delegation power for this delegate to historical data array
         votingPower.push(pNote.delegatee, delegateeVotes + newVotingPower);
+
+        // votes again
+        uint256 delegateeVotes2 = votingPower.loadTop(pNote.delegatee);
 
         emit VoteChange(pNote.delegatee, _who, int256(uint256(newVotingPower)));
     }
@@ -218,19 +221,17 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param amount                       The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual {
-        // TODO: function should be ownable where only a user can withdraw their deposited tokens
-
         // load the pNote
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(pNote);
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
-        if (balance.data >= amount) revert PV_InsufficientBalance();
+        if (balance.data < amount) revert PV_InsufficientBalance();
         if (pNote.amount < amount) revert PV_InsufficientPnoteBalance();
 
         // user withdraws SOME tokens
-        if ((pNote.amount - pNote.withdrawn - amount) > 0) {
+        if ((withdrawable - amount) > 0) {
             // update contract balance
             balance.data -= amount;
             // update withdrawn amount
@@ -238,7 +239,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
             // update the delegatee's voting power
             _syncVotingPower(msg.sender, pNote);
             // pNote withdrawn property updates
-        } else if ((pNote.amount - pNote.withdrawn - amount) = 0) {
+        } else if ((withdrawable - amount) == 0) {
             // user withdraws ALL tokens
             // update contract balance
             balance.data -= amount;
@@ -308,7 +309,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param _multiplier                The new multiplier value.
      */
     function changeMultiplier(uint256 _multiplier) public onlyTimelock {
-        if (_multiplier <= 100) revert PV_Above100();
+        if (_multiplier <= 100) revert PV_MultiplierLimit();
         Storage.set(Storage.uint256Ptr("multiplier"), _multiplier);
     }
 

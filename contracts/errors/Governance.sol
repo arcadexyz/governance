@@ -45,7 +45,7 @@ error PV_InsufficientBalance();
 error PV_InsufficientPnoteBalance();
 
 /**
- * @notice Multiplier cannot be above 100.
+ * @notice Multiplier limit exceeded.
  *
  */
-error PV_Above100();
+error PV_MultiplierLimit();

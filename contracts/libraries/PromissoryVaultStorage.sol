@@ -30,7 +30,7 @@ library PromissoryVaultStorage {
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from vault
         uint128 noteId; // promissoryNote id
-        address promissoryNote; // token address
+        address promissoryNote; // NFT address
         address delegatee;
     }
 

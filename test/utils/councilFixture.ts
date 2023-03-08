@@ -4,6 +4,7 @@ import { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
 import { Timelock } from "../../src/types";
+import { PromissoryVault } from "../../src/types/contracts/PromissoryVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
@@ -13,6 +14,7 @@ type Signer = SignerWithAddress;
 export interface TestContextCouncil {
     token: MockERC20Council;
     lockingVault: LockingVault;
+    promissoryVault: PromissoryVault;
     signers: Signer[];
     coreVoting: CoreVoting;
     votingVaults: string[];
@@ -23,10 +25,7 @@ export interface TestContextCouncil {
     delegateVotingPower: (signers: SignerWithAddress[]) => Promise<BigNumber | undefined>;
 }
 export let coreVotingAddress: string;
-<<<<<<< HEAD
-=======
 export let tokenAddress: string;
->>>>>>> c6cac4d (feat: initial commit)
 
 /**
  * This fixture creates a coreVoting deployment with a timelock and lockingVault,
@@ -46,6 +45,8 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     // deploy the token
     const erc20Deployer = await ethers.getContractFactory("MockERC20Council", signers[0]);
     const token = await erc20Deployer.deploy("Arc", "test Arc", signers[0].address);
+    // update the token address for use in promissory vault deployment
+    const tokenAddress: string = token.address;
 
     // deploy the timelock contract setting the wait time, its owner and GSC address
     const timelockDeployer = await ethers.getContractFactory("Timelock", signers[0]);
@@ -58,9 +59,16 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVault = lockingVaultBase.attach(lockingVaultProxy.address);
 
-    // push lockingVault into the votingVaults array which is
+    // deploy and initialize promissory voting vault
+    const PromVaultFactory = await ethers.getContractFactory("PromissoryVault", timelock);
+    const promissoryVaultBase = await PromVaultFactory.deploy(tokenAddress, 55);
+    const promissoryVaultProxy = await proxyDeployer.deploy(timelock.address, promissoryVaultBase.address);
+    const promissoryVault = promissoryVaultBase.attach(promissoryVaultProxy.address);
+    await promissoryVault.initialize(signers[0].address, timelock.address);
+
+    // push voting vaults into the votingVaults array which is
     // used as an argument in coreVoting's deployment
-    votingVaults.push(lockingVault.address);
+    votingVaults.push(promissoryVault.address);
 
     // give users some balance and set their allowance
     for (const signer of signers) {
@@ -126,6 +134,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     return {
         signers,
         lockingVault,
+        promissoryVault,
         token,
         coreVoting,
         votingVaults,
