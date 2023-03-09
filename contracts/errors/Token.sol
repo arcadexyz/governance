@@ -25,6 +25,11 @@ error AT_AlreadyMinted();
 error AT_ExceedsTotalSupply(uint256 amount, uint256 totalSupplyRemaining);
 
 /**
+ * @notice Thrown when a proposed start time for minting is in the past.
+ */
+error AT_InvalidMintStart(uint256 proposedStartTime, uint256 currenttime);
+
+/**
  * @notice Thrown when a zero address is passed in as a parameter.
  */
 error AT_ZeroAddress();

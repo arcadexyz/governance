@@ -2,16 +2,10 @@
 
 pragma solidity ^0.8.18;
 
-interface IArcadeToken {
-    // ================= MINTING OPERATIONS =================
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-    function mintToTreasury(address to) external;
+interface IArcadeToken is IERC20 {
+    function setMinter(address _newMinter) external;
 
-    function mintToDevPartner(address to) external;
-
-    function mintToCommunityRewards(address to) external;
-
-    function mintToCommunityAirdrop(address to) external;
-
-    function mintToVesting(address to) external;
+    function mint(address _to, uint256 _amount) external;
 }
