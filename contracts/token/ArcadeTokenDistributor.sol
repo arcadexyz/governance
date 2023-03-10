@@ -7,168 +7,156 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/IArcadeToken.sol";
 
-import { AT_AlreadyMinted, AT_ExceedsTotalSupply, AT_ZeroAddress } from "../errors/Token.sol";
+import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
 
+/**
+ * @title Arcade Token Distributor
+ * @author Non-Fungible Technologies, Inc.
+ *
+ * A  contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
+ * launch partners, community rewards pool, community airdrop contract, and the Arcade treasury,
+ * and the tokens development partner. Once each minting function has been called, the
+ * corresponding flag is set to true and the function cannot be called again.
+ * 
+ * Upon deployment of the Arcade Token, this contract is set as the Arcade Token's minter. After
+ * all the transfer functions in this contract have been called, the owner of this contract shall
+ * transfer the minter role to the Arcade Token's governance timelock contract.
+ */
 contract ArcadeTokenDistributor is Ownable {
-    // ====================================== STATE ======================================
+    // ============================================= STATE =============================================
 
-    /// @dev The total initial supply of Arcade tokens to be minted by this contract
-    uint256 public constant INTIAL_TOKEN_DST = 100_000_000 ether;
-
-    /// @dev A denominator to express a token amount in terms of a percentage.
-    uint256 public constant BASIS_POINTS_DENOMINATOR = 10_000;
-
-    /// @dev address of the treasury
+    /// @notice Address of the treasury
     address public treasury;
-    /// @dev The percentage of the total supply that is minted to the treasury.
-    uint256 public constant TREASURY_PERCENTAGE = 2550;
-    /// @dev A flag to indicate if the treasury has already been minted to.
+    /// @notice 25.5% of initial distribution is for the treasury
+    uint256 public immutable treasuryAmount = 25500000 ether;
+    /// @notice A flag to indicate if the treasury has already been transferred to
     bool public treasuryMinted;
 
-    /// @dev address of the token development partner
+    /// @notice Address of the token's development partner
     address public devPartner;
-    /// @dev The percentage of the total supply that is minted to the token
-    ///      development partner.
-    uint256 public constant DEV_PARTNER_PERCENTAGE = 60;
-    /// @dev A flag to indicate if the token development partner has already
-    ///      been minted to.
+    /// @notice 0.6% of initial distribution is for the token development partner
+    uint256 public immutable devPartnerAmount = 600000 ether;
+    /// @notice A flag to indicate if the token development partner has already been transferred to.
     bool public devPartnerMinted;
 
-    /// @dev address to recieve the community rewards
+    /// @notice Address to receive the community rewards
     address public communityRewards;
-    /// @dev The percentage of the total supply that is minted to the community
-    ///      rewards pool.
-    uint256 public constant COMMUNITY_REWARDS_PERCENTAGE = 1500;
-    /// @dev A flag to indicate if the community rewards pool has already been
-    ///      minted to.
+    /// @notice 15% of initial distribution is for the community rewards pool
+    uint256 public immutable communityRewardsAmount = 15000000 ether;
+    /// @notice A flag to indicate if the community rewards pool has already been transferred to
     bool public communityRewardsMinted;
 
-    /// @dev address of the community airdrop contract
+    /// @notice Address of the community airdrop contract
     address public communityAirdrop;
-    /// @dev The percentage of the total supply that is minted to the community
-    ///      airdrop contract.
-    uint256 public constant COMMUNITY_AIRDROP_PERCENTAGE = 1000;
-    /// @dev A flag to indicate if the community airdrop contract has already been
-    ///      minted to.
+    /// @notice 10% of initial distribution is for the community airdrop contract
+    uint256 public immutable communityAirdropAmount = 10000000 ether;
+    /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropMinted;
 
-    /// @dev address responsible for distributing to the Arcade team and launch partners
+    /// @notice Address responsible for distributing to the Arcade team and launch partners
     address public vesting;
-    /// @dev The percentage of the total supply that is minted to the Arcade
-    ///      team and launch partners.
-    uint256 public constant TOTAL_VESTING_PERCENTAGE = 4890;
-    /// @dev A flag to indicate if the Arcade team and launch partners have
-    ///      already been minted to.
+    /// @notice 48.9% of initial distribution is for the Arcade team and launch partners
+    ///         The end percentages are 32.7% to Arcade's launch partners and 16.2% to the team
+    uint256 public immutable vestingAmount = 48900000 ether;
+    /// @notice A flag to indicate if the Arcade team and launch partners have already been transferred to
     bool public vestingMinted;
 
-    // ==================================== CONSTRUCTOR =======================================
+    // ============================================= OWNER OPS =============================================
 
-    constructor(
-        address _treasury,
-        address _devPartner,
-        address _communityRewards,
-        address _communityAirdrop,
-        address _vesting
-    ) {
+    /**
+     * @notice Transfers a predetermined amount of Arcade Tokens to the treasury.
+     *
+     * @param token                    The Arcade token contract.
+     * @param _treasury                The address of the Arcade treasury.
+     */
+    function toTreasury(IArcadeToken token, address _treasury) external onlyOwner {
+        if (treasuryMinted) revert AT_AlreadySent();
         if (_treasury == address(0)) revert AT_ZeroAddress();
-        if (_devPartner == address(0)) revert AT_ZeroAddress();
-        if (_communityRewards == address(0)) revert AT_ZeroAddress();
-        if (_communityAirdrop == address(0)) revert AT_ZeroAddress();
-        if (_vesting == address(0)) revert AT_ZeroAddress();
 
         treasury = _treasury;
-        devPartner = _devPartner;
-        communityRewards = _communityRewards;
-        communityAirdrop = _communityAirdrop;
-        vesting = _vesting;
-    }
-
-    // ====================================== OWNER OPS ======================================
-
-    /**
-     * @notice Mints a predetermined amount of Arcade tokens to the treasury.
-     *         This amount is equal to 25.5% of the total supply.
-     */
-    function mintToTreasury(IArcadeToken token) external onlyOwner {
-        if (treasuryMinted) revert AT_AlreadyMinted();
-
-        uint256 amount = (INTIAL_TOKEN_DST * TREASURY_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
-        if (token.totalSupply() + amount > INTIAL_TOKEN_DST) {
-            revert AT_ExceedsTotalSupply(amount, INTIAL_TOKEN_DST - token.totalSupply());
-        }
-
         treasuryMinted = true;
 
-        token.mint(treasury, amount);
+        token.transfer(_treasury, treasuryAmount);
     }
 
     /**
-     * @notice Mints a predetermined amount of Arcade tokens to token development
-     *         partner. This amount is equal to 0.6% of the total supply.
+     * @notice Transfers a predetermined amount of Arcade Tokens to token's development partner.
+     *
+     * @param token                    The Arcade token contract.
+     * @param _devPartner              The address of the token's development partner.
      */
-    function mintToDevPartner(IArcadeToken token) external onlyOwner {
-        if (devPartnerMinted) revert AT_AlreadyMinted();
+    function toDevPartner(IArcadeToken token, address _devPartner) external onlyOwner {
+        if (devPartnerMinted) revert AT_AlreadySent();
+        if (_devPartner == address(0)) revert AT_ZeroAddress();
 
-        uint256 amount = (INTIAL_TOKEN_DST * DEV_PARTNER_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
-        if (token.totalSupply() + amount > INTIAL_TOKEN_DST) {
-            revert AT_ExceedsTotalSupply(amount, INTIAL_TOKEN_DST - token.totalSupply());
-        }
-
+        devPartner = _devPartner;
         devPartnerMinted = true;
 
-        token.mint(devPartner, amount);
+        token.transfer(_devPartner, devPartnerAmount);
     }
 
     /**
-     * @notice Mints a predetermined amount of Arcade tokens to the community
-     *         rewards pool. This amount is equal to 15% of the total supply.
+     * @notice Transfers a predetermined amount of Arcade Tokens to the community rewards pool.
+     *
+     * @param token                    The Arcade Token contract.
+     * @param _communityRewards        The address of the community rewards pool.
      */
-    function mintToCommunityRewards(IArcadeToken token) external onlyOwner {
-        if (communityRewardsMinted) revert AT_AlreadyMinted();
+    function toCommunityRewards(IArcadeToken token, address _communityRewards) external onlyOwner {
+        if (communityRewardsMinted) revert AT_AlreadySent();
+        if (_communityRewards == address(0)) revert AT_ZeroAddress();
 
-        uint256 amount = (INTIAL_TOKEN_DST * COMMUNITY_REWARDS_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
-        if (token.totalSupply() + amount > INTIAL_TOKEN_DST) {
-            revert AT_ExceedsTotalSupply(amount, INTIAL_TOKEN_DST - token.totalSupply());
-        }
-
+        communityRewards = _communityRewards;
         communityRewardsMinted = true;
 
-        token.mint(communityRewards, amount);
+        token.transfer(_communityRewards, communityRewardsAmount);
     }
 
     /**
-     * @notice Mints a predetermined amount of Arcade tokens to the community
-     *         airdrop contract. This amount is equal to 10% of the total supply.
+     * @notice Transfers a predetermined amount of Arcade Tokens to the community airdrop contract.
+     *
+     * @param token                    The Arcade Token contract.
+     * @param _communityAirdrop        The address of the community airdrop contract.
      */
-    function mintToCommunityAirdrop(IArcadeToken token) external onlyOwner {
-        if (communityAirdropMinted) revert AT_AlreadyMinted();
+    function toCommunityAirdrop(IArcadeToken token, address _communityAirdrop) external onlyOwner {
+        if (communityAirdropMinted) revert AT_AlreadySent();
+        if (_communityAirdrop == address(0)) revert AT_ZeroAddress();
 
-        uint256 amount = (INTIAL_TOKEN_DST * COMMUNITY_AIRDROP_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
-        if (token.totalSupply() + amount > INTIAL_TOKEN_DST) {
-            revert AT_ExceedsTotalSupply(amount, INTIAL_TOKEN_DST - token.totalSupply());
-        }
-
+        communityAirdrop = _communityAirdrop;
         communityAirdropMinted = true;
 
-        token.mint(communityAirdrop, amount);
+        token.transfer(_communityAirdrop, communityAirdropAmount);
     }
 
     /**
-     * @notice Mints a predetermined amount of Arcade tokens minted to a dedicated multisig.
-     *         This amount is equal to 48.9% of the total supply. 32.7% to Arcade's launch
-     *         partners and 16.2% to the Arcade team.
+     * @notice Transfers a predetermined amount of Arcade Tokens to a dedicated multisig which is
+     *         responsible for distributing Arcade Tokens to the Arcade team and launch partners.
+     *
+     * @param token                    The Arcade Token contract.
+     * @param _vesting                 Address responsible for distributing vesting rewards.
      */
-    function mintToVesting(IArcadeToken token) external onlyOwner {
-        if (vestingMinted) revert AT_AlreadyMinted();
+    function toVesting(IArcadeToken token, address _vesting) external onlyOwner {
+        if (vestingMinted) revert AT_AlreadySent();
+        if (_vesting == address(0)) revert AT_ZeroAddress();
 
-        uint256 amount = (INTIAL_TOKEN_DST * TOTAL_VESTING_PERCENTAGE) / BASIS_POINTS_DENOMINATOR;
-        if (token.totalSupply() + amount > INTIAL_TOKEN_DST) {
-            revert AT_ExceedsTotalSupply(amount, INTIAL_TOKEN_DST - token.totalSupply());
-        }
-
+        vesting = _vesting;
         vestingMinted = true;
 
-        token.mint(vesting, amount);
+        token.transfer(_vesting, vestingAmount);
     }
 
+    /**
+     * @notice Relinquishes the minter role in the Arcade Token contract to a new address.
+     *
+     * @dev This function should only be called after all mint functions have been called
+     *      and the newMinter address input is the Arcade Token's governance timelock contract.
+     * @dev Only the current minter address stored in the Arcade Token contract can call this 
+     *      function. As a result, this function can only be called once and can never be
+     *      called again.
+     *
+     * @param token                    The Arcade Token contract.
+     * @param newMinter                The address of the new minter.
+     */
+    function transferMinterRole(IArcadeToken token, address newMinter) external onlyOwner {
+        token.setMinter(newMinter);
+    }
 }
