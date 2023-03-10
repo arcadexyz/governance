@@ -3,6 +3,7 @@
     "plugins": ["prettier"],
     "rules": {
         "no-inline-assembly": "off",
+        "no-global-import": "off",
         "avoid-low-level-calls": "off",
         "function-max-lines": "off",
         "code-complexity": ["warn", 24],

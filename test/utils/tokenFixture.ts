@@ -2,8 +2,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { Wallet } from "ethers";
 import hre from "hardhat";
 
-import { IArcadeToken } from "../../src/types";
+import { ArcadeTokenDistributor, IArcadeToken } from "../../src/types";
 import { deploy } from "./contracts";
+import { BlockchainTime } from "./time";
 
 type Signer = SignerWithAddress;
 
@@ -16,28 +17,39 @@ export interface TokenTestContext {
     airdrop: Wallet;
     vestingMultisig: Wallet;
     arcToken: IArcadeToken;
+    arcDst: ArcadeTokenDistributor;
+    blockchainTime: BlockchainTime;
 }
 
 /**
  * Sets up the test context for the Arcade token, deploying the Arcade token and
- * returning it for use in unit testing.
+ * the distribution contract and returning it for use in unit testing.
  */
 export const tokenFixture = async (): Promise<TokenTestContext> => {
-    // ============================= ACCOUNTS ====================================
+    // ======================================== ACCOUNTS ========================================
     const signers: Signer[] = await hre.ethers.getSigners();
     const deployer: Signer = signers[0];
     const other: Signer = signers[1];
 
-    // mock recipients
+    // mock recipients for distribution
     const treasury = new Wallet.createRandom();
     const devPartner = new Wallet.createRandom();
     const communityRewardsPool = new Wallet.createRandom();
     const airdrop = new Wallet.createRandom();
     const vestingMultisig = new Wallet.createRandom();
 
-    // ============================= TOKEN DEPLOYMENT ==============================
+    const blockchainTime = new BlockchainTime();
 
-    const arcToken = <ArcadeToken>await deploy("ArcadeToken", signers[0], []);
+    // ==================================== TOKEN DEPLOYMENT ====================================
+
+    // deploy the distribution contract
+    const arcDst = <ArcadeTokenDistributor>await deploy("ArcadeTokenDistributor", signers[0], []);
+    await arcDst.deployed();
+
+    // deploy the Arcade token, with minter role set to the distribution contract
+    const arcToken = <ArcadeToken>(
+        await deploy("ArcadeToken", signers[0], [arcDst.address, await blockchainTime.secondsFromNow(3600)])
+    );
     await arcToken.deployed();
 
     return {
@@ -49,5 +61,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
         airdrop,
         vestingMultisig,
         arcToken,
+        arcDst,
+        blockchainTime,
     };
 };

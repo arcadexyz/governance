@@ -65,9 +65,9 @@ import {
  * @author Non-Fungible Technologies, Inc.
  *
  * An ERC20 token implementation for the Arcade token. The token is only able to be minted
- * by the minter address. The minter address can be changed by the minter role in the 
+ * by the minter address. The minter address can be changed by the minter role in the
  * contract.
- * 
+ *
  * An inflationary cap of 2% per year is enforced on each mint. Every time the mint function
  * is called, the minter must wait at least 1 year before calling it again.
  */
@@ -78,7 +78,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     address public minter;
 
     /// @notice The timestamp after which minting may occur
-    uint256 public  mintingAllowedAfter;
+    uint256 public mintingAllowedAfter;
 
     /// @notice The minimum time to wait between mints
     uint256 public constant minTimeBetweenMints = 365 days;
@@ -92,14 +92,11 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     // ======================================= EVENTS ========================================
 
     /// @dev An event thats emitted when the minter address is changed
-    event MinterChanged(address minter, address newMinter);
+    event MinterChanged(address oldMinter, address newMinter);
 
     // ===================================== CONSTRUCTOR =====================================
 
-    constructor(
-        address _minter,
-        uint256 _mintingAllowedAfter
-    ) ERC20("Arcade", "ARC") ERC20Permit("Arcade") {
+    constructor(address _minter, uint256 _mintingAllowedAfter) ERC20("Arcade", "ARC") ERC20Permit("Arcade") {
         if (_mintingAllowedAfter < block.timestamp) revert AT_InvalidMintStart(_mintingAllowedAfter, block.timestamp);
 
         // mint the initial amount of tokens for distribution
@@ -121,7 +118,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
      */
     function setMinter(address _newMinter) external {
         if (_newMinter == address(0)) revert AT_ZeroAddress();
-        if(msg.sender != minter) revert AT_MinterNotCaller(minter);
+        if (msg.sender != minter) revert AT_MinterNotCaller(minter);
 
         minter = _newMinter;
         emit MinterChanged(_newMinter, minter);
@@ -134,17 +131,17 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
      * @param _amount             The amount of tokens to mint.
      */
     function mint(address _to, uint256 _amount) external {
-        if(msg.sender != minter) revert AT_MinterNotCaller(minter);
-        if(block.timestamp < mintingAllowedAfter) revert AT_MintingNotStarted(mintingAllowedAfter, block.timestamp);
-        if(_to == address(0)) revert AT_ZeroAddress();
-        if(_amount == 0) revert AT_ZeroMintAmount();
+        if (msg.sender != minter) revert AT_MinterNotCaller(minter);
+        if (block.timestamp < mintingAllowedAfter) revert AT_MintingNotStarted(mintingAllowedAfter, block.timestamp);
+        if (_to == address(0)) revert AT_ZeroAddress();
+        if (_amount == 0) revert AT_ZeroMintAmount();
 
         // record the mint
         mintingAllowedAfter = block.timestamp + minTimeBetweenMints;
 
         // inflation cap enforcement - 2% of total supply
         uint256 mintCapAmount = (totalSupply() * mintCap) / 100;
-        if(_amount > mintCapAmount) {
+        if (_amount > mintCapAmount) {
             revert AT_MintingCapExceeded(totalSupply(), mintCapAmount, _amount);
         }
 

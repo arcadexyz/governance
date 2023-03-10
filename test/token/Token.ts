@@ -24,39 +24,164 @@ describe("ArcadeToken", function () {
             expect(await arcToken.symbol()).to.equal("ARC");
         });
 
-        it("Check the initial state of the mint booleans", async () => {
-            const { arcToken } = ctxToken;
+        it("Check the initial state of the transfer booleans", async () => {
+            const { arcDst } = ctxToken;
 
-            expect(await arcToken.treasuryMinted()).to.be.false;
-            expect(await arcToken.devPartnerMinted()).to.be.false;
-            expect(await arcToken.communityRewardsMinted()).to.be.false;
-            expect(await arcToken.communityAirdropMinted()).to.be.false;
-            expect(await arcToken.vestingMinted()).to.be.false;
+            expect(await arcDst.treasurySent()).to.be.false;
+            expect(await arcDst.devPartnerSent()).to.be.false;
+            expect(await arcDst.communityRewardsSent()).to.be.false;
+            expect(await arcDst.communityAirdropSent()).to.be.false;
+            expect(await arcDst.vestingSent()).to.be.false;
         });
 
-        it("Check that the owner is the deployer", async () => {
-            const { arcToken, deployer } = ctxToken;
+        it("Check the initial supply was minted to the distributor contract", async () => {
+            const { arcToken, arcDst, deployer } = ctxToken;
 
-            expect(await arcToken.owner()).to.equal(deployer.address);
+            expect(await arcToken.balanceOf(arcDst.address)).to.equal(ethers.utils.parseEther("100000000"));
+            expect(await arcToken.balanceOf(deployer.address)).to.equal(0);
+            expect(await arcToken.minter()).to.equal(arcDst.address);
         });
     });
 
-    describe("Minting", function () {
-        it("Contract owner mints each token allocation", async () => {
-            const { arcToken, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
+    describe("Mint", function () {
+        describe("Minter role", function () {
+            it("Only the minter contract can mint tokens", async () => {
+                const { arcToken, arcDst, other } = ctxToken;
+
+                expect(await arcToken.minter()).to.equal(arcDst.address);
+                await expect(arcToken.connect(other).mint(other.address, 100)).to.be.revertedWith(
+                    `AT_MinterNotCaller("${arcDst.address}")`,
+                );
+            });
+
+            it("Only the current minter can set the new minter address", async () => {
+                const { arcToken, arcDst, other } = ctxToken;
+
+                await expect(arcToken.connect(other).setMinter(other.address)).to.be.revertedWith(
+                    `AT_MinterNotCaller("${arcDst.address}")`,
+                );
+            });
+
+            it("Minter role can set the new minter address", async () => {
+                const { arcToken, arcDst, deployer, other } = ctxToken;
+
+                await expect(await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address))
+                    .to.emit(arcToken, "MinterChanged")
+                    .withArgs(arcDst.address, other.address);
+                expect(await arcToken.minter()).to.equal(other.address);
+
+                await expect(await arcToken.connect(other).setMinter(deployer.address))
+                    .to.emit(arcToken, "MinterChanged")
+                    .withArgs(other.address, deployer.address);
+                expect(await arcToken.minter()).to.equal(deployer.address);
+            });
+        });
+
+        describe("Minting tokens", function () {
+            it("Cannot mint before start time", async () => {
+                const { arcToken, arcDst, deployer, other } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+
+                await expect(arcToken.connect(other).mint(other.address, 100)).to.be.reverted;
+            });
+
+            it("Can mint after start time", async () => {
+                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+                await blockchainTime.increaseTime(3600);
+
+                await arcToken.connect(other).mint(other.address, 100);
+
+                expect(await arcToken.balanceOf(other.address)).to.equal(100);
+            });
+
+            it("Cannot mint to the zero address", async () => {
+                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+                await blockchainTime.increaseTime(3600);
+
+                await expect(arcToken.connect(other).mint(ethers.constants.AddressZero, 100)).to.be.revertedWith(
+                    "AT_ZeroAddress()",
+                );
+            });
+
+            it("Cannot mint amount of zero tokens", async () => {
+                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+                await blockchainTime.increaseTime(3600);
+
+                await expect(arcToken.connect(other).mint(other.address, 0)).to.be.revertedWith("AT_ZeroMintAmount()");
+            });
+
+            it("Cannot mint more than the max supply", async () => {
+                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+                await blockchainTime.increaseTime(3600);
+
+                const _totalSupply = await arcToken.connect(deployer).totalSupply();
+                await expect(
+                    arcToken.connect(other).mint(other.address, _totalSupply.mul(2).div(100).add(1)),
+                ).to.be.revertedWith(
+                    `AT_MintingCapExceeded(${_totalSupply}, ${_totalSupply.mul(2).div(100)}, ${_totalSupply
+                        .mul(2)
+                        .div(100)
+                        .add(1)})`,
+                );
+            });
+
+            it("Must wait minimum wait duration between mints", async () => {
+                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+                await blockchainTime.increaseTime(3600);
+
+                await arcToken.connect(other).mint(other.address, 100);
+                await blockchainTime.increaseTime(3600);
+                await expect(arcToken.connect(other).mint(other.address, 100)).to.be.reverted;
+            });
+
+            it("Can mint max tokens after minimum wait duration", async () => {
+                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+
+                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
+                await blockchainTime.increaseTime(3600);
+
+                let amountAvailableToMint = await arcToken.connect(other).totalSupply();
+                expect(amountAvailableToMint.mul(2).div(100)).to.equal(ethers.utils.parseEther("2000000"));
+                await arcToken.connect(other).mint(other.address, amountAvailableToMint.mul(2).div(100));
+
+                await blockchainTime.increaseTime(3600 * 24 * 365);
+
+                amountAvailableToMint = await arcToken.connect(other).totalSupply();
+                expect(amountAvailableToMint.mul(2).div(100)).to.equal(ethers.utils.parseEther("2040000"));
+                await arcToken.connect(other).mint(other.address, amountAvailableToMint.mul(2).div(100));
+
+                expect(await arcToken.balanceOf(other.address)).to.equal(ethers.utils.parseEther("4040000"));
+            });
+        });
+    });
+
+    describe("ArcadeToken Distribution", function () {
+        it("Dst contract owner distributes each token allocation", async () => {
+            const { arcToken, arcDst, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
                 ctxToken;
 
-            await arcToken.connect(deployer).mintToTreasury(treasury.address);
-            await arcToken.connect(deployer).mintToDevPartner(devPartner.address);
-            await arcToken.connect(deployer).mintToCommunityRewards(communityRewardsPool.address);
-            await arcToken.connect(deployer).mintToCommunityAirdrop(airdrop.address);
-            await arcToken.connect(deployer).mintToVesting(vestingMultisig.address);
+            await arcDst.connect(deployer).toTreasury(arcToken.address, treasury.address);
+            await arcDst.connect(deployer).toDevPartner(arcToken.address, devPartner.address);
+            await arcDst.connect(deployer).toCommunityRewards(arcToken.address, communityRewardsPool.address);
+            await arcDst.connect(deployer).toCommunityAirdrop(arcToken.address, airdrop.address);
+            await arcDst.connect(deployer).toVesting(arcToken.address, vestingMultisig.address);
 
-            expect(await arcToken.treasuryMinted()).to.be.true;
-            expect(await arcToken.devPartnerMinted()).to.be.true;
-            expect(await arcToken.communityRewardsMinted()).to.be.true;
-            expect(await arcToken.communityAirdropMinted()).to.be.true;
-            expect(await arcToken.vestingMinted()).to.be.true;
+            expect(await arcDst.treasurySent()).to.be.true;
+            expect(await arcDst.devPartnerSent()).to.be.true;
+            expect(await arcDst.communityRewardsSent()).to.be.true;
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+            expect(await arcDst.vestingSent()).to.be.true;
 
             expect(await arcToken.balanceOf(treasury.address)).to.equal(ethers.utils.parseEther("25500000"));
             expect(await arcToken.balanceOf(devPartner.address)).to.equal(ethers.utils.parseEther("600000"));
@@ -69,95 +194,72 @@ describe("ArcadeToken", function () {
             expect(await arcToken.totalSupply()).to.equal(ethers.utils.parseEther("100000000"));
         });
 
-        it("Cannot mint to the zero address", async () => {
-            const { arcToken, deployer } = ctxToken;
+        it("Cannot distribute to the zero address", async () => {
+            const { arcToken, arcDst, deployer } = ctxToken;
 
-            await expect(arcToken.connect(deployer).mintToTreasury(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
-            );
-            await expect(arcToken.connect(deployer).mintToDevPartner(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
-            );
             await expect(
-                arcToken.connect(deployer).mintToCommunityRewards(ethers.constants.AddressZero),
+                arcDst.connect(deployer).toTreasury(arcToken.address, ethers.constants.AddressZero),
             ).to.be.revertedWith("AT_ZeroAddress()");
             await expect(
-                arcToken.connect(deployer).mintToCommunityAirdrop(ethers.constants.AddressZero),
+                arcDst.connect(deployer).toDevPartner(arcToken.address, ethers.constants.AddressZero),
             ).to.be.revertedWith("AT_ZeroAddress()");
-            await expect(arcToken.connect(deployer).mintToVesting(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
-            );
-        });
-
-        it("Verifies all exposed mint functions can only be called by the contract owner", async () => {
-            const { arcToken, other, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } = ctxToken;
-
-            await expect(arcToken.connect(other).mintToTreasury(treasury.address)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
-            await expect(arcToken.connect(other).mintToDevPartner(devPartner.address)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
             await expect(
-                arcToken.connect(other).mintToCommunityRewards(communityRewardsPool.address),
-            ).to.be.revertedWith("Ownable: caller is not the owner");
-            await expect(arcToken.connect(other).mintToCommunityAirdrop(airdrop.address)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
-            await expect(arcToken.connect(other).mintToVesting(vestingMultisig.address)).to.be.revertedWith(
-                "Ownable: caller is not the owner",
-            );
+                arcDst.connect(deployer).toCommunityRewards(arcToken.address, ethers.constants.AddressZero),
+            ).to.be.revertedWith("AT_ZeroAddress()");
+            await expect(
+                arcDst.connect(deployer).toCommunityAirdrop(arcToken.address, ethers.constants.AddressZero),
+            ).to.be.revertedWith("AT_ZeroAddress()");
+            await expect(
+                arcDst.connect(deployer).toVesting(arcToken.address, ethers.constants.AddressZero),
+            ).to.be.revertedWith("AT_ZeroAddress()");
         });
 
-        it("Verifies exposed mint functions can only be called once by contract owner", async () => {
-            const { arcToken, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
+        it("Verifies all transfer functions can only be called by the contract owner", async () => {
+            const { arcToken, arcDst, other, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
                 ctxToken;
 
-            await arcToken.connect(deployer).mintToTreasury(treasury.address);
-            await arcToken.connect(deployer).mintToDevPartner(devPartner.address);
-            await arcToken.connect(deployer).mintToCommunityRewards(communityRewardsPool.address);
-            await arcToken.connect(deployer).mintToCommunityAirdrop(airdrop.address);
-            await arcToken.connect(deployer).mintToVesting(vestingMultisig.address);
-
-            await expect(arcToken.connect(deployer).mintToTreasury(treasury.address)).to.be.revertedWith(
-                "AT_AlreadyMinted()",
+            await expect(arcDst.connect(other).toTreasury(arcToken.address, treasury.address)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
             );
-            await expect(arcToken.connect(deployer).mintToDevPartner(devPartner.address)).to.be.revertedWith(
-                "AT_AlreadyMinted()",
+            await expect(arcDst.connect(other).toDevPartner(arcToken.address, devPartner.address)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
             );
             await expect(
-                arcToken.connect(deployer).mintToCommunityRewards(communityRewardsPool.address),
-            ).to.be.revertedWith("AT_AlreadyMinted()");
-            await expect(arcToken.connect(deployer).mintToCommunityAirdrop(airdrop.address)).to.be.revertedWith(
-                "AT_AlreadyMinted()",
-            );
-            await expect(arcToken.connect(deployer).mintToVesting(vestingMultisig.address)).to.be.revertedWith(
-                "AT_AlreadyMinted()",
+                arcDst.connect(other).toCommunityRewards(arcToken.address, communityRewardsPool.address),
+            ).to.be.revertedWith("Ownable: caller is not the owner");
+            await expect(
+                arcDst.connect(other).toCommunityAirdrop(arcToken.address, airdrop.address),
+            ).to.be.revertedWith("Ownable: caller is not the owner");
+            await expect(arcDst.connect(other).toVesting(arcToken.address, vestingMultisig.address)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
             );
         });
-    });
 
-    describe("Withdraw tokens", function () {
-        it("Verifies that the contract owner can withdraw tokens", async () => {
-            const { arcToken, deployer, other } = ctxToken;
+        it("Verifies all transfer functions can only be called once by contract owner", async () => {
+            const { arcToken, arcDst, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
+                ctxToken;
 
-            await arcToken.connect(deployer).mintToTreasury(other.address);
+            await arcDst.connect(deployer).toTreasury(arcToken.address, treasury.address);
+            await arcDst.connect(deployer).toDevPartner(arcToken.address, devPartner.address);
+            await arcDst.connect(deployer).toCommunityRewards(arcToken.address, communityRewardsPool.address);
+            await arcDst.connect(deployer).toCommunityAirdrop(arcToken.address, airdrop.address);
+            await arcDst.connect(deployer).toVesting(arcToken.address, vestingMultisig.address);
 
-            await arcToken.connect(other).transfer(arcToken.address, ethers.utils.parseEther("25500000"));
-            expect(await arcToken.balanceOf(other.address)).to.equal(ethers.utils.parseEther("0"));
-            expect(await arcToken.balanceOf(arcToken.address)).to.equal(ethers.utils.parseEther("25500000"));
-
-            await arcToken.connect(deployer).withdrawTokens(arcToken.address);
-
-            expect(await arcToken.balanceOf(deployer.address)).to.equal(ethers.utils.parseEther("25500000"));
-        });
-
-        it("Cannot pass zero address as the token address", async () => {
-            const { arcToken, deployer } = ctxToken;
-
-            await expect(arcToken.connect(deployer).withdrawTokens(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+            await expect(arcDst.connect(deployer).toTreasury(arcToken.address, treasury.address)).to.be.revertedWith(
+                "AT_AlreadySent()",
             );
+            await expect(
+                arcDst.connect(deployer).toDevPartner(arcToken.address, devPartner.address),
+            ).to.be.revertedWith("AT_AlreadySent()");
+            await expect(
+                arcDst.connect(deployer).toCommunityRewards(arcToken.address, communityRewardsPool.address),
+            ).to.be.revertedWith("AT_AlreadySent()");
+            await expect(
+                arcDst.connect(deployer).toCommunityAirdrop(arcToken.address, airdrop.address),
+            ).to.be.revertedWith("AT_AlreadySent()");
+            await expect(
+                arcDst.connect(deployer).toVesting(arcToken.address, vestingMultisig.address),
+            ).to.be.revertedWith("AT_AlreadySent()");
         });
     });
 });

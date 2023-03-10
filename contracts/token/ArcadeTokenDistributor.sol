@@ -17,7 +17,7 @@ import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
  * launch partners, community rewards pool, community airdrop contract, and the Arcade treasury,
  * and the tokens development partner. Once each minting function has been called, the
  * corresponding flag is set to true and the function cannot be called again.
- * 
+ *
  * Upon deployment of the Arcade Token, this contract is set as the Arcade Token's minter. After
  * all the transfer functions in this contract have been called, the owner of this contract shall
  * transfer the minter role to the Arcade Token's governance timelock contract.
@@ -30,28 +30,28 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice 25.5% of initial distribution is for the treasury
     uint256 public immutable treasuryAmount = 25500000 ether;
     /// @notice A flag to indicate if the treasury has already been transferred to
-    bool public treasuryMinted;
+    bool public treasurySent;
 
     /// @notice Address of the token's development partner
     address public devPartner;
     /// @notice 0.6% of initial distribution is for the token development partner
     uint256 public immutable devPartnerAmount = 600000 ether;
     /// @notice A flag to indicate if the token development partner has already been transferred to.
-    bool public devPartnerMinted;
+    bool public devPartnerSent;
 
     /// @notice Address to receive the community rewards
     address public communityRewards;
     /// @notice 15% of initial distribution is for the community rewards pool
     uint256 public immutable communityRewardsAmount = 15000000 ether;
     /// @notice A flag to indicate if the community rewards pool has already been transferred to
-    bool public communityRewardsMinted;
+    bool public communityRewardsSent;
 
     /// @notice Address of the community airdrop contract
     address public communityAirdrop;
     /// @notice 10% of initial distribution is for the community airdrop contract
     uint256 public immutable communityAirdropAmount = 10000000 ether;
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
-    bool public communityAirdropMinted;
+    bool public communityAirdropSent;
 
     /// @notice Address responsible for distributing to the Arcade team and launch partners
     address public vesting;
@@ -59,7 +59,7 @@ contract ArcadeTokenDistributor is Ownable {
     ///         The end percentages are 32.7% to Arcade's launch partners and 16.2% to the team
     uint256 public immutable vestingAmount = 48900000 ether;
     /// @notice A flag to indicate if the Arcade team and launch partners have already been transferred to
-    bool public vestingMinted;
+    bool public vestingSent;
 
     // ============================================= OWNER OPS =============================================
 
@@ -70,11 +70,11 @@ contract ArcadeTokenDistributor is Ownable {
      * @param _treasury                The address of the Arcade treasury.
      */
     function toTreasury(IArcadeToken token, address _treasury) external onlyOwner {
-        if (treasuryMinted) revert AT_AlreadySent();
+        if (treasurySent) revert AT_AlreadySent();
         if (_treasury == address(0)) revert AT_ZeroAddress();
 
         treasury = _treasury;
-        treasuryMinted = true;
+        treasurySent = true;
 
         token.transfer(_treasury, treasuryAmount);
     }
@@ -86,11 +86,11 @@ contract ArcadeTokenDistributor is Ownable {
      * @param _devPartner              The address of the token's development partner.
      */
     function toDevPartner(IArcadeToken token, address _devPartner) external onlyOwner {
-        if (devPartnerMinted) revert AT_AlreadySent();
+        if (devPartnerSent) revert AT_AlreadySent();
         if (_devPartner == address(0)) revert AT_ZeroAddress();
 
         devPartner = _devPartner;
-        devPartnerMinted = true;
+        devPartnerSent = true;
 
         token.transfer(_devPartner, devPartnerAmount);
     }
@@ -102,11 +102,11 @@ contract ArcadeTokenDistributor is Ownable {
      * @param _communityRewards        The address of the community rewards pool.
      */
     function toCommunityRewards(IArcadeToken token, address _communityRewards) external onlyOwner {
-        if (communityRewardsMinted) revert AT_AlreadySent();
+        if (communityRewardsSent) revert AT_AlreadySent();
         if (_communityRewards == address(0)) revert AT_ZeroAddress();
 
         communityRewards = _communityRewards;
-        communityRewardsMinted = true;
+        communityRewardsSent = true;
 
         token.transfer(_communityRewards, communityRewardsAmount);
     }
@@ -118,11 +118,11 @@ contract ArcadeTokenDistributor is Ownable {
      * @param _communityAirdrop        The address of the community airdrop contract.
      */
     function toCommunityAirdrop(IArcadeToken token, address _communityAirdrop) external onlyOwner {
-        if (communityAirdropMinted) revert AT_AlreadySent();
+        if (communityAirdropSent) revert AT_AlreadySent();
         if (_communityAirdrop == address(0)) revert AT_ZeroAddress();
 
         communityAirdrop = _communityAirdrop;
-        communityAirdropMinted = true;
+        communityAirdropSent = true;
 
         token.transfer(_communityAirdrop, communityAirdropAmount);
     }
@@ -135,11 +135,11 @@ contract ArcadeTokenDistributor is Ownable {
      * @param _vesting                 Address responsible for distributing vesting rewards.
      */
     function toVesting(IArcadeToken token, address _vesting) external onlyOwner {
-        if (vestingMinted) revert AT_AlreadySent();
+        if (vestingSent) revert AT_AlreadySent();
         if (_vesting == address(0)) revert AT_ZeroAddress();
 
         vesting = _vesting;
-        vestingMinted = true;
+        vestingSent = true;
 
         token.transfer(_vesting, vestingAmount);
     }
@@ -149,7 +149,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @dev This function should only be called after all mint functions have been called
      *      and the newMinter address input is the Arcade Token's governance timelock contract.
-     * @dev Only the current minter address stored in the Arcade Token contract can call this 
+     * @dev Only the current minter address stored in the Arcade Token contract can call this
      *      function. As a result, this function can only be called once and can never be
      *      called again.
      *
