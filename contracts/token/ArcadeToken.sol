@@ -96,7 +96,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
 
     // ===================================== CONSTRUCTOR =====================================
 
-    constructor(address _minter, uint256 _mintingAllowedAfter) ERC20("Arcade", "ARC") ERC20Permit("Arcade") {
+    constructor(address _minter, uint256 _mintingAllowedAfter) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
         if (_mintingAllowedAfter < block.timestamp) {
             revert AT_InvalidMintStart(_mintingAllowedAfter, block.timestamp);
         }

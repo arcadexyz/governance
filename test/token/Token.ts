@@ -21,7 +21,7 @@ describe("ArcadeToken", function () {
             const { arcToken } = ctxToken;
 
             expect(await arcToken.name()).to.equal("Arcade");
-            expect(await arcToken.symbol()).to.equal("ARC");
+            expect(await arcToken.symbol()).to.equal("ARCD");
         });
 
         it("Check the initial state of the transfer booleans", async () => {
