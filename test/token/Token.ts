@@ -6,7 +6,7 @@ import { TokenTestContext, tokenFixture } from "../utils/tokenFixture";
 const { loadFixture } = waffle;
 
 /**
- * Test suite for the ArcadeToken Contract.
+ * Test suite for the ArcadeToken and ArcadeTokenDistributor contracts.
  */
 
 describe("ArcadeToken", function () {

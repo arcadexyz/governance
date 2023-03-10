@@ -13,7 +13,7 @@ import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
  * @title Arcade Token Distributor
  * @author Non-Fungible Technologies, Inc.
  *
- * A  contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
+ * A contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
  * launch partners, community rewards pool, community airdrop contract, the Arcade treasury,
  * and the token's development partner. Once each transfer function has been called, the
  * corresponding flag is set to true and the function cannot be called again.
