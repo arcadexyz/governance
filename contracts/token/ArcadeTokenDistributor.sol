@@ -28,28 +28,28 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice Address of the treasury
     address public treasury;
     /// @notice 25.5% of initial distribution is for the treasury
-    uint256 public immutable treasuryAmount = 25500000 ether;
+    uint256 public constant treasuryAmount = 25_500_000 ether;
     /// @notice A flag to indicate if the treasury has already been transferred to
     bool public treasurySent;
 
     /// @notice Address of the token's development partner
     address public devPartner;
     /// @notice 0.6% of initial distribution is for the token development partner
-    uint256 public immutable devPartnerAmount = 600000 ether;
+    uint256 public constant devPartnerAmount = 600_000 ether;
     /// @notice A flag to indicate if the token development partner has already been transferred to.
     bool public devPartnerSent;
 
     /// @notice Address to receive the community rewards
     address public communityRewards;
     /// @notice 15% of initial distribution is for the community rewards pool
-    uint256 public immutable communityRewardsAmount = 15000000 ether;
+    uint256 public constant communityRewardsAmount = 15_000_000 ether;
     /// @notice A flag to indicate if the community rewards pool has already been transferred to
     bool public communityRewardsSent;
 
     /// @notice Address of the community airdrop contract
     address public communityAirdrop;
     /// @notice 10% of initial distribution is for the community airdrop contract
-    uint256 public immutable communityAirdropAmount = 10000000 ether;
+    uint256 public constant communityAirdropAmount = 10_000_000 ether;
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
@@ -57,7 +57,7 @@ contract ArcadeTokenDistributor is Ownable {
     address public vesting;
     /// @notice 48.9% of initial distribution is for the Arcade team and launch partners
     ///         The end percentages are 32.7% to Arcade's launch partners and 16.2% to the team
-    uint256 public immutable vestingAmount = 48900000 ether;
+    uint256 public constant vestingAmount = 48_900_000 ether;
     /// @notice A flag to indicate if the Arcade team and launch partners have already been transferred to
     bool public vestingSent;
 
@@ -142,21 +142,5 @@ contract ArcadeTokenDistributor is Ownable {
         vestingSent = true;
 
         token.transfer(_vesting, vestingAmount);
-    }
-
-    /**
-     * @notice Relinquishes the minter role in the Arcade Token contract to a new address.
-     *
-     * @dev This function should only be called after all mint functions have been called
-     *      and the newMinter address input is the Arcade Token's governance timelock contract.
-     * @dev Only the current minter address stored in the Arcade Token contract can call this
-     *      function. As a result, this function can only be called once and can never be
-     *      called again.
-     *
-     * @param token                    The Arcade Token contract.
-     * @param newMinter                The address of the new minter.
-     */
-    function transferMinterRole(IArcadeToken token, address newMinter) external onlyOwner {
-        token.setMinter(newMinter);
     }
 }

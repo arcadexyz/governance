@@ -39,94 +39,84 @@ describe("ArcadeToken", function () {
 
             expect(await arcToken.balanceOf(arcDst.address)).to.equal(ethers.utils.parseEther("100000000"));
             expect(await arcToken.balanceOf(deployer.address)).to.equal(0);
-            expect(await arcToken.minter()).to.equal(arcDst.address);
+            expect(await arcToken.minter()).to.equal(deployer.address);
         });
     });
 
     describe("Mint", function () {
         describe("Minter role", function () {
             it("Only the minter contract can mint tokens", async () => {
-                const { arcToken, arcDst, other } = ctxToken;
+                const { arcToken, deployer, other } = ctxToken;
 
-                expect(await arcToken.minter()).to.equal(arcDst.address);
+                expect(await arcToken.minter()).to.equal(deployer.address);
                 await expect(arcToken.connect(other).mint(other.address, 100)).to.be.revertedWith(
-                    `AT_MinterNotCaller("${arcDst.address}")`,
+                    `AT_MinterNotCaller("${deployer.address}")`,
                 );
             });
 
             it("Only the current minter can set the new minter address", async () => {
-                const { arcToken, arcDst, other } = ctxToken;
+                const { arcToken, deployer, other } = ctxToken;
 
                 await expect(arcToken.connect(other).setMinter(other.address)).to.be.revertedWith(
-                    `AT_MinterNotCaller("${arcDst.address}")`,
+                    `AT_MinterNotCaller("${deployer.address}")`,
                 );
             });
 
             it("Minter role sets the new minter address", async () => {
-                const { arcToken, arcDst, deployer, other } = ctxToken;
-                expect(await arcToken.minter()).to.equal(arcDst.address);
+                const { arcToken, deployer, other } = ctxToken;
 
-                await expect(await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address))
+                await expect(await arcToken.connect(deployer).setMinter(other.address))
                     .to.emit(arcToken, "MinterUpdated")
                     .withArgs(other.address);
                 expect(await arcToken.minter()).to.equal(other.address);
-
-                await expect(await arcToken.connect(other).setMinter(deployer.address))
-                    .to.emit(arcToken, "MinterUpdated")
-                    .withArgs(deployer.address);
-                expect(await arcToken.minter()).to.equal(deployer.address);
             });
         });
 
         describe("Minting tokens", function () {
             it("Cannot mint before start time", async () => {
-                const { arcToken, arcDst, deployer, other } = ctxToken;
+                const { arcToken, deployer, other } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
-
-                await expect(arcToken.connect(other).mint(other.address, 100)).to.be.reverted;
+                await expect(arcToken.connect(deployer).mint(other.address, 100)).to.be.reverted;
             });
 
             it("Can mint after start time", async () => {
-                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+                const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
                 await blockchainTime.increaseTime(3600);
 
-                await arcToken.connect(other).mint(other.address, 100);
+                await arcToken.connect(deployer).mint(other.address, 100);
 
                 expect(await arcToken.balanceOf(other.address)).to.equal(100);
             });
 
             it("Cannot mint to the zero address", async () => {
-                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+                const { arcToken, deployer, blockchainTime } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
                 await blockchainTime.increaseTime(3600);
 
-                await expect(arcToken.connect(other).mint(ethers.constants.AddressZero, 100)).to.be.revertedWith(
+                await expect(arcToken.connect(deployer).mint(ethers.constants.AddressZero, 100)).to.be.revertedWith(
                     "AT_ZeroAddress()",
                 );
             });
 
             it("Cannot mint amount of zero tokens", async () => {
-                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+                const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
                 await blockchainTime.increaseTime(3600);
 
-                await expect(arcToken.connect(other).mint(other.address, 0)).to.be.revertedWith("AT_ZeroMintAmount()");
+                await expect(arcToken.connect(deployer).mint(other.address, 0)).to.be.revertedWith(
+                    "AT_ZeroMintAmount()",
+                );
             });
 
             it("Cannot mint more than the max supply", async () => {
-                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+                const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
                 await blockchainTime.increaseTime(3600);
 
                 const _totalSupply = await arcToken.connect(deployer).totalSupply();
                 await expect(
-                    arcToken.connect(other).mint(other.address, _totalSupply.mul(2).div(100).add(1)),
+                    arcToken.connect(deployer).mint(other.address, _totalSupply.mul(2).div(100).add(1)),
                 ).to.be.revertedWith(
                     `AT_MintingCapExceeded(${_totalSupply}, ${_totalSupply.mul(2).div(100)}, ${_totalSupply
                         .mul(2)
@@ -136,31 +126,29 @@ describe("ArcadeToken", function () {
             });
 
             it("Must wait minimum wait duration between mints", async () => {
-                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+                const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
                 await blockchainTime.increaseTime(3600);
 
-                await arcToken.connect(other).mint(other.address, 100);
+                await arcToken.connect(deployer).mint(other.address, 100);
                 await blockchainTime.increaseTime(3600);
-                await expect(arcToken.connect(other).mint(other.address, 100)).to.be.reverted;
+                await expect(arcToken.connect(deployer).mint(other.address, 100)).to.be.reverted;
             });
 
             it("Can mint max tokens after minimum wait duration", async () => {
-                const { arcToken, arcDst, deployer, other, blockchainTime } = ctxToken;
+                const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address);
                 await blockchainTime.increaseTime(3600);
 
                 let amountAvailableToMint = await arcToken.connect(other).totalSupply();
                 expect(amountAvailableToMint.mul(2).div(100)).to.equal(ethers.utils.parseEther("2000000"));
-                await arcToken.connect(other).mint(other.address, amountAvailableToMint.mul(2).div(100));
+                await arcToken.connect(deployer).mint(other.address, amountAvailableToMint.mul(2).div(100));
 
                 await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 amountAvailableToMint = await arcToken.connect(other).totalSupply();
                 expect(amountAvailableToMint.mul(2).div(100)).to.equal(ethers.utils.parseEther("2040000"));
-                await arcToken.connect(other).mint(other.address, amountAvailableToMint.mul(2).div(100));
+                await arcToken.connect(deployer).mint(other.address, amountAvailableToMint.mul(2).div(100));
 
                 expect(await arcToken.balanceOf(other.address)).to.equal(ethers.utils.parseEther("4040000"));
             });
