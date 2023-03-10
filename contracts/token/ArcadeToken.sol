@@ -92,7 +92,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     // ======================================= EVENTS ========================================
 
     /// @dev An event thats emitted when the minter address is changed
-    event MinterChanged(address oldMinter, address newMinter);
+    event MinterUpdated(address newMinter);
 
     // ===================================== CONSTRUCTOR =====================================
 
@@ -104,7 +104,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
 
         // address responsible for minting future ARC tokens
         minter = _minter;
-        emit MinterChanged(address(0), _minter);
+        emit MinterUpdated(_minter);
 
         mintingAllowedAfter = _mintingAllowedAfter;
     }
@@ -121,7 +121,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
         if (msg.sender != minter) revert AT_MinterNotCaller(minter);
 
         minter = _newMinter;
-        emit MinterChanged(_newMinter, minter);
+        emit MinterUpdated(minter);
     }
 
     /**

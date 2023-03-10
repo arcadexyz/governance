@@ -62,17 +62,18 @@ describe("ArcadeToken", function () {
                 );
             });
 
-            it("Minter role can set the new minter address", async () => {
+            it("Minter role sets the new minter address", async () => {
                 const { arcToken, arcDst, deployer, other } = ctxToken;
+                expect(await arcToken.minter()).to.equal(arcDst.address);
 
                 await expect(await arcDst.connect(deployer).transferMinterRole(arcToken.address, other.address))
-                    .to.emit(arcToken, "MinterChanged")
-                    .withArgs(arcDst.address, other.address);
+                    .to.emit(arcToken, "MinterUpdated")
+                    .withArgs(other.address);
                 expect(await arcToken.minter()).to.equal(other.address);
 
                 await expect(await arcToken.connect(other).setMinter(deployer.address))
-                    .to.emit(arcToken, "MinterChanged")
-                    .withArgs(other.address, deployer.address);
+                    .to.emit(arcToken, "MinterUpdated")
+                    .withArgs(deployer.address);
                 expect(await arcToken.minter()).to.equal(deployer.address);
             });
         });

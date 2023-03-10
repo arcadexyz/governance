@@ -14,13 +14,13 @@ import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
  * @author Non-Fungible Technologies, Inc.
  *
  * A  contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
- * launch partners, community rewards pool, community airdrop contract, and the Arcade treasury,
- * and the tokens development partner. Once each minting function has been called, the
+ * launch partners, community rewards pool, community airdrop contract, the Arcade treasury,
+ * and the token's development partner. Once each transfer function has been called, the
  * corresponding flag is set to true and the function cannot be called again.
  *
- * Upon deployment of the Arcade Token, this contract is set as the Arcade Token's minter. After
- * all the transfer functions in this contract have been called, the owner of this contract shall
- * transfer the minter role to the Arcade Token's governance timelock contract.
+ * Upon deployment of the Arcade Token, this contract is set as the Arcade Token's minter. The
+ * owner of this contract shall transfer the minter role to the Arcade Token's governance
+ * timelock contract.
  */
 contract ArcadeTokenDistributor is Ownable {
     // ============================================= STATE =============================================
