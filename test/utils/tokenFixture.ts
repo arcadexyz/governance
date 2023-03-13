@@ -47,13 +47,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     await arcDst.deployed();
 
     // deploy the Arcade token, with minter role set to the distribution contract
-    const arcToken = <ArcadeToken>(
-        await deploy("ArcadeToken", signers[0], [
-            deployer.address,
-            arcDst.address,
-            await blockchainTime.secondsFromNow(3600),
-        ])
-    );
+    const arcToken = <ArcadeToken>await deploy("ArcadeToken", signers[0], [deployer.address, arcDst.address]);
     await arcToken.deployed();
 
     return {

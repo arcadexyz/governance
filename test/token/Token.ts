@@ -82,17 +82,31 @@ describe("ArcadeToken", function () {
             it("Can mint after start time", async () => {
                 const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await blockchainTime.increaseTime(3600);
+                await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 await arcToken.connect(deployer).mint(other.address, 100);
 
                 expect(await arcToken.balanceOf(other.address)).to.equal(100);
             });
 
+            it("multiple mints", async () => {
+                const { arcToken, deployer, other, blockchainTime } = ctxToken;
+
+                await blockchainTime.increaseTime(3600 * 24 * 365);
+
+                await arcToken.connect(deployer).mint(other.address, 100);
+
+                await blockchainTime.increaseTime(3600 * 24 * 365);
+
+                await arcToken.connect(deployer).mint(other.address, 100);
+
+                expect(await arcToken.balanceOf(other.address)).to.equal(200);
+            });
+
             it("Cannot mint to the zero address", async () => {
                 const { arcToken, deployer, blockchainTime } = ctxToken;
 
-                await blockchainTime.increaseTime(3600);
+                await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 await expect(arcToken.connect(deployer).mint(ethers.constants.AddressZero, 100)).to.be.revertedWith(
                     "AT_ZeroAddress()",
@@ -102,7 +116,7 @@ describe("ArcadeToken", function () {
             it("Cannot mint amount of zero tokens", async () => {
                 const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await blockchainTime.increaseTime(3600);
+                await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 await expect(arcToken.connect(deployer).mint(other.address, 0)).to.be.revertedWith(
                     "AT_ZeroMintAmount()",
@@ -112,7 +126,7 @@ describe("ArcadeToken", function () {
             it("Cannot mint more than the max supply", async () => {
                 const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await blockchainTime.increaseTime(3600);
+                await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 const _totalSupply = await arcToken.connect(deployer).totalSupply();
                 await expect(
@@ -128,7 +142,7 @@ describe("ArcadeToken", function () {
             it("Must wait minimum wait duration between mints", async () => {
                 const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await blockchainTime.increaseTime(3600);
+                await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 await arcToken.connect(deployer).mint(other.address, 100);
                 await blockchainTime.increaseTime(3600);
@@ -138,7 +152,7 @@ describe("ArcadeToken", function () {
             it("Can mint max tokens after minimum wait duration", async () => {
                 const { arcToken, deployer, other, blockchainTime } = ctxToken;
 
-                await blockchainTime.increaseTime(3600);
+                await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 let amountAvailableToMint = await arcToken.connect(other).totalSupply();
                 expect(amountAvailableToMint.mul(2).div(100)).to.equal(ethers.utils.parseEther("2000000"));
@@ -160,11 +174,23 @@ describe("ArcadeToken", function () {
             const { arcToken, arcDst, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
                 ctxToken;
 
-            await arcDst.connect(deployer).toTreasury(arcToken.address, treasury.address);
-            await arcDst.connect(deployer).toDevPartner(arcToken.address, devPartner.address);
-            await arcDst.connect(deployer).toCommunityRewards(arcToken.address, communityRewardsPool.address);
-            await arcDst.connect(deployer).toCommunityAirdrop(arcToken.address, airdrop.address);
-            await arcDst.connect(deployer).toVesting(arcToken.address, vestingMultisig.address);
+            await expect(await arcDst.connect(deployer).toTreasury(arcToken.address, treasury.address))
+                .to.emit(arcDst, "DistributeBatch")
+                .withArgs(arcToken.address, treasury.address, ethers.utils.parseEther("25500000"));
+            await expect(await arcDst.connect(deployer).toDevPartner(arcToken.address, devPartner.address))
+                .to.emit(arcDst, "DistributeBatch")
+                .withArgs(arcToken.address, devPartner.address, ethers.utils.parseEther("600000"));
+            await expect(
+                await arcDst.connect(deployer).toCommunityRewards(arcToken.address, communityRewardsPool.address),
+            )
+                .to.emit(arcDst, "DistributeBatch")
+                .withArgs(arcToken.address, communityRewardsPool.address, ethers.utils.parseEther("15000000"));
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcToken.address, airdrop.address))
+                .to.emit(arcDst, "DistributeBatch")
+                .withArgs(arcToken.address, airdrop.address, ethers.utils.parseEther("10000000"));
+            await expect(await arcDst.connect(deployer).toVesting(arcToken.address, vestingMultisig.address))
+                .to.emit(arcDst, "DistributeBatch")
+                .withArgs(arcToken.address, vestingMultisig.address, ethers.utils.parseEther("48900000"));
 
             expect(await arcDst.treasurySent()).to.be.true;
             expect(await arcDst.devPartnerSent()).to.be.true;

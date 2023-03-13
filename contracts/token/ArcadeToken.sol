@@ -99,23 +99,15 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
 
     // ===================================== CONSTRUCTOR =====================================
 
-    constructor(
-        address _minter,
-        address _initialDistribution,
-        uint256 _mintingAllowedAfter
-    ) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
-        if (_mintingAllowedAfter < block.timestamp) {
-            revert AT_InvalidMintStart(_mintingAllowedAfter, block.timestamp);
-        }
-
-        // mint the initial amount of tokens for distribution
-        _mint(_initialDistribution, INITIAL_DST_AMOUNT);
-
+    constructor(address _minter, address _initialDistribution) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
         // address responsible for minting future ARC tokens
         minter = _minter;
         emit MinterUpdated(_minter);
 
-        mintingAllowedAfter = _mintingAllowedAfter;
+        mintingAllowedAfter = block.timestamp + MIN_TIME_BETWEEN_MINTS;
+
+        // mint the initial amount of tokens for distribution
+        _mint(_initialDistribution, INITIAL_DST_AMOUNT);
     }
 
     // ====================================== MINTER OPS =====================================

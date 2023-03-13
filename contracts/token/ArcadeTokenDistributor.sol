@@ -16,50 +16,41 @@ import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
  * A contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
  * launch partners, community rewards pool, community airdrop contract, the Arcade treasury,
  * and the token's development partner. Once each transfer function has been called, the
- * corresponding flag is set to true and the function cannot be called again.
- *
- * Upon deployment of the Arcade Token, this contract is set as the Arcade Token's minter. The
- * owner of this contract shall transfer the minter role to the Arcade Token's governance
- * timelock contract.
+ * corresponding flag is set to true and the function cannot be called again. Once all of the
+ * flags are set to true, the Arcade Token Distributor contract is no longer needed and should
+ * not hold any tokens.
  */
 contract ArcadeTokenDistributor is Ownable {
     // ============================================= STATE =============================================
 
-    /// @notice Address of the treasury
-    address public treasury;
     /// @notice 25.5% of initial distribution is for the treasury
     uint256 public constant treasuryAmount = 25_500_000 ether;
     /// @notice A flag to indicate if the treasury has already been transferred to
     bool public treasurySent;
 
-    /// @notice Address of the token's development partner
-    address public devPartner;
     /// @notice 0.6% of initial distribution is for the token development partner
     uint256 public constant devPartnerAmount = 600_000 ether;
     /// @notice A flag to indicate if the token development partner has already been transferred to.
     bool public devPartnerSent;
 
-    /// @notice Address to receive the community rewards
-    address public communityRewards;
     /// @notice 15% of initial distribution is for the community rewards pool
     uint256 public constant communityRewardsAmount = 15_000_000 ether;
     /// @notice A flag to indicate if the community rewards pool has already been transferred to
     bool public communityRewardsSent;
 
-    /// @notice Address of the community airdrop contract
-    address public communityAirdrop;
     /// @notice 10% of initial distribution is for the community airdrop contract
     uint256 public constant communityAirdropAmount = 10_000_000 ether;
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
-    /// @notice Address responsible for distributing to the Arcade team and launch partners
-    address public vesting;
     /// @notice 48.9% of initial distribution is for the Arcade team and launch partners
     ///         The end percentages are 32.7% to Arcade's launch partners and 16.2% to the team
     uint256 public constant vestingAmount = 48_900_000 ether;
     /// @notice A flag to indicate if the Arcade team and launch partners have already been transferred to
     bool public vestingSent;
+
+    /// @notice Emitted when Arcade Tokens are distributed to any recipient address
+    event DistributeBatch(address token, address recipient, uint256 amount);
 
     // ============================================= OWNER OPS =============================================
 
@@ -73,10 +64,11 @@ contract ArcadeTokenDistributor is Ownable {
         if (treasurySent) revert AT_AlreadySent();
         if (_treasury == address(0)) revert AT_ZeroAddress();
 
-        treasury = _treasury;
         treasurySent = true;
 
         token.transfer(_treasury, treasuryAmount);
+
+        emit DistributeBatch(address(token), _treasury, treasuryAmount);
     }
 
     /**
@@ -89,10 +81,11 @@ contract ArcadeTokenDistributor is Ownable {
         if (devPartnerSent) revert AT_AlreadySent();
         if (_devPartner == address(0)) revert AT_ZeroAddress();
 
-        devPartner = _devPartner;
         devPartnerSent = true;
 
         token.transfer(_devPartner, devPartnerAmount);
+
+        emit DistributeBatch(address(token), _devPartner, devPartnerAmount);
     }
 
     /**
@@ -105,10 +98,11 @@ contract ArcadeTokenDistributor is Ownable {
         if (communityRewardsSent) revert AT_AlreadySent();
         if (_communityRewards == address(0)) revert AT_ZeroAddress();
 
-        communityRewards = _communityRewards;
         communityRewardsSent = true;
 
         token.transfer(_communityRewards, communityRewardsAmount);
+
+        emit DistributeBatch(address(token), _communityRewards, communityRewardsAmount);
     }
 
     /**
@@ -121,10 +115,11 @@ contract ArcadeTokenDistributor is Ownable {
         if (communityAirdropSent) revert AT_AlreadySent();
         if (_communityAirdrop == address(0)) revert AT_ZeroAddress();
 
-        communityAirdrop = _communityAirdrop;
         communityAirdropSent = true;
 
         token.transfer(_communityAirdrop, communityAirdropAmount);
+
+        emit DistributeBatch(address(token), _communityAirdrop, communityAirdropAmount);
     }
 
     /**
@@ -138,9 +133,10 @@ contract ArcadeTokenDistributor is Ownable {
         if (vestingSent) revert AT_AlreadySent();
         if (_vesting == address(0)) revert AT_ZeroAddress();
 
-        vesting = _vesting;
         vestingSent = true;
 
         token.transfer(_vesting, vestingAmount);
+
+        emit DistributeBatch(address(token), _vesting, vestingAmount);
     }
 }
