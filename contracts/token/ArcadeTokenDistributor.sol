@@ -23,6 +23,9 @@ import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
 contract ArcadeTokenDistributor is Ownable {
     // ============================================= STATE =============================================
 
+    /// @notice The Arcade Token contract to be used in token distribution.
+    IArcadeToken public arcadeToken;
+
     /// @notice 25.5% of initial distribution is for the treasury
     uint256 public constant treasuryAmount = 25_500_000 ether;
     /// @notice A flag to indicate if the treasury has already been transferred to
@@ -50,93 +53,99 @@ contract ArcadeTokenDistributor is Ownable {
     bool public vestingSent;
 
     /// @notice Emitted when Arcade Tokens are distributed to any recipient address
-    event DistributeBatch(address token, address recipient, uint256 amount);
+    event Distribute(address token, address recipient, uint256 amount);
 
     // ============================================= OWNER OPS =============================================
 
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to the treasury.
      *
-     * @param token                    The Arcade token contract.
      * @param _treasury                The address of the Arcade treasury.
      */
-    function toTreasury(IArcadeToken token, address _treasury) external onlyOwner {
+    function toTreasury(address _treasury) external onlyOwner {
         if (treasurySent) revert AT_AlreadySent();
         if (_treasury == address(0)) revert AT_ZeroAddress();
 
         treasurySent = true;
 
-        token.transfer(_treasury, treasuryAmount);
+        arcadeToken.transfer(_treasury, treasuryAmount);
 
-        emit DistributeBatch(address(token), _treasury, treasuryAmount);
+        emit Distribute(address(arcadeToken), _treasury, treasuryAmount);
     }
 
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to token's development partner.
      *
-     * @param token                    The Arcade token contract.
      * @param _devPartner              The address of the token's development partner.
      */
-    function toDevPartner(IArcadeToken token, address _devPartner) external onlyOwner {
+    function toDevPartner(address _devPartner) external onlyOwner {
         if (devPartnerSent) revert AT_AlreadySent();
         if (_devPartner == address(0)) revert AT_ZeroAddress();
 
         devPartnerSent = true;
 
-        token.transfer(_devPartner, devPartnerAmount);
+        arcadeToken.transfer(_devPartner, devPartnerAmount);
 
-        emit DistributeBatch(address(token), _devPartner, devPartnerAmount);
+        emit Distribute(address(arcadeToken), _devPartner, devPartnerAmount);
     }
 
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to the community rewards pool.
      *
-     * @param token                    The Arcade Token contract.
      * @param _communityRewards        The address of the community rewards pool.
      */
-    function toCommunityRewards(IArcadeToken token, address _communityRewards) external onlyOwner {
+    function toCommunityRewards(address _communityRewards) external onlyOwner {
         if (communityRewardsSent) revert AT_AlreadySent();
         if (_communityRewards == address(0)) revert AT_ZeroAddress();
 
         communityRewardsSent = true;
 
-        token.transfer(_communityRewards, communityRewardsAmount);
+        arcadeToken.transfer(_communityRewards, communityRewardsAmount);
 
-        emit DistributeBatch(address(token), _communityRewards, communityRewardsAmount);
+        emit Distribute(address(arcadeToken), _communityRewards, communityRewardsAmount);
     }
 
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to the community airdrop contract.
      *
-     * @param token                    The Arcade Token contract.
      * @param _communityAirdrop        The address of the community airdrop contract.
      */
-    function toCommunityAirdrop(IArcadeToken token, address _communityAirdrop) external onlyOwner {
+    function toCommunityAirdrop(address _communityAirdrop) external onlyOwner {
         if (communityAirdropSent) revert AT_AlreadySent();
         if (_communityAirdrop == address(0)) revert AT_ZeroAddress();
 
         communityAirdropSent = true;
 
-        token.transfer(_communityAirdrop, communityAirdropAmount);
+        arcadeToken.transfer(_communityAirdrop, communityAirdropAmount);
 
-        emit DistributeBatch(address(token), _communityAirdrop, communityAirdropAmount);
+        emit Distribute(address(arcadeToken), _communityAirdrop, communityAirdropAmount);
     }
 
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to a dedicated multisig which is
      *         responsible for distributing Arcade Tokens to the Arcade team and launch partners.
      *
-     * @param token                    The Arcade Token contract.
      * @param _vesting                 Address responsible for distributing vesting rewards.
      */
-    function toVesting(IArcadeToken token, address _vesting) external onlyOwner {
+    function toVesting(address _vesting) external onlyOwner {
         if (vestingSent) revert AT_AlreadySent();
         if (_vesting == address(0)) revert AT_ZeroAddress();
 
         vestingSent = true;
 
-        token.transfer(_vesting, vestingAmount);
+        arcadeToken.transfer(_vesting, vestingAmount);
 
-        emit DistributeBatch(address(token), _vesting, vestingAmount);
+        emit Distribute(address(arcadeToken), _vesting, vestingAmount);
+    }
+
+    /**
+     * @notice Sets the Arcade Token contract address, to be used in token distribution.
+     *
+     * @param _arcadeToken             The Arcade Token contract.
+     */
+    function setToken(IArcadeToken _arcadeToken) external onlyOwner {
+        if (address(_arcadeToken) == address(0)) revert AT_ZeroAddress();
+
+        arcadeToken = _arcadeToken;
     }
 }
