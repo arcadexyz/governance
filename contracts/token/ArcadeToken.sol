@@ -90,7 +90,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     uint256 public constant PERCENT_DENOMINATOR = 100;
 
     /// @notice the initial token mint amount for distribution.
-    uint256 public constant INITIAL_DST_AMOUNT = 100_000_000 ether;
+    uint256 public constant INITIAL_MINT_AMOUNT = 100_000_000 ether;
 
     // ======================================= EVENTS ========================================
 
@@ -102,12 +102,11 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     constructor(address _minter, address _initialDistribution) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
         // address responsible for minting future ARC tokens
         minter = _minter;
-        emit MinterUpdated(_minter);
 
         mintingAllowedAfter = block.timestamp + MIN_TIME_BETWEEN_MINTS;
 
         // mint the initial amount of tokens for distribution
-        _mint(_initialDistribution, INITIAL_DST_AMOUNT);
+        _mint(_initialDistribution, INITIAL_MINT_AMOUNT);
     }
 
     // ====================================== MINTER OPS =====================================
