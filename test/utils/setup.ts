@@ -3,7 +3,6 @@ import { ethers } from "hardhat";
 
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
 import { TestContextCouncil } from "../utils/councilFixture";
-import { TestContext } from "../utils/fixture";
 
 type Signer = SignerWithAddress;
 export const lockingVaultDelegate = async (lockingVault: LockingVault, signers: SignerWithAddress[]) => {
@@ -27,7 +26,7 @@ export const lockingVaultDelegate = async (lockingVault: LockingVault, signers: 
     await lockingVault.connect(signers[2]).deposit(signers[2].address, ONE.mul(2), signers[3].address);
 };
 
-export const loadGovernance = async (ctxCouncil: TestContextCouncil, ctx: TestContext) => {
+export const loadGovernance = async (ctxCouncil: TestContextCouncil) => {
     const signers: Signer[] = await ethers.getSigners();
     const { coreVoting, lockingVault, votingVaults, increaseBlockNumber, token, promissoryVault } = ctxCouncil;
 
