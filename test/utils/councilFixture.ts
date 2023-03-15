@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, constants } from "ethers";
+import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
@@ -22,8 +22,8 @@ export interface TestContextCouncil {
     tokenAddress: string;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     getBlock: () => Promise<number>;
-    delegateVotingPower: (signers: SignerWithAddress[]) => Promise<BigNumber | undefined>;
 }
+
 export let coreVotingAddress: string;
 export let tokenAddress: string;
 
@@ -54,12 +54,12 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
 
     // deploy the voting vault contract
     const proxyDeployer = await ethers.getContractFactory("SimpleProxy", wallet);
-    const deployer = await ethers.getContractFactory("LockingVault", timelock);
-    const lockingVaultBase = await deployer.deploy(token.address, 55); // use 199350 with fork of mainnet
+    const lockingVaultFactory = await ethers.getContractFactory("LockingVault", timelock);
+    const lockingVaultBase = await lockingVaultFactory.deploy(token.address, 55); // use 199350 with fork of mainnet
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
-    const lockingVault = lockingVaultBase.attach(lockingVaultProxy.address);
+    const lockingVault = await lockingVaultBase.attach(lockingVaultProxy.address);
 
-    // deploy and initialize promissory voting vault
+    //deploy and initialize promissory voting vault
     const PromVaultFactory = await ethers.getContractFactory("PromissoryVault", timelock);
     const promissoryVaultBase = await PromVaultFactory.deploy(tokenAddress, 55);
     const promissoryVaultProxy = await proxyDeployer.deploy(timelock.address, promissoryVaultBase.address);
@@ -68,7 +68,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
 
     // push voting vaults into the votingVaults array which is
     // used as an argument in coreVoting's deployment
-    votingVaults.push(promissoryVault.address);
+    votingVaults.push(promissoryVault.address, lockingVault.address);
 
     // give users some balance and set their allowance
     for (const signer of signers) {
@@ -99,27 +99,6 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     // update coreVoting address. This address will be set as owner of FeeController.sol
     coreVotingAddress = coreVoting.address;
 
-    const delegateVotingPower = async (signers: SignerWithAddress[]) => {
-        const ONE = ethers.utils.parseEther("1");
-        // setup the users and give accounts some voting power
-        // signer[0] deposits initializes votingPower storage
-        await lockingVault.deposit(signers[0].address, ONE, signers[0].address);
-        // signer[1] deposits 0.5 voting power to signers[0]
-        await lockingVault.connect(signers[1]).deposit(signers[1].address, ONE.div(2), signers[0].address);
-        // signer[1] deposits 0.5 voting power to signers[3]
-        await lockingVault.connect(signers[1]).deposit(signers[1].address, ONE.div(2), signers[3].address);
-        // signer[2] deposits 2 voting power to signers[2]
-        await lockingVault.connect(signers[2]).deposit(signers[2].address, ONE.mul(2), signers[2].address);
-        // signer[3] deposits 1 voting power to signers[2]
-        await lockingVault.connect(signers[3]).deposit(signers[3].address, ONE, signers[2].address);
-        // signer[3] deposits 3 voting power to signers[1]
-        await lockingVault.connect(signers[3]).deposit(signers[3].address, ONE.mul(3), signers[1].address);
-        // signers[1] deposits 2 voting power to signers[0]
-        await lockingVault.connect(signers[1]).deposit(signers[1].address, ONE.mul(2), signers[0].address);
-        // signers[2] deposits 2 voting power to signers[3]
-        await lockingVault.connect(signers[2]).deposit(signers[2].address, ONE.mul(2), signers[3].address);
-    };
-
     const getBlock = async () => {
         const latestBlock: number = (await ethers.provider.getBlock("latest")).number;
         return latestBlock;
@@ -141,7 +120,6 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
         timelock,
         increaseBlockNumber,
         getBlock,
-        delegateVotingPower,
         tokenAddress,
     };
 };

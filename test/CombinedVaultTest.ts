@@ -7,7 +7,7 @@ import { TestContext, fixture } from "./utils/fixture";
 
 const { loadFixture, provider } = waffle;
 
-describe.only("Vote Execution with Promissory Voting Vault Only", function () {
+describe("Vote Execution with Locking and Promissory Voting Vaults", function () {
     let ctxCouncil: TestContextCouncil;
     let ctx: TestContext;
 
@@ -15,14 +15,15 @@ describe.only("Vote Execution with Promissory Voting Vault Only", function () {
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
-    describe("Governance flow with promissory vault", async () => {
+    describe("Governance flow with all voting vaults types", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             // load the Council fixture
             ctxCouncil = await loadFixture(councilFixture);
             // load the Arcade fixture
             ctx = await loadFixture(fixture);
 
-            const { signers, coreVoting, increaseBlockNumber, token, promissoryVault } = ctxCouncil;
+            const { signers, coreVoting, lockingVault, votingVaults, increaseBlockNumber, token, promissoryVault } =
+                ctxCouncil;
 
             // get the feeController contract which will be called to set the new origination fee
             const { feeController, pNote, mintPnote } = ctx;
@@ -31,6 +32,23 @@ describe.only("Vote Execution with Promissory Voting Vault Only", function () {
             for (const signer of signers) {
                 await mintPnote(signer.address, 3, pNote);
             }
+
+            // LockingVault users deposits and delegation
+            // query voting power to initialize history for every governance participant
+            const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();
+            // view query voting power of signer 0
+            const votingPower = await lockingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            expect(votingPower).to.be.eq(ONE.mul(3));
+
+            const tx2 = await (await lockingVault.deposit(signers[1].address, ONE, signers[2].address)).wait();
+            // view query voting power of signer 2
+            const votingPower2 = await lockingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
+            expect(votingPower2).to.be.eq(ONE);
+
+            const tx3 = await (await lockingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
+            // view query voting power of signer 1
+            const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
+            expect(votingPower3).to.be.eq(ONE);
 
             // PromissoryVault users, Pnote registration and delegation begins here
             // get votingPower multiplier
@@ -95,7 +113,7 @@ describe.only("Vote Execution with Promissory Voting Vault Only", function () {
             // check current originationFee value
             const currentOgFee = (await feeController.getOriginationFee()).toString();
 
-            const newFee = 62;
+            const newFee = 60;
             const targetAddress = [feeController.address];
             // create an interface to access feeController abi
             const fcFactory = await ethers.getContractFactory("FeeController");
@@ -106,12 +124,12 @@ describe.only("Vote Execution with Promissory Voting Vault Only", function () {
             // with a YES ballot
             await coreVoting
                 .connect(signers[0])
-                .proposal([promissoryVault.address], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
+                .proposal(votingVaults, zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
             // pass proposal with YES majority
-            await coreVoting.connect(signers[2]).vote([promissoryVault.address], zeroExtraData, 0, 0); // yes vote
+            await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 0, 0); // yes vote
 
-            await coreVoting.connect(signers[1]).vote([promissoryVault.address], zeroExtraData, 0, 1); // no vote
+            await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 0, 1); // no vote
 
             //increase blockNumber to exceed 3 day default lock duration set in coreVoting
             await increaseBlockNumber(provider, 19488);
