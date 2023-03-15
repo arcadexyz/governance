@@ -31,7 +31,8 @@ describe("ArcadeToken", function () {
             expect(await arcDst.devPartnerSent()).to.be.false;
             expect(await arcDst.communityRewardsSent()).to.be.false;
             expect(await arcDst.communityAirdropSent()).to.be.false;
-            expect(await arcDst.vestingSent()).to.be.false;
+            expect(await arcDst.vestingTeamSent()).to.be.false;
+            expect(await arcDst.vestingPartnerSent()).to.be.false;
         });
 
         it("Check the initial supply was minted to the distributor contract", async () => {
@@ -179,8 +180,17 @@ describe("ArcadeToken", function () {
 
     describe("ArcadeToken Distribution", function () {
         it("Dst contract owner distributes each token allocation", async () => {
-            const { arcToken, arcDst, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
-                ctxToken;
+            const {
+                arcToken,
+                arcDst,
+                deployer,
+                treasury,
+                devPartner,
+                communityRewardsPool,
+                airdrop,
+                vestingTeamMultisig,
+                vestingPartner,
+            } = ctxToken;
 
             await arcDst.connect(deployer).setToken(arcToken.address);
             expect(await arcDst.arcadeToken()).to.equal(arcToken.address);
@@ -197,15 +207,19 @@ describe("ArcadeToken", function () {
             await expect(await arcDst.connect(deployer).toCommunityAirdrop(airdrop.address))
                 .to.emit(arcDst, "Distribute")
                 .withArgs(arcToken.address, airdrop.address, ethers.utils.parseEther("10000000"));
-            await expect(await arcDst.connect(deployer).toVesting(vestingMultisig.address))
+            await expect(await arcDst.connect(deployer).toPartnerVesting(vestingPartner.address))
                 .to.emit(arcDst, "Distribute")
-                .withArgs(arcToken.address, vestingMultisig.address, ethers.utils.parseEther("48900000"));
+                .withArgs(arcToken.address, vestingPartner.address, ethers.utils.parseEther("32700000"));
+            await expect(await arcDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, vestingTeamMultisig.address, ethers.utils.parseEther("16200000"));
 
             expect(await arcDst.treasurySent()).to.be.true;
             expect(await arcDst.devPartnerSent()).to.be.true;
             expect(await arcDst.communityRewardsSent()).to.be.true;
             expect(await arcDst.communityAirdropSent()).to.be.true;
-            expect(await arcDst.vestingSent()).to.be.true;
+            expect(await arcDst.vestingTeamSent()).to.be.true;
+            expect(await arcDst.vestingPartnerSent()).to.be.true;
 
             expect(await arcToken.balanceOf(treasury.address)).to.equal(ethers.utils.parseEther("25500000"));
             expect(await arcToken.balanceOf(devPartner.address)).to.equal(ethers.utils.parseEther("600000"));
@@ -213,7 +227,10 @@ describe("ArcadeToken", function () {
                 ethers.utils.parseEther("15000000"),
             );
             expect(await arcToken.balanceOf(airdrop.address)).to.equal(ethers.utils.parseEther("10000000"));
-            expect(await arcToken.balanceOf(vestingMultisig.address)).to.equal(ethers.utils.parseEther("48900000"));
+            expect(await arcToken.balanceOf(vestingPartner.address)).to.equal(ethers.utils.parseEther("32700000"));
+            expect(await arcToken.balanceOf(vestingTeamMultisig.address)).to.equal(ethers.utils.parseEther("16200000"));
+
+            expect(await arcToken.balanceOf(arcDst.address)).to.equal(0);
 
             expect(await arcToken.totalSupply()).to.equal(ethers.utils.parseEther("100000000"));
         });
@@ -235,7 +252,10 @@ describe("ArcadeToken", function () {
             await expect(arcDst.connect(deployer).toCommunityAirdrop(ethers.constants.AddressZero)).to.be.revertedWith(
                 "AT_ZeroAddress()",
             );
-            await expect(arcDst.connect(deployer).toVesting(ethers.constants.AddressZero)).to.be.revertedWith(
+            await expect(arcDst.connect(deployer).toTeamVesting(ethers.constants.AddressZero)).to.be.revertedWith(
+                "AT_ZeroAddress()",
+            );
+            await expect(arcDst.connect(deployer).toPartnerVesting(ethers.constants.AddressZero)).to.be.revertedWith(
                 "AT_ZeroAddress()",
             );
 
@@ -255,7 +275,8 @@ describe("ArcadeToken", function () {
                 devPartner,
                 communityRewardsPool,
                 airdrop,
-                vestingMultisig,
+                vestingTeamMultisig,
+                vestingPartner,
             } = ctxToken;
 
             await arcDst.connect(deployer).setToken(arcToken.address);
@@ -272,7 +293,10 @@ describe("ArcadeToken", function () {
             await expect(arcDst.connect(other).toCommunityAirdrop(airdrop.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
-            await expect(arcDst.connect(other).toVesting(vestingMultisig.address)).to.be.revertedWith(
+            await expect(arcDst.connect(other).toTeamVesting(vestingTeamMultisig.address)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
+            );
+            await expect(arcDst.connect(other).toPartnerVesting(vestingPartner.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
 
@@ -283,8 +307,17 @@ describe("ArcadeToken", function () {
         });
 
         it("Verifies all transfer functions can only be called once by contract owner", async () => {
-            const { arcToken, arcDst, deployer, treasury, devPartner, communityRewardsPool, airdrop, vestingMultisig } =
-                ctxToken;
+            const {
+                arcToken,
+                arcDst,
+                deployer,
+                treasury,
+                devPartner,
+                communityRewardsPool,
+                airdrop,
+                vestingTeamMultisig,
+                vestingPartner,
+            } = ctxToken;
 
             await arcDst.connect(deployer).setToken(arcToken.address);
 
@@ -292,7 +325,8 @@ describe("ArcadeToken", function () {
             await arcDst.connect(deployer).toDevPartner(devPartner.address);
             await arcDst.connect(deployer).toCommunityRewards(communityRewardsPool.address);
             await arcDst.connect(deployer).toCommunityAirdrop(airdrop.address);
-            await arcDst.connect(deployer).toVesting(vestingMultisig.address);
+            await arcDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address);
+            await arcDst.connect(deployer).toPartnerVesting(vestingPartner.address);
 
             await expect(arcDst.connect(deployer).toTreasury(treasury.address)).to.be.revertedWith("AT_AlreadySent()");
             await expect(arcDst.connect(deployer).toDevPartner(devPartner.address)).to.be.revertedWith(
@@ -304,7 +338,10 @@ describe("ArcadeToken", function () {
             await expect(arcDst.connect(deployer).toCommunityAirdrop(airdrop.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
             );
-            await expect(arcDst.connect(deployer).toVesting(vestingMultisig.address)).to.be.revertedWith(
+            await expect(arcDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address)).to.be.revertedWith(
+                "AT_AlreadySent()",
+            );
+            await expect(arcDst.connect(deployer).toPartnerVesting(vestingPartner.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
             );
         });

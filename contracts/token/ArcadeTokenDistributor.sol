@@ -46,11 +46,15 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
-    /// @notice 48.9% of initial distribution is for the Arcade team and launch partners
-    ///         The end percentages are 32.7% to Arcade's launch partners and 16.2% to the team
-    uint256 public constant vestingAmount = 48_900_000 ether;
-    /// @notice A flag to indicate if the Arcade team and launch partners have already been transferred to
-    bool public vestingSent;
+    /// @notice 32.7% of initial distribution is for Arcade's launch partners
+    uint256 public constant vestingTeamAmount = 16_200_000 ether;
+    /// @notice A flag to indicate if the launch partners have already been transferred to
+    bool public vestingTeamSent;
+
+    /// @notice 16.2% of initial distribution is for the Arcade team
+    uint256 public constant vestingPartnerAmount = 32_700_000 ether;
+    /// @notice A flag to indicate if the Arcade team has already been transferred to
+    bool public vestingPartnerSent;
 
     /// @notice Emitted when Arcade Tokens are distributed to any recipient address
     event Distribute(address token, address recipient, uint256 amount);
@@ -122,20 +126,37 @@ contract ArcadeTokenDistributor is Ownable {
     }
 
     /**
-     * @notice Transfers a predetermined amount of Arcade Tokens to a dedicated multisig which is
-     *         responsible for distributing Arcade Tokens to the Arcade team and launch partners.
+     * @notice Transfers a predetermined amount of Arcade Tokens to a recipient address
+     *         which is responsible for distributing Arcade Tokens to the Arcade team.
      *
-     * @param _vesting                 Address responsible for distributing vesting rewards.
+     * @param _vestingTeam             Address responsible for distributing vesting rewards.
      */
-    function toVesting(address _vesting) external onlyOwner {
-        if (vestingSent) revert AT_AlreadySent();
-        if (_vesting == address(0)) revert AT_ZeroAddress();
+    function toTeamVesting(address _vestingTeam) external onlyOwner {
+        if (vestingTeamSent) revert AT_AlreadySent();
+        if (_vestingTeam == address(0)) revert AT_ZeroAddress();
 
-        vestingSent = true;
+        vestingTeamSent = true;
 
-        arcadeToken.transfer(_vesting, vestingAmount);
+        arcadeToken.transfer(_vestingTeam, vestingTeamAmount);
 
-        emit Distribute(address(arcadeToken), _vesting, vestingAmount);
+        emit Distribute(address(arcadeToken), _vestingTeam, vestingTeamAmount);
+    }
+
+    /**
+     * @notice Transfers a predetermined amount of Arcade Tokens to a recipient address
+     *         which is responsible for distributing Arcade Tokens to our Launch Partners.
+     *
+     * @param _vestingPartner          Address responsible for distributing vesting rewards.
+     */
+    function toPartnerVesting(address _vestingPartner) external onlyOwner {
+        if (vestingPartnerSent) revert AT_AlreadySent();
+        if (_vestingPartner == address(0)) revert AT_ZeroAddress();
+
+        vestingPartnerSent = true;
+
+        arcadeToken.transfer(_vestingPartner, vestingPartnerAmount);
+
+        emit Distribute(address(arcadeToken), _vestingPartner, vestingPartnerAmount);
     }
 
     /**

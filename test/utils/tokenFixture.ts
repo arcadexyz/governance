@@ -15,7 +15,8 @@ export interface TokenTestContext {
     devPartner: Wallet;
     communityRewardsPool: Wallet;
     airdrop: Wallet;
-    vestingMultisig: Wallet;
+    vestingTeamMultisig: Wallet;
+    vestingPartner: Wallet;
     arcToken: IArcadeToken;
     arcDst: ArcadeTokenDistributor;
     blockchainTime: BlockchainTime;
@@ -36,7 +37,8 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     const devPartner = new Wallet.createRandom();
     const communityRewardsPool = new Wallet.createRandom();
     const airdrop = new Wallet.createRandom();
-    const vestingMultisig = new Wallet.createRandom();
+    const vestingTeamMultisig = new Wallet.createRandom();
+    const vestingPartner = new Wallet.createRandom();
 
     const blockchainTime = new BlockchainTime();
 
@@ -57,7 +59,8 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
         devPartner,
         communityRewardsPool,
         airdrop,
-        vestingMultisig,
+        vestingTeamMultisig,
+        vestingPartner,
         arcToken,
         arcDst,
         blockchainTime,

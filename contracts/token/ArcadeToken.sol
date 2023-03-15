@@ -81,7 +81,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     uint256 public mintingAllowedAfter;
 
     /// @notice The minimum time to wait between mints
-    uint256 public constant MIN_TIME_BETWEEN_MINTS = 365 days;
+    uint48 public constant MIN_TIME_BETWEEN_MINTS = 365 days;
 
     /// @notice Cap on the percentage of totalSupply that can be minted at each mint
     uint256 public constant MINT_CAP = 2;
