@@ -3,11 +3,12 @@ import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
 import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
+import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContext, fixture } from "./utils/fixture";
 
-const { loadFixture, provider } = waffle;
+const { provider } = waffle;
 
-describe.only("Vote Execution with Promissory Voting Vault Only", function () {
+describe("Vote Execution with Promissory Voting Vault Only", async () => {
     let ctxCouncil: TestContextCouncil;
     let ctx: TestContext;
 
@@ -15,12 +16,24 @@ describe.only("Vote Execution with Promissory Voting Vault Only", function () {
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
+    before(async function () {
+        ctxCouncil = await councilFixture();
+        ctx = await fixture();
+
+        await createSnapshot(provider);
+    });
+
     describe("Governance flow with promissory vault", async () => {
+        beforeEach(async function () {
+            await createSnapshot(provider);
+        });
+        afterEach(async function () {
+            await restoreSnapshot(provider);
+        });
+
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            // load the Council fixture
-            ctxCouncil = await loadFixture(councilFixture);
-            // load the Arcade fixture
-            ctx = await loadFixture(fixture);
+            ctxCouncil = await councilFixture();
+            ctx = await fixture();
 
             const { signers, coreVoting, increaseBlockNumber, token, promissoryVault } = ctxCouncil;
 
