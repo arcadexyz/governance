@@ -7,7 +7,7 @@ import { TestContext, fixture } from "./utils/fixture";
 
 const { provider } = waffle;
 
-describe("Vote Execution with Locking Voting Vault Only", async () => {
+describe("Vote Execution with Locking Voting Vault", async () => {
     let ctxCouncil: TestContextCouncil;
     let ctx: TestContext;
 

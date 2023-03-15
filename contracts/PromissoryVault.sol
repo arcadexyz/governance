@@ -225,6 +225,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(pNote);
+
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
         if (balance.data < amount) revert PV_InsufficientBalance();
@@ -238,11 +239,12 @@ abstract contract AbstractPromissoryVault is IVotingVault {
             pNote.withdrawn += amount;
             // update the delegatee's voting power
             _syncVotingPower(msg.sender, pNote);
-            // pNote withdrawn property updates
         } else if ((withdrawable - amount) == 0) {
             // user withdraws ALL tokens
             // update contract balance
             balance.data -= amount;
+            // update withdrawn amount
+            pNote.withdrawn += amount;
             // update the delegatee's voting power
             _syncVotingPower(msg.sender, pNote);
             // pNote deleted
