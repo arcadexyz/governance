@@ -64,7 +64,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
     const promissoryVaultBase = await PromVaultFactory.deploy(tokenAddress, 55);
     const promissoryVaultProxy = await proxyDeployer.deploy(timelock.address, promissoryVaultBase.address);
     const promissoryVault = promissoryVaultBase.attach(promissoryVaultProxy.address);
-    await promissoryVault.initialize(signers[0].address, timelock.address);
+    await promissoryVault.initialize(timelock.address);
 
     // push voting vaults into the votingVaults array which is
     // used as an argument in coreVoting's deployment

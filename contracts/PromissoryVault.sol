@@ -24,10 +24,17 @@ import {
  * @title PromissoryVault
  * @author Non-Fungible Technologies, Inc.
  *
- * TODO: ADD DESCRIPTION HERE.
+ * This contract enables holders of Arcade promissory notes to gain an advantage wrt
+ * voting power for participation in governance. Users send their tokens to the contract
+ * and provide their promissoryNote id as calldata. Once the  contract confirms their ownership
+ * of the promissory note id, they are able to delegate their voting power for participation in
+ * governance.
+ * Voting power for participants in this vault is enhanced by a multiplier.
+ * This contract is Simple Proxy upgradeable which is the upgradeability system used for vaults
+ * in Council.
  *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
- *      deposit() are unrecoverable by this version of the PromissoryVault.
+ *      addPnoteAndDelegate() are unrecoverable by this version of the PromissoryVault.
  *
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
@@ -58,19 +65,14 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @notice Constructs the contract by setting immutables.
      *
      * @param _token                     The external erc20 token contract.
-     * @param _staleBlockLag             The number of blocks before the delegation history is forgotten.
+     * @param _staleBlockLag             The number of blocks before which the delegation history is forgotten.
      */
     constructor(IERC20 _token, uint256 _staleBlockLag) {
         token = _token;
         staleBlockLag = _staleBlockLag;
     }
 
-    // ========================================== MODIFIERS ==============================================
-
-    modifier onlyManager() {
-        require(msg.sender == _manager().data, "!manager");
-        _;
-    }
+    // ========================================== MODIFIER ==============================================
 
     modifier onlyTimelock() {
         require(msg.sender == _timelock().data, "!timelock");
@@ -82,14 +84,12 @@ abstract contract AbstractPromissoryVault is IVotingVault {
     /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
-     * @param manager_                 The vault manager can remove balance.
      * @param timelock_                The timelock address can change the multiplier.
      *
      */
-    function initialize(address manager_, address timelock_) public {
+    function initialize(address timelock_) public {
         require(Storage.uint256Ptr("initialized").data == 0, "initialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
-        Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
         Storage.set(Storage.uint256Ptr("multiplier"), 5);
     }
@@ -97,7 +97,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
     /**
      * @notice Registers a new Pnote.
      *
-     * @dev User loan has to be active for participation in this vault.
+     * @dev User has to own promissoryNote ERC721 for participation in this vault.
      *
      * @param _amount                   The deposit token amount.
      * @param _time                     The time of deposit. If set to zero, it will be the the block this
@@ -111,7 +111,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         uint128 _noteId,
         address _promissoryNote,
         address _delegatee
-    ) public {
+    ) external {
         address _who = msg.sender;
         uint128 withdrawn = 0;
 
@@ -132,9 +132,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
 
         // confirm this user is the owner of the promissoryNote
         if (IERC721(_promissoryNote).ownerOf(_noteId) != _who) revert PV_DoesNotOwn();
-
-        // Move the user tokens into this contract
-        token.transferFrom(_who, address(this), _amount);
 
         // load the delegate. Defaults to the pNote owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
@@ -166,6 +163,9 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         // votes again
         uint256 delegateeVotes2 = votingPower.loadTop(pNote.delegatee);
 
+        // Move the user tokens into this contract
+        token.transferFrom(_who, address(this), _amount);
+
         emit VoteChange(pNote.delegatee, _who, int256(uint256(newVotingPower)));
     }
 
@@ -188,7 +188,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      *
      * @param _to                       The address to delegate to.
      */
-    function delegate(address _to) public {
+    function delegate(address _to) external {
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
         // If this address is already the delegate, don't send the tx
         if (_to != pNote.delegatee) revert PV_AlreadyDelegated();
@@ -231,39 +231,20 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         if (balance.data < amount) revert PV_InsufficientBalance();
         if (pNote.amount < amount) revert PV_InsufficientPnoteBalance();
 
-        // user withdraws SOME tokens
-        if ((withdrawable - amount) > 0) {
+        if ((withdrawable - amount) >= 0) {
             // update contract balance
             balance.data -= amount;
             // update withdrawn amount
             pNote.withdrawn += amount;
             // update the delegatee's voting power
             _syncVotingPower(msg.sender, pNote);
-        } else if ((withdrawable - amount) == 0) {
-            // user withdraws ALL tokens
-            // update contract balance
-            balance.data -= amount;
-            // update withdrawn amount
-            pNote.withdrawn += amount;
-            // update the delegatee's voting power
-            _syncVotingPower(msg.sender, pNote);
-            // pNote deleted
+        }
+        if ((withdrawable - amount) == 0) {
             delete _pNotes()[msg.sender];
         }
+
         // transfer the token amount to the user
         token.transfer(msg.sender, withdrawable);
-    }
-
-    /**
-     * @notice Update a delegatee's voting power.
-     *
-     * @dev Voting power is only updated for this block onward.
-     *
-     * @param _who                       The address who's voting power this function updates.
-     */
-    function updateVotingPower(address _who) public {
-        PromissoryVaultStorage.Pnote storage pNote = _pNotes()[_who];
-        _syncVotingPower(_who, pNote);
     }
 
     /**
@@ -327,17 +308,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
     }
 
     /**
-     * @notice timelock-only manager update function.
-     *
-     * @dev Allows the timelock to update the manager address.
-     *
-     * @param manager_                   The new manager.
-     */
-    function setManager(address manager_) public onlyTimelock {
-        Storage.set(Storage.addressPtr("manager"), manager_);
-    }
-
-    /**
      * @notice A function to access the storage of the timelock address.
      *
      * @dev The timelock can access all functions with the onlyTimelock modifier.
@@ -355,17 +325,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      */
     function multiplier() external pure returns (uint256) {
         return _multiplier().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the manager address.
-     *
-     * @dev The manager can access all functions with the olyManager modifier.
-     *
-     * @return                          The manager address.
-     */
-    function manager() public pure returns (address) {
-        return _manager().data;
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -390,17 +349,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      */
     function _balance() internal pure returns (Storage.Uint256 storage) {
         return Storage.uint256Ptr("balance");
-    }
-
-    /**
-     * @notice A function to access the storage of the manager address.
-     *
-     * @dev The manager can access all functions with the onlyManager modifier.
-     *
-     * @return                          A struct containing the manager address.
-     */
-    function _manager() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("manager");
     }
 
     /**
