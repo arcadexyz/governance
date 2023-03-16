@@ -10,8 +10,6 @@ type Signer = SignerWithAddress;
 export interface TestContext {
     feeController: FeeController;
     pNote: MockERC721Metadata;
-    borrower: SignerWithAddress;
-    lender: SignerWithAddress;
     mintPnote(signer: string, amount: number, contract: MockERC721Metadata): Promise<void>;
 }
 
@@ -48,8 +46,6 @@ export const fixture = async (): Promise<TestContext> => {
 
     return {
         feeController,
-        lender,
-        borrower,
         pNote,
         mintPnote,
     };

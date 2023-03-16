@@ -44,7 +44,7 @@ export const councilFixture = async (): Promise<TestContextCouncil> => {
 
     // deploy the token
     const erc20Deployer = await ethers.getContractFactory("MockERC20Council", signers[0]);
-    const token = await erc20Deployer.deploy("Arc", "test Arc", signers[0].address);
+    const token = await erc20Deployer.deploy("Arcade", "ARCD", signers[0].address);
     // update the token address for use in promissory vault deployment
     const tokenAddress: string = token.address;
 

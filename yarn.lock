@@ -15,9 +15,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@arcadexyz/governance@workspace:.":
+"@arcadexyz/arcade-governance@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@arcadexyz/governance@workspace:."
+  resolution: "@arcadexyz/arcade-governance@workspace:."
   dependencies:
     "@arcadexyz/v2-contracts": arcadexyz/v2-contracts
     "@codechecks/client": ^0.1.12
