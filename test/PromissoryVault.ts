@@ -2,9 +2,9 @@ import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextCouncil, councilFixture } from "./utils/councilFixture";
 import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContext, fixture } from "./utils/fixture";
+import { TestContextCouncil, councilFixture } from "./utils/vaultFixture";
 
 const { provider } = waffle;
 
