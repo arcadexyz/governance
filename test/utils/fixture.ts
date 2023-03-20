@@ -3,7 +3,7 @@ import hre from "hardhat";
 
 import { FeeController, MockERC721Metadata } from "../../src/types";
 import { deploy } from "./contracts";
-import { coreVotingAddress } from "./councilFixture";
+import { coreVotingAddress } from "./vaultFixture";
 
 type Signer = SignerWithAddress;
 
