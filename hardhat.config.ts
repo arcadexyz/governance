@@ -152,7 +152,7 @@ const config: HardhatUserConfig = {
                         enabled: optimizerEnabled,
                         runs: 999999,
                     },
-                    viaIR: true, // experimental compiler feature to reduce stack 2 deep intolerance
+                    //viaIR: true, // experimental compiler feature to reduce stack 2 deep intolerance
                 },
             },
         ],

@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
-import "./external/council/interfaces/IVotingVault.sol";
+import "./BaseVotingVault.sol";
 import "./libraries/PromissoryVaultStorage.sol";
 
 import {
@@ -16,54 +16,10 @@ import {
     PV_HasPnote,
     PV_AlreadyDelegated,
     PV_InsufficientBalance,
-    PV_MultiplierLimit,
     PV_InsufficientPnoteBalance
 } from "./errors/Governance.sol";
 
 /**
- *                                   _
- *                                  | |
- *    _____   ____  ____  _____   __| | _____     _   _  _   _  _____
- *   (____ | / ___)/ ___)(____ | / _  || ___ |   ( \ / )| | | |(___  )
- *   / ___ || |   ( (___ / ___ |( (_| || ____| _  ) X ( | |_| | / __/
- *   \_____||_|    \____)\_____| \____||_____)(_)(_/ \_) \__  |(_____)
- *                                                      (____/
- *
- *                                                 :--====-::
- *                                            :=*%%%%%%%%%%%%%*=.
- *                                        .=#%%#*+=-----=+*%%%%%%*.
- *                              :=**=:   :=-.               -#%%%%%:
- *                          .=*%%%%%%%%*=.                    #%%%%#
- *                      .-+#%%%%%%%%%%%%%%#+-.                :%%%%%=
- *                  .-+#%%%%%%%%%%%%%%%%%%%%%%#+-.             %%%%%*
- *              .-+#%%%%%%%%%%%%#+::=*%%%%%%%%%%%%#+-.        .%%%%%*
- *           :+#%%%%%%%%%%%%#+-        :=*%%%%%%%%%%%%#+:     -%%%%%+
- *           *%%%%%%%%%%#*-.               :=*%%%%%%%%%%*     #%%%%%:
- *           *%%%%%%%%%%#+:                 -*%%%%%%%%%%*    =%%%%%#
- *           *%%%%%%%%%%%%%%+-          :=*%%%%%%%%%%%%%*   :%%%%%%=
- *           *%%%%%%%%%%%%%%%%%*=:  .-*%%%%%%%%%%%%%%%%%*  :%%%%%%#
- *           *%%%%%%=-*%%%%%%%%%%%##%%%%%%%%%%%*-:%%%%%%* .#%%%%%#.
- *           *%%%%%%-   :+#%%%%%%%%%%%%%%%%#+:   .%%%%%%*:%%%%%%#.
- *           *%%%%%%-      .=*%%%%%%%%%%*-.      .%%%%%%%%%%%%%%:
- *           *%%%%%%-          *%%%%%%+          .%%%%%%%%%%%%%:
- *           *%%%%%%-          +%%%%%%=          .%%%%%%%%%%%#:
- *           *%%%%%%-          +%%%%%%=          .%%%%%%%%%%*
- *        -  *%%%%%%*:         +%%%%%%=         -+%%%%%%%%%-
- *      .##  *%%%%%%%%%*-.     +%%%%%%=     .-*%%%%%%%%%%*.
- *     .#%-  :*%%%%%%%%%%%#=.  +%%%%%%=  .=#%%%%%%%%%%%%=
- *     #%#      -+%%%%%%%%%%%#=*%%%%%%++#%%%%%%%%%%%%%*.
- *    +%%+         :+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#:
- *   .%%%-            :=#%%%%%%%%%%%%%%%%%%%%%%%%%#-
- *   =%%%:               .-*%%%%%%%%%%%%%%%%%%%%*-
- *   +%%%:                   -+%%%%%%%%%%%%%%%*:
- *   +%%%=                      +%%%%%%%%%%%+.
- *   :%%%%:                 .-+%%%%%%%%%%*-
- *    +%%%%+.          .:=+#%%%%%%%%%%*-
- *     +%%%%%#*+===+*#%%%%%%%%%%%%#+-
- *      :*%%%%%%%%%%%%%%%%%%%%#+-.
- *         -+#%%%%%%%%%%#*+-:
- *              ......
- *
  *
  * @title PromissoryVault
  * @author Non-Fungible Technologies, Inc.
@@ -84,24 +40,17 @@ import {
  *      storage and return the following as methods to isolate that call.
  */
 
-abstract contract AbstractPromissoryVault is IVotingVault {
+abstract contract AbstractPromissoryVault is BaseVotingVault {
     // ======================================== STATE ==================================================
 
-    // Bring libraries into scope
-    using History for *;
-    using PromissoryVaultStorage for *;
-    using Storage for *;
+    // Bring History library into scope
+    using History for History.HistoricalBalances;
 
     // Immutables are in bytecode so don't need special storage treatment
-    IERC20 public immutable token;
+    IERC20 public immutable arcdToken;
 
-    // A constant which is how far back stale blocks are
-    uint256 public immutable staleBlockLag;
-
-    // ============================================ EVENTS ===============================================
-
-    // Event to track delegation data
-    event VoteChange(address indexed from, address indexed to, int256 amount);
+    // A constant which determines the block before which blocks are ignored
+    uint256 public immutable blockLimit;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -111,16 +60,9 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      * @param _token                     The external erc20 token contract.
      * @param _staleBlockLag             The number of blocks before which the delegation history is forgotten.
      */
-    constructor(IERC20 _token, uint256 _staleBlockLag) {
-        token = _token;
-        staleBlockLag = _staleBlockLag;
-    }
-
-    // ========================================== MODIFIER ==============================================
-
-    modifier onlyTimelock() {
-        require(msg.sender == _timelock().data, "!timelock");
-        _;
+    constructor(IERC20 _token, uint256 _staleBlockLag) BaseVotingVault(_token, _staleBlockLag) {
+        arcdToken = _token;
+        blockLimit = _staleBlockLag;
     }
 
     // ================================ PROMISSORY VAULT FUNCTIONALITY ===================================
@@ -143,7 +85,8 @@ abstract contract AbstractPromissoryVault is IVotingVault {
      *
      * @dev User has to own promissoryNote ERC721 for participation in this vault.
      *
-     * @param _amount                   The deposit token amount.
+     * @param _amount                   Amount of tokens sent to this contract by the user for participation
+     *                                  in governance.
      * @param _time                     The time of deposit. If set to zero, it will be the the block this
      *                                  is executed in.
      * @param _delegatee                Optional param. The address to delegate the voting power associated
@@ -170,8 +113,8 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         // load the pNote
         PromissoryVaultStorage.Pnote storage pNote = _pNotes()[_who];
 
-        // If this user already has a pNote, a different address must be provided
-        // topping up or editing active pNotes is not supported
+        // If the address of the promissory is not zero, revert because the Pnote is
+        // already initialized. Only one Pnote per msg.sender
         if (pNote.promissoryNote != address(0)) revert PV_HasPnote();
 
         // confirm this user is the owner of the promissoryNote
@@ -197,15 +140,9 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         // update this contract's balance
         balance.data += _amount;
 
-        // update the delegatee's voting power
-        History.HistoricalBalances memory votingPower = _votingPower();
-        // loads the most recent timestamp of delgation power for this delegate
-        uint256 delegateeVotes = votingPower.loadTop(pNote.delegatee);
-        // add block stamp indexed delegation power for this delegate to historical data array
-        votingPower.push(pNote.delegatee, delegateeVotes + newVotingPower);
+        address delegatee = pNote.delegatee;
 
-        // votes again
-        uint256 delegateeVotes2 = votingPower.loadTop(pNote.delegatee);
+        _grantDelgateeVotingPower(delegatee, newVotingPower);
 
         // Move the user tokens into this contract
         token.transferFrom(_who, address(this), _amount);
@@ -262,7 +199,7 @@ abstract contract AbstractPromissoryVault is IVotingVault {
     /**
      * @notice Removes tokens from this contract and the voting power they represent.
      *
-     * @param amount                       The amount of token to withdraw.
+     * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual {
         // load the pNote
@@ -291,87 +228,27 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         token.transfer(msg.sender, withdrawable);
     }
 
-    /**
-     * @notice Loads the voting power of a user.
-     *
-     * @dev Voting power is only updated for this block onward.
-     *
-     * @param user                       The address we want to load the voting power of.
-     * @param blockNumber                BlockNumber the block number we want the user's voting power at.
-     * @param extraData                  The extra calldata is unused in this contract.
-     *
-     * @return                           The number of votes.
-     */
-    function queryVotePower(
-        address user,
-        uint256 blockNumber,
-        bytes calldata extraData
-    ) external override returns (uint256) {
-        // Get our reference to historical data
-        History.HistoricalBalances memory votingPower = _votingPower();
-        // Find the historical data and clear everything more than 'staleBlockLag' into the past
-        return votingPower.findAndClear(user, blockNumber, block.number - staleBlockLag);
-    }
-
-    /**
-     * @notice Loads the voting power of a user without changing state.
-     *
-     * @param user                       The address we want to load the voting power of.
-     * @param blockNumber                BlockNumber the block number we want the user's voting power at.
-     *
-     * @return                           The number of votes.
-     */
-    function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256) {
-        // Get our reference to historical data
-        History.HistoricalBalances memory votingPower = _votingPower();
-        // Find the historical datum
-        return votingPower.find(user, blockNumber);
-    }
-
-    /**
-     * @notice timelock-only multiplier update function.
-     *
-     * @dev Allows the timelock to update the multiplier.
-     *
-     * @param _multiplier                The new multiplier value.
-     */
-    function changeMultiplier(uint256 _multiplier) public onlyTimelock {
-        if (_multiplier <= 100) revert PV_MultiplierLimit();
-        Storage.set(Storage.uint256Ptr("multiplier"), _multiplier);
-    }
-
-    /**
-     * @notice timelock-only timelock update function.
-     *
-     * @dev Allows the timelock to update the timelock address.
-     *
-     * @param timelock_                  The new timelock.
-     */
-    function setTimelock(address timelock_) public onlyTimelock {
-        Storage.set(Storage.addressPtr("timelock"), timelock_);
-    }
-
-    /**
-     * @notice A function to access the storage of the timelock address.
-     *
-     * @dev The timelock can access all functions with the onlyTimelock modifier.
-     *
-     * @return                          The timelock address.
-     */
-    function timelock() public pure returns (address) {
-        return _timelock().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the token vote power multiplier.
-     *
-     * @return                          The token multiplier.
-     */
-    function multiplier() external pure returns (uint256) {
-        return _multiplier().data;
-    }
-
     // ================================ HELPER FUNCTIONS ===================================
+
+    /**
+     * @notice Grants the chosen delegate address voting power when a new Pnote is registered.
+     *
+     * @param delegatee                     The address to delegate the voting power associated
+     *                                     with the Pnote to.
+     * @param newVotingPower               Amount of votingPower associated with this Pnote to
+     *                                     be added to delegates existing votingPower.
+     *
+     */
+    function _grantDelgateeVotingPower(address delegatee, uint128 newVotingPower) internal {
+        // update the delegatee's voting power
+        History.HistoricalBalances memory votingPower = _votingPower();
+        // loads the most recent timestamp of delgation power for this delegate
+        uint256 delegateeVotes = votingPower.loadTop(delegatee);
+        // add block stamp indexed delegation power for this delegate to historical data array
+        votingPower.push(delegatee, delegateeVotes + newVotingPower);
+        // get the updated votingPower
+        uint256 delegateeVotes2 = votingPower.loadTop(delegatee);
+    }
 
     /**
      * @notice A single function endpoint for loading Pnote storage
@@ -384,40 +261,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         // This call returns a storage mapping with a unique non overwrite-able storage location
         // which can be persisted through upgrades, even if they change storage layout
         return (PromissoryVaultStorage.mappingAddressToPnotePtr("pNotes"));
-    }
-
-    /**
-     * @notice A function to access the storage of the token value
-     *
-     * @return                          A struct containing the balance uint.
-     */
-    function _balance() internal pure returns (Storage.Uint256 storage) {
-        return Storage.uint256Ptr("balance");
-    }
-
-    /**
-     * @notice A function to access the storage of the timelock address.
-     *
-     * @dev The timelock can access all functions with the onlyTimelock modifier.
-     *
-     * @return                          A struct containing the timelock address.
-     */
-    function _timelock() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("timelock");
-    }
-
-    /**
-     * @notice A function to access the storage of the multiplier value.
-     *
-     * @dev The multiplier is a number that boosts the voting power of a user's
-     * governance tokens because of that user simultaneously holding an active loan.
-     * The voting power of the user would equal the product of the number of tokens
-     * deposited into the voting vault multiplied by the value of the multiplier.
-     *
-     * @return                          A struct containing the multiplier uint.
-     */
-    function _multiplier() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("multiplier");
     }
 
     /**
@@ -463,18 +306,6 @@ abstract contract AbstractPromissoryVault is IVotingVault {
         }
         uint256 withdrawable = _pNote.amount - _pNote.withdrawn;
         return (withdrawable);
-    }
-
-    /**
-     * @notice Returns the historical voting power tracker.
-     *
-     * @return                            A struct which can push to and find items in block
-     *                                    indexed storage.
-     */
-    function _votingPower() internal pure returns (History.HistoricalBalances memory) {
-        // This call returns a storage mapping with a unique non overwrite-able storage location
-        // which can be persisted through upgrades, even if they change storage layout.
-        return (History.load("votingPower"));
     }
 
     /**
