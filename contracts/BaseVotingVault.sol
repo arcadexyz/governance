@@ -69,8 +69,6 @@ contract BaseVotingVault is IVotingVault {
     /**
      * @notice Loads the voting power of a user.
      *
-     * @dev Voting power is only updated for this block onward.
-     *
      * @param user                       The address we want to load the voting power of.
      * @param blockNumber                Block number to query the user's voting power at.
      * @param extraData                  The extra calldata is unused in this contract.
