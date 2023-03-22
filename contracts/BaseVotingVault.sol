@@ -111,7 +111,7 @@ contract BaseVotingVault is IVotingVault {
      * @param multiplier_                The new multiplier value.
      */
     function setMultiplier(uint256 multiplier_) public onlyTimelock {
-        if (multiplier_ <= 100) revert PV_MultiplierLimit();
+        if (multiplier_ <= 10) revert PV_MultiplierLimit();
         Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
     }
 
