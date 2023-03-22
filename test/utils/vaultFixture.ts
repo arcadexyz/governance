@@ -11,7 +11,7 @@ import { LockingVault } from "../../src/types/contracts/external/council/vaults/
 
 type Signer = SignerWithAddress;
 
-export interface TestContextCouncil {
+export interface TestContextVault {
     token: MockERC20Council;
     lockingVault: LockingVault;
     promissoryVault: PromissoryVault;
@@ -31,7 +31,7 @@ export let tokenAddress: string;
  * This fixture creates a coreVoting deployment with a timelock and lockingVault,
  * with the parameters for each.
  */
-export const councilFixture = async (): Promise<TestContextCouncil> => {
+export const vaultFixture = async (): Promise<TestContextVault> => {
     const signers: Signer[] = await ethers.getSigners();
     const votingVaults: string[] = [];
 

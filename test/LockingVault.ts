@@ -1,14 +1,13 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContext, fixture } from "./utils/fixture";
-import { TestContextCouncil, councilFixture } from "./utils/vaultFixture";
+import { TestContextVault, vaultFixture } from "./utils/vaultFixture";
 
 const { provider } = waffle;
 
 describe("Vote Execution with Locking Voting Vault", async () => {
-    let ctxCouncil: TestContextCouncil;
+    let ctxVault: TestContextVault;
     let ctx: TestContext;
 
     const ONE = ethers.utils.parseEther("1");
@@ -16,25 +15,16 @@ describe("Vote Execution with Locking Voting Vault", async () => {
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     before(async function () {
-        ctxCouncil = await councilFixture();
+        ctxVault = await vaultFixture();
         ctx = await fixture();
-
-        await createSnapshot(provider);
     });
 
     describe("Governance flow with locking vault", async () => {
-        beforeEach(async function () {
-            await createSnapshot(provider);
-        });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
-
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            ctxCouncil = await councilFixture();
+            ctxVault = await vaultFixture();
             ctx = await fixture();
 
-            const { signers, coreVoting, lockingVault, increaseBlockNumber } = ctxCouncil;
+            const { signers, coreVoting, lockingVault, increaseBlockNumber } = ctxVault;
 
             // get the feeController contract which will be called to set the new origination fee
             const { feeController } = ctx;

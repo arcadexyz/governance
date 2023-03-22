@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.8.18;
 
@@ -26,7 +26,7 @@ import {
  *
  * This contract enables holders of Arcade promissory notes to gain an advantage wrt
  * voting power for participation in governance. Users send their tokens to the contract
- * and provide their promissoryNote id as calldata. Once the  contract confirms their ownership
+ * and provide their promissoryNote id as calldata. Once the contract confirms their ownership
  * of the promissory note id, they are able to delegate their voting power for participation in
  * governance.
  * Voting power for participants in this vault is enhanced by a multiplier.
@@ -87,25 +87,20 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      *
      * @param _amount                   Amount of tokens sent to this contract by the user for participation
      *                                  in governance.
-     * @param _time                     The time of deposit. If set to zero, it will be the the block this
-     *                                  is executed in.
+     * @param _noteId                   The id of the promissoryNote NFT.
+     * @param _promissoryNote           The address of the promissoryNote NFT.
      * @param _delegatee                Optional param. The address to delegate the voting power associated
      *                                  with this Pnote to
      */
     function addPnoteAndDelegate(
         uint128 _amount,
-        uint128 _time,
         uint128 _noteId,
         address _promissoryNote,
         address _delegatee
     ) external {
         address _who = msg.sender;
         uint128 withdrawn = 0;
-
-        // If no custom time is needed we use this block
-        if (_time == 0) {
-            _time = uint128(block.number);
-        }
+        uint128 blockNumber = uint128(block.number);
 
         Storage.Uint256 storage balance = _balance();
         Storage.Uint256 memory multiplier = _multiplier();
@@ -129,7 +124,7 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
         // set the new pNote
         _pNotes()[_who] = PromissoryVaultStorage.Pnote(
             _amount,
-            _time,
+            blockNumber,
             newVotingPower,
             withdrawn,
             _noteId,
@@ -209,6 +204,7 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
+
         if (balance.data < amount) revert PV_InsufficientBalance();
         if (pNote.amount < amount) revert PV_InsufficientPnoteBalance();
 
@@ -223,9 +219,8 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
         if ((withdrawable - amount) == 0) {
             delete _pNotes()[msg.sender];
         }
-
         // transfer the token amount to the user
-        token.transfer(msg.sender, withdrawable);
+        token.transfer(msg.sender, amount);
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -242,12 +237,10 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
     function _grantDelgateeVotingPower(address delegatee, uint128 newVotingPower) internal {
         // update the delegatee's voting power
         History.HistoricalBalances memory votingPower = _votingPower();
-        // loads the most recent timestamp of delgation power for this delegate
+        // loads the most recent timestamp of voting power for this delegate
         uint256 delegateeVotes = votingPower.loadTop(delegatee);
         // add block stamp indexed delegation power for this delegate to historical data array
         votingPower.push(delegatee, delegateeVotes + newVotingPower);
-        // get the updated votingPower
-        uint256 delegateeVotes2 = votingPower.loadTop(delegatee);
     }
 
     /**
@@ -298,7 +291,7 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      * @return withdrawable               Amount which can be withdrawn.
      */
     function _getWithdrawableAmount(PromissoryVaultStorage.Pnote memory _pNote) internal view returns (uint256) {
-        if (block.number < _pNote.time) {
+        if (block.number < _pNote.blockNumber) {
             return 0;
         }
         if (_pNote.withdrawn == _pNote.amount) {
@@ -317,8 +310,7 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      *
      * @return                           The current voting power of the pNote.
      */
-    function _currentVotingPower(PromissoryVaultStorage.Pnote memory _pNote) internal view returns (uint256) {
-        uint256 withdrawable = _getWithdrawableAmount(_pNote);
+    function _currentVotingPower(PromissoryVaultStorage.Pnote memory _pNote) internal pure virtual returns (uint256) {
         uint256 locked = _pNote.amount - _pNote.withdrawn;
         return locked * _multiplier().data;
     }

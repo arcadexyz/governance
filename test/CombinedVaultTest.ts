@@ -2,14 +2,13 @@ import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContext, fixture } from "./utils/fixture";
-import { TestContextCouncil, councilFixture } from "./utils/vaultFixture";
+import { TestContextVault, vaultFixture } from "./utils/vaultFixture";
 
 const { provider } = waffle;
 
 describe("Vote Execution with Locking and Promissory Voting Vaults", async () => {
-    let ctxCouncil: TestContextCouncil;
+    let ctxVault: TestContextVault;
     let ctx: TestContext;
 
     const ONE = ethers.utils.parseEther("1");
@@ -17,25 +16,17 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     before(async function () {
-        ctxCouncil = await councilFixture();
+        ctxVault = await vaultFixture();
         ctx = await fixture();
-
-        await createSnapshot(provider);
     });
 
     describe("Governance flow with combination of voting vaults types", async () => {
-        beforeEach(async function () {
-            await createSnapshot(provider);
-        });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            ctxCouncil = await councilFixture();
+            ctxVault = await vaultFixture();
             ctx = await fixture();
 
             const { signers, coreVoting, lockingVault, votingVaults, increaseBlockNumber, token, promissoryVault } =
-                ctxCouncil;
+                ctxVault;
 
             const { feeController, pNote, mintPnote } = ctx;
 
@@ -70,7 +61,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const pNoteId0 = await pNote.tokenOfOwnerByIndex(signers[0].address, 2);
             // signers[0] deposits tokens and delegates to signers[1]
             const tx4 = await (
-                await promissoryVault.addPnoteAndDelegate(ONE, 0, pNoteId0, pNote.address, signers[1].address)
+                await promissoryVault.addPnoteAndDelegate(ONE, pNoteId0, pNote.address, signers[1].address)
             ).wait();
             // view query voting power of signers[1]
             const votingPower4 = await promissoryVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
@@ -84,7 +75,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const tx5 = await (
                 await promissoryVault
                     .connect(signers[2])
-                    .addPnoteAndDelegate(ONE.mul(5), 0, pNoteId2, pNote.address, signers[1].address)
+                    .addPnoteAndDelegate(ONE.mul(5), pNoteId2, pNote.address, signers[1].address)
             ).wait();
             // view query voting power of signers[1]
             const votingPower5 = await promissoryVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
@@ -98,7 +89,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const tx6 = await (
                 await promissoryVault
                     .connect(signers[3])
-                    .addPnoteAndDelegate(ONE, 0, pNoteId3, pNote.address, signers[0].address)
+                    .addPnoteAndDelegate(ONE, pNoteId3, pNote.address, signers[0].address)
             ).wait();
             // view query voting power of signers[0]
             const votingPower6 = await promissoryVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
@@ -112,7 +103,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const tx7 = await (
                 await promissoryVault
                     .connect(signers[1])
-                    .addPnoteAndDelegate(ONE.mul(8), 0, pNoteId1, pNote.address, signers[2].address)
+                    .addPnoteAndDelegate(ONE.mul(8), pNoteId1, pNote.address, signers[2].address)
             ).wait();
             // view query voting power of signers[2]
             const votingPower7 = await promissoryVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
@@ -150,11 +141,11 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
         });
 
         it("Executes the correct proposal out of many", async () => {
-            ctxCouncil = await councilFixture();
+            ctxVault = await vaultFixture();
             ctx = await fixture();
 
             const { signers, coreVoting, lockingVault, votingVaults, increaseBlockNumber, token, promissoryVault } =
-                ctxCouncil;
+                ctxVault;
 
             const { feeController, pNote, mintPnote } = ctx;
 
@@ -190,7 +181,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const pNoteId0 = await pNote.tokenOfOwnerByIndex(signers[0].address, 0);
             // signers[0] deposits ONE token and delegates to signers[1]
             const tx4 = await (
-                await promissoryVault.addPnoteAndDelegate(ONE, 0, pNoteId0, pNote.address, signers[1].address)
+                await promissoryVault.addPnoteAndDelegate(ONE, pNoteId0, pNote.address, signers[1].address)
             ).wait();
             const votingPower4 = await promissoryVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
             expect(votingPower4).to.be.eq(ONE.mul(multiplier));
@@ -203,7 +194,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const tx5 = await (
                 await promissoryVault
                     .connect(signers[2])
-                    .addPnoteAndDelegate(ONE.mul(5), 0, pNoteId2, pNote.address, signers[1].address)
+                    .addPnoteAndDelegate(ONE.mul(5), pNoteId2, pNote.address, signers[1].address)
             ).wait();
             // view query voting power of signer[1]
             const votingPower5 = await promissoryVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
@@ -217,7 +208,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const tx6 = await (
                 await promissoryVault
                     .connect(signers[3])
-                    .addPnoteAndDelegate(ONE, 0, pNoteId3, pNote.address, signers[0].address)
+                    .addPnoteAndDelegate(ONE, pNoteId3, pNote.address, signers[0].address)
             ).wait();
             // view query voting power of signers[0]
             const votingPower6 = await promissoryVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
@@ -231,7 +222,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const tx7 = await (
                 await promissoryVault
                     .connect(signers[1])
-                    .addPnoteAndDelegate(ONE.mul(8), 0, pNoteId1, pNote.address, signers[2].address)
+                    .addPnoteAndDelegate(ONE.mul(8), pNoteId1, pNote.address, signers[2].address)
             ).wait();
             // view query voting power of signers[2]
             const votingPower7 = await promissoryVault.queryVotePowerView(signers[2].address, tx7.blockNumber);

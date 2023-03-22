@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.8.18;
 
@@ -72,7 +72,7 @@ contract BaseVotingVault is IVotingVault {
      * @dev Voting power is only updated for this block onward.
      *
      * @param user                       The address we want to load the voting power of.
-     * @param blockNumber                BlockNumber the block number we want the user's voting power at.
+     * @param blockNumber                Block number to query the user's voting power at.
      * @param extraData                  The extra calldata is unused in this contract.
      *
      * @return                           The number of votes.
@@ -92,7 +92,7 @@ contract BaseVotingVault is IVotingVault {
      * @notice Loads the voting power of a user without changing state.
      *
      * @param user                       The address we want to load the voting power of.
-     * @param blockNumber                BlockNumber the block number we want the user's voting power at.
+     * @param blockNumber                Block number to query the user's voting power at.
      *
      * @return                           The number of votes.
      */
@@ -108,11 +108,11 @@ contract BaseVotingVault is IVotingVault {
      *
      * @dev Allows the timelock to update the multiplier.
      *
-     * @param _multiplier                The new multiplier value.
+     * @param multiplier_                The new multiplier value.
      */
-    function changeMultiplier(uint256 _multiplier) public onlyTimelock {
-        if (_multiplier <= 100) revert PV_MultiplierLimit();
-        Storage.set(Storage.uint256Ptr("multiplier"), _multiplier);
+    function setMultiplier(uint256 multiplier_) public onlyTimelock {
+        if (multiplier_ <= 100) revert PV_MultiplierLimit();
+        Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
     }
 
     /**
