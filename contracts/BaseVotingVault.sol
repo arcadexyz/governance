@@ -12,18 +12,18 @@ import { PV_MultiplierLimit } from "./errors/Governance.sol";
 
 /**
  *
- * @title PromissoryVault
+ * @title PromissoryVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
- * This contract is a base vault contract for Arcade voting vaults.
+ * This contract is a base voting vault contract for Arcade voting vaults.
  * It includes the basic structure of a voting vault as well as query, and
- * setter / getter vault operations.
+ * setter / getter voting vault operations.
  *
  * @dev This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
 
-contract BaseVotingVault is IVotingVault {
+abstract contract BaseVotingVault is IVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring libraries into scope

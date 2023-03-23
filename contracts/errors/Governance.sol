@@ -21,13 +21,13 @@ pragma solidity >=0.8.18;
 error PV_DoesNotOwn();
 
 /**
- * @notice Ensure caller has not already registered a Pnote.
+ * @notice Ensure caller has not already registered.
  *
  */
-error PV_HasPnote();
+error PV_HasRegistration();
 
 /**
- * @notice Ensure delegatee is not already registered as the delegate in user's Pnote.
+ * @notice Ensure delegatee is not already registered as the delegate in user's Registration.
  *
  */
 error PV_AlreadyDelegated();
@@ -42,7 +42,7 @@ error PV_InsufficientBalance();
  * @notice Deposited tokens less than withdraw amount.
  *
  */
-error PV_InsufficientPnoteBalance();
+error PV_InsufficientRegistrationBalance();
 
 /**
  * @notice Multiplier limit exceeded.

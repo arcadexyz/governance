@@ -1,33 +1,26 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { TestContext, fixture } from "./utils/fixture";
-import { TestContextVault, vaultFixture } from "./utils/vaultFixture";
+import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
 
 describe("Vote Execution with Locking Voting Vault", async () => {
-    let ctxVault: TestContextVault;
-    let ctx: TestContext;
+    let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     before(async function () {
-        ctxVault = await vaultFixture();
-        ctx = await fixture();
+        ctxVotingVault = await votingVaultFixture();
     });
 
     describe("Governance flow with locking vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            ctxVault = await vaultFixture();
-            ctx = await fixture();
+            ctxVotingVault = await votingVaultFixture();
 
-            const { signers, coreVoting, lockingVault, increaseBlockNumber } = ctxVault;
-
-            // get the feeController contract which will be called to set the new origination fee
-            const { feeController } = ctx;
+            const { signers, coreVoting, lockingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 
             // LockingVault users deposits and delegation
             // query voting power to initialize history for every governance participant

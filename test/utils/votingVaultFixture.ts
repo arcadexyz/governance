@@ -1,20 +1,22 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { constants } from "ethers";
-import { ethers, waffle } from "hardhat";
+import hre, { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
+import { FeeController, MockERC721Metadata } from "../../src/types";
 import { Timelock } from "../../src/types";
-import { PromissoryVault } from "../../src/types/contracts/PromissoryVault.sol";
+import { PromissoryVotingVault } from "../../src/types/contracts/PromissoryVotingVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
+import { deploy } from "./contracts";
 
 type Signer = SignerWithAddress;
 
-export interface TestContextVault {
+export interface TestContextVotingVault {
     token: MockERC20Council;
     lockingVault: LockingVault;
-    promissoryVault: PromissoryVault;
+    promissoryVotingVault: PromissoryVotingVault;
     signers: Signer[];
     coreVoting: CoreVoting;
     votingVaults: string[];
@@ -22,16 +24,16 @@ export interface TestContextVault {
     tokenAddress: string;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     getBlock: () => Promise<number>;
+    promissoryNote: MockERC721Metadata;
+    feeController: FeeController;
+    mintPromissoryNote(signer: string, amount: number, contract: MockERC721Metadata): Promise<void>;
 }
-
-export let coreVotingAddress: string;
-export let tokenAddress: string;
 
 /**
  * This fixture creates a coreVoting deployment with a timelock and lockingVault,
  * with the parameters for each.
  */
-export const vaultFixture = async (): Promise<TestContextVault> => {
+export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const signers: Signer[] = await ethers.getSigners();
     const votingVaults: string[] = [];
 
@@ -59,16 +61,20 @@ export const vaultFixture = async (): Promise<TestContextVault> => {
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVault = await lockingVaultBase.attach(lockingVaultProxy.address);
 
+    const promissoryNoteFactory = await hre.ethers.getContractFactory("MockERC721Metadata");
+    const promissoryNote = <MockERC721Metadata>await promissoryNoteFactory.deploy("Arcade Pnote", "ARCDPN");
+    await promissoryNote.deployed();
+
     //deploy and initialize promissory voting vault
-    const PromVaultFactory = await ethers.getContractFactory("PromissoryVault", timelock);
-    const promissoryVaultBase = await PromVaultFactory.deploy(tokenAddress, 55);
-    const promissoryVaultProxy = await proxyDeployer.deploy(timelock.address, promissoryVaultBase.address);
-    const promissoryVault = promissoryVaultBase.attach(promissoryVaultProxy.address);
-    await promissoryVault.initialize(timelock.address);
+    const PromissoryVotingVaultFactory = await ethers.getContractFactory("PromissoryVotingVault", timelock);
+    const promissoryVotingVaultBase = await PromissoryVotingVaultFactory.deploy(tokenAddress, 55);
+    const promissoryVotingVaultProxy = await proxyDeployer.deploy(timelock.address, promissoryVotingVaultBase.address);
+    const promissoryVotingVault = promissoryVotingVaultBase.attach(promissoryVotingVaultProxy.address);
+    await promissoryVotingVault.initialize(timelock.address, promissoryNote.address);
 
     // push voting vaults into the votingVaults array which is
     // used as an argument in coreVoting's deployment
-    votingVaults.push(promissoryVault.address, lockingVault.address);
+    votingVaults.push(promissoryVotingVault.address, lockingVault.address);
 
     // give users some balance and set their allowance
     for (const signer of signers) {
@@ -96,8 +102,14 @@ export const vaultFixture = async (): Promise<TestContextVault> => {
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
     await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock
 
-    // update coreVoting address. This address will be set as owner of FeeController.sol
-    coreVotingAddress = coreVoting.address;
+    const feeController = <FeeController>await deploy("FeeController", signers[0], []);
+    await feeController.deployed();
+
+    // set FeeController admin to be set to CoreVoting.sol
+    const updateFeeControllerAdmin = await feeController.transferOwnership(coreVoting.address);
+    await updateFeeControllerAdmin.wait();
+
+    // ================================== HELPER FUNCTIONS ==============================================
 
     const getBlock = async () => {
         const latestBlock: number = (await ethers.provider.getBlock("latest")).number;
@@ -110,10 +122,21 @@ export const vaultFixture = async (): Promise<TestContextVault> => {
         }
     };
 
+    // mint users' promissory notes
+    let j = 1;
+    const mintPromissoryNote = async (signer: string, amount: number) => {
+        for (let i = 0; i < amount; i++) {
+            await promissoryNote["mint(address,string)"](
+                signer,
+                `https://s3.amazonaws.com/images.pawn.fi/test-nft-metadata/PawnArtIo/nft-${j++}.json`,
+            );
+        }
+    };
+
     return {
         signers,
         lockingVault,
-        promissoryVault,
+        promissoryVotingVault,
         token,
         coreVoting,
         votingVaults,
@@ -121,5 +144,8 @@ export const vaultFixture = async (): Promise<TestContextVault> => {
         increaseBlockNumber,
         getBlock,
         tokenAddress,
+        mintPromissoryNote,
+        promissoryNote,
+        feeController,
     };
 };

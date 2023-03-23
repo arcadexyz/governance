@@ -8,7 +8,7 @@ pragma solidity >=0.8.18;
  * implementations and will return storage pointers based on a hashed name and type string.
  */
 
-library PromissoryVaultStorage {
+library PromissoryVotingVaultStorage {
     /**
     * This library follows a pattern which if solidity had higher level
     * type or macro support would condense quite a bit.
@@ -23,12 +23,12 @@ library PromissoryVaultStorage {
     * upgrades and overrides the default solidity storage slot system.
     */
 
-    // A struct which represents 1 packed storage location (Pnote)
-    struct Pnote {
+    // A struct which represents 1 packed storage location (Registration)
+    struct Registration {
         uint128 amount; // token amount
-        uint128 blockNumber; // blockNumber of Pnote registration txn
+        uint128 blockNumber; // blockNumber of Registration txn
         uint128 latestVotingPower;
-        uint128 withdrawn; // amount of tokens withdrawn from vault
+        uint128 withdrawn; // amount of tokens withdrawn from voting vault
         uint128 noteId; // promissoryNote id
         address promissoryNote; // NFT address
         address delegatee;
@@ -41,10 +41,10 @@ library PromissoryVaultStorage {
      *
      * @return data                     The mapping pointer.
      */
-    function mappingAddressToPnotePtr(
+    function mappingAddressToRegistrationPtr(
         string memory name
-    ) internal pure returns (mapping(address => Pnote) storage data) {
-        bytes32 typehash = keccak256("mapping(address => Pnote)");
+    ) internal pure returns (mapping(address => Registration) storage data) {
+        bytes32 typehash = keccak256("mapping(address => Registration)");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset

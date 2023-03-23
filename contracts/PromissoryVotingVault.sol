@@ -9,19 +9,19 @@ import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
 import "./BaseVotingVault.sol";
-import "./libraries/PromissoryVaultStorage.sol";
+import "./libraries/PromissoryVotingVaultStorage.sol";
 
 import {
     PV_DoesNotOwn,
-    PV_HasPnote,
+    PV_HasRegistration,
     PV_AlreadyDelegated,
     PV_InsufficientBalance,
-    PV_InsufficientPnoteBalance
+    PV_InsufficientRegistrationBalance
 } from "./errors/Governance.sol";
 
 /**
  *
- * @title PromissoryVault
+ * @title PromissoryVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
  * This contract enables holders of Arcade promissory notes to gain an advantage wrt
@@ -29,18 +29,18 @@ import {
  * and provide their promissoryNote id as calldata. Once the contract confirms their ownership
  * of the promissory note id, they are able to delegate their voting power for participation in
  * governance.
- * Voting power for participants in this vault is enhanced by a multiplier.
- * This contract is Simple Proxy upgradeable which is the upgradeability system used for vaults
- * in Council.
+ * Voting power for participants in this voting vault is enhanced by a multiplier.
+ * This contract is Simple Proxy upgradeable which is the upgradeability system used for voting
+ * vaults in Council.
  *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
- *      addPnoteAndDelegate() are unrecoverable by this version of the PromissoryVault.
+ *      addPnoteAndDelegate() are unrecoverable by this version of the PromissoryVotingVault.
  *
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
 
-abstract contract AbstractPromissoryVault is BaseVotingVault {
+contract PromissoryVotingVault is BaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring History library into scope
@@ -73,31 +73,26 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      * @param timelock_                The timelock address can change the multiplier.
      *
      */
-    function initialize(address timelock_) public {
+    function initialize(address timelock_, address promissoryNote_) public {
         require(Storage.uint256Ptr("initialized").data == 0, "initialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
+        Storage.set(Storage.addressPtr("promissorynote"), promissoryNote_);
         Storage.set(Storage.uint256Ptr("multiplier"), 5);
     }
 
     /**
-     * @notice Registers a new Pnote.
+     * @notice Performs registration for a caller.
      *
-     * @dev User has to own promissoryNote ERC721 for participation in this vault.
+     * @dev User has to own promissoryNote ERC721 for participation in this voting vault.
      *
      * @param _amount                   Amount of tokens sent to this contract by the user for participation
      *                                  in governance.
      * @param _noteId                   The id of the promissoryNote NFT.
-     * @param _promissoryNote           The address of the promissoryNote NFT.
      * @param _delegatee                Optional param. The address to delegate the voting power associated
-     *                                  with this Pnote to
+     *                                  with this Registration to
      */
-    function addPnoteAndDelegate(
-        uint128 _amount,
-        uint128 _noteId,
-        address _promissoryNote,
-        address _delegatee
-    ) external {
+    function addPnoteAndDelegate(uint128 _amount, uint128 _noteId, address _delegatee) external virtual {
         address _who = msg.sender;
         uint128 withdrawn = 0;
         uint128 blockNumber = uint128(block.number);
@@ -105,55 +100,55 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
         Storage.Uint256 storage balance = _balance();
         Storage.Uint256 memory multiplier = _multiplier();
 
-        // load the pNote
-        PromissoryVaultStorage.Pnote storage pNote = _pNotes()[_who];
-
-        // If the address of the promissory is not zero, revert because the Pnote is
-        // already initialized. Only one Pnote per msg.sender
-        if (pNote.promissoryNote != address(0)) revert PV_HasPnote();
-
         // confirm this user is the owner of the promissoryNote
-        if (IERC721(_promissoryNote).ownerOf(_noteId) != _who) revert PV_DoesNotOwn();
+        if (IERC721(promissoryNote()).ownerOf(_noteId) != _who) revert PV_DoesNotOwn();
 
-        // load the delegate. Defaults to the pNote owner
+        // load the registration
+        PromissoryVotingVaultStorage.Registration storage registration = _registrations()[_who];
+
+        // If the address of the promissory is not zero, revert because the Registration is
+        // already initialized. Only one Registration per msg.sender
+        if (registration.promissoryNote != address(0)) revert PV_HasRegistration();
+
+        address promissoryNote = promissoryNote();
+
+        // load the delegate. Defaults to the registration owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
         // calculate the voting power
         uint128 newVotingPower = _amount * uint128(multiplier.data);
 
-        // set the new pNote
-        _pNotes()[_who] = PromissoryVaultStorage.Pnote(
+        // set the new registration
+        _registrations()[_who] = PromissoryVotingVaultStorage.Registration(
             _amount,
             blockNumber,
             newVotingPower,
             withdrawn,
             _noteId,
-            _promissoryNote,
+            promissoryNote,
             _delegatee
         );
 
         // update this contract's balance
         balance.data += _amount;
 
-        address delegatee = pNote.delegatee;
-
-        _grantDelgateeVotingPower(delegatee, newVotingPower);
+        _grantDelgateeVotingPower(_delegatee, newVotingPower);
 
         // Move the user tokens into this contract
         token.transferFrom(_who, address(this), _amount);
 
-        emit VoteChange(pNote.delegatee, _who, int256(uint256(newVotingPower)));
+        emit VoteChange(registration.delegatee, _who, int256(uint256(newVotingPower)));
     }
 
     /**
-     * @notice Getter for the pNotes mapping.
+     * @notice Getter for the registrations mapping.
      *
-     * @param _who                      The owner of the pNote to query.
+     * @param _who                      The owner of the registration to query.
      *
-     * @return Pnote                    Pnote of the provided address.
+     * @return Registration             Registration of the provided address.
      */
-    function getPnote(address _who) external view returns (PromissoryVaultStorage.Pnote memory) {
-        return _pNotes()[_who];
+    function getRegistration(address _who) external view returns (PromissoryVotingVaultStorage.Registration memory) {
+        return _registrations()[_who];
     }
 
     /**
@@ -164,31 +159,31 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      *
      * @param _to                       The address to delegate to.
      */
-    function delegate(address _to) external {
-        PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
+    function delegate(address _to) external virtual {
+        PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // If this address is already the delegate, don't send the tx
-        if (_to != pNote.delegatee) revert PV_AlreadyDelegated();
+        if (_to != registration.delegatee) revert PV_AlreadyDelegated();
         History.HistoricalBalances memory votingPower = _votingPower();
 
-        uint256 oldDelegateeVotes = votingPower.loadTop(pNote.delegatee);
-        // returns the current voting power of a Pnote
-        uint256 newVotingPower = _currentVotingPower(pNote);
+        uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
+        // returns the current voting power of a Registration
+        uint256 newVotingPower = _currentVotingPower(registration);
 
         // Remove voting power from old delegatee and emit event
-        votingPower.push(pNote.delegatee, oldDelegateeVotes - pNote.latestVotingPower);
-        emit VoteChange(pNote.delegatee, msg.sender, -1 * int256(uint256(pNote.latestVotingPower)));
+        votingPower.push(registration.delegatee, oldDelegateeVotes - registration.latestVotingPower);
+        emit VoteChange(registration.delegatee, msg.sender, -1 * int256(uint256(registration.latestVotingPower)));
 
         // Note - It is important that this is loaded here and not before the previous state change because if
-        // _to == pNote.delegatee and re-delegation was allowed we could be working with out of date state
+        // _to == registration.delegatee and re-delegation was allowed we could be working with out of date state
         uint256 newDelegateeVotes = votingPower.loadTop(_to);
 
         // add voting power to the target delegatee and emit event
         emit VoteChange(_to, msg.sender, int256(newVotingPower));
         votingPower.push(_to, newDelegateeVotes + newVotingPower);
 
-        // update pNote properties
-        pNote.latestVotingPower = uint128(newVotingPower);
-        pNote.delegatee = _to;
+        // update registration properties
+        registration.latestVotingPower = uint128(newVotingPower);
+        registration.delegatee = _to;
     }
 
     /**
@@ -197,27 +192,27 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual {
-        // load the pNote
-        PromissoryVaultStorage.Pnote storage pNote = _pNotes()[msg.sender];
+        // load the registration
+        PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // get the withdrawable amount
-        uint256 withdrawable = _getWithdrawableAmount(pNote);
+        uint256 withdrawable = _getWithdrawableAmount(registration);
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
 
         if (balance.data < amount) revert PV_InsufficientBalance();
-        if (pNote.amount < amount) revert PV_InsufficientPnoteBalance();
+        if (registration.amount < amount) revert PV_InsufficientRegistrationBalance();
 
         if ((withdrawable - amount) >= 0) {
             // update contract balance
             balance.data -= amount;
             // update withdrawn amount
-            pNote.withdrawn += amount;
+            registration.withdrawn += amount;
             // update the delegatee's voting power
-            _syncVotingPower(msg.sender, pNote);
+            _syncVotingPower(msg.sender, registration);
         }
         if ((withdrawable - amount) == 0) {
-            delete _pNotes()[msg.sender];
+            delete _registrations()[msg.sender];
         }
         // transfer the token amount to the user
         token.transfer(msg.sender, amount);
@@ -226,11 +221,11 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
     // ================================ HELPER FUNCTIONS ===================================
 
     /**
-     * @notice Grants the chosen delegate address voting power when a new Pnote is registered.
+     * @notice Grants the chosen delegate address voting power when a new user registers.
      *
-     * @param delegatee                     The address to delegate the voting power associated
-     *                                     with the Pnote to.
-     * @param newVotingPower               Amount of votingPower associated with this Pnote to
+     * @param delegatee                    The address to delegate the voting power associated
+     *                                     with the Registration to.
+     * @param newVotingPower               Amount of votingPower associated with this Registration to
      *                                     be added to delegates existing votingPower.
      *
      */
@@ -244,16 +239,20 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
     }
 
     /**
-     * @notice A single function endpoint for loading Pnote storage
+     * @notice A single function endpoint for loading Registration storage
      *
-     * @dev Only one Pnote is allowed per user. Pnotes SHOULD NOT BE MODIFIED
+     * @dev Only one Registration is allowed per user. Registrations SHOULD NOT BE MODIFIED
      *
-     * @return pNotes                 A storage mapping to look up pNotes data
+     * @return registrations                 A storage mapping to look up registrations data
      */
-    function _pNotes() internal pure returns (mapping(address => PromissoryVaultStorage.Pnote) storage) {
+    function _registrations()
+        internal
+        pure
+        returns (mapping(address => PromissoryVotingVaultStorage.Registration) storage)
+    {
         // This call returns a storage mapping with a unique non overwrite-able storage location
         // which can be persisted through upgrades, even if they change storage layout
-        return (PromissoryVaultStorage.mappingAddressToPnotePtr("pNotes"));
+        return (PromissoryVotingVaultStorage.mappingAddressToRegistrationPtr("registrations"));
     }
 
     /**
@@ -261,69 +260,80 @@ abstract contract AbstractPromissoryVault is BaseVotingVault {
      *
      * @param _who                       The address who's voting power we need to sync.
      *
-     * @param _pNote                     The storage pointer to the pNote of that user.
+     * @param _registration              The storage pointer to the registration of that user.
      */
-    function _syncVotingPower(address _who, PromissoryVaultStorage.Pnote storage _pNote) internal {
+    function _syncVotingPower(address _who, PromissoryVotingVaultStorage.Registration storage _registration) internal {
         History.HistoricalBalances memory votingPower = _votingPower();
 
-        uint256 delegateeVotes = votingPower.loadTop(_pNote.delegatee);
+        uint256 delegateeVotes = votingPower.loadTop(_registration.delegatee);
 
-        uint256 newVotingPower = _currentVotingPower(_pNote);
+        uint256 newVotingPower = _currentVotingPower(_registration);
         // get the change in voting power. Negative if the voting power is reduced
-        int256 change = int256(newVotingPower) - int256(uint256(_pNote.latestVotingPower));
+        int256 change = int256(newVotingPower) - int256(uint256(_registration.latestVotingPower));
         // do nothing if there is no change
         if (change == 0) return;
         if (change > 0) {
-            votingPower.push(_pNote.delegatee, delegateeVotes + uint256(change));
+            votingPower.push(_registration.delegatee, delegateeVotes + uint256(change));
         } else {
             // if the change is negative, we multiply by -1 to avoid underflow when casting
-            votingPower.push(_pNote.delegatee, delegateeVotes - uint256(change * -1));
+            votingPower.push(_registration.delegatee, delegateeVotes - uint256(change * -1));
         }
-        emit VoteChange(_pNote.delegatee, _who, change);
-        _pNote.latestVotingPower = uint128(newVotingPower);
+        emit VoteChange(_registration.delegatee, _who, change);
+        _registration.latestVotingPower = uint128(newVotingPower);
     }
 
     /**
      * @notice Calculates how much a user can withdraw.
      *
-     * @param _pNote                      The the memory location of the loaded pNote.
+     * @param _registration               The the memory location of the loaded registration.
      *
      * @return withdrawable               Amount which can be withdrawn.
      */
-    function _getWithdrawableAmount(PromissoryVaultStorage.Pnote memory _pNote) internal view returns (uint256) {
-        if (block.number < _pNote.blockNumber) {
+    function _getWithdrawableAmount(
+        PromissoryVotingVaultStorage.Registration memory _registration
+    ) internal view returns (uint256) {
+        if (block.number < _registration.blockNumber) {
             return 0;
         }
-        if (_pNote.withdrawn == _pNote.amount) {
+        if (_registration.withdrawn == _registration.amount) {
             return (0);
         }
-        uint256 withdrawable = _pNote.amount - _pNote.withdrawn;
+        uint256 withdrawable = _registration.amount - _registration.withdrawn;
         return (withdrawable);
     }
 
     /**
-     * @notice Helper that returns the current voting power of a pNote.
+     * @notice Helper that returns the current voting power of a registration.
      *
      * @dev This is not always the recorded voting power since it uses the latest multiplier.
      *
-     * @param _pNote                     The pNote to check for voting power.
+     * @param _registration              The registration to check for voting power.
      *
-     * @return                           The current voting power of the pNote.
+     * @return                           The current voting power of the registration.
      */
-    function _currentVotingPower(PromissoryVaultStorage.Pnote memory _pNote) internal pure virtual returns (uint256) {
-        uint256 locked = _pNote.amount - _pNote.withdrawn;
+    function _currentVotingPower(
+        PromissoryVotingVaultStorage.Registration memory _registration
+    ) internal pure virtual returns (uint256) {
+        uint256 locked = _registration.amount - _registration.withdrawn;
         return locked * _multiplier().data;
     }
-}
-
-contract PromissoryVault is AbstractPromissoryVault {
-    // ================================ CONSTRUCTOR ===================================
 
     /**
-     * @notice Constructs the contract by setting immutables.
+     * @notice A function to access the storage of the promissoryNote address.
      *
-     * @param _token                     The external erc20 token contract.
-     * @param _staleBlockLag             The number of blocks before the delegation history is forgotten.
+     * @return                          The promissoryNote contract address.
      */
-    constructor(IERC20 _token, uint256 _staleBlockLag) AbstractPromissoryVault(_token, _staleBlockLag) {}
+    function promissoryNote() public pure returns (address) {
+        return _promissoryNote().data;
+    }
+
+    /**
+     * @notice A helper function to access the storage of the promissoryNote contract address.
+     *
+     * @return                          A struct containing the promissoryNote
+     *                                  contract address.
+     */
+    function _promissoryNote() internal pure returns (Storage.Address memory) {
+        return Storage.addressPtr("promissorynote");
+    }
 }
