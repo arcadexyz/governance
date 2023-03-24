@@ -19,6 +19,8 @@ import {
     PV_InsufficientBalance,
     PV_InsufficientRegistrationBalance
 } from "./errors/Governance.sol";
+/* solhint-disable no-console */
+import "hardhat/console.sol";
 
 /**
  *
@@ -163,8 +165,9 @@ contract PromissoryVotingVault is BaseVotingVault {
      */
     function delegate(address _to) external virtual {
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
+
         // If this address is already the delegate, don't send the tx
-        if (_to != registration.delegatee) revert PV_AlreadyDelegated();
+        if (_to == registration.delegatee) revert PV_AlreadyDelegated();
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);

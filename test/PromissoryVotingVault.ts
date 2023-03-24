@@ -241,5 +241,79 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             // confirm that the delegatee voting is less than voting power before token withdrawal
             expect(withdrawerBalAfter).to.eq(withdrawerBalBefore.add(ONE.mul(5)));
         });
+
+        it("It reduces the correct amount of voting power from a delegate when a user changes their delegation", async () => {
+            // invoke the fixtures
+            ctxVault = await votingVaultFixture();
+
+            const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
+
+            // mint users some promissory notes
+            for (const signer of signers) {
+                await mintPromissoryNote(signer.address, 1, promissoryNote);
+            }
+
+            // get votingPower multiplier
+            const multiplier: BigNumberish = await promissoryVotingVault.multiplier();
+
+            // initialize history for signers[1]
+            await token.connect(signers[1]).approve(promissoryVotingVault.address, ONE);
+            // get signers[1] pNoteId
+            const pNoteId1 = await promissoryNote.tokenOfOwnerByIndex(signers[1].address, 0);
+            // signers[1] deposits ONE token and delegates to self
+            await (
+                await promissoryVotingVault.connect(signers[1]).addPnoteAndDelegate(ONE, pNoteId1, signers[1].address)
+            ).wait();
+
+            // signers[0] approves 5 tokens to pVault
+            await token.approve(promissoryVotingVault.address, ONE.mul(5));
+            // get signers[0] pNoteId
+            const pNoteId = await promissoryNote.tokenOfOwnerByIndex(signers[0].address, 0);
+            // signers[0] deposits 5 tokens and delegates to signers[1]
+            const tx = await (
+                await promissoryVotingVault.addPnoteAndDelegate(ONE.mul(5), pNoteId, signers[1].address)
+            ).wait();
+
+            // get delegatee total voting power amount
+            const votingPowerSignersOne = await promissoryVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx.blockNumber,
+            );
+            expect(votingPowerSignersOne).to.be.eq(ONE.mul(6).mul(multiplier));
+
+            // get signers[3] pNoteId
+            const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 0);
+            // approve signer tokens to pVault
+            await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE);
+            // signers[3] deposits ONE tokens and delegates to  signers[0]
+            const tx2 = await (
+                await promissoryVotingVault.connect(signers[3]).addPnoteAndDelegate(ONE, pNoteId3, signers[0].address)
+            ).wait();
+            // view query voting power of signers[0]
+            const votingPowerSignersZero = await promissoryVotingVault.queryVotePowerView(
+                signers[0].address,
+                tx2.blockNumber,
+            );
+            expect(votingPowerSignersZero).to.be.eq(ONE.mul(multiplier));
+
+            // signers[0] cahnges their delegation from users[1] to users[3]
+            await promissoryVotingVault.connect(signers[0]).delegate(signers[3].address);
+
+            const afterBlock = getBlock();
+
+            // confirm that signers[1] lost signers[0]'s voting power
+            const votingPowerSignersOneAfter = await promissoryVotingVault.queryVotePowerView(
+                signers[1].address,
+                afterBlock,
+            );
+            expect(votingPowerSignersOneAfter).to.eq(votingPowerSignersOne.sub(ONE.mul(5).mul(multiplier)));
+
+            // confirm that signers[3] has received signers[0]'s voting power
+            const votingPowerSignersThreeAfter = await promissoryVotingVault.queryVotePowerView(
+                signers[3].address,
+                afterBlock,
+            );
+            expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(multiplier));
+        });
     });
 });
