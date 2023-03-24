@@ -8,8 +8,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
-import "./BaseVotingVault.sol";
 import "./libraries/PromissoryVotingVaultStorage.sol";
+
+import "./BaseVotingVault.sol";
 
 import {
     PV_DoesNotOwn,
@@ -71,6 +72,7 @@ contract PromissoryVotingVault is BaseVotingVault {
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
      * @param timelock_                The timelock address can change the multiplier.
+     * @param promissoryNote_          The promissoryNote contract address.
      *
      */
     function initialize(address timelock_, address promissoryNote_) public {
@@ -132,7 +134,7 @@ contract PromissoryVotingVault is BaseVotingVault {
         // update this contract's balance
         balance.data += _amount;
 
-        _grantDelgateeVotingPower(_delegatee, newVotingPower);
+        _grantVotingPower(_delegatee, newVotingPower);
 
         // Move the user tokens into this contract
         token.transferFrom(_who, address(this), _amount);
@@ -163,8 +165,8 @@ contract PromissoryVotingVault is BaseVotingVault {
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // If this address is already the delegate, don't send the tx
         if (_to != registration.delegatee) revert PV_AlreadyDelegated();
-        History.HistoricalBalances memory votingPower = _votingPower();
 
+        History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
         // returns the current voting power of a Registration
         uint256 newVotingPower = _currentVotingPower(registration);
@@ -196,13 +198,10 @@ contract PromissoryVotingVault is BaseVotingVault {
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(registration);
-
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
-
         if (balance.data < amount) revert PV_InsufficientBalance();
         if (registration.amount < amount) revert PV_InsufficientRegistrationBalance();
-
         if ((withdrawable - amount) >= 0) {
             // update contract balance
             balance.data -= amount;
@@ -229,7 +228,7 @@ contract PromissoryVotingVault is BaseVotingVault {
      *                                     be added to delegates existing votingPower.
      *
      */
-    function _grantDelgateeVotingPower(address delegatee, uint128 newVotingPower) internal {
+    function _grantVotingPower(address delegatee, uint128 newVotingPower) internal {
         // update the delegatee's voting power
         History.HistoricalBalances memory votingPower = _votingPower();
         // loads the most recent timestamp of voting power for this delegate
