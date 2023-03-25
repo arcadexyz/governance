@@ -71,7 +71,7 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signer tokens to pVault
             await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE.mul(3));
-            // signers[3] deposits ONE tokens and delegates to  signers[0]
+            // signers[3] deposits three tokens and delegates to  signers[0]
             const tx2 = await (
                 await promissoryVotingVault
                     .connect(signers[3])

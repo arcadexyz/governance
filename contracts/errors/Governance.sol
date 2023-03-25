@@ -11,8 +11,8 @@ pragma solidity >=0.8.18;
  * governance failure cases.
  */
 
-// ==================================== PROMISSORY VAULT ======================================
-/// @notice All errors prefixed with PV_, to separate from other contracts in governance.
+// ==================================== PROMISSORY VOTING VAULT ======================================
+/// @notice All errors prefixed with PVV_, to separate from other contracts in governance.
 
 /**
  * @notice Ensure caller promissoryNote ownership PromissoryVault operations.
@@ -43,6 +43,9 @@ error PVV_InsufficientBalance();
  *
  */
 error PVV_InsufficientRegistrationBalance();
+
+// ==================================== BASE VOTING VAULT ======================================
+/// @notice All errors prefixed with BVV_, to separate from other contracts in governance.
 
 /**
  * @notice Multiplier limit exceeded.
