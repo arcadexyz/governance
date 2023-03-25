@@ -8,7 +8,9 @@ import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
 import "./external/council/interfaces/IVotingVault.sol";
 
-import { PV_MultiplierLimit } from "./errors/Governance.sol";
+import "./libraries/HashedStorageReentrancyBlock.sol";
+
+import { BVV_MultiplierLimit } from "./errors/Governance.sol";
 
 /**
  *
@@ -23,7 +25,7 @@ import { PV_MultiplierLimit } from "./errors/Governance.sol";
  *      storage and return the following as methods to isolate that call.
  */
 
-abstract contract BaseVotingVault is IVotingVault {
+abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring libraries into scope
@@ -109,7 +111,7 @@ abstract contract BaseVotingVault is IVotingVault {
      * @param multiplier_                The new multiplier value.
      */
     function setMultiplier(uint256 multiplier_) public onlyTimelock {
-        if (multiplier_ <= 10) revert PV_MultiplierLimit();
+        if (multiplier_ <= 10) revert BVV_MultiplierLimit();
         Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
     }
 

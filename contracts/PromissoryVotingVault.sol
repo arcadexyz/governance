@@ -13,14 +13,12 @@ import "./libraries/PromissoryVotingVaultStorage.sol";
 import "./BaseVotingVault.sol";
 
 import {
-    PV_DoesNotOwn,
-    PV_HasRegistration,
-    PV_AlreadyDelegated,
-    PV_InsufficientBalance,
-    PV_InsufficientRegistrationBalance
+    PVV_DoesNotOwn,
+    PVV_HasRegistration,
+    PVV_AlreadyDelegated,
+    PVV_InsufficientBalance,
+    PVV_InsufficientRegistrationBalance
 } from "./errors/Governance.sol";
-/* solhint-disable no-console */
-import "hardhat/console.sol";
 
 /**
  *
@@ -82,7 +80,8 @@ contract PromissoryVotingVault is BaseVotingVault {
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
         Storage.set(Storage.addressPtr("promissorynote"), promissoryNote_);
-        Storage.set(Storage.uint256Ptr("multiplier"), 5);
+        Storage.set(Storage.uint256Ptr("multiplier"), 2);
+        Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 
     /**
@@ -105,14 +104,14 @@ contract PromissoryVotingVault is BaseVotingVault {
         Storage.Uint256 memory multiplier = _multiplier();
 
         // confirm this user is the owner of the promissoryNote
-        if (IERC721(promissoryNote()).ownerOf(_noteId) != _who) revert PV_DoesNotOwn();
+        if (IERC721(promissoryNote()).ownerOf(_noteId) != _who) revert PVV_DoesNotOwn();
 
         // load the registration
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[_who];
 
-        // If the address of the promissory is not zero, revert because the Registration is
+        // If the id of the promissory is not zero, revert because the Registration is
         // already initialized. Only one Registration per msg.sender
-        if (registration.promissoryNote != address(0)) revert PV_HasRegistration();
+        if (registration.noteId != 0) revert PVV_HasRegistration();
 
         address promissoryNote = promissoryNote();
 
@@ -129,7 +128,6 @@ contract PromissoryVotingVault is BaseVotingVault {
             newVotingPower,
             withdrawn,
             _noteId,
-            promissoryNote,
             _delegatee
         );
 
@@ -167,7 +165,7 @@ contract PromissoryVotingVault is BaseVotingVault {
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
 
         // If this address is already the delegate, don't send the tx
-        if (_to == registration.delegatee) revert PV_AlreadyDelegated();
+        if (_to == registration.delegatee) revert PVV_AlreadyDelegated();
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
@@ -196,15 +194,15 @@ contract PromissoryVotingVault is BaseVotingVault {
      *
      * @param amount                      The amount of token to withdraw.
      */
-    function withdraw(uint128 amount) external virtual {
+    function withdraw(uint128 amount) external virtual nonReentrant {
         // load the registration
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(registration);
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
-        if (balance.data < amount) revert PV_InsufficientBalance();
-        if (registration.amount < amount) revert PV_InsufficientRegistrationBalance();
+        if (balance.data < amount) revert PVV_InsufficientBalance();
+        if (registration.amount < amount) revert PVV_InsufficientRegistrationBalance();
         if ((withdrawable - amount) >= 0) {
             // update contract balance
             balance.data -= amount;

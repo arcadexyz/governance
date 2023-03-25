@@ -70,14 +70,16 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             // get signers[3] pNoteId
             const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signer tokens to pVault
-            await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE);
+            await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE.mul(3));
             // signers[3] deposits ONE tokens and delegates to  signers[0]
             const tx2 = await (
-                await promissoryVotingVault.connect(signers[3]).addPnoteAndDelegate(ONE, pNoteId3, signers[0].address)
+                await promissoryVotingVault
+                    .connect(signers[3])
+                    .addPnoteAndDelegate(ONE.mul(3), pNoteId3, signers[0].address)
             ).wait();
             // view query voting power of signers[0]
             const votingPower2 = await promissoryVotingVault.queryVotePowerView(signers[0].address, tx2.blockNumber);
-            expect(votingPower2).to.be.eq(ONE.mul(multiplier));
+            expect(votingPower2).to.be.eq(ONE.mul(3).mul(multiplier));
 
             // get signers[1] pNoteId
             const pNoteId1 = await promissoryNote.tokenOfOwnerByIndex(signers[1].address, 0);

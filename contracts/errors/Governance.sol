@@ -18,34 +18,34 @@ pragma solidity >=0.8.18;
  * @notice Ensure caller promissoryNote ownership PromissoryVault operations.
  *
  */
-error PV_DoesNotOwn();
+error PVV_DoesNotOwn();
 
 /**
  * @notice Ensure caller has not already registered.
  *
  */
-error PV_HasRegistration();
+error PVV_HasRegistration();
 
 /**
  * @notice Ensure delegatee is not already registered as the delegate in user's Registration.
  *
  */
-error PV_AlreadyDelegated();
+error PVV_AlreadyDelegated();
 
 /**
  * @notice Contract balance has to be bigger than amount being withdrawn.
  *
  */
-error PV_InsufficientBalance();
+error PVV_InsufficientBalance();
 
 /**
  * @notice Deposited tokens less than withdraw amount.
  *
  */
-error PV_InsufficientRegistrationBalance();
+error PVV_InsufficientRegistrationBalance();
 
 /**
  * @notice Multiplier limit exceeded.
  *
  */
-error PV_MultiplierLimit();
+error BVV_MultiplierLimit();
