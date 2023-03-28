@@ -166,12 +166,12 @@ contract PromissoryVotingVault is BaseVotingVault {
 
         // Note - It is important that this is loaded here and not before the previous state change because if
         // _to == registration.delegatee and re-delegation was allowed we could be working with out of date state
-        uint256 currentDelegateeVotes = votingPower.loadTop(_to);
+        uint256 newDelegateeVotes = votingPower.loadTop(_to);
         // return the current voting power of the Registration
         uint256 addedVotingPower = _currentVotingPower(registration);
 
         // add voting power to the target delegatee and emit event
-        votingPower.push(_to, currentDelegateeVotes + addedVotingPower);
+        votingPower.push(_to, newDelegateeVotes + addedVotingPower);
         emit VoteChange(_to, msg.sender, int256(addedVotingPower));
 
         // update registration properties
