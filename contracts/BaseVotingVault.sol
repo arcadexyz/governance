@@ -39,7 +39,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
 
     // A constant which determines the maximum
     /* solhint-disable var-name-mixedcase */
-    uint128 public immutable MAX_MULTIPLIER = 8;
+    uint128 public immutable MAX_MULTIPLIER = 1.5e18;
     // The units of precision
     uint128 public immutable MULTIPLIER_DENOMINATOR = 1;
 

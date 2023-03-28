@@ -71,7 +71,7 @@ contract PromissoryVotingVault is BaseVotingVault {
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
         Storage.set(Storage.addressPtr("promissorynote"), promissoryNote_);
-        Storage.set(Storage.uint256Ptr("multiplier"), 2);
+        Storage.set(Storage.uint256Ptr("multiplier"), 1.2e18);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 

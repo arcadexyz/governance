@@ -49,6 +49,7 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
                 await promissoryVotingVault.addPnoteAndDelegate(ONE, pNoteId0, signers[1].address)
             ).wait();
             const votingPower = await promissoryVotingVault.queryVotePowerView(signers[1].address, tx.blockNumber);
+
             expect(votingPower).to.be.eq(ONE.mul(multiplier));
 
             // get signers[2] pNoteId
