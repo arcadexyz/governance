@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { BigNumberish } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
@@ -35,9 +35,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             } = ctxVault;
 
             // mint users of PromissoryVault some promissory notes
-            for (const signer of signers) {
-                await mintPromissoryNote(signer.address, 3, promissoryNote);
-            }
+            await mintPromissoryNote();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -62,17 +60,18 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             // approve signers[0] tokens to pVault
             await token.approve(promissoryVotingVault.address, ONE);
             // get signers[0] pNoteId
-            const pNoteId0 = await promissoryNote.tokenOfOwnerByIndex(signers[0].address, 2);
+            const pNoteId0 = await promissoryNote.tokenOfOwnerByIndex(signers[0].address, 0);
+
             // signers[0] deposits tokens and delegates to signers[1]
             const tx4 = await (
-                await promissoryVotingVault.addPnoteAndDelegate(ONE, pNoteId0, signers[1].address)
+                await promissoryVotingVault.addPnoteAndDelegate(ONE, BigNumber.from(pNoteId0), signers[1].address)
             ).wait();
             // view query voting power of signers[1]
             const votingPower4 = await promissoryVotingVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
             expect(votingPower4).to.be.eq(ONE.mul(multiplier));
 
             // get signers[2] pNoteId
-            const pNoteId2 = await promissoryNote.tokenOfOwnerByIndex(signers[2].address, 2);
+            const pNoteId2 = await promissoryNote.tokenOfOwnerByIndex(signers[2].address, 0);
             // approve signers[2] tokens to pVault
             await token.connect(signers[2]).approve(promissoryVotingVault.address, ONE.mul(5));
             // signers[2] deposits 5 tokens and delegates to  signers[1]
@@ -86,7 +85,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier));
 
             // get signers[3] pNoteId
-            const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 2);
+            const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signers[3] tokens to pVault
             await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE);
             // signers[3] deposits ONE tokens and delegates to  signers[0]
@@ -98,7 +97,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             expect(votingPower6).to.be.eq(ONE.mul(multiplier));
 
             // get signers[1] pNoteId
-            const pNoteId1 = await promissoryNote.tokenOfOwnerByIndex(signers[1].address, 2);
+            const pNoteId1 = await promissoryNote.tokenOfOwnerByIndex(signers[1].address, 0);
             // approve signers[1] tokens to pVault
             await token.connect(signers[1]).approve(promissoryVotingVault.address, ONE.mul(8));
             // signers[1] deposits 8 tokens and delegates to  signers[2]
@@ -159,9 +158,7 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             } = ctxVault;
 
             // mint users of PromissoryVault some promissory notes
-            for (const signer of signers) {
-                await mintPromissoryNote(signer.address, 1, promissoryNote);
-            }
+            await mintPromissoryNote();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant

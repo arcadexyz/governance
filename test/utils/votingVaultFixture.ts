@@ -3,7 +3,7 @@ import { constants } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
-import { FeeController, MockERC721Metadata } from "../../src/types";
+import { FeeController, MockERC721 } from "../../src/types";
 import { Timelock } from "../../src/types";
 import { PromissoryVotingVault } from "../../src/types/contracts/PromissoryVotingVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
@@ -24,9 +24,9 @@ export interface TestContextVotingVault {
     tokenAddress: string;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     getBlock: () => Promise<number>;
-    promissoryNote: MockERC721Metadata;
+    promissoryNote: MockERC721;
     feeController: FeeController;
-    mintPromissoryNote(signer: string, amount: number, contract: MockERC721Metadata): Promise<void>;
+    mintPromissoryNote(): Promise<void>;
 }
 
 /**
@@ -61,8 +61,8 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVault = await lockingVaultBase.attach(lockingVaultProxy.address);
 
-    const promissoryNoteFactory = await hre.ethers.getContractFactory("MockERC721Metadata");
-    const promissoryNote = <MockERC721Metadata>await promissoryNoteFactory.deploy("Arcade Pnote", "ARCDPN");
+    const promissoryNoteFactory = await hre.ethers.getContractFactory("MockERC721");
+    const promissoryNote = <MockERC721>await promissoryNoteFactory.deploy("Arcade Pnote", "ARCDPN");
     await promissoryNote.deployed();
 
     //deploy and initialize promissory voting vault
@@ -123,13 +123,11 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     };
 
     // mint users' promissory notes
-    let j = 1;
-    const mintPromissoryNote = async (signer: string, amount: number) => {
-        for (let i = 0; i < amount; i++) {
-            await promissoryNote["mint(address,string)"](
-                signer,
-                `https://s3.amazonaws.com/images.pawn.fi/test-nft-metadata/PawnArtIo/nft-${j++}.json`,
-            );
+    const mintPromissoryNote = async () => {
+        let id = 1;
+        for (let i = 0; i < signers.length; i++) {
+            await promissoryNote.mintId(id, `${signers[i].address}`);
+            id++;
         }
     };
 

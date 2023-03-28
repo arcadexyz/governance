@@ -47,12 +47,6 @@ contract PromissoryVotingVault is BaseVotingVault {
     // Bring History library into scope
     using History for History.HistoricalBalances;
 
-    // Immutables are in bytecode so don't need special storage treatment
-    IERC20 public immutable arcdToken;
-
-    // A constant which determines the block before which blocks are ignored
-    uint256 public immutable blockLimit;
-
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
@@ -61,12 +55,9 @@ contract PromissoryVotingVault is BaseVotingVault {
      * @param _token                     The external erc20 token contract.
      * @param _staleBlockLag             The number of blocks before which the delegation history is forgotten.
      */
-    constructor(IERC20 _token, uint256 _staleBlockLag) BaseVotingVault(_token, _staleBlockLag) {
-        arcdToken = _token;
-        blockLimit = _staleBlockLag;
-    }
+    constructor(IERC20 _token, uint256 _staleBlockLag) BaseVotingVault(_token, _staleBlockLag) {}
 
-    // ================================ PROMISSORY VAULT FUNCTIONALITY ===================================
+    // ================================ PROMISSORY VOTING VAULT FUNCTIONALITY ===================================
 
     /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
@@ -119,7 +110,7 @@ contract PromissoryVotingVault is BaseVotingVault {
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
         // calculate the voting power
-        uint128 newVotingPower = _amount * uint128(multiplier.data);
+        uint128 newVotingPower = (_amount * uint128(multiplier.data)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
         _registrations()[_who] = PromissoryVotingVaultStorage.Registration(
@@ -163,14 +154,11 @@ contract PromissoryVotingVault is BaseVotingVault {
      */
     function delegate(address _to) external virtual {
         PromissoryVotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
-
-        // If this address is already the delegate, don't send the tx
+        // If _to address is already the delegate, don't send the tx
         if (_to == registration.delegatee) revert PVV_AlreadyDelegated();
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
-        // returns the current voting power of a Registration
-        uint256 newVotingPower = _currentVotingPower(registration);
 
         // Remove voting power from old delegatee and emit event
         votingPower.push(registration.delegatee, oldDelegateeVotes - registration.latestVotingPower);
@@ -178,14 +166,16 @@ contract PromissoryVotingVault is BaseVotingVault {
 
         // Note - It is important that this is loaded here and not before the previous state change because if
         // _to == registration.delegatee and re-delegation was allowed we could be working with out of date state
-        uint256 newDelegateeVotes = votingPower.loadTop(_to);
+        uint256 currentDelegateeVotes = votingPower.loadTop(_to);
+        // return the current voting power of the Registration
+        uint256 addedVotingPower = _currentVotingPower(registration);
 
         // add voting power to the target delegatee and emit event
-        emit VoteChange(_to, msg.sender, int256(newVotingPower));
-        votingPower.push(_to, newDelegateeVotes + newVotingPower);
+        votingPower.push(_to, currentDelegateeVotes + addedVotingPower);
+        emit VoteChange(_to, msg.sender, int256(addedVotingPower));
 
         // update registration properties
-        registration.latestVotingPower = uint128(newVotingPower);
+        registration.latestVotingPower = uint128(addedVotingPower);
         registration.delegatee = _to;
     }
 

@@ -34,9 +34,7 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             } = ctxVault;
 
             // mint users some promissory notes
-            for (const signer of signers) {
-                await mintPromissoryNote(signer.address, 1, promissoryNote);
-            }
+            await mintPromissoryNote();
 
             // get votingPower multiplier
             const multiplier: BigNumberish = await promissoryVotingVault.multiplier();
@@ -130,9 +128,7 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
 
             // mint users some promissory notes
-            for (const signer of signers) {
-                await mintPromissoryNote(signer.address, 1, promissoryNote);
-            }
+            await mintPromissoryNote();
 
             // PromissoryVault users, Pnote registration and delegation begins here
             // get votingPower multiplier
@@ -185,9 +181,7 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
 
             // mint users some promissory notes
-            for (const signer of signers) {
-                await mintPromissoryNote(signer.address, 1, promissoryNote);
-            }
+            await mintPromissoryNote();
 
             // get votingPower multiplier
             const multiplier: BigNumberish = await promissoryVotingVault.multiplier();
@@ -251,9 +245,7 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
             const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
 
             // mint users some promissory notes
-            for (const signer of signers) {
-                await mintPromissoryNote(signer.address, 1, promissoryNote);
-            }
+            await mintPromissoryNote();
 
             // get votingPower multiplier
             const multiplier: BigNumberish = await promissoryVotingVault.multiplier();

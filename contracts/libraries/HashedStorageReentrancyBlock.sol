@@ -4,8 +4,6 @@ pragma solidity >=0.8.18;
 
 import "../external/council/libraries/History.sol";
 import "../external/council/libraries/Storage.sol";
-/* solhint-disable no-console */
-import "hardhat/console.sol";
 
 contract HashedStorageReentrancyBlock {
     // Will use a state flag to prevent this function from being called back into

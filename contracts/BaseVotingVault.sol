@@ -37,6 +37,12 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     // A constant which determines the block before which blocks are ignored
     uint256 public immutable staleBlockLag;
 
+    // A constant which determines the maximum
+    /* solhint-disable var-name-mixedcase */
+    uint128 public immutable MAX_MULTIPLIER = 8;
+    // The units of precision
+    uint128 public immutable MULTIPLIER_DENOMINATOR = 1;
+
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
@@ -111,7 +117,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      * @param multiplier_                The new multiplier value.
      */
     function setMultiplier(uint256 multiplier_) public onlyTimelock {
-        if (multiplier_ <= 10) revert BVV_MultiplierLimit();
+        if (multiplier_ <= MAX_MULTIPLIER) revert BVV_MultiplierLimit();
         Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
     }
 
