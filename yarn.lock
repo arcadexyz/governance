@@ -58,7 +58,11 @@ __metadata:
     ethereum-waffle: ^3.4.4
     ethers: ^5.7.2
     fs-extra: ^10.1.0
+<<<<<<< HEAD
     hardhat: ^2.12.2
+=======
+    hardhat: ^2.13.0
+>>>>>>> 89be2ac (feat: initial commit)
     hardhat-gas-reporter: ^1.0.9
     husky: ^8.0.2
     lint-staged: ^13.0.4
@@ -8110,9 +8114,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "hardhat@npm:^2.12.2":
   version: 2.12.7
   resolution: "hardhat@npm:2.12.7"
+=======
+"hardhat@npm:^2.13.0":
+  version: 2.13.0
+  resolution: "hardhat@npm:2.13.0"
+>>>>>>> 89be2ac (feat: initial commit)
   dependencies:
     "@ethersproject/abi": ^5.1.2
     "@metamask/eth-sig-util": ^4.0.0
@@ -8173,8 +8183,13 @@ __metadata:
     typescript:
       optional: true
   bin:
+<<<<<<< HEAD
     hardhat: internal/cli/cli.js
   checksum: d1f86c09f3db1cc67a448214ebf67a15fc980304ad892ca90792bba679c887a23d8bc2006daf301f4106d638230229dc1ddbc5ba363b1c6aa6b361064f0d7aec
+=======
+    hardhat: internal/cli/bootstrap.js
+  checksum: a69813120e5e8f05cefb9ae9c7ff2e2fd06aa8802baf6bb81778810b3ea879d6cb31f04c5719ebe6c0289cc2bd72d1e1f00d65afcf1a049ed3130c35025046e1
+>>>>>>> 89be2ac (feat: initial commit)
   languageName: node
   linkType: hard
 
