@@ -104,8 +104,6 @@ contract PromissoryVotingVault is BaseVotingVault {
         // already initialized. Only one Registration per msg.sender
         if (registration.noteId != 0) revert PVV_HasRegistration();
 
-        address promissoryNote = promissoryNote();
-
         // load the delegate. Defaults to the registration owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
