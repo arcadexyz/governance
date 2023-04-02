@@ -11,6 +11,8 @@ import "./external/council/interfaces/IVotingVault.sol";
 import "./libraries/HashedStorageReentrancyBlock.sol";
 
 import { BVV_MultiplierLimit } from "./errors/Governance.sol";
+/* solhint-disable no-console */
+import "hardhat/console.sol";
 
 /**
  *
@@ -79,7 +81,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      *
      * @param user                       The address we want to load the voting power of.
      * @param blockNumber                Block number to query the user's voting power at.
-     * @param extraData                  The extra calldata is unused in this contract.
+     * @param extraData                  The calldata is unused in this contract.
      *
      * @return                           The number of votes.
      */
@@ -109,15 +111,15 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
         return votingPower.find(user, blockNumber);
     }
 
-    /**
+    /** TODO: FIX NATSPEC
      * @notice timelock-only multiplier update function.
      *
      * @dev Allows the timelock to update the multiplier.
      *
      * @param multiplier_                The new multiplier value.
      */
-    function setMultiplier(uint256 multiplier_) public onlyTimelock {
-        if (multiplier_ <= MAX_MULTIPLIER) revert BVV_MultiplierLimit();
+    function setMultiplier(uint256 multiplier_) internal {
+        if (multiplier_ >= MAX_MULTIPLIER) revert BVV_MultiplierLimit();
         Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
     }
 

@@ -8,7 +8,7 @@ pragma solidity >=0.8.18;
  * implementations and will return storage pointers based on a hashed name and type string.
  */
 
-library PromissoryVotingVaultStorage {
+library VotingVaultStorage {
     /**
     * This library follows a pattern which if solidity had higher level
     * type or macro support would condense quite a bit.
@@ -29,8 +29,21 @@ library PromissoryVotingVaultStorage {
         uint128 blockNumber; // blockNumber of Registration txn
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
-        uint128 noteId; // promissoryNote id
+        uint128 tokenId; // badge token id
         address delegatee;
+    }
+
+    // A struct which represents 1 packed storage location with a compressed
+    // address and uint256 pair
+    struct AddressUintUint {
+        uint128 tokenId;
+        uint128 multiplier;
+    }
+
+    enum Badge {
+        GOLD,
+        BRONZE,
+        SILVER
     }
 
     /**
@@ -44,6 +57,20 @@ library PromissoryVotingVaultStorage {
         string memory name
     ) internal pure returns (mapping(address => Registration) storage data) {
         bytes32 typehash = keccak256("mapping(address => Registration)");
+        bytes32 offset = keccak256(abi.encodePacked(typehash, name));
+        assembly {
+            data.slot := offset
+        }
+    }
+
+    ////////// TODO: fix NATSPEC
+    /// @notice Returns the storage pointer for a named mapping of address to uint256[]
+    /// @param name the variable name for the pointer
+    /// @return data the mapping pointer
+    function mappingAddressToPackedUintUint(
+        string memory name
+    ) internal pure returns (mapping(address => AddressUintUint) storage data) {
+        bytes32 typehash = keccak256("mapping(address => AddressUintUint)");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
@@ -28,14 +28,14 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
                 votingVaults,
                 increaseBlockNumber,
                 token,
-                promissoryVotingVault,
-                promissoryNote,
-                mintPromissoryNote,
+                uniqueMultiplierVotingVault,
+                goldBadge,
+                mintBadge,
                 feeController,
             } = ctxVault;
 
             // mint users of PromissoryVault some promissory notes
-            await mintPromissoryNote();
+            await mintBadge();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -54,61 +54,109 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
-            // PromissoryVault users: Pnote registration and delegation
-            const multiplier: BigNumberish = await promissoryVotingVault.multiplier();
-
             // approve signers[0] tokens to pVault
-            await token.approve(promissoryVotingVault.address, ONE);
+            await token.approve(uniqueMultiplierVotingVault.address, ONE);
             // get signers[0] pNoteId
-            const pNoteId0 = await promissoryNote.tokenOfOwnerByIndex(signers[0].address, 0);
+            const pNoteId0 = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
 
             // signers[0] deposits tokens and delegates to signers[1]
-            const tx4 = await (
-                await promissoryVotingVault.addPnoteAndDelegate(ONE, BigNumber.from(pNoteId0), signers[1].address)
-            ).wait();
+            const tx4 = await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE, pNoteId0, 0, signers[1].address);
+
+            const receipt = await tx4.wait();
+
+            // get votingPower multiplier for signers[1]
+            let multiplier1: BigNumberish;
+            if (receipt && receipt.events) {
+                const badgeRegistered = new ethers.utils.Interface([
+                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                ]);
+
+                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                multiplier1 = log.args.multiplier;
+            } else {
+                throw new Error("Unable to register badge");
+            }
             // view query voting power of signers[1]
-            const votingPower4 = await promissoryVotingVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
-            expect(votingPower4).to.be.eq(ONE.mul(multiplier));
+            const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx4.blockNumber,
+            );
+            expect(votingPower4).to.be.eq(ONE.mul(multiplier1));
 
             // get signers[2] pNoteId
-            const pNoteId2 = await promissoryNote.tokenOfOwnerByIndex(signers[2].address, 0);
+            const pNoteId2 = await goldBadge.tokenOfOwnerByIndex(signers[2].address, 0);
             // approve signers[2] tokens to pVault
-            await token.connect(signers[2]).approve(promissoryVotingVault.address, ONE.mul(5));
+            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
             // signers[2] deposits 5 tokens and delegates to  signers[1]
             const tx5 = await (
-                await promissoryVotingVault
+                await uniqueMultiplierVotingVault
                     .connect(signers[2])
-                    .addPnoteAndDelegate(ONE.mul(5), pNoteId2, signers[1].address)
+                    .addBadgeAndDelegate(ONE.mul(5), pNoteId2, 0, signers[1].address)
             ).wait();
             // view query voting power of signers[1]
-            const votingPower5 = await promissoryVotingVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier));
+            const votingPower5 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx5.blockNumber,
+            );
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
 
             // get signers[3] pNoteId
-            const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 0);
+            const pNoteId3 = await goldBadge.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signers[3] tokens to pVault
-            await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE);
+            await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
             // signers[3] deposits ONE tokens and delegates to  signers[0]
-            const tx6 = await (
-                await promissoryVotingVault.connect(signers[3]).addPnoteAndDelegate(ONE, pNoteId3, signers[0].address)
-            ).wait();
+            const tx6 = await uniqueMultiplierVotingVault
+                .connect(signers[3])
+                .addBadgeAndDelegate(ONE, pNoteId3, 0, signers[0].address);
+            const receipt2 = await tx6.wait();
+
+            // get votingPower multiplier for signers[1]
+            let multiplier2: BigNumberish;
+            if (receipt2 && receipt2.events) {
+                const badgeRegistered = new ethers.utils.Interface([
+                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                ]);
+
+                const log = badgeRegistered.parseLog(receipt2.events[receipt2.events.length - 3]);
+                multiplier2 = log.args.multiplier;
+            } else {
+                throw new Error("Unable to register badge");
+            }
             // view query voting power of signers[0]
-            const votingPower6 = await promissoryVotingVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
-            expect(votingPower6).to.be.eq(ONE.mul(multiplier));
+            const votingPower6 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[0].address,
+                tx6.blockNumber,
+            );
+            expect(votingPower6).to.be.eq(ONE.mul(multiplier2));
 
             // get signers[1] pNoteId
-            const pNoteId1 = await promissoryNote.tokenOfOwnerByIndex(signers[1].address, 0);
+            const pNoteId1 = await goldBadge.tokenOfOwnerByIndex(signers[1].address, 0);
             // approve signers[1] tokens to pVault
-            await token.connect(signers[1]).approve(promissoryVotingVault.address, ONE.mul(8));
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
             // signers[1] deposits 8 tokens and delegates to  signers[2]
-            const tx7 = await (
-                await promissoryVotingVault
-                    .connect(signers[1])
-                    .addPnoteAndDelegate(ONE.mul(8), pNoteId1, signers[2].address)
-            ).wait();
+            const tx7 = await uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addBadgeAndDelegate(ONE.mul(8), pNoteId1, 0, signers[2].address);
+            const receipt3 = await tx7.wait();
+
+            // get votingPower multiplier for signers[1]
+            let multiplier3: BigNumberish;
+            if (receipt3 && receipt3.events) {
+                const badgeRegistered = new ethers.utils.Interface([
+                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                ]);
+
+                const log = badgeRegistered.parseLog(receipt3.events[receipt3.events.length - 3]);
+                multiplier3 = log.args.multiplier;
+            } else {
+                throw new Error("Unable to register badge");
+            }
             // view query voting power of signers[2]
-            const votingPower7 = await promissoryVotingVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplier));
+            const votingPower7 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[2].address,
+                tx7.blockNumber,
+            );
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplier3));
 
             // create proposal to update V2 originationFee
             // get current originationFee value
@@ -151,14 +199,14 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
                 votingVaults,
                 increaseBlockNumber,
                 token,
-                promissoryVotingVault,
-                promissoryNote,
-                mintPromissoryNote,
+                uniqueMultiplierVotingVault,
+                goldBadge,
+                mintBadge,
                 feeController,
             } = ctxVault;
 
             // mint users of PromissoryVault some promissory notes
-            await mintPromissoryNote();
+            await mintBadge();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -178,59 +226,107 @@ describe("Vote Execution with Locking and Promissory Voting Vaults", async () =>
             expect(votingPower3).to.be.eq(ONE);
 
             // PromissoryVault users: Pnote registration and delegation
-            // get votingPower multiplier
-            const multiplier: BigNumberish = await promissoryVotingVault.multiplier();
 
             // approve signers[0] tokens to pVault
-            await token.approve(promissoryVotingVault.address, ONE);
+            await token.approve(uniqueMultiplierVotingVault.address, ONE);
             // get signers[0] pNoteId
-            const pNoteId0 = await promissoryNote.tokenOfOwnerByIndex(signers[0].address, 0);
+            const pNoteId0 = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
             // signers[0] deposits ONE token and delegates to signers[1]
-            const tx4 = await (
-                await promissoryVotingVault.addPnoteAndDelegate(ONE, pNoteId0, signers[1].address)
-            ).wait();
-            const votingPower4 = await promissoryVotingVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
-            expect(votingPower4).to.be.eq(ONE.mul(multiplier));
+            const tx4 = await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE, pNoteId0, 0, signers[1].address);
+            const receipt = await tx4.wait();
+            // get votingPower multiplier for signers[1]
+            let multiplier1: BigNumberish;
+            if (receipt && receipt.events) {
+                const badgeRegistered = new ethers.utils.Interface([
+                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                ]);
+
+                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                multiplier1 = log.args.multiplier;
+            } else {
+                throw new Error("Unable to register badge");
+            }
+
+            const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx4.blockNumber,
+            );
+            expect(votingPower4).to.be.eq(ONE.mul(multiplier1));
 
             // get signers[2] pNoteId
-            const pNoteId2 = await promissoryNote.tokenOfOwnerByIndex(signers[2].address, 0);
+            const pNoteId2 = await goldBadge.tokenOfOwnerByIndex(signers[2].address, 0);
             // approve signers[2] tokens to pVault
-            await token.connect(signers[2]).approve(promissoryVotingVault.address, ONE.mul(5));
+            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
             // signers[2] deposits 5 tokens and delegates to  signers[1]
             const tx5 = await (
-                await promissoryVotingVault
+                await uniqueMultiplierVotingVault
                     .connect(signers[2])
-                    .addPnoteAndDelegate(ONE.mul(5), pNoteId2, signers[1].address)
+                    .addBadgeAndDelegate(ONE.mul(5), pNoteId2, 0, signers[1].address)
             ).wait();
             // view query voting power of signer[1]
-            const votingPower5 = await promissoryVotingVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier));
+            const votingPower5 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx5.blockNumber,
+            );
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
 
             // get signers[3] pNoteId
-            const pNoteId3 = await promissoryNote.tokenOfOwnerByIndex(signers[3].address, 0);
+            const pNoteId3 = await goldBadge.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signers[3] tokens to pVault
-            await token.connect(signers[3]).approve(promissoryVotingVault.address, ONE);
+            await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
             // signers[3] deposits ONE tokens and delegates to  signers[0]
-            const tx6 = await (
-                await promissoryVotingVault.connect(signers[3]).addPnoteAndDelegate(ONE, pNoteId3, signers[0].address)
-            ).wait();
+            const tx6 = await uniqueMultiplierVotingVault
+                .connect(signers[3])
+                .addBadgeAndDelegate(ONE, pNoteId3, 0, signers[0].address);
+            const receipt2 = await tx6.wait();
+
+            // get votingPower multiplier for signers[1]
+            let multiplier2: BigNumberish;
+            if (receipt2 && receipt2.events) {
+                const badgeRegistered = new ethers.utils.Interface([
+                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                ]);
+
+                const log = badgeRegistered.parseLog(receipt2.events[receipt2.events.length - 3]);
+                multiplier2 = log.args.multiplier;
+            } else {
+                throw new Error("Unable to register badge");
+            }
             // view query voting power of signers[0]
-            const votingPower6 = await promissoryVotingVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
-            expect(votingPower6).to.be.eq(ONE.mul(multiplier));
+            const votingPower6 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[0].address,
+                tx6.blockNumber,
+            );
+            expect(votingPower6).to.be.eq(ONE.mul(multiplier2));
 
             // get signers[1] pNoteId
-            const pNoteId1 = await promissoryNote.tokenOfOwnerByIndex(signers[1].address, 0);
+            const pNoteId1 = await goldBadge.tokenOfOwnerByIndex(signers[1].address, 0);
             // approve signers[1] tokens to pVault
-            await token.connect(signers[1]).approve(promissoryVotingVault.address, ONE.mul(8));
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
             // signers[1] deposits 8 tokens and delegates to  signers[2]
-            const tx7 = await (
-                await promissoryVotingVault
-                    .connect(signers[1])
-                    .addPnoteAndDelegate(ONE.mul(8), pNoteId1, signers[2].address)
-            ).wait();
+            const tx7 = await uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addBadgeAndDelegate(ONE.mul(8), pNoteId1, 0, signers[2].address);
+            const receipt3 = await tx7.wait();
+            // get votingPower multiplier for signers[1]
+            let multiplier3: BigNumberish;
+            if (receipt3 && receipt3.events) {
+                const badgeRegistered = new ethers.utils.Interface([
+                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                ]);
+
+                const log = badgeRegistered.parseLog(receipt3.events[receipt3.events.length - 3]);
+                multiplier3 = log.args.multiplier;
+            } else {
+                throw new Error("Unable to register badge");
+            }
+
             // view query voting power of signers[2]
-            const votingPower7 = await promissoryVotingVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplier));
+            const votingPower7 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[2].address,
+                tx7.blockNumber,
+            );
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplier3));
 
             // prepare proposal data
             const newRolloverFee = 62;

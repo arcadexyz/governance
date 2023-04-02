@@ -5,7 +5,7 @@ import "module-alias/register";
 
 import { FeeController, MockERC721 } from "../../src/types";
 import { Timelock } from "../../src/types";
-import { PromissoryVotingVault } from "../../src/types/contracts/PromissoryVotingVault.sol";
+import { UniqueMultiplierVotingVault } from "../../src/types/contracts/UniqueMultiplierVotingVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
@@ -16,7 +16,7 @@ type Signer = SignerWithAddress;
 export interface TestContextVotingVault {
     token: MockERC20Council;
     lockingVault: LockingVault;
-    promissoryVotingVault: PromissoryVotingVault;
+    uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
     signers: Signer[];
     coreVoting: CoreVoting;
     votingVaults: string[];
@@ -24,9 +24,11 @@ export interface TestContextVotingVault {
     tokenAddress: string;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     getBlock: () => Promise<number>;
-    promissoryNote: MockERC721;
+    goldBadge: MockERC721;
+    silverBadge: MockERC721;
+    bronzeBadge: MockERC721;
     feeController: FeeController;
-    mintPromissoryNote(): Promise<void>;
+    mintBadge(): Promise<void>;
 }
 
 /**
@@ -61,20 +63,38 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVault = await lockingVaultBase.attach(lockingVaultProxy.address);
 
-    const promissoryNoteFactory = await hre.ethers.getContractFactory("MockERC721");
-    const promissoryNote = <MockERC721>await promissoryNoteFactory.deploy("Arcade Pnote", "ARCDPN");
-    await promissoryNote.deployed();
+    const goldBadgeFactory = await hre.ethers.getContractFactory("MockERC721");
+    const goldBadge = <MockERC721>await goldBadgeFactory.deploy("Arcade Gold Badge", "ARCDGOLD");
+    await goldBadge.deployed();
+
+    const silverBadgeFactory = await hre.ethers.getContractFactory("MockERC721");
+    const silverBadge = <MockERC721>await silverBadgeFactory.deploy("Arcade SilverBadge", "ARCDSILVER");
+    await silverBadge.deployed();
+
+    const bronzeBadgeFactory = await hre.ethers.getContractFactory("MockERC721");
+    const bronzeBadge = <MockERC721>await bronzeBadgeFactory.deploy("Arcade Bronze Badge", "ARCDBRONZE");
+    await bronzeBadge.deployed();
 
     //deploy and initialize promissory voting vault
-    const PromissoryVotingVaultFactory = await ethers.getContractFactory("PromissoryVotingVault", timelock);
-    const promissoryVotingVaultBase = await PromissoryVotingVaultFactory.deploy(tokenAddress, 55);
-    const promissoryVotingVaultProxy = await proxyDeployer.deploy(timelock.address, promissoryVotingVaultBase.address);
-    const promissoryVotingVault = promissoryVotingVaultBase.attach(promissoryVotingVaultProxy.address);
-    await promissoryVotingVault.initialize(timelock.address, promissoryNote.address);
+    const uniqueMultiplierVotingVaultFactory = await ethers.getContractFactory("UniqueMultiplierVotingVault", timelock);
+    const uniqueMultiplierVotingVaultBase = await uniqueMultiplierVotingVaultFactory.deploy(tokenAddress, 55);
+    const uniqueMultiplierVotingVaultProxy = await proxyDeployer.deploy(
+        timelock.address,
+        uniqueMultiplierVotingVaultBase.address,
+    );
+    const uniqueMultiplierVotingVault = uniqueMultiplierVotingVaultBase.attach(
+        uniqueMultiplierVotingVaultProxy.address,
+    );
+    await uniqueMultiplierVotingVault.initialize(
+        timelock.address,
+        goldBadge.address,
+        silverBadge.address,
+        bronzeBadge.address,
+    );
 
     // push voting vaults into the votingVaults array which is
     // used as an argument in coreVoting's deployment
-    votingVaults.push(promissoryVotingVault.address, lockingVault.address);
+    votingVaults.push(uniqueMultiplierVotingVault.address, lockingVault.address);
 
     // give users some balance and set their allowance
     for (const signer of signers) {
@@ -123,10 +143,12 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     };
 
     // mint users' promissory notes
-    const mintPromissoryNote = async () => {
+    const mintBadge = async () => {
         let id = 1;
         for (let i = 0; i < signers.length; i++) {
-            await promissoryNote.mintId(id, `${signers[i].address}`);
+            await goldBadge.mintId(id, `${signers[i].address}`);
+            await silverBadge.mintId(id, `${signers[i].address}`);
+            await bronzeBadge.mintId(id, `${signers[i].address}`);
             id++;
         }
     };
@@ -134,7 +156,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     return {
         signers,
         lockingVault,
-        promissoryVotingVault,
+        uniqueMultiplierVotingVault,
         token,
         coreVoting,
         votingVaults,
@@ -142,8 +164,10 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         increaseBlockNumber,
         getBlock,
         tokenAddress,
-        mintPromissoryNote,
-        promissoryNote,
+        mintBadge,
+        goldBadge,
+        silverBadge,
+        bronzeBadge,
         feeController,
     };
 };
