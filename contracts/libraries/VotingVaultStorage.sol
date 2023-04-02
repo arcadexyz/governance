@@ -34,12 +34,13 @@ library VotingVaultStorage {
     }
 
     // A struct which represents 1 packed storage location with a compressed
-    // address and uint256 pair
+    // uint128 pair
     struct AddressUintUint {
         uint128 tokenId;
         uint128 multiplier;
     }
 
+    // Enum representing the badge levels accepted by the unique multiplier voting contract
     enum Badge {
         GOLD,
         BRONZE,
@@ -47,7 +48,7 @@ library VotingVaultStorage {
     }
 
     /**
-     * @notice Returns the storage pointer for a named mapping of address to uint256[]
+     * @notice Returns the storage pointer for a named mapping of address to registration data
      *
      * @param name                      The variable name for the pointer.
      *
@@ -63,10 +64,13 @@ library VotingVaultStorage {
         }
     }
 
-    ////////// TODO: fix NATSPEC
-    /// @notice Returns the storage pointer for a named mapping of address to uint256[]
-    /// @param name the variable name for the pointer
-    /// @return data the mapping pointer
+    /**
+     * @notice Returns the storage pointer for a named mapping of address to uint128 pair
+     *
+     * @param name                      The variable name for the pointer.
+     *
+     * @return data                     The mapping pointer.
+     */
     function mappingAddressToPackedUintUint(
         string memory name
     ) internal pure returns (mapping(address => AddressUintUint) storage data) {
