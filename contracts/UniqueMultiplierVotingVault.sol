@@ -24,13 +24,13 @@ import "hardhat/console.sol";
 
 /**
  *
- * @title PromissoryVotingVault
+ * @title UniqueMultiplierVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
- * This contract enables holders of Arcade promissory notes to gain an advantage wrt
+ * This contract enables holders of Arcade badges to gain an advantage wrt
  * voting power for participation in governance. Users send their tokens to the contract
- * and provide their promissoryNote id as calldata. Once the contract confirms their ownership
- * of the promissory note id, they are able to delegate their voting power for participation in
+ * and provide their badge level as calldata. Once the contract confirms their ownership
+ * of the badge id, they are able to delegate their voting power for participation in
  * governance.
  * Voting power for participants in this voting vault is enhanced by a multiplier.
  * This contract is Simple Proxy upgradeable which is the upgradeability system used for voting
@@ -87,12 +87,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.set(Storage.uint256Ptr("bronzeMultiplier"), 1.1e18);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
-
-    /////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////
-    // TODO: CREATE SET MULTIPLIER FOR EACH LEVEL BY CERTAIN OWNER
-    ///////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////
 
     /**
      * @notice Performs badge registration for a caller.
@@ -163,32 +157,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         _lockTokens(_who, address(this), _amount);
 
         emit VoteChange(registration.delegatee, _who, int256(uint256(newVotingPower)));
-    }
-
-    // TODO: create NATSPEC.
-    // MOVE to helper section.
-    function _getBadgeAddressAndSetMultiplier(
-        VotingVaultStorage.Badge _badgeLevel,
-        uint128 _tokenId
-    ) internal returns (address badgeAddress) {
-        if (uint(_badgeLevel) == 0) {
-            badgeAddress = goldBadge();
-            setMultiplier(goldMultiplier());
-        } else if (uint(_badgeLevel) == 1) {
-            badgeAddress = silverBadge();
-            setMultiplier(silverMultiplier());
-        } else if (uint(_badgeLevel) == 2) {
-            badgeAddress = bronzeBadge();
-            setMultiplier(bronzeMultiplier());
-        }
-        if (IERC721(badgeAddress).ownerOf(_tokenId) != msg.sender) revert PVV_DoesNotOwn();
-        return badgeAddress;
-    }
-
-    // TODO: create NATSPEC.
-    // MOVE to helper section.
-    function _lockTokens(address from, address to, uint256 amount) internal {
-        token.transferFrom(from, to, amount);
     }
 
     /**
@@ -265,6 +233,80 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         }
         // transfer the token amount to the user
         token.transfer(msg.sender, amount);
+    }
+
+    /**
+     * @notice Getter for the badges mapping.
+     *
+     * @param  badge                    The badge contract address.
+     *
+     * @return tokenId                  The user's badge token id.
+     * @return multiplier               The multiplier value associated
+     *                                  with the badge.
+     */
+    function badges(address badge) external view returns (uint128 tokenId, uint128 multiplier) {
+        VotingVaultStorage.AddressUintUint storage badgeData = _badges()[badge];
+        return (badgeData.tokenId, badgeData.multiplier);
+    }
+
+    /**
+     * @notice A function to access the storage of the goldBadge address.
+     *
+     * @return                          The goldBadge contract address.
+     */
+    function goldBadge() public pure returns (address) {
+        return _goldBadge().data;
+    }
+
+    /**
+     * @notice A function to access the storage of the silverBadge address.
+     *
+     * @return                          The silverBadge contract address.
+     */
+    function silverBadge() public pure returns (address) {
+        return _silverBadge().data;
+    }
+
+    /**
+     * @notice A function to access the storage of the gold multiplier value.
+     *
+     * @dev The gold multiplier has the highest multiplier value in this contract.
+     *
+     * @return                          The gold multiplier value.
+     */
+    function goldMultiplier() public pure returns (uint256) {
+        return _goldMultiplier().data;
+    }
+
+    /**
+     * @notice A function to access the storage of the silver multiplier value.
+     *
+     * @dev The silver multiplier has the second highest multiplier value in this contract.
+     *
+     * @return                          The silver multiplier value.
+     */
+    function silverMultiplier() public pure returns (uint256) {
+        return _silverMultiplier().data;
+    }
+
+    /**
+     * @notice A function to access the storage of the bronze multiplier value.
+     *
+     * @dev The bronze multiplier has the third highest multiplier value in this contract.
+     *
+     * @return                          The bronze address.
+     */
+    function bronzeMultiplier() public pure returns (uint256) {
+        return _bronzeMultiplier().data;
+    }
+
+    /**
+     * @notice A function to access the storage of the bronzeBadge address.
+     *
+     * @return                          The bronzeBadge contract address.
+     */
+    function bronzeBadge() public pure returns (address) {
+        return _bronzeBadge().data;
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -363,25 +405,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         return locked * _multiplier().data;
     }
 
-    // /** TODO: FIX NATSPEC
-    //  * @notice Getter for the multipliers mapping.
-    //  *
-    //  * @param  badge                    The badge contract address.
-    //  * @param  tokenId                  The badge token id.
-    //  *
-    //  * @return badge                    The multiplier value.
-    //  * @return tokenId                  The multiplier value.
-    //  */
-    function badges(address badge) external view returns (uint128, uint128) {
-        VotingVaultStorage.AddressUintUint storage badgeData = _badges()[badge];
-        return (badgeData.tokenId, badgeData.multiplier);
-    }
-
     /**
      * @notice A single function endpoint for loading storage for badges.
      *
      * @return                          A storage mapping which can be used to
-     *                                  lookup multiplier data.
+     *                                  lookup badge multiplier and token id data.
      */
     function _badges() internal pure returns (mapping(address => VotingVaultStorage.AddressUintUint) storage) {
         // This call returns a storage mapping with a unique non overwrite-able storage layout
@@ -390,16 +418,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice A function to access the storage of the goldBadge address.
-     *
-     * @return                          The goldBadge contract address.
-     */
-    function goldBadge() public pure returns (address) {
-        return _goldBadge().data;
-    }
-
-    /**
-     * @notice A helper function to access the storage of the goldBadge contract address.
+     * @notice A helper function to access the value of the goldBadge contract address.
      *
      * @return                          A struct containing the goldBadge
      *                                  contract address.
@@ -409,16 +428,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice A function to access the storage of the silverBadge address.
-     *
-     * @return                          The silverBadge contract address.
-     */
-    function silverBadge() public pure returns (address) {
-        return _silverBadge().data;
-    }
-
-    /**
-     * @notice A helper function to access the storage of the silverBadge contract address.
+     * @notice A helper function to access the value of the silverBadge contract address.
      *
      * @return                          A struct containing the silverBadge
      *                                  contract address.
@@ -428,16 +438,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice A function to access the storage of the bronzeBadge address.
-     *
-     * @return                          The bronzeBadge contract address.
-     */
-    function bronzeBadge() public pure returns (address) {
-        return _bronzeBadge().data;
-    }
-
-    /**
-     * @notice A helper function to access the storage of the bronzeBadge contract address.
+     * @notice A helper function to access the value of the bronzeBadge contract address.
      *
      * @return                          A struct containing the bronzeBadge
      *                                  contract address.
@@ -446,78 +447,86 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         return Storage.addressPtr("bronzeBadge");
     }
 
-    /** TODO: FIX NATSPEC
-     * @notice A function to access the storage of the manager address.
+    /**
+     * @notice A function to access the storage of the gold multiplier value.
      *
-     * @dev The manager can access all functions with the onlyManager modifier.
-     *
-     * @return                          The manager address.
-     */
-    function goldMultiplier() public pure returns (uint256) {
-        return _goldMultiplier().data;
-    }
-
-    /** TODO: FIX NATSPEC
-     * @notice A function to access the storage of the multiplier value.
-     *
-     * @dev The multiplier is a number that boosts the voting power of a user's
-     * governance tokens because of that user simultaneously holding an active loan.
+     * @dev A multiplier is a number that boosts the voting power of a user's
+     * governance tokens based on the user's reputation score.
      * The voting power of the user would equal the product of the number of tokens
      * deposited into the voting vault multiplied by the value of the multiplier.
      *
-     * @return                          A struct containing the multiplier uint.
+     * @return                          A struct containing the gold multiplier uint.
      */
     function _goldMultiplier() internal pure returns (Storage.Uint256 memory) {
         return Storage.uint256Ptr("goldMultiplier");
     }
 
-    /** TODO: FIX NATSPEC
-     * @notice A function to access the storage of the manager address.
+    /**
+     * @notice A function to access the storage of the silver multiplier value.
      *
-     * @dev The manager can access all functions with the onlyManager modifier.
-     *
-     * @return                          The manager address.
-     */
-    function silverMultiplier() public pure returns (uint256) {
-        return _silverMultiplier().data;
-    }
-
-    /** TODO: FIX NATSPEC
-     * @notice A function to access the storage of the multiplier value.
-     *
-     * @dev The multiplier is a number that boosts the voting power of a user's
-     * governance tokens because of that user simultaneously holding an active loan.
+     * @dev TA multiplier is a number that boosts the voting power of a user's
+     * governance tokens based on the user's reputation score.
      * The voting power of the user would equal the product of the number of tokens
      * deposited into the voting vault multiplied by the value of the multiplier.
      *
-     * @return                          A struct containing the multiplier uint.
+     * @return                          A struct containing the silver multiplier uint.
      */
     function _silverMultiplier() internal pure returns (Storage.Uint256 memory) {
         return Storage.uint256Ptr("silverMultiplier");
     }
 
-    /** TODO: FIX NATSPEC
-     * @notice A function to access the storage of the manager address.
+    /**
+     * @notice A function to access the storage of the bronze multiplier value.
      *
-     * @dev The manager can access all functions with the onlyManager modifier.
-     *
-     * @return                          The manager address.
-     */
-    function bronzeMultiplier() public pure returns (uint256) {
-        return _bronzeMultiplier().data;
-    }
-
-    /** TODO: FIX NATSPEC
-     * @notice A function to access the storage of the multiplier value.
-     *
-     * @dev The multiplier is a number that boosts the voting power of a user's
-     * governance tokens because of that user simultaneously holding an active loan.
+     * @dev A multiplier is a number that boosts the voting power of a user's
+     * governance tokens based on the user's reputation score.
      * The voting power of the user would equal the product of the number of tokens
      * deposited into the voting vault multiplied by the value of the multiplier.
      *
-     * @return                          A struct containing the multiplier uint.
+     * @return                          A struct containing the bronze multiplier uint.
      */
     function _bronzeMultiplier() internal pure returns (Storage.Uint256 memory) {
         return Storage.uint256Ptr("bronzeMultiplier");
+    }
+
+    /**
+     * @notice A function to lock a user's tokens into this contract for their
+     *         participate in governance.
+     *
+     * @param from                      Address of owner tokens are transferred from.
+     * @param to                        Address of where tokens are transferred to.
+     * @param amount                    Amount of tokens being transferred.
+     */
+    function _lockTokens(address from, address to, uint256 amount) internal {
+        token.transferFrom(from, to, amount);
+    }
+
+    /**
+     * @notice A function to derive the contract address associated with a user's
+     *         badge level and token id. An internal multiplier is set based on the
+     *         badge contract address, for internal access for the duration of the
+     *         user's registration transaction.
+     *
+     * @param _badgeLevel               The user's badge level enum value.
+     * @param _tokenId                  The user's token id.
+     *
+     * @return badgeAddress             The contract address of the user's badge.
+     */
+    function _getBadgeAddressAndSetMultiplier(
+        VotingVaultStorage.Badge _badgeLevel,
+        uint128 _tokenId
+    ) internal returns (address badgeAddress) {
+        if (uint(_badgeLevel) == 0) {
+            badgeAddress = goldBadge();
+            setMultiplier(goldMultiplier());
+        } else if (uint(_badgeLevel) == 1) {
+            badgeAddress = silverBadge();
+            setMultiplier(silverMultiplier());
+        } else if (uint(_badgeLevel) == 2) {
+            badgeAddress = bronzeBadge();
+            setMultiplier(bronzeMultiplier());
+        }
+        if (IERC721(badgeAddress).ownerOf(_tokenId) != msg.sender) revert PVV_DoesNotOwn();
+        return badgeAddress;
     }
 }
