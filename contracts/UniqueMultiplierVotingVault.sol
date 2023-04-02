@@ -84,7 +84,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.set(Storage.addressPtr("bronzeBadge"), bronzeBadge_);
         Storage.set(Storage.uint256Ptr("goldMultiplier"), 1.2e18);
         Storage.set(Storage.uint256Ptr("silverMultiplier"), 1.15e18);
-        Storage.set(Storage.uint256Ptr("bronzedMultiplier"), 1.1e18);
+        Storage.set(Storage.uint256Ptr("bronzeMultiplier"), 1.1e18);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 

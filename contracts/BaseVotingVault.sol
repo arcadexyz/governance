@@ -11,12 +11,10 @@ import "./external/council/interfaces/IVotingVault.sol";
 import "./libraries/HashedStorageReentrancyBlock.sol";
 
 import { BVV_MultiplierLimit } from "./errors/Governance.sol";
-/* solhint-disable no-console */
-import "hardhat/console.sol";
 
 /**
  *
- * @title PromissoryVotingVault
+ * @title BaseVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
  * This contract is a base voting vault contract for Arcade voting vaults.
@@ -111,10 +109,8 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
         return votingPower.find(user, blockNumber);
     }
 
-    /** TODO: FIX NATSPEC
-     * @notice timelock-only multiplier update function.
-     *
-     * @dev Allows the timelock to update the multiplier.
+    /**
+     * @dev Internal function for setting the value of the multiplier for a specific txn.
      *
      * @param multiplier_                The new multiplier value.
      */
