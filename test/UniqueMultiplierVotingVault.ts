@@ -47,7 +47,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             const tx = await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE, badgeId0, 0, signers[1].address);
             const receipt = await tx.wait();
 
-            // get votingPower multiplier for signers[1]
+            // get votingPower multiplier for signers[0]
             let multiplier1: BigNumberish;
             if (receipt && receipt.events) {
                 const badgeRegistered = new ethers.utils.Interface([
@@ -275,7 +275,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // get signers[1] voting power before they receive any further delegation
             const votingPowerBefore = await uniqueMultiplierVotingVault.queryVotePowerView(signers[1].address, now);
 
-            // signers[0] approves 5 tokens to uinque multiplier voting vaut
+            // signers[0] approves 5 tokens to unique multiplier voting vaut
             await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
             // get signers[0] badgeId
             const badgeId = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
@@ -316,7 +316,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
 
             // signers[0] balance after withdraw
             const withdrawerBalAfter = await token.balanceOf(signers[0].address);
-            // confirm that the delegatee voting is less than voting power before token withdrawal
+            // confirm that signers[0] balance voting is more than before token withdrawal
             expect(withdrawerBalAfter).to.eq(withdrawerBalBefore.add(ONE.mul(5)));
         });
 
@@ -431,13 +431,17 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             await expect(tx).to.be.revertedWith("!manager");
         });
 
-        it("Sets a new manager", async () => {
+        it("Manager can set a new manager", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
             const { signers, uniqueMultiplierVotingVault } = ctxVault;
 
             // get the address of the current manager
+            const manager = await uniqueMultiplierVotingVault.manager();
+            await expect(manager).to.be.eq(signers[0].address);
+
+            // manager, sets a new manager
             const tx = await uniqueMultiplierVotingVault.connect(signers[0]).setManager(signers[5].address);
             tx.wait();
 

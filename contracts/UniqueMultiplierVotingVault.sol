@@ -67,7 +67,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
-     * @param manager_                The address of the manager who can update the unique multipliers.
+     * @param manager_                 The address of the manager who can update the unique multipliers.
      * @param goldBadge_               The goldBadge contract address.
      * @param silverBadge_             The silverBadge contract address.
      * @param bronzeBadge_             The bronzeBadge contract address.
@@ -251,15 +251,18 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @dev onlyManager function for setting the value of a specified level badge multiplier.
      *
      * @param _badgeLevel                The level of badge for which the multiplier will be set.
-     * @param _newMultiplier             The new multiplier value.
+     * @param _newUniqueMultiplier             The new multiplier value.
      */
-    function setUniqueMultiplier(VotingVaultStorage.Badge _badgeLevel, uint256 _newMultiplier) public onlyManager {
+    function setUniqueMultiplier(
+        VotingVaultStorage.Badge _badgeLevel,
+        uint256 _newUniqueMultiplier
+    ) public onlyManager {
         if (uint(_badgeLevel) == 0) {
-            Storage.set(Storage.uint256Ptr("goldMultiplier"), _newMultiplier);
+            Storage.set(Storage.uint256Ptr("goldMultiplier"), _newUniqueMultiplier);
         } else if (uint(_badgeLevel) == 1) {
-            Storage.set(Storage.uint256Ptr("silverMultiplier"), _newMultiplier);
+            Storage.set(Storage.uint256Ptr("silverMultiplier"), _newUniqueMultiplier);
         } else if (uint(_badgeLevel) == 2) {
-            Storage.set(Storage.uint256Ptr("bronzeMultiplier"), _newMultiplier);
+            Storage.set(Storage.uint256Ptr("bronzeMultiplier"), _newUniqueMultiplier);
         }
     }
 
@@ -511,7 +514,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param to                        Address of where tokens are transferred to.
      * @param amount                    Amount of tokens being transferred.
      */
-    function _lockTokens(address from, address to, uint256 amount) internal {
+    function _lockTokens(address from, address to, uint256 amount) internal nonReentrant {
         token.transferFrom(from, to, amount);
     }
 
