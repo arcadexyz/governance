@@ -34,10 +34,11 @@ library VotingVaultStorage {
     }
 
     // A struct which represents 1 packed storage location with a compressed
-    // uint128 pair
-    struct AddressUintUint {
+    // uint128 pair and address
+    struct AddressUintUintAddress {
         uint128 tokenId;
         uint128 multiplier;
+        address nftAddress;
     }
 
     // Enum representing the badge levels accepted by the unique multiplier voting contract
@@ -71,10 +72,10 @@ library VotingVaultStorage {
      *
      * @return data                     The mapping pointer.
      */
-    function mappingAddressToPackedUintUint(
+    function mappingAddressToPackedUintUintAddress(
         string memory name
-    ) internal pure returns (mapping(address => AddressUintUint) storage data) {
-        bytes32 typehash = keccak256("mapping(address => AddressUintUint)");
+    ) internal pure returns (mapping(address => AddressUintUintAddress) storage data) {
+        bytes32 typehash = keccak256("mapping(address => AddressUintUintAddress)");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset

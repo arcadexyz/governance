@@ -116,9 +116,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         emit TransactionMultiplierSet(_who, badgeAddress, _tokenId, multiplier.data);
 
         // Load badges storage
-        VotingVaultStorage.AddressUintUint storage badgeData = _badges()[badgeAddress];
+        VotingVaultStorage.AddressUintUintAddress storage badgeData = _badges()[_who];
         // set badge data tokenId
         badgeData.tokenId = _tokenId;
+        // set badge data nftAddress
+        badgeData.nftAddress = badgeAddress;
 
         // load the registration
         VotingVaultStorage.Registration storage registration = _registrations()[_who];
@@ -242,9 +244,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @return multiplier               The multiplier value associated
      *                                  with the badge.
      */
-    function badges(address badge) external view returns (uint128 tokenId, uint128 multiplier) {
-        VotingVaultStorage.AddressUintUint storage badgeData = _badges()[badge];
-        return (badgeData.tokenId, badgeData.multiplier);
+    function badges(address _who) external view returns (uint128 tokenId, uint128 multiplier, address badge) {
+        VotingVaultStorage.AddressUintUintAddress storage badgeData = _badges()[_who];
+        return (badgeData.tokenId, badgeData.multiplier, badgeData.nftAddress);
     }
 
     /**
@@ -285,6 +287,15 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
+     * @notice A function to access the storage of the bronzeBadge address.
+     *
+     * @return                          The bronzeBadge contract address.
+     */
+    function bronzeBadge() public pure returns (address) {
+        return _bronzeBadge().data;
+    }
+
+    /**
      * @notice A function to access the storage of the gold multiplier value.
      *
      * @dev The gold multiplier has the highest multiplier value in this contract.
@@ -315,15 +326,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      */
     function bronzeMultiplier() public pure returns (uint256) {
         return _bronzeMultiplier().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the bronzeBadge address.
-     *
-     * @return                          The bronzeBadge contract address.
-     */
-    function bronzeBadge() public pure returns (address) {
-        return _bronzeBadge().data;
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -422,16 +424,15 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         return locked * _multiplier().data;
     }
 
-    /**
-     * @notice A single function endpoint for loading storage for badges.
+    /** @notice A single function endpoint for loading storage for badges.
      *
-     * @return                          A storage mapping which can be used to
-     *                                  lookup badge multiplier and token id data.
+     * @return                          A storage mapping which can be used to lookup
+     *                                  badge multiplier, badge address and token id data.
      */
-    function _badges() internal pure returns (mapping(address => VotingVaultStorage.AddressUintUint) storage) {
+    function _badges() internal pure returns (mapping(address => VotingVaultStorage.AddressUintUintAddress) storage) {
         // This call returns a storage mapping with a unique non overwrite-able storage layout
         // which can be persisted through upgrades, even if they change storage layout
-        return (VotingVaultStorage.mappingAddressToPackedUintUint("badges"));
+        return (VotingVaultStorage.mappingAddressToPackedUintUintAddress("badges"));
     }
 
     /**
