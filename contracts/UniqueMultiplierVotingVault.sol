@@ -35,7 +35,7 @@ import {
  * vaults in Council.
  *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
- *      addPnoteAndDelegate() are unrecoverable by this version of the PromissoryVotingVault.
+ *      addBadgeAndDelegate() are unrecoverable by this version of the UniqueMultiplierVotingVault.
  *
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
@@ -143,7 +143,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             _delegatee
         );
 
-        // set the multiplier data for the badge
+        // set the multiplier data for the badge mapping
         badgeData.multiplier = uint128(multiplier.data);
 
         // update this contract's balance
@@ -504,7 +504,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice A function to lock a user's tokens into this contract for their
+     * @notice A function to lock a user's tokens into this contract for
      *         participate in governance.
      *
      * @param from                      Address of owner tokens are transferred from.

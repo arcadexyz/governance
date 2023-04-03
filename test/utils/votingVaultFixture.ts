@@ -86,7 +86,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         uniqueMultiplierVotingVaultProxy.address,
     );
     await uniqueMultiplierVotingVault.initialize(
-        signers[0].address,
+        signers[0].address, // manager address who can update unique multiplier values
         goldBadge.address,
         silverBadge.address,
         bronzeBadge.address,
