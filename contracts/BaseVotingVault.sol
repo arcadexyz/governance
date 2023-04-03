@@ -162,13 +162,13 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     }
 
     /**
-     * @notice Timelock-only manager update function.
+     * @notice Manager only manager update function.
      *
-     * @dev Allows the timelock to update the manager address.
+     * @dev Allows the current manager to update the manager address.
      *
      * @param manager_                  The new manager address.
      */
-    function setManager(address manager_) public onlyTimelock {
+    function setManager(address manager_) public onlyManager {
         Storage.set(Storage.addressPtr("manager"), manager_);
     }
 

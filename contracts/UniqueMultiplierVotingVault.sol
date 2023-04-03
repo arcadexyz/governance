@@ -19,8 +19,6 @@ import {
     PVV_InsufficientBalance,
     PVV_InsufficientRegistrationBalance
 } from "./errors/Governance.sol";
-/* solhint-disable no-console */
-import "hardhat/console.sol";
 
 /**
  *
@@ -69,16 +67,16 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
-     * @param timelock_                The timelock address can change the multipliers.
+     * @param manager_                The address of the manager who can update the unique multipliers.
      * @param goldBadge_               The goldBadge contract address.
      * @param silverBadge_             The silverBadge contract address.
      * @param bronzeBadge_             The bronzeBadge contract address.
      *
      */
-    function initialize(address timelock_, address goldBadge_, address silverBadge_, address bronzeBadge_) public {
+    function initialize(address manager_, address goldBadge_, address silverBadge_, address bronzeBadge_) public {
         require(Storage.uint256Ptr("initialized").data == 0, "initialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
-        Storage.set(Storage.addressPtr("timelock"), timelock_);
+        Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("goldBadge"), goldBadge_);
         Storage.set(Storage.addressPtr("silverBadge"), silverBadge_);
         Storage.set(Storage.addressPtr("bronzeBadge"), bronzeBadge_);
@@ -111,16 +109,16 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         uint128 blockNumber = uint128(block.number);
 
         Storage.Uint256 storage balance = _balance();
-        // TODO: check if variable ok to set up like this
+
         address badgeAddress = _getBadgeAddressAndSetMultiplier(_badgeLevel, _tokenId);
 
         Storage.Uint256 memory multiplier = _multiplier();
         emit TransactionMultiplierSet(_who, badgeAddress, _tokenId, multiplier.data);
 
-        // Load our badges storage
+        // Load badges storage
         VotingVaultStorage.AddressUintUint storage badgeData = _badges()[badgeAddress];
-        // set badge tokenId
-        _tokenId = badgeData.tokenId;
+        // set badge data tokenId
+        badgeData.tokenId = _tokenId;
 
         // load the registration
         VotingVaultStorage.Registration storage registration = _registrations()[_who];
@@ -132,7 +130,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // load the delegate. Defaults to the registration owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
-        // calculate the voting power
+        // calculate the voting power provided by this registration
         uint128 newVotingPower = (_amount * uint128(multiplier.data)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
@@ -247,6 +245,22 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function badges(address badge) external view returns (uint128 tokenId, uint128 multiplier) {
         VotingVaultStorage.AddressUintUint storage badgeData = _badges()[badge];
         return (badgeData.tokenId, badgeData.multiplier);
+    }
+
+    /**
+     * @dev onlyManager function for setting the value of a specified level badge multiplier.
+     *
+     * @param _badgeLevel                The level of badge for which the multiplier will be set.
+     * @param _newMultiplier             The new multiplier value.
+     */
+    function setUniqueMultiplier(VotingVaultStorage.Badge _badgeLevel, uint256 _newMultiplier) public onlyManager {
+        if (uint(_badgeLevel) == 0) {
+            Storage.set(Storage.uint256Ptr("goldMultiplier"), _newMultiplier);
+        } else if (uint(_badgeLevel) == 1) {
+            Storage.set(Storage.uint256Ptr("silverMultiplier"), _newMultiplier);
+        } else if (uint(_badgeLevel) == 2) {
+            Storage.set(Storage.uint256Ptr("bronzeMultiplier"), _newMultiplier);
+        }
     }
 
     /**

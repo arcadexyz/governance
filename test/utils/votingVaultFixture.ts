@@ -86,7 +86,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         uniqueMultiplierVotingVaultProxy.address,
     );
     await uniqueMultiplierVotingVault.initialize(
-        timelock.address,
+        signers[0].address,
         goldBadge.address,
         silverBadge.address,
         bronzeBadge.address,
@@ -117,7 +117,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         votingVaults, // voting vaults array
     );
 
-    // grant roles and update owner role
+    // grant roles and update ownership
     await coreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns coreVoting
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
     await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock

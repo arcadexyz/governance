@@ -416,4 +416,53 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(multiplier2));
         });
     });
+
+    describe("Set unique multiplier", async () => {
+        it("Fails if the caller is not the manager", async () => {
+            // invoke the fixture function
+            ctxVault = await votingVaultFixture();
+
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // non-manager account to try to change the multiplier for the GOLD badge
+            const tx = uniqueMultiplierVotingVault
+                .connect(signers[2])
+                .setUniqueMultiplier(0, ethers.utils.parseEther("1.45"));
+            await expect(tx).to.be.revertedWith("!manager");
+        });
+
+        it("Sets a new manager", async () => {
+            // invoke the fixture function
+            ctxVault = await votingVaultFixture();
+
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // get the address of the current manager
+            const tx = await uniqueMultiplierVotingVault.connect(signers[0]).setManager(signers[5].address);
+            tx.wait();
+
+            const newManager = await uniqueMultiplierVotingVault.manager();
+            await expect(await uniqueMultiplierVotingVault.manager()).to.be.eq(newManager);
+        });
+
+        it("Correctly changes the value of the unique multiplier", async () => {
+            // invoke the fixture function
+            ctxVault = await votingVaultFixture();
+
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // get the current GOLD badge multiplier
+            const goldMultiplier = await uniqueMultiplierVotingVault.goldMultiplier();
+            await expect(goldMultiplier).to.eq(ethers.utils.parseEther("1.2"));
+
+            // manager updates the value of the GOLD badge multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setUniqueMultiplier(0, ethers.utils.parseEther("1.4"));
+
+            // get new multiplier value
+            const newGoldMultiplier = await uniqueMultiplierVotingVault.goldMultiplier();
+            await expect(newGoldMultiplier).to.eq(ethers.utils.parseEther("1.4"));
+        });
+    });
 });
