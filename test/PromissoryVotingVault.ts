@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
+import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
@@ -15,9 +16,25 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
 
     before(async function () {
         ctxVault = await votingVaultFixture();
+        await createSnapshot(provider);
+    });
+    after(async () => {
+        await restoreSnapshot(provider);
+    });
+    beforeEach(async () => {
+        await createSnapshot(provider);
+    });
+    afterEach(async () => {
+        await restoreSnapshot(provider);
     });
 
     describe("Governance flow with promissory vault", async () => {
+        beforeEach(async () => {
+            await createSnapshot(provider);
+        });
+        afterEach(async () => {
+            await restoreSnapshot(provider);
+        });
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             // invoke the fixture functions
             ctxVault = await votingVaultFixture();
