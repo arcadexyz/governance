@@ -11,13 +11,14 @@ import "../external/council/libraries/MerkleRewards.sol";
  * This contract was sourced from the DELV (Element.Fi) source code for which can be found here:
  * https://etherscan.io/address/0xd04a459FFD3A5E3C93d5cD8BB13d26a9845716c2#code
  *
- * This contract recieves tokens from the ArcadeTokenDistributor contract and allows users to claim
- * their tokens. The contract is owned by the ArcadeGovernance contract which can reclaim the tokens
+ * This contract receives tokens from the ArcadeTokenDistributor and facilitates airdrop claims.
+ * The contract is owned by the ArcadeGovernance contract which can reclaim any remaining tokens
  * once the airdrop is over.
  *
  * As users claim their tokens, the contract will deposit them into a FrozenLockingVault contract for
- *  use in Arcade Governance. The claim function is disabled and users can claim tokens after the
- * FrozenLockingVault contract has withdraws enabled by and authorized account.
+ * use in Arcade Governance. At this time, the user can delegate voting power to themselves or another
+ * account. Direct claiming functionality is disabled. Users can claim tokens from the
+ * FrozenLockingVault contract when withdraws are enabled by and authorized account.
  */
 contract Airdrop is MerkleRewards, Authorizable {
     // The time after which the token cannot be claimed

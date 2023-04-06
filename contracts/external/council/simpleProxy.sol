@@ -117,4 +117,6 @@ contract SimpleProxy {
             return(ptr, returndataLength)
         }
     }
+
+    receive() external payable {}
 }

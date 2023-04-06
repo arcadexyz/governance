@@ -3,7 +3,6 @@ pragma solidity ^0.8.3;
 
 import "./LockingVault.sol";
 
-// All elves stay in the elfiverse
 contract FrozenLockingVault is AbstractLockingVault {
     /// @notice Constructs the contract by setting immutables
     /// @param _token The external erc20 token contract

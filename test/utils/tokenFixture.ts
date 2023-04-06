@@ -4,7 +4,7 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { Airdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault } from "../../src/types";
+import { Airdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault, SimpleProxy } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
@@ -26,12 +26,14 @@ export interface TokenTestContext {
     arcToken: IArcadeToken;
     arcDst: ArcadeTokenDistributor;
     // vault contract
+    simpleProxy: SimpleProxy;
     frozenLockingVault: LockingVault;
     // test helpers
     recipients: Account;
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
     expiration: number;
+    staleBlockNum: number;
 }
 
 /**
@@ -90,13 +92,18 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
 
     // ====================================== AIRDROP DEPLOYMENT ====================================
 
+    const staleBlock = await ethers.provider.getBlock("latest");
+    const staleBlockNum = staleBlock.number;
+
     // deploy FrozenLockingVault via proxy
-    const proxyDeployer = await ethers.getContractFactory("SimpleProxy");
+    const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
     const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
-    const currentBlockNum = await ethers.provider.getBlock("latest");
-    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcToken.address, currentBlockNum.number);
-    const frozenLockingVaultProxy = await proxyDeployer.deploy(signers[0].address, frozenLockingVaultImp.address);
-    const frozenLockingVault = frozenLockingVaultImp.attach(frozenLockingVaultProxy.address);
+    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+    const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
+
+    const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
+
+    await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
 
     // deploy airdrop contract
     const ArcAirdrop = await hre.ethers.getContractFactory("Airdrop");
@@ -120,10 +127,12 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
         arcAirdrop,
         arcToken,
         arcDst,
+        simpleProxy,
         frozenLockingVault,
         recipients,
         blockchainTime,
         merkleTrie,
         expiration,
+        staleBlockNum,
     };
 };
