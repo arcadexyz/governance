@@ -71,7 +71,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
 
     // ====================================== AIRDROP SETUP =====================================
 
-    // create data for airdrop claims
+    // airdrop claims data
     const recipients: Account = [
         {
             address: deployer.address,
@@ -90,7 +90,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     // airdrop claim expiration is current unix stamp + 1 hour in seconds
     const expiration = Math.floor(new Date().getTime() / 1000) + 3600;
 
-    // ====================================== AIRDROP DEPLOYMENT ====================================
+    // ================================= AIRDROP VAULT DEPLOYMENT ==============================
 
     const staleBlock = await ethers.provider.getBlock("latest");
     const staleBlockNum = staleBlock.number;
@@ -104,6 +104,8 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
 
     await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
+
+    // =================================== AIRDROP DEPLOYMENT ==================================
 
     // deploy airdrop contract
     const ArcAirdrop = await hre.ethers.getContractFactory("Airdrop");

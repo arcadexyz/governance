@@ -7,18 +7,19 @@ import "../external/council/libraries/MerkleRewards.sol";
 
 /**
  * @title Arcade Airdrop
+ * @author Non-Fungible Technologies, Inc.
  *
- * This contract was sourced from the DELV (Element.Fi) source code for which can be found here:
- * https://etherscan.io/address/0xd04a459FFD3A5E3C93d5cD8BB13d26a9845716c2#code
+ * This contract is a variant of the Airdrop contract used in the council governance repository.
+ * The major change is to block direct claiming of tokens and instead require users to delegate
+ * voting power to via a locking voting vault.
  *
  * This contract receives tokens from the ArcadeTokenDistributor and facilitates airdrop claims.
- * The contract is owned by the ArcadeGovernance contract which can reclaim any remaining tokens
+ * The contract is owned by the Arcade governance contract which can reclaim any remaining tokens
  * once the airdrop is over.
  *
- * As users claim their tokens, the contract will deposit them into a FrozenLockingVault contract for
- * use in Arcade Governance. At this time, the user can delegate voting power to themselves or another
- * account. Direct claiming functionality is disabled. Users can claim tokens from the
- * FrozenLockingVault contract when withdraws are enabled by and authorized account.
+ * As users claim their tokens, this contract will deposit them into a frozen locking vault for
+ * use in Arcade Governance. When claiming, the user can delegate voting power to themselves or
+ * another account.
  */
 contract Airdrop is MerkleRewards, Authorizable {
     // The time after which the token cannot be claimed
@@ -52,7 +53,7 @@ contract Airdrop is MerkleRewards, Authorizable {
         token.transfer(destination, unclaimed);
     }
 
-    /// @notice Claims an amount of tokens which are in the tree and send them to the user
+    /// @notice Blocks direct claiming of tokens requires users to delegate voting.
     /// @param amount The amount of tokens to claim
     /// @param totalGrant The total amount of tokens the user was granted
     /// @param merkleProof The merkle de-commitment which proves the user is in the merkle root

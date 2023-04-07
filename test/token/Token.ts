@@ -391,6 +391,30 @@ describe("ArcadeToken", function () {
         afterEach(async function () {
             await restoreSnapshot(provider);
         });
+
+        it("user tries to claim airdrop directly", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofOther = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+            );
+            // try to claim with proof
+            await expect(
+                arcAirdrop.connect(other).claim(
+                    recipients[1].value, // amount to claim
+                    recipients[1].value, // total claimable amount
+                    proofOther, // merkle proof
+                    recipients[1].address, // address to credit claim to
+                ),
+            ).to.be.revertedWith("Not Allowed to claim");
+        });
+
         it("all recipients claim airdrop and delegate to themselves", async function () {
             const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
                 ctxToken;
@@ -731,7 +755,7 @@ describe("ArcadeToken", function () {
             await restoreSnapshot(provider);
         });
 
-        it("user tries to claim before vault is upgraded", async function () {
+        it("user tries to claim from frozen vault", async function () {
             const { other, recipients, frozenLockingVault } = ctxToken;
 
             // user tries to claim before vault is upgraded
@@ -749,7 +773,7 @@ describe("ArcadeToken", function () {
             await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
         });
 
-        it("owner upgrades vault and user claims", async function () {
+        it("user claims after vault upgrade", async function () {
             const { arcToken, deployer, other, recipients, simpleProxy, staleBlockNum } = ctxToken;
 
             // deploy new implementation, use same stale block as the frozen vault
@@ -758,8 +782,6 @@ describe("ArcadeToken", function () {
 
             // owner upgrades vault
             await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
-
             lockingVault = await lockingVault.attach(simpleProxy.address);
 
             // user claims
@@ -821,8 +843,6 @@ describe("ArcadeToken", function () {
 
             // owner upgrades vault
             await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
-
             lockingVault = await lockingVault.attach(simpleProxy.address);
 
             // other claims
@@ -849,8 +869,6 @@ describe("ArcadeToken", function () {
 
             // owner upgrades vault
             await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
-
             lockingVault = await lockingVault.attach(simpleProxy.address);
 
             // user tries to claim more than allotted amount
@@ -868,8 +886,6 @@ describe("ArcadeToken", function () {
 
             // owner upgrades vault
             await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
-
             lockingVault = await lockingVault.attach(simpleProxy.address);
 
             // user claims
