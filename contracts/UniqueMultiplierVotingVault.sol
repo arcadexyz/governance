@@ -3,7 +3,7 @@
 pragma solidity >=0.8.18;
 
 /* solhint-disable no-global-import */
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
@@ -13,11 +13,13 @@ import "./libraries/VotingVaultStorage.sol";
 import "./BaseVotingVault.sol";
 
 import {
-    PVV_DoesNotOwn,
-    PVV_HasRegistration,
-    PVV_AlreadyDelegated,
-    PVV_InsufficientBalance,
-    PVV_InsufficientRegistrationBalance
+    UMVV_DoesNotOwn,
+    UMVV_HasRegistration,
+    UMVV_AlreadyDelegated,
+    UMVV_InsufficientBalance,
+    UMVV_InsufficientRegistrationBalance,
+    UMVV_MultiplierLimit,
+    UMVV_NoMultiplierSet
 } from "./errors/Governance.sol";
 
 /**
@@ -25,12 +27,14 @@ import {
  * @title UniqueMultiplierVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
- * This contract enables holders of Arcade badges to gain an advantage wrt
- * voting power for participation in governance. Users send their tokens to the contract
- * and provide their badge level as calldata. Once the contract confirms their ownership
- * of the badge id, they are able to delegate their voting power for participation in
- * governance.
- * Voting power for participants in this voting vault is enhanced by a multiplier.
+ * The voting power for participants in this voting vault is enhanced by a multiplier.
+ * This contract enables holders of specific ERC1155 nfts to gain an advantage wrt voting
+ * power for participation in governance. Participants send their ERC20 tokens to the contract
+ * and provide their ERC1155 nfts as calldata. Once the contract confirms their ownership
+ * of the ERC1155 token id, and matches the ERC1155 address and tokenId to a multiplier,
+ * they are able to delegate their voting power for participation in governance.
+ * The voting power for participants in this voting vault is enhanced by a multiplier.
+ *
  * This contract is Simple Proxy upgradeable which is the upgradeability system used for voting
  * vaults in Council.
  *
@@ -59,81 +63,76 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
     // ============================================ EVENTS ===============================================
 
-    // Event to track txn multiplier data
-    event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier);
+    // Event to track user multiplier data
+    event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier);
 
-    // =================================== VOTING VAULT FUNCTIONALITY =====================================
+    // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
 
     /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
-     * @param manager_                 The address of the manager who can update the unique multipliers.
-     * @param goldBadge_               The goldBadge contract address.
-     * @param silverBadge_             The silverBadge contract address.
-     * @param bronzeBadge_             The bronzeBadge contract address.
+     * @param manager_                 The address of the manager who can update the unique multiplier values.
      *
      */
-    function initialize(address manager_, address goldBadge_, address silverBadge_, address bronzeBadge_) public {
+    function initialize(address manager_) public {
         require(Storage.uint256Ptr("initialized").data == 0, "initialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("manager"), manager_);
-        Storage.set(Storage.addressPtr("goldBadge"), goldBadge_);
-        Storage.set(Storage.addressPtr("silverBadge"), silverBadge_);
-        Storage.set(Storage.addressPtr("bronzeBadge"), bronzeBadge_);
-        Storage.set(Storage.uint256Ptr("goldMultiplier"), 1.2e18);
-        Storage.set(Storage.uint256Ptr("silverMultiplier"), 1.15e18);
-        Storage.set(Storage.uint256Ptr("bronzeMultiplier"), 1.1e18);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 
     /**
-     * @notice Performs badge registration for a caller.
+     * @notice Performs ERC1155 registration and delegation for a caller.
      *
-     * @dev User has to own badge ERC721 for participation in this voting vault.
+     * @dev User has to own ERC1155 nft for participation in this voting vault and multiplier access.
      *
      * @param _amount                   Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
-     * @param _tokenId                  The id of the badge NFT.
-     * @param _badgeLevel               The level the badge NFT GOLD / SILVER / BRONZE.
+     * @param _tokenId                  The id of the ERC1155 NFT.
+     * @param _tokenAddress             The address of the ERC1155 token the user is registering for multiplier
+     *                                  access.
      * @param _delegatee                Optional param. The address to delegate the voting power associated
      *                                  with this Registration to
      */
-    function addBadgeAndDelegate(
+    function addNftAndDelegate(
         uint128 _amount,
         uint128 _tokenId,
-        VotingVaultStorage.Badge _badgeLevel,
+        address _tokenAddress,
         address _delegatee
     ) external virtual {
         address _who = msg.sender;
         uint128 withdrawn = 0;
         uint128 blockNumber = uint128(block.number);
 
+        if (IERC1155(_tokenAddress).balanceOf(_who, _tokenId) < 1) revert UMVV_DoesNotOwn();
+
+        // load the multipliers mapping storage (tokenAddress --> tokenId --> multiplier)
+        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[_tokenAddress];
+
+        // see if the value of this tokenId has been set in the multiplier mapping. if not, set it
+        if (multiplierData.tokenId == 0) {
+            multiplierData.tokenId = _tokenId;
+        }
+        // confirm that the submitted ERC1155 and tokenId have a multiplier, if not, revert
+        if (multiplierData.multiplier == 0) revert UMVV_NoMultiplierSet();
+        // caller's multiplier identified, emit event
+        emit UserMultiplier(_who, _tokenAddress, _tokenId, multiplierData.multiplier);
+
+        // load this contract's balance storage
         Storage.Uint256 storage balance = _balance();
-
-        address badgeAddress = _getBadgeAddressAndSetMultiplier(_badgeLevel, _tokenId);
-
-        Storage.Uint256 memory multiplier = _multiplier();
-        emit TransactionMultiplierSet(_who, badgeAddress, _tokenId, multiplier.data);
-
-        // Load badges storage
-        VotingVaultStorage.AddressUintUintAddress storage badgeData = _badges()[_who];
-        // set badge data tokenId
-        badgeData.tokenId = _tokenId;
-        // set badge data nftAddress
-        badgeData.nftAddress = badgeAddress;
 
         // load the registration
         VotingVaultStorage.Registration storage registration = _registrations()[_who];
 
-        // If the id of the badge is not zero, revert because the Registration is
+        // If the token id is not zero, revert because the Registration is
         // already initialized. Only one Registration per msg.sender
-        if (registration.tokenId != 0) revert PVV_HasRegistration();
+        if (registration.tokenId != 0) revert UMVV_HasRegistration();
 
         // load the delegate. Defaults to the registration owner
         _delegatee = _delegatee == address(0) ? _who : _delegatee;
 
         // calculate the voting power provided by this registration
-        uint128 newVotingPower = (_amount * uint128(multiplier.data)) / MULTIPLIER_DENOMINATOR;
+        uint128 newVotingPower = (_amount * uint128(multiplierData.multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
         _registrations()[_who] = VotingVaultStorage.Registration(
@@ -144,9 +143,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             _tokenId,
             _delegatee
         );
-
-        // set the multiplier data for the badge mapping
-        badgeData.multiplier = uint128(multiplier.data);
 
         // update this contract's balance
         balance.data += _amount;
@@ -177,11 +173,12 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *      multiplier can be updated at any time.
      *
      * @param _to                       The address to delegate to.
+     * @param _tokenAddress             The address of the ERC1155 token associated with the multiplier.
      */
-    function delegate(address _to) external virtual {
+    function delegate(address _to, address _tokenAddress) external virtual {
         VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // If _to address is already the delegate, don't send the tx
-        if (_to == registration.delegatee) revert PVV_AlreadyDelegated();
+        if (_to == registration.delegatee) revert UMVV_AlreadyDelegated();
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
@@ -193,8 +190,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // Note - It is important that this is loaded here and not before the previous state change because if
         // _to == registration.delegatee and re-delegation was allowed we could be working with out of date state
         uint256 newDelegateeVotes = votingPower.loadTop(_to);
-        // return the current voting power of the Registration
-        uint256 addedVotingPower = _currentVotingPower(registration);
+        // return the current voting power of the Registration. Varies based on the multiplier associated with the
+        // user's ERC1155 token at the time of txn
+        uint256 addedVotingPower = _currentVotingPower(registration, _tokenAddress);
 
         // add voting power to the target delegatee and emit event
         votingPower.push(_to, newDelegateeVotes + addedVotingPower);
@@ -209,8 +207,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @notice Removes tokens from this contract and the voting power they represent.
      *
      * @param amount                      The amount of token to withdraw.
+     * @param _tokenAddress             The address of the ERC1155 token associated with the multiplier.
      */
-    function withdraw(uint128 amount) external virtual nonReentrant {
+    function withdraw(uint128 amount, address _tokenAddress) external virtual nonReentrant {
         // load the registration
         VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         // get the withdrawable amount
@@ -218,15 +217,16 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
-        if (balance.data < amount) revert PVV_InsufficientBalance();
-        if (registration.amount < amount) revert PVV_InsufficientRegistrationBalance();
+        if (balance.data < amount) revert UMVV_InsufficientBalance();
+        if (registration.amount < amount) revert UMVV_InsufficientRegistrationBalance();
         if ((withdrawable - amount) >= 0) {
             // update contract balance
             balance.data -= amount;
             // update withdrawn amount
             registration.withdrawn += amount;
-            // update the delegatee's voting power
-            _syncVotingPower(msg.sender, registration);
+            // update the delegatee's voting power. Varies based on the multiplier associated with the
+            // user's ERC1155 token at the time of the call
+            _syncVotingPower(msg.sender, registration, _tokenAddress);
         }
         if ((withdrawable - amount) == 0) {
             delete _registrations()[msg.sender];
@@ -236,96 +236,49 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice Getter for the badges mapping.
+     * @notice Getter for the multipliers mapping.
      *
-     * @param  badge                    The badge contract address.
+     * @param  tokenAddress             The token contract address.
      *
-     * @return tokenId                  The user's badge token id.
-     * @return multiplier               The multiplier value associated
-     *                                  with the badge.
+     * @return multiplierValue          The multiplier value for the token address.
+     *
      */
-    function badges(address _who) external view returns (uint128 tokenId, uint128 multiplier, address badge) {
-        VotingVaultStorage.AddressUintUintAddress storage badgeData = _badges()[_who];
-        return (badgeData.tokenId, badgeData.multiplier, badgeData.nftAddress);
+    function multipliers(address tokenAddress) external view returns (uint128) {
+        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress];
+        // get multiplier value
+        return multiplierData.multiplier;
     }
 
     /**
-     * @dev onlyManager function for setting the value of a specified level badge multiplier.
+     * @notice An onlyManager function for setting the multiplier value associated with an ERC1155
+     *         contract address.
      *
-     * @param _badgeLevel                The level of badge for which the multiplier will be set.
-     * @param _newUniqueMultiplier             The new multiplier value.
+     * @param _tokenAddress             The address of the ERC1155 token to set the
+     *                                  multiplier for.
+     * @param _multiplierValue          The multiplier value corresponding to the token address.
+     *
      */
-    function setUniqueMultiplier(
-        VotingVaultStorage.Badge _badgeLevel,
-        uint256 _newUniqueMultiplier
-    ) public onlyManager {
-        if (uint(_badgeLevel) == 0) {
-            Storage.set(Storage.uint256Ptr("goldMultiplier"), _newUniqueMultiplier);
-        } else if (uint(_badgeLevel) == 1) {
-            Storage.set(Storage.uint256Ptr("silverMultiplier"), _newUniqueMultiplier);
-        } else if (uint(_badgeLevel) == 2) {
-            Storage.set(Storage.uint256Ptr("bronzeMultiplier"), _newUniqueMultiplier);
-        }
+    function setMultiplier(
+        address _tokenAddress,
+        uint128 _multiplierValue
+    ) public virtual onlyManager returns (bool multiplierSet) {
+        if (_multiplierValue >= MAX_MULTIPLIER) revert UMVV_MultiplierLimit();
+
+        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[_tokenAddress];
+        // set multiplier value
+        multiplierData.multiplier = _multiplierValue;
     }
 
     /**
-     * @notice A function to access the storage of the goldBadge address.
+     * @notice A function to access the storage of the nft's voting power multiplier.
      *
-     * @return                          The goldBadge contract address.
+     * @return                          The token multiplier.
      */
-    function goldBadge() public pure returns (address) {
-        return _goldBadge().data;
-    }
+    function multiplier(address _tokenAddress) external view virtual returns (uint256) {
+        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[_tokenAddress];
+        if (multiplierData.multiplier == 0) revert UMVV_NoMultiplierSet();
 
-    /**
-     * @notice A function to access the storage of the silverBadge address.
-     *
-     * @return                          The silverBadge contract address.
-     */
-    function silverBadge() public pure returns (address) {
-        return _silverBadge().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the bronzeBadge address.
-     *
-     * @return                          The bronzeBadge contract address.
-     */
-    function bronzeBadge() public pure returns (address) {
-        return _bronzeBadge().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the gold multiplier value.
-     *
-     * @dev The gold multiplier has the highest multiplier value in this contract.
-     *
-     * @return                          The gold multiplier value.
-     */
-    function goldMultiplier() public pure returns (uint256) {
-        return _goldMultiplier().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the silver multiplier value.
-     *
-     * @dev The silver multiplier has the second highest multiplier value in this contract.
-     *
-     * @return                          The silver multiplier value.
-     */
-    function silverMultiplier() public pure returns (uint256) {
-        return _silverMultiplier().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the bronze multiplier value.
-     *
-     * @dev The bronze multiplier has the third highest multiplier value in this contract.
-     *
-     * @return                          The bronze address.
-     */
-    function bronzeMultiplier() public pure returns (uint256) {
-        return _bronzeMultiplier().data;
+        return multiplierData.multiplier;
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -368,11 +321,15 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      * @param _registration              The storage pointer to the registration of that user.
      */
-    function _syncVotingPower(address _who, VotingVaultStorage.Registration storage _registration) internal {
+    function _syncVotingPower(
+        address _who,
+        VotingVaultStorage.Registration storage _registration,
+        address _tokenAddress
+    ) internal {
         History.HistoricalBalances memory votingPower = _votingPower();
 
         uint256 delegateeVotes = votingPower.loadTop(_registration.delegatee);
-        uint256 newVotingPower = _currentVotingPower(_registration);
+        uint256 newVotingPower = _currentVotingPower(_registration, _tokenAddress);
 
         // get the change in voting power. Negative if the voting power is reduced
         int256 change = int256(newVotingPower) - int256(uint256(_registration.latestVotingPower));
@@ -414,97 +371,16 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @dev This is not always the recorded voting power since it uses the latest multiplier.
      *
      * @param _registration              The registration to check for voting power.
+     * @param _tokenAddress              The address of the ERC1155 token associated with the multiplier.
      *
      * @return                           The current voting power of the registration.
      */
     function _currentVotingPower(
-        VotingVaultStorage.Registration memory _registration
-    ) internal pure virtual returns (uint256) {
+        VotingVaultStorage.Registration memory _registration,
+        address _tokenAddress
+    ) internal view virtual returns (uint256) {
         uint256 locked = _registration.amount - _registration.withdrawn;
-        return locked * _multiplier().data;
-    }
-
-    /** @notice A single function endpoint for loading storage for badges.
-     *
-     * @return                          A storage mapping which can be used to lookup
-     *                                  badge multiplier, badge address and token id data.
-     */
-    function _badges() internal pure returns (mapping(address => VotingVaultStorage.AddressUintUintAddress) storage) {
-        // This call returns a storage mapping with a unique non overwrite-able storage layout
-        // which can be persisted through upgrades, even if they change storage layout
-        return (VotingVaultStorage.mappingAddressToPackedUintUintAddress("badges"));
-    }
-
-    /**
-     * @notice A helper function to access the value of the goldBadge contract address.
-     *
-     * @return                          A struct containing the goldBadge
-     *                                  contract address.
-     */
-    function _goldBadge() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("goldBadge");
-    }
-
-    /**
-     * @notice A helper function to access the value of the silverBadge contract address.
-     *
-     * @return                          A struct containing the silverBadge
-     *                                  contract address.
-     */
-    function _silverBadge() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("silverBadge");
-    }
-
-    /**
-     * @notice A helper function to access the value of the bronzeBadge contract address.
-     *
-     * @return                          A struct containing the bronzeBadge
-     *                                  contract address.
-     */
-    function _bronzeBadge() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("bronzeBadge");
-    }
-
-    /**
-     * @notice A function to access the storage of the gold multiplier value.
-     *
-     * @dev A multiplier is a number that boosts the voting power of a user's
-     * governance tokens based on the user's reputation score.
-     * The voting power of the user would equal the product of the number of tokens
-     * deposited into the voting vault multiplied by the value of the multiplier.
-     *
-     * @return                          A struct containing the gold multiplier uint.
-     */
-    function _goldMultiplier() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("goldMultiplier");
-    }
-
-    /**
-     * @notice A function to access the storage of the silver multiplier value.
-     *
-     * @dev TA multiplier is a number that boosts the voting power of a user's
-     * governance tokens based on the user's reputation score.
-     * The voting power of the user would equal the product of the number of tokens
-     * deposited into the voting vault multiplied by the value of the multiplier.
-     *
-     * @return                          A struct containing the silver multiplier uint.
-     */
-    function _silverMultiplier() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("silverMultiplier");
-    }
-
-    /**
-     * @notice A function to access the storage of the bronze multiplier value.
-     *
-     * @dev A multiplier is a number that boosts the voting power of a user's
-     * governance tokens based on the user's reputation score.
-     * The voting power of the user would equal the product of the number of tokens
-     * deposited into the voting vault multiplied by the value of the multiplier.
-     *
-     * @return                          A struct containing the bronze multiplier uint.
-     */
-    function _bronzeMultiplier() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("bronzeMultiplier");
+        return locked * _multipliers()[_tokenAddress].multiplier;
     }
 
     /**
@@ -519,32 +395,14 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         token.transferFrom(from, to, amount);
     }
 
-    /**
-     * @notice A function to derive the contract address associated with a user's
-     *         badge level and token id. An internal multiplier is set based on the
-     *         badge contract address, for internal access for the duration of the
-     *         user's registration transaction.
+    /** @notice A single function endpoint for loading storage for multipliers.
      *
-     * @param _badgeLevel               The user's badge level enum value.
-     * @param _tokenId                  The user's token id.
-     *
-     * @return badgeAddress             The contract address of the user's badge.
+     * @return                          A storage mapping which can be used to lookup a
+     *                                  token's multiplier data and token id data.
      */
-    function _getBadgeAddressAndSetMultiplier(
-        VotingVaultStorage.Badge _badgeLevel,
-        uint128 _tokenId
-    ) internal returns (address badgeAddress) {
-        if (uint(_badgeLevel) == 0) {
-            badgeAddress = goldBadge();
-            setMultiplier(goldMultiplier());
-        } else if (uint(_badgeLevel) == 1) {
-            badgeAddress = silverBadge();
-            setMultiplier(silverMultiplier());
-        } else if (uint(_badgeLevel) == 2) {
-            badgeAddress = bronzeBadge();
-            setMultiplier(bronzeMultiplier());
-        }
-        if (IERC721(badgeAddress).ownerOf(_tokenId) != msg.sender) revert PVV_DoesNotOwn();
-        return badgeAddress;
+    function _multipliers() internal pure returns (mapping(address => VotingVaultStorage.AddressUintUint) storage) {
+        // This call returns a storage mapping with a unique non overwrite-able storage layout
+        // which can be persisted through upgrades, even if they change storage layout
+        return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
     }
 }

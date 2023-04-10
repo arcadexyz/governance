@@ -13,69 +13,82 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
-    before(async function () {
+    beforeEach(async function () {
         ctxVault = await votingVaultFixture();
     });
 
     describe("Governance flow with combination of voting vaults types", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
+            // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
             const {
                 signers,
                 coreVoting,
-                lockingVault,
-                votingVaults,
                 increaseBlockNumber,
                 token,
                 uniqueMultiplierVotingVault,
-                goldBadge,
-                silverBadge,
-                bronzeBadge,
-                mintBadge,
+                lockingVotingVault,
+                reputationNft,
+                reputationNft2,
+                mintNfts,
                 feeController,
+                votingVaults,
             } = ctxVault;
 
-            // mint users of uinque multiplier voting vault some badges
-            await mintBadge();
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+
+            // manager sets the value of the reputation NFT 2's multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft2.address, ethers.utils.parseEther("1.4"));
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
-            const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();
+            const tx = await (
+                await lockingVotingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)
+            ).wait();
             // view query voting power of signers[0]
-            const votingPower = await lockingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            const votingPower = await lockingVotingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
             expect(votingPower).to.be.eq(ONE.mul(3));
 
-            const tx2 = await (await lockingVault.deposit(signers[1].address, ONE, signers[2].address)).wait();
+            const tx2 = await (await lockingVotingVault.deposit(signers[1].address, ONE, signers[2].address)).wait();
             // view query voting power of signers[2]
-            const votingPower2 = await lockingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
+            const votingPower2 = await lockingVotingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
             expect(votingPower2).to.be.eq(ONE);
 
-            const tx3 = await (await lockingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
+            const tx3 = await (await lockingVotingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
             // view query voting power of signers[1]
-            const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
+            const votingPower3 = await lockingVotingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
             // approve signers[0] tokens to unique multiplier voting vault
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
-            // get signers[0] badgeId
-            const badgeId0 = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
-
-            // signers[0] deposits tokens and delegates to signers[1], uses GOLD badge
-            const tx4 = await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE, badgeId0, 0, signers[1].address);
+            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             const receipt = await tx4.wait();
 
             // get votingPower multiplier for signers[0]
             let multiplier1: BigNumberish;
             if (receipt && receipt.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-
-                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
                 multiplier1 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
             // view query voting power of signers[1]
             const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
@@ -84,15 +97,13 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower4).to.be.eq(ONE.mul(multiplier1));
 
-            // get signers[2] badgeId
-            const badgeId2 = await goldBadge.tokenOfOwnerByIndex(signers[2].address, 0);
             // approve signers[2] tokens to unique multiplier voting vault
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // signers[2] deposits 5 tokens and delegates to  signers[1], uses GOLD badge
+            // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
                 await uniqueMultiplierVotingVault
                     .connect(signers[2])
-                    .addBadgeAndDelegate(ONE.mul(5), badgeId2, 0, signers[1].address)
+                    .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
             ).wait();
             // view query voting power of signers[1]
             const votingPower5 = await uniqueMultiplierVotingVault.queryVotePowerView(
@@ -101,26 +112,24 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
 
-            // get signers[3] badgeId
-            const badgeId3 = await silverBadge.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signers[3] tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // signers[3] deposits ONE tokens and delegates to  signers[0], uses SILVER badge
+            // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
-                .addBadgeAndDelegate(ONE, badgeId3, 1, signers[0].address);
+                .addNftAndDelegate(ONE, 1, reputationNft2.address, signers[0].address);
             const receipt2 = await tx6.wait();
 
             // get votingPower multiplier for signers[3]
             let multiplier2: BigNumberish;
             if (receipt2 && receipt2.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt2.events[receipt2.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt2.events[receipt2.events.length - 3]);
                 multiplier2 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[0]
@@ -130,26 +139,24 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower6).to.be.eq(ONE.mul(multiplier2));
 
-            // get signers[1] badgeId
-            const badgeId1 = await bronzeBadge.tokenOfOwnerByIndex(signers[1].address, 0);
             // approve signers[1] tokens to unique multiplier voting vault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
-            // signers[1] deposits 8 tokens and delegates to  signers[2], uses BRONZE badge
+            // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
-                .addBadgeAndDelegate(ONE.mul(8), badgeId1, 2, signers[2].address);
+                .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
             const receipt3 = await tx7.wait();
 
             // get votingPower multiplier for signers[1]
             let multiplier3: BigNumberish;
             if (receipt3 && receipt3.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt3.events[receipt3.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt3.events[receipt3.events.length - 3]);
                 multiplier3 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[2]
@@ -191,64 +198,73 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
         });
 
         it("Executes the correct proposal out of many", async () => {
+            // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
             const {
                 signers,
                 coreVoting,
-                lockingVault,
-                votingVaults,
                 increaseBlockNumber,
                 token,
                 uniqueMultiplierVotingVault,
-                goldBadge,
-                silverBadge,
-                bronzeBadge,
-                mintBadge,
+                lockingVotingVault,
+                reputationNft,
+                mintNfts,
                 feeController,
+                votingVaults,
             } = ctxVault;
 
-            // mint users of unique multiplier voting vault some badges
-            await mintBadge();
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
-            const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();
+            const tx = await (
+                await lockingVotingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)
+            ).wait();
             // view query voting power of signers[0]
-            const votingPower = await lockingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            const votingPower = await lockingVotingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
             expect(votingPower).to.be.eq(ONE.mul(3));
 
-            const tx2 = await (await lockingVault.deposit(signers[1].address, ONE, signers[2].address)).wait();
+            const tx2 = await (await lockingVotingVault.deposit(signers[1].address, ONE, signers[2].address)).wait();
             // view query voting power of signers[2]
-            const votingPower2 = await lockingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
+            const votingPower2 = await lockingVotingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
             expect(votingPower2).to.be.eq(ONE);
 
-            const tx3 = await (await lockingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
+            const tx3 = await (await lockingVotingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
             // view query voting power of signers[1]
-            const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
+            const votingPower3 = await lockingVotingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
             // Unique multiplier voting vault users: Badge registration and delegation
 
             // approve signers[0] tokens to unique multiplier voting vault
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
-            // get signers[0] badgeId
-            const badgeId0 = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
-            // signers[0] deposits ONE token and delegates to signers[1], uses GOLD badge
-            const tx4 = await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE, badgeId0, 0, signers[1].address);
+
+            // signers[0] registers reputation NFT, deposits ONE tokens and delegates to signers[1]
+            const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             const receipt = await tx4.wait();
 
             // get votingPower multiplier for signers[0]
             let multiplier1: BigNumberish;
             if (receipt && receipt.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-
-                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
                 multiplier1 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
@@ -257,15 +273,13 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower4).to.be.eq(ONE.mul(multiplier1));
 
-            // get signers[2] badgeId
-            const badgeId2 = await goldBadge.tokenOfOwnerByIndex(signers[2].address, 0);
             // approve signers[2] tokens to unique multiplier voting vault
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // signers[2] deposits 5 tokens and delegates to  signers[1], uses GOLD badge
+            // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
                 await uniqueMultiplierVotingVault
                     .connect(signers[2])
-                    .addBadgeAndDelegate(ONE.mul(5), badgeId2, 0, signers[1].address)
+                    .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
             ).wait();
 
             // view query voting power of signer[1]
@@ -275,27 +289,24 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
 
-            // get signers[3] badgeId
-            const badgeId3 = await silverBadge.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signers[3] tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // signers[3] deposits ONE tokens and delegates to signers[0], uses SILVER badge
+            // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
-                .addBadgeAndDelegate(ONE, badgeId3, 1, signers[0].address);
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
             const receipt2 = await tx6.wait();
 
             // get votingPower multiplier for signers[3]
             let multiplier2: BigNumberish;
             if (receipt2 && receipt2.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-
-                const log = badgeRegistered.parseLog(receipt2.events[receipt2.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt2.events[receipt2.events.length - 3]);
                 multiplier2 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[0]
@@ -305,26 +316,24 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower6).to.be.eq(ONE.mul(multiplier2));
 
-            // get signers[1] badgeId
-            const badgeId1 = await bronzeBadge.tokenOfOwnerByIndex(signers[1].address, 0);
             // approve signers[1] tokens to unique multiplier voting vault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
-            // signers[1] deposits 8 tokens and delegates to signers[2], uses BRONZE badge
+            // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
-                .addBadgeAndDelegate(ONE.mul(8), badgeId1, 2, signers[2].address);
+                .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
             const receipt3 = await tx7.wait();
 
             // get votingPower multiplier for signers[1]
             let multiplier3: BigNumberish;
             if (receipt3 && receipt3.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt3.events[receipt3.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt3.events[receipt3.events.length - 3]);
                 multiplier3 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[2]

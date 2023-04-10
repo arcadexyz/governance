@@ -3,7 +3,7 @@
 pragma solidity >=0.8.18;
 
 /**
- * Copy of `VestingVaultStorage` with modified scope to match the PromissoryVotingVault
+ * Copy of `VestingVaultStorage` with modified scope to match the UniqueMultiplierVotingVault
  * requirements. These libraries allow for secure storage pointers across proxy
  * implementations and will return storage pointers based on a hashed name and type string.
  */
@@ -34,19 +34,18 @@ library VotingVaultStorage {
     }
 
     // A struct which represents 1 packed storage location with a compressed
-    // uint128 pair and address
-    struct AddressUintUintAddress {
+    // uint128 pair
+    struct AddressUintUint {
         uint128 tokenId;
         uint128 multiplier;
-        address nftAddress;
     }
 
-    // Enum representing the badge levels accepted by the unique multiplier voting contract
-    enum Badge {
-        GOLD,
-        BRONZE,
-        SILVER
-    }
+    // // Enum representing the badge levels accepted by the unique multiplier voting contract
+    // enum Badge {
+    //     GOLD,
+    //     BRONZE,
+    //     SILVER
+    // }
 
     /**
      * @notice Returns the storage pointer for a named mapping of address to registration data
@@ -72,10 +71,10 @@ library VotingVaultStorage {
      *
      * @return data                     The mapping pointer.
      */
-    function mappingAddressToPackedUintUintAddress(
+    function mappingAddressToPackedUintUint(
         string memory name
-    ) internal pure returns (mapping(address => AddressUintUintAddress) storage data) {
-        bytes32 typehash = keccak256("mapping(address => AddressUintUintAddress)");
+    ) internal pure returns (mapping(address => AddressUintUint) storage data) {
+        bytes32 typehash = keccak256("mapping(address => AddressUintUint)");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset

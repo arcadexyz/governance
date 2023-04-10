@@ -10,8 +10,6 @@ import "./external/council/interfaces/IVotingVault.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
 
-import { BVV_MultiplierLimit } from "./errors/Governance.sol";
-
 /**
  *
  * @title BaseVotingVault
@@ -110,16 +108,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     }
 
     /**
-     * @dev Internal function for setting the value of the multiplier for a specific txn.
-     *
-     * @param multiplier_                The new multiplier value.
-     */
-    function setMultiplier(uint256 multiplier_) internal {
-        if (multiplier_ >= MAX_MULTIPLIER) revert BVV_MultiplierLimit();
-        Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
-    }
-
-    /**
      * @notice timelock-only timelock update function.
      *
      * @dev Allows the timelock to update the timelock address.
@@ -139,15 +127,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      */
     function timelock() public pure returns (address) {
         return _timelock().data;
-    }
-
-    /**
-     * @notice A function to access the storage of the token vote power multiplier.
-     *
-     * @return                          The token multiplier.
-     */
-    function multiplier() external pure returns (uint256) {
-        return _multiplier().data;
     }
 
     /**
@@ -192,20 +171,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      */
     function _timelock() internal pure returns (Storage.Address memory) {
         return Storage.addressPtr("timelock");
-    }
-
-    /**
-     * @notice A function to access the storage of the multiplier value.
-     *
-     * @dev The multiplier is a number that boosts the voting power of a user's
-     * governance tokens because of that user simultaneously holding an active loan.
-     * The voting power of the user would equal the product of the number of tokens
-     * deposited into the voting vault multiplied by the value of the multiplier.
-     *
-     * @return                          A struct containing the multiplier uint.
-     */
-    function _multiplier() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("multiplier");
     }
 
     /**

@@ -7,46 +7,50 @@ pragma solidity >=0.8.18;
  * @author Non-Fungible Technologies, Inc.
  *
  * This file contains custom errors for the Arcade governance vault contracts. All errors
- * are prefixed by the contract that throws them (e.g., "PVV_" for PromissoryVotingVault).
+ * are prefixed by the contract that throws them (e.g., "UMVV_" for UniqueMultiplierVotingVault).
  * Errors located in one place to make it possible to holistically look at all
  * governance failure cases.
  */
 
-// ==================================== PROMISSORY VOTING VAULT ======================================
-/// @notice All errors prefixed with PVV_, to separate from other contracts in governance.
+// ==================================== UNIQUE MULTIPLIER VOTING VAULT ======================================
+/// @notice All errors prefixed with UMVV_, to separate from other contracts in governance.
 
 /**
- * @notice Ensure caller promissoryNote ownership PromissoryVault operations.
+ * @notice Ensure caller ERC1155 token ownership for UniqueMultiplierVotingVault operations.
+ *
  */
-error PVV_DoesNotOwn();
+error UMVV_DoesNotOwn();
 
 /**
  * @notice Ensure caller has not already registered.
  */
-error PVV_HasRegistration();
+error UMVV_HasRegistration();
 
 /**
  * @notice Ensure delegatee is not already registered as the delegate in user's Registration.
  */
-error PVV_AlreadyDelegated();
+error UMVV_AlreadyDelegated();
 
 /**
  * @notice Contract balance has to be bigger than amount being withdrawn.
  */
-error PVV_InsufficientBalance();
+error UMVV_InsufficientBalance();
 
 /**
  * @notice Deposited tokens less than withdraw amount.
  */
-error PVV_InsufficientRegistrationBalance();
-
-// ==================================== BASE VOTING VAULT ======================================
-/// @notice All errors prefixed with BVV_, to separate from other contracts in governance.
+error UMVV_InsufficientRegistrationBalance();
 
 /**
  * @notice Multiplier limit exceeded.
  */
-error BVV_MultiplierLimit();
+ error UMVV_MultiplierLimit();
+
+/**
+ * @notice No multiplier has been set for token .
+ *
+ */
+error UMVV_NoMultiplierSet();
 
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.

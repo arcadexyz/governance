@@ -18,23 +18,29 @@ describe("Vote Execution with Locking Voting Vault", async () => {
 
     describe("Governance flow with locking vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            const { signers, coreVoting, lockingVault, increaseBlockNumber, feeController } = ctxVotingVault;
+            ctxVotingVault = await votingVaultFixture();
+
+            const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 
             // LockingVault users deposits and delegation
             // query voting power to initialize history for every governance participant
-            const tx = await (await lockingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)).wait();
+            const tx = await (
+                await lockingVotingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)
+            ).wait();
             // view query voting power of signer 0
-            const votingPower = await lockingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            const votingPower = await lockingVotingVault.queryVotePowerView(signers[0].address, tx.blockNumber);
             expect(votingPower).to.be.eq(ONE.mul(3));
 
-            const tx2 = await (await lockingVault.deposit(signers[1].address, ONE.mul(3), signers[2].address)).wait();
+            const tx2 = await (
+                await lockingVotingVault.deposit(signers[1].address, ONE.mul(3), signers[2].address)
+            ).wait();
             // view query voting power of signer 2
-            const votingPower2 = await lockingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
+            const votingPower2 = await lockingVotingVault.queryVotePowerView(signers[2].address, tx2.blockNumber);
             expect(votingPower2).to.be.eq(ONE.mul(3));
 
-            const tx3 = await (await lockingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
+            const tx3 = await (await lockingVotingVault.deposit(signers[4].address, ONE, signers[1].address)).wait();
             // view query voting power of signer 1
-            const votingPower3 = await lockingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
+            const votingPower3 = await lockingVotingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
             // proposal creation to update originationFee in FeeController
@@ -52,12 +58,12 @@ describe("Vote Execution with Locking Voting Vault", async () => {
             // with a YES ballot
             await coreVoting
                 .connect(signers[0])
-                .proposal([lockingVault.address], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
+                .proposal([lockingVotingVault.address], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
             // pass proposal with YES majority
-            await coreVoting.connect(signers[2]).vote([lockingVault.address], zeroExtraData, 0, 0); // yes vote
+            await coreVoting.connect(signers[2]).vote([lockingVotingVault.address], zeroExtraData, 0, 0); // yes vote
 
-            await coreVoting.connect(signers[1]).vote([lockingVault.address], zeroExtraData, 0, 1); // no vote
+            await coreVoting.connect(signers[1]).vote([lockingVotingVault.address], zeroExtraData, 0, 1); // no vote
 
             //increase blockNumber to exceed 3 day default lock duration set in coreVoting
             await increaseBlockNumber(provider, 19488);

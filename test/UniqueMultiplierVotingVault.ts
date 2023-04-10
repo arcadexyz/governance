@@ -13,7 +13,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
-    before(async function () {
+    beforeEach(async function () {
         ctxVault = await votingVaultFixture();
     });
 
@@ -28,35 +28,47 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 increaseBlockNumber,
                 token,
                 uniqueMultiplierVotingVault,
-                goldBadge,
-                silverBadge,
-                bronzeBadge,
-                mintBadge,
+                reputationNft,
+                reputationNft2, // other ERC1155 reputation NFT w/ different multiplier
+                mintNfts,
                 feeController,
             } = ctxVault;
 
-            // mint users some badges
-            await mintBadge();
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+
+            // manager sets the value of the reputation NFT 2's multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft2.address, ethers.utils.parseEther("1.4"));
 
             // signers[0] approves tokens to unique multiplier vault
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
 
-            // get signers[0] badgeId
-            const badgeId0 = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
-            // signers[0] deposits tokens and delegates to signers[1], uses GOLD badge
-            const tx = await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE, badgeId0, 0, signers[1].address);
+            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            const tx = await uniqueMultiplierVotingVault.addNftAndDelegate(
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             const receipt = await tx.wait();
 
             // get votingPower multiplier for signers[0]
             let multiplier1: BigNumberish;
             if (receipt && receipt.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
                 multiplier1 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             const votingPower = await uniqueMultiplierVotingVault.queryVotePowerView(
@@ -65,14 +77,13 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
             expect(votingPower).to.be.eq(ONE.mul(multiplier1));
 
-            // get signers[2] badgeId
-            const badgeId2 = await goldBadge.tokenOfOwnerByIndex(signers[2].address, 0);
             // approve signer tokens to unique multiplier voting vault
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // signers[2] deposits 5 tokens and delegates to  signers[1], uses GOLD badge
+            // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx1 = await uniqueMultiplierVotingVault
                 .connect(signers[2])
-                .addBadgeAndDelegate(ONE.mul(5), badgeId2, 0, signers[1].address);
+                .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address);
+
             // view query voting power of signers 1
             const votingPower1 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
@@ -80,26 +91,24 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
             expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
 
-            // get signers[3] badgeId
-            const badgeId3 = await silverBadge.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signer tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE.mul(3));
-            // signers[3] deposits three tokens and delegates to  signers[0], uses SILVER badge
+            // signers[3] registers reputation NFT type 2, deposits three tokens and delegates to signers[0]
             const tx2 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
-                .addBadgeAndDelegate(ONE.mul(3), badgeId3, 1, signers[0].address);
+                .addNftAndDelegate(ONE.mul(3), 1, reputationNft2.address, signers[0].address);
             const receipt2 = await tx2.wait();
 
             // get votingPower multiplier for signers[3]
             let multiplier2: BigNumberish;
             if (receipt2 && receipt2.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt2.events[receipt2.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt2.events[receipt2.events.length - 3]);
                 multiplier2 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[0]
@@ -109,26 +118,24 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
             expect(votingPower2).to.be.eq(ONE.mul(3).mul(multiplier2));
 
-            // get signers[1] badgeId
-            const badgeId1 = await bronzeBadge.tokenOfOwnerByIndex(signers[1].address, 0);
             // signers[1] approved ONE tokens to pVault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // signers[1] deposits ONE tokens and delegates to  signers[2], uses BRONZE badge
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to signers[2]
             const tx3 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
-                .addBadgeAndDelegate(ONE, badgeId1, 2, signers[2].address);
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[2].address);
             const receipt3 = await tx3.wait();
 
             // get votingPower multiplier for signers[1]
             let multiplier3: BigNumberish;
             if (receipt3 && receipt3.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt3.events[receipt3.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt3.events[receipt3.events.length - 3]);
                 multiplier3 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[2]
@@ -176,44 +183,47 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
         });
 
         it("Partial token withdrawal reduces delegatee voting power", async () => {
-            // invoke the fixtures
-            ctxVault = await votingVaultFixture();
+            // invoke the fixture function
+            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, getBlock } = ctxVault;
 
-            const { signers, token, uniqueMultiplierVotingVault, getBlock, goldBadge, mintBadge } = ctxVault;
+            // mint users some reputation nfts
+            await mintNfts();
 
-            // mint users some badges
-            await mintBadge();
+            // manager sets the value of the multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // get signers[1] badgeId
-            const badgeId1 = await goldBadge.tokenOfOwnerByIndex(signers[1].address, 0);
-            // signers[1] deposits ONE token and delegates to self, uses GOLD badge
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             const tx0 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
-                .addBadgeAndDelegate(ONE, badgeId1, 0, signers[1].address);
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
             const receipt = await tx0.wait();
 
             // get votingPower multiplier for signers[1]
             let multiplier1: BigNumberish;
             if (receipt && receipt.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
                 multiplier1 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // signers[0] approves 5 tokens to unique multiplier voting vault
             await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // get signers[0] badgeId
-            const badgeId = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
-            // signers[0] deposits 5 tokens and delegates to signers[1], uses GOLD badge
-            const tx = await (
-                await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE.mul(5), badgeId, 0, signers[1].address)
-            ).wait();
+            // signers[0] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
+            const tx = await uniqueMultiplierVotingVault.addNftAndDelegate(
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
+            await tx.wait();
 
             // get contract balance after these 2 txns
             const contractBalance = await token.balanceOf(uniqueMultiplierVotingVault.address);
@@ -224,8 +234,9 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 tx.blockNumber,
             );
             expect(votingPower).to.be.eq(ONE.mul(6).mul(multiplier1));
+
             // signers[0] withdraws ONE token
-            await uniqueMultiplierVotingVault.connect(signers[0]).withdraw(ONE);
+            await uniqueMultiplierVotingVault.connect(signers[0]).withdraw(ONE, reputationNft.address);
 
             // get contract balance after withdrawal
             const contractBalanceAfter = await token.balanceOf(uniqueMultiplierVotingVault.address);
@@ -244,31 +255,35 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // invoke the fixture
             ctxVault = await votingVaultFixture();
 
-            const { signers, token, uniqueMultiplierVotingVault, getBlock, goldBadge, mintBadge } = ctxVault;
+            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, getBlock } = ctxVault;
 
-            // mint users some badges
-            await mintBadge();
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // get signers[1] badgeId
-            const badgeId1 = await goldBadge.tokenOfOwnerByIndex(signers[1].address, 0);
-            // signers[1] deposits ONE token and delegates to self, uses GOLD badge
+
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             const tx0 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
-                .addBadgeAndDelegate(ONE, badgeId1, 0, signers[1].address);
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
             const receipt = await tx0.wait();
 
             // get votingPower multiplier for signers[1]
             let multiplier: BigNumberish;
             if (receipt && receipt.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
                 multiplier = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             const now = getBlock();
@@ -277,11 +292,15 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
 
             // signers[0] approves 5 tokens to unique multiplier voting vaut
             await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // get signers[0] badgeId
-            const badgeId = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
-            // signers[0] deposits 5 tokens and delegates to signers[1], uses GOLD badge
+
+            // signers[0] registers reputation NFT, deposits FIVE tokens and delegates to signers[1]
             const tx = await (
-                await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE.mul(5), badgeId, 0, signers[1].address)
+                await uniqueMultiplierVotingVault.addNftAndDelegate(
+                    ONE.mul(5),
+                    1,
+                    reputationNft.address,
+                    signers[1].address,
+                )
             ).wait();
 
             // get contract balance after these 2 txns
@@ -297,7 +316,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // signers[0] balance before they withdraw
             const withdrawerBalBefore = await token.balanceOf(signers[0].address);
             // signers[0] withdraws all their deposited tokens
-            await uniqueMultiplierVotingVault.connect(signers[0]).withdraw(ONE.mul(5));
+            await uniqueMultiplierVotingVault.connect(signers[0]).withdraw(ONE.mul(5), reputationNft.address);
 
             // get contract balance after withdraw txn
             const contractBalanceAfter = await token.balanceOf(uniqueMultiplierVotingVault.address);
@@ -324,40 +343,48 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // invoke the fixture
             ctxVault = await votingVaultFixture();
 
-            const { signers, token, uniqueMultiplierVotingVault, getBlock, goldBadge, mintBadge } = ctxVault;
+            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, getBlock } = ctxVault;
 
-            // mint users some badges
-            await mintBadge();
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // get signers[1] badgeId
-            const badgeId1 = await goldBadge.tokenOfOwnerByIndex(signers[1].address, 0);
-            // signers[1] deposits ONE token and delegates to self, uses GOLD badge
+
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             const tx0 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
-                .addBadgeAndDelegate(ONE, badgeId1, 0, signers[1].address);
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
             const receipt = await tx0.wait();
 
             // get votingPower multiplier for signers[1]
             let multiplier1: BigNumberish;
             if (receipt && receipt.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt.events[receipt.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
                 multiplier1 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // signers[0] approves 5 tokens to unique multiplier voting vault
             await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // get signers[0] badgeId
-            const badgeId = await goldBadge.tokenOfOwnerByIndex(signers[0].address, 0);
-            // signers[0] deposits 5 tokens and delegates to signers[1], uses GOLD badge
+
+            // signers[0] registers reputation NFT, deposits FIVE tokens and delegates to signers[1]
             const tx = await (
-                await uniqueMultiplierVotingVault.addBadgeAndDelegate(ONE.mul(5), badgeId, 0, signers[1].address)
+                await uniqueMultiplierVotingVault.addNftAndDelegate(
+                    ONE.mul(5),
+                    1,
+                    reputationNft.address,
+                    signers[1].address,
+                )
             ).wait();
 
             // get delegatee total voting power amount
@@ -367,26 +394,24 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
             expect(votingPowerSignersOne).to.be.eq(ONE.mul(6).mul(multiplier1));
 
-            // get signers[3] badgeId
-            const badgeId3 = await goldBadge.tokenOfOwnerByIndex(signers[3].address, 0);
             // approve signer tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
-            // signers[3] deposits ONE tokens and delegates to  signers[0], uses GOLD badge
+            // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx2 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
-                .addBadgeAndDelegate(ONE, badgeId3, 0, signers[0].address);
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
             const receipt2 = await tx2.wait();
 
             // get votingPower multiplier for signers[3]
             let multiplier2: BigNumberish;
             if (receipt2 && receipt2.events) {
-                const badgeRegistered = new ethers.utils.Interface([
-                    "event TransactionMultiplierSet(address indexed user, address badgeAddress, uint128 tokenId, uint256 multiplier)",
+                const userMultiplier = new ethers.utils.Interface([
+                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
                 ]);
-                const log = badgeRegistered.parseLog(receipt2.events[receipt2.events.length - 3]);
+                const log = userMultiplier.parseLog(receipt2.events[receipt2.events.length - 3]);
                 multiplier2 = log.args.multiplier;
             } else {
-                throw new Error("Unable to register badge");
+                throw new Error("No user multiplier");
             }
 
             // view query voting power of signers[0]
@@ -397,7 +422,11 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(votingPowerSignersZero).to.be.eq(ONE.mul(multiplier2));
 
             // signers[0] changes their delegation from users[1] to users[3]
-            await (await uniqueMultiplierVotingVault.connect(signers[0]).delegate(signers[3].address)).wait();
+            await (
+                await uniqueMultiplierVotingVault
+                    .connect(signers[0])
+                    .delegate(signers[3].address, reputationNft.address)
+            ).wait();
 
             const afterBlock = getBlock();
 
@@ -417,17 +446,32 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
         });
     });
 
-    describe("Set unique multiplier", async () => {
+    describe("Set and get multiplier functionality", async () => {
+        it("Sets the multiplier", async () => {
+            // invoke the fixture function
+            ctxVault = await votingVaultFixture();
+
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVault;
+
+            // manager updates the value of the token address multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+
+            // get new multiplier value
+            const multiplierVal = await uniqueMultiplierVotingVault.multiplier(reputationNft.address);
+            await expect(multiplierVal).to.eq(ethers.utils.parseEther("1.2"));
+        });
         it("Fails if the caller is not the manager", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVault;
 
-            // non-manager account to try to change the multiplier for the GOLD badge
+            // non-manager account to try to update the value of the token address multiplier
             const tx = uniqueMultiplierVotingVault
                 .connect(signers[2])
-                .setUniqueMultiplier(0, ethers.utils.parseEther("1.45"));
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
             await expect(tx).to.be.revertedWith("!manager");
         });
 
@@ -449,24 +493,57 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             await expect(await uniqueMultiplierVotingVault.manager()).to.be.eq(newManager);
         });
 
-        it("Correctly changes the value of the unique multiplier", async () => {
+        it("Correctly updates the value of multiplier", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVault;
 
-            // get the current GOLD badge multiplier
-            const goldMultiplier = await uniqueMultiplierVotingVault.goldMultiplier();
-            await expect(goldMultiplier).to.eq(ethers.utils.parseEther("1.2"));
-
-            // manager updates the value of the GOLD badge multiplier
+            // manager sets the value of the token address multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setUniqueMultiplier(0, ethers.utils.parseEther("1.4"));
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+
+            // get the current multiplier
+            const multiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address);
+            await expect(multiplier).to.eq(ethers.utils.parseEther("1.2"));
+
+            // manager updates the value of the multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.4"));
 
             // get new multiplier value
-            const newGoldMultiplier = await uniqueMultiplierVotingVault.goldMultiplier();
-            await expect(newGoldMultiplier).to.eq(ethers.utils.parseEther("1.4"));
+            const newMultiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address);
+            await expect(newMultiplier).to.eq(ethers.utils.parseEther("1.4"));
+        });
+
+        it("Reverts if multiplier() is called on an ERC1155 address that does not have a multiplier", async () => {
+            // invoke the fixture function
+            ctxVault = await votingVaultFixture();
+
+            const { uniqueMultiplierVotingVault, reputationNft } = ctxVault;
+
+            // get the current multiplier
+            const multiplier = uniqueMultiplierVotingVault.multiplier(reputationNft.address);
+            await expect(multiplier).to.be.revertedWith("UMVV_NoMultiplierSet");
+        });
+
+        it("Reverts if user is trying to register ERC1155 that does not have a multiplier", async () => {
+            // invoke the fixture function
+            ctxVault = await votingVaultFixture();
+
+            const { signers, uniqueMultiplierVotingVault, reputationNft, token, mintNfts } = ctxVault;
+
+            // mint nft for user
+            await mintNfts();
+
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
+            const tx = uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
+
+            await expect(tx).to.be.revertedWith("UMVV_NoMultiplierSet");
         });
     });
 });
