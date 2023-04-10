@@ -39,7 +39,7 @@ import {
  * vaults in Council.
  *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
- *      addBadgeAndDelegate() are unrecoverable by this version of the UniqueMultiplierVotingVault.
+ *      addNftAndDelegate() are unrecoverable by this version of the UniqueMultiplierVotingVault.
  *
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.

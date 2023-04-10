@@ -29,7 +29,7 @@ library VotingVaultStorage {
         uint128 blockNumber; // blockNumber of Registration txn
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
-        uint128 tokenId; // badge token id
+        uint128 tokenId; // ERC1155 token id
         address delegatee;
     }
 
@@ -39,13 +39,6 @@ library VotingVaultStorage {
         uint128 tokenId;
         uint128 multiplier;
     }
-
-    // // Enum representing the badge levels accepted by the unique multiplier voting contract
-    // enum Badge {
-    //     GOLD,
-    //     BRONZE,
-    //     SILVER
-    // }
 
     /**
      * @notice Returns the storage pointer for a named mapping of address to registration data
