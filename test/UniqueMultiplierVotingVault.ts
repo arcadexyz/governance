@@ -40,12 +40,12 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager sets the value of the reputation NFT multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // manager sets the value of the reputation NFT 2's multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft2.address, ethers.utils.parseEther("1.4"));
+                .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
 
             // signers[0] approves tokens to unique multiplier vault
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
@@ -192,7 +192,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager sets the value of the multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -263,7 +263,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager sets the value of the multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -351,7 +351,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager sets the value of the multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -456,7 +456,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager updates the value of the token address multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // get new multiplier value
             const multiplierVal = await uniqueMultiplierVotingVault.multiplier(reputationNft.address);
@@ -471,7 +471,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // non-manager account to try to update the value of the token address multiplier
             const tx = uniqueMultiplierVotingVault
                 .connect(signers[2])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
             await expect(tx).to.be.revertedWith("!manager");
         });
 
@@ -502,7 +502,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager sets the value of the token address multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // get the current multiplier
             const multiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address);
@@ -511,7 +511,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             // manager updates the value of the multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.4"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.4"));
 
             // get new multiplier value
             const newMultiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address);

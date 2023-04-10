@@ -42,12 +42,12 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             // manager sets the value of the reputation NFT multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // manager sets the value of the reputation NFT 2's multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft2.address, ethers.utils.parseEther("1.4"));
+                .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -220,7 +220,7 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             // manager sets the value of the reputation NFT multiplier
             await uniqueMultiplierVotingVault
                 .connect(signers[0])
-                .setMultiplier(reputationNft.address, ethers.utils.parseEther("1.2"));
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant

@@ -109,10 +109,8 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // load the multipliers mapping storage (tokenAddress --> tokenId --> multiplier)
         VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[_tokenAddress];
 
-        // see if the value of this tokenId has been set in the multiplier mapping. if not, set it
-        if (multiplierData.tokenId == 0) {
-            multiplierData.tokenId = _tokenId;
-        }
+        // confirm that the submitted tokenId has a multiplier, if not, revert
+        if (multiplierData.tokenId == 0) revert UMVV_NoMultiplierSet();
         // confirm that the submitted ERC1155 and tokenId have a multiplier, if not, revert
         if (multiplierData.multiplier == 0) revert UMVV_NoMultiplierSet();
         // caller's multiplier identified, emit event
@@ -255,16 +253,20 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      * @param _tokenAddress             The address of the ERC1155 token to set the
      *                                  multiplier for.
-     * @param _multiplierValue          The multiplier value corresponding to the token address.
+     * @param _tokenId                  The token id of the ERC1155 for which the multiplier is being set.
+     * @param _multiplierValue          The multiplier value corresponding to the token address and id.
      *
      */
     function setMultiplier(
         address _tokenAddress,
+        uint128 _tokenId,
         uint128 _multiplierValue
     ) public virtual onlyManager returns (bool multiplierSet) {
         if (_multiplierValue >= MAX_MULTIPLIER) revert UMVV_MultiplierLimit();
 
         VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[_tokenAddress];
+        // set the token id
+        multiplierData.tokenId = _tokenId;
         // set multiplier value
         multiplierData.multiplier = _multiplierValue;
     }
