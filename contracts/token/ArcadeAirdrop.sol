@@ -3,54 +3,37 @@
 pragma solidity ^0.8.18;
 
 import "../external/council/libraries/Authorizable.sol";
-import "../external/council/libraries/MerkleRewards.sol";
+import "../libraries/ArcadeMerkleRewards.sol";
 
-import { AA_ClaimingNotExpired, AA_NoClaiming, AA_ZeroAddress } from "../errors/Airdrop.sol";
+import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
 
 /**
  * @title Arcade Airdrop
  * @author Non-Fungible Technologies, Inc.
  *
- * This contract is a variant of the Airdrop contract used in the council governance repository.
- * The major change is to block direct claiming of tokens and instead require users to delegate
- * voting power to via a locking voting vault.
- *
  * This contract receives tokens from the ArcadeTokenDistributor and facilitates airdrop claims.
- * The contract is owned by the Arcade governance contract which can reclaim any remaining tokens
- * once the airdrop is over.
- *
- * As users claim their tokens, this contract will deposit them into a frozen locking vault for
- * use in Arcade Governance. When claiming, the user can delegate voting power to themselves or
- * another account.
+ * The contract is ownable, where the owner can reclaim any remaining tokens once the airdrop is
+ * over and also change the merkle root at their discretion.
  */
-contract ArcadeAirdrop is MerkleRewards, Authorizable {
-    // The time after which the token cannot be claimed
-    uint256 public immutable expiration;
-
-    /// @notice Constructs the contract and sets state and immutable variables
-    /// @param _governance The address which can withdraw funds when the drop expires
-    /// @param _merkleRoot The root a keccak256 merkle tree with leaves which are address amount pairs
-    /// @param _token The erc20 contract which will be sent to the people with claims on the contract
-    /// @param _expiration The unix second timestamp when the airdrop expires
-    /// @param _lockingVault The governance vault which this deposits to on behalf of users
+contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
     constructor(
         address _governance,
         bytes32 _merkleRoot,
         IERC20 _token,
         uint256 _expiration,
         ILockingVault _lockingVault
-    ) MerkleRewards(_merkleRoot, _token, _lockingVault) {
+    ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _lockingVault) {
         if (address(_lockingVault) == address(0)) revert AA_ZeroAddress();
 
-        // Set expiration immutable and governance to the owner
-        expiration = _expiration;
         setOwner(_governance);
     }
 
-    /// @notice Allows governance to remove the funds in this contract once the airdrop is over.
-    ///         Claims aren't blocked the airdrop ending at expiration is optional and gov has to
-    ///         manually end it.
-    /// @param destination The treasury contract which will hold the freed tokens
+    /**
+     * @notice Allows governance to remove the funds in this contract once the airdrop is over.
+     *         This function can only be called after the expiration time.
+     *
+     * @param destination        The address which will receive the remaining tokens
+     */
     function reclaim(address destination) external onlyOwner {
         if (block.timestamp <= expiration) revert AA_ClaimingNotExpired();
         if (destination == address(0)) revert AA_ZeroAddress();
@@ -59,14 +42,12 @@ contract ArcadeAirdrop is MerkleRewards, Authorizable {
         token.transfer(destination, unclaimed);
     }
 
-    /// @notice Allows the owner to change the merkle root
-    /// @param _merkleRoot The new merkle root
+    /**
+     * @notice Allows the owner to change the merkle root.
+     *
+     * @param _merkleRoot        The new merkle root
+     */
     function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         rewardsRoot = _merkleRoot;
-    }
-
-    /// @notice Blocks direct claiming of tokens requires users to delegate voting.
-    function claim(uint256, uint256, bytes32[] calldata, address) external virtual override {
-        revert AA_NoClaiming();
     }
 }

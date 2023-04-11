@@ -345,29 +345,6 @@ describe("ArcadeToken", function () {
     });
 
     describe("ArcadeToken Airdrop", () => {
-        it("user tries to claim airdrop directly", async function () {
-            const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie } = ctxToken;
-
-            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
-                .to.emit(arcDst, "Distribute")
-                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
-            expect(await arcDst.communityAirdropSent()).to.be.true;
-
-            // create proof for deployer and other
-            const proofOther = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
-            );
-            // try to claim with proof
-            await expect(
-                arcAirdrop.connect(other).claim(
-                    recipients[1].value, // amount to claim
-                    recipients[1].value, // total claimable amount
-                    proofOther, // merkle proof
-                    recipients[1].address, // address to credit claim to
-                ),
-            ).to.be.revertedWith("AA_NoClaiming()");
-        });
-
         it("all recipients claim airdrop and delegate to themselves", async function () {
             const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
                 ctxToken;
@@ -388,11 +365,9 @@ describe("ArcadeToken", function () {
             // claim and delegate to self
             await expect(
                 await arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
-                    recipients[0].address, // address to delegate to
+                    recipients[0].address, // address to delegate voting power to
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -400,11 +375,9 @@ describe("ArcadeToken", function () {
 
             await expect(
                 await arcAirdrop.connect(other).claimAndDelegate(
-                    recipients[1].value, // amount to claim
-                    recipients[1].address, // address to delegate to
+                    recipients[1].address, // address to delegate voting power to
                     recipients[1].value, // total claimable amount
                     proofOther, // merkle proof
-                    recipients[1].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -416,50 +389,7 @@ describe("ArcadeToken", function () {
             expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(
                 ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
             );
-        });
-
-        it("claim airdrop late but before reclaim is called", async function () {
-            const {
-                arcToken,
-                arcDst,
-                arcAirdrop,
-                deployer,
-                recipients,
-                merkleTrie,
-                frozenLockingVault,
-                blockchainTime,
-            } = ctxToken;
-
-            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
-                .to.emit(arcDst, "Distribute")
-                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
-            expect(await arcDst.communityAirdropSent()).to.be.true;
-
-            // increase time past claim deadline
-            await blockchainTime.increaseTime(3601);
-
-            // create proof for deployer and other
-            const proofDeployer = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
-            );
-
-            // claim and delegate to self
-            await expect(
-                await arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
-                    recipients[0].address, // address to delegate to
-                    recipients[0].value, // total claimable amount
-                    proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
-                ),
-            )
-                .to.emit(arcToken, "Transfer")
-                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[0].value);
-
-            expect(await arcToken.balanceOf(frozenLockingVault.address)).to.equal(recipients[0].value);
-            expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value),
-            );
+            expect(await arcToken.balanceOf(recipients[0].address)).to.equal(0);
         });
 
         it("user tries to claim airdrop with invalid proof", async function () {
@@ -477,13 +407,11 @@ describe("ArcadeToken", function () {
             // try to claim with invalid proof
             await expect(
                 arcAirdrop.connect(other).claimAndDelegate(
-                    recipients[0].value, // amount to claim
                     other.address, // address to delegate to
                     recipients[0].value, // total claimable amount
                     proofNotUser, // invalid merkle proof
-                    recipients[0].address, // address to credit claim to
                 ),
-            ).to.be.revertedWith("Invalid Proof");
+            ).to.be.revertedWith("AA_NonParticipant()");
         });
 
         it("user tries to claim airdrop twice", async function () {
@@ -502,11 +430,9 @@ describe("ArcadeToken", function () {
             // claim and delegate to self
             await expect(
                 arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
                     recipients[0].address, // address to delegate to
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -515,16 +441,14 @@ describe("ArcadeToken", function () {
             // try to claim again
             await expect(
                 arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
                     recipients[0].address, // address to delegate to
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
                 ),
-            ).to.be.revertedWith("Claimed too much");
+            ).to.be.revertedWith("AA_AlreadyClaimed()");
         });
 
-        it("user tries to claim airdrop after owner reclaims tokens", async function () {
+        it("user tries to claim airdrop after expiration", async function () {
             const { arcToken, arcDst, arcAirdrop, deployer, recipients, merkleTrie, blockchainTime } = ctxToken;
 
             await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
@@ -548,13 +472,11 @@ describe("ArcadeToken", function () {
             // claims
             await expect(
                 arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
                     recipients[0].address, // address to delegate to
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
                 ),
-            ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+            ).to.be.revertedWith("AA_ClaimingExpired()");
         });
 
         it("owner reclaims all unclaimed tokens", async function () {
@@ -587,11 +509,9 @@ describe("ArcadeToken", function () {
             // claims
             await expect(
                 await arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
                     recipients[0].address, // address to delegate to
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -599,11 +519,9 @@ describe("ArcadeToken", function () {
 
             await expect(
                 await arcAirdrop.connect(other).claimAndDelegate(
-                    recipients[1].value, // amount to claim
                     recipients[1].address, // address to delegate to
                     recipients[1].value, // total claimable amount
                     proofOther, // merkle proof
-                    recipients[1].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -706,11 +624,9 @@ describe("ArcadeToken", function () {
             // claim and delegate to self
             await expect(
                 await arcAirdrop.connect(other).claimAndDelegate(
-                    recipients[1].value, // amount to claim
                     recipients[1].address, // address to delegate to
                     recipients[1].value, // total claimable amount
                     proofOther, // merkle proof
-                    recipients[1].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -722,7 +638,7 @@ describe("ArcadeToken", function () {
             );
         });
 
-        it("user tries to claim from frozen vault", async function () {
+        it("user tries to withdraw from frozen vault", async function () {
             const { other, recipients, frozenLockingVault } = ctxToken;
 
             // user tries to claim before vault is upgraded
@@ -742,33 +658,7 @@ describe("ArcadeToken", function () {
             await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
         });
 
-        it("user claims after vault upgrade", async function () {
-            const { arcToken, deployer, other, recipients, simpleProxy, staleBlockNum } = ctxToken;
-
-            // deploy new implementation, use same stale block as the frozen vault
-            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
-            let lockingVault = await lockingVaultFactory.deploy(arcToken.address, staleBlockNum);
-
-            // owner upgrades vault
-            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            lockingVault = await lockingVault.attach(simpleProxy.address);
-
-            // user claims
-            const res = await lockingVault.connect(other).deposits(other.address);
-            await expect(res[1]).to.equal(recipients[1].value);
-
-            await expect(await lockingVault.connect(other).withdraw(recipients[1].value))
-                .to.emit(arcToken, "Transfer")
-                .withArgs(lockingVault.address, other.address, recipients[1].value);
-
-            const res2 = await lockingVault.connect(other).deposits(other.address);
-            await expect(res2[1]).to.equal(0);
-
-            await expect(await arcToken.balanceOf(other.address)).to.equal(recipients[1].value);
-            await expect(await arcToken.balanceOf(lockingVault.address)).to.equal(0);
-        });
-
-        it("mulitple users claim after upgrade", async function () {
+        it("mulitple users withdraw after vault upgrade", async function () {
             const {
                 arcToken,
                 arcAirdrop,
@@ -789,11 +679,9 @@ describe("ArcadeToken", function () {
             // claim and delegate to self
             await expect(
                 await arcAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].value, // amount to claim
                     recipients[0].address, // address to delegate to
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
-                    recipients[0].address, // address credit claim to
                 ),
             )
                 .to.emit(arcToken, "Transfer")
@@ -829,7 +717,7 @@ describe("ArcadeToken", function () {
             await expect(await arcToken.balanceOf(lockingVault.address)).to.equal(0);
         });
 
-        it("user tries to claim more than allotted amount", async function () {
+        it("user tries to withdraw more than allotted amount", async function () {
             const { arcToken, deployer, other, recipients, simpleProxy, staleBlockNum } = ctxToken;
 
             // deploy new implementation, use same stale block as the frozen vault
@@ -846,7 +734,7 @@ describe("ArcadeToken", function () {
             await expect(await arcToken.balanceOf(other.address)).to.equal(0);
         });
 
-        it("user tries to claim twice", async function () {
+        it("user tries to withdraw twice", async function () {
             const { arcToken, deployer, other, recipients, frozenLockingVault, simpleProxy, staleBlockNum } = ctxToken;
 
             // deploy new implementation, use same stale block as the frozen vault

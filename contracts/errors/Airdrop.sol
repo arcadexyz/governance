@@ -20,9 +20,24 @@ pragma solidity ^0.8.18;
 error AA_ClaimingNotExpired();
 
 /**
+ * @notice Cannot claim tokens after airdrop has expired.
+ */
+error AA_ClaimingExpired();
+
+/**
+ * @notice Cannot claim tokens multiple times.
+ */
+error AA_AlreadyClaimed();
+
+/**
  * @notice Airdropped tokens cannot be claimed to a users wallet.
  */
 error AA_NoClaiming();
+
+/**
+ * @notice Merkle proof not verified. User is not a participant in the airdrop.
+ */
+error AA_NonParticipant();
 
 /**
  * @notice Thrown when a zero address is passed in as a parameter.
