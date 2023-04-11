@@ -1,41 +1,19 @@
 import { expect } from "chai";
-import { ethers, waffle } from "hardhat";
+import { ethers } from "hardhat";
 
-import { createSnapshot, restoreSnapshot } from "../utils/external/council/utils/snapshots";
 import { TokenTestContext, tokenFixture } from "../utils/tokenFixture";
-
-const { loadFixture, provider } = waffle;
 
 /**
  * Test suite for the ArcadeToken, ArcadeTokenDistributor, and Airdrop contracts.
  */
-
 describe("ArcadeToken", function () {
     let ctxToken: TokenTestContext;
 
-    before(async function () {
-        ctxToken = await loadFixture(tokenFixture);
-        await createSnapshot(provider);
-    });
-    after(async function () {
-        await restoreSnapshot(provider);
-    });
-
     beforeEach(async function () {
-        await createSnapshot(provider);
-    });
-    afterEach(async function () {
-        await restoreSnapshot(provider);
+        ctxToken = await tokenFixture();
     });
 
     describe("Deployment", function () {
-        beforeEach(async function () {
-            await createSnapshot(provider);
-        });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
-
         it("Verify name and symbol of the token", async () => {
             const { arcToken } = ctxToken;
 
@@ -64,19 +42,7 @@ describe("ArcadeToken", function () {
     });
 
     describe("Mint", function () {
-        beforeEach(async function () {
-            await createSnapshot(provider);
-        });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
         describe("Minter role", function () {
-            beforeEach(async function () {
-                await createSnapshot(provider);
-            });
-            afterEach(async function () {
-                await restoreSnapshot(provider);
-            });
             it("Only the minter contract can mint tokens", async () => {
                 const { arcToken, deployer, other } = ctxToken;
 
@@ -210,12 +176,6 @@ describe("ArcadeToken", function () {
     });
 
     describe("ArcadeToken Distribution", function () {
-        beforeEach(async function () {
-            await createSnapshot(provider);
-        });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
         it("Dst contract owner distributes each token allocation", async () => {
             const {
                 arcToken,
@@ -385,13 +345,6 @@ describe("ArcadeToken", function () {
     });
 
     describe("ArcadeToken Airdrop", () => {
-        beforeEach(async function () {
-            await createSnapshot(provider);
-        });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
-
         it("user tries to claim airdrop directly", async function () {
             const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie } = ctxToken;
 
@@ -412,7 +365,7 @@ describe("ArcadeToken", function () {
                     proofOther, // merkle proof
                     recipients[1].address, // address to credit claim to
                 ),
-            ).to.be.revertedWith("Not Allowed to claim");
+            ).to.be.revertedWith("AA_NoClaiming()");
         });
 
         it("all recipients claim airdrop and delegate to themselves", async function () {
@@ -712,14 +665,31 @@ describe("ArcadeToken", function () {
             expect(airdropExpiration).to.be.greaterThan(currentTime);
 
             // non-owner tries to reclaim tokens
-            await expect(arcAirdrop.connect(deployer).reclaim(deployer.address)).to.be.revertedWith("Not expired");
+            await expect(arcAirdrop.connect(deployer).reclaim(deployer.address)).to.be.revertedWith(
+                "AA_ClaimingNotExpired()",
+            );
+        });
+
+        it("owner changes merkle root", async function () {
+            const { arcAirdrop, deployer } = ctxToken;
+
+            // owner changes merkle root
+            const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
+            await expect(await arcAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot));
+            expect(await arcAirdrop.rewardsRoot()).to.equal(newMerkleRoot);
+        });
+
+        it("non-owner tries to set a new merkle root", async function () {
+            const { arcAirdrop, other } = ctxToken;
+
+            // non-owner tries to change merkle root
+            const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
+            await expect(arcAirdrop.connect(other).setMerkleRoot(newMerkleRoot)).to.be.revertedWith("Sender not owner");
         });
     });
 
     describe("Claiming from upgraded locking vault", function () {
         beforeEach(async function () {
-            await createSnapshot(provider);
-
             const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
                 ctxToken;
 
@@ -751,15 +721,14 @@ describe("ArcadeToken", function () {
                 ethers.utils.parseEther("10000000").sub(recipients[1].value),
             );
         });
-        afterEach(async function () {
-            await restoreSnapshot(provider);
-        });
 
         it("user tries to claim from frozen vault", async function () {
             const { other, recipients, frozenLockingVault } = ctxToken;
 
             // user tries to claim before vault is upgraded
-            await expect(frozenLockingVault.connect(other).withdraw(recipients[1].value)).to.be.revertedWith("Frozen");
+            await expect(frozenLockingVault.connect(other).withdraw(recipients[1].value)).to.be.revertedWith(
+                "FLV_WithdrawsFrozen()",
+            );
         });
 
         it("owner upgrades vault", async function () {

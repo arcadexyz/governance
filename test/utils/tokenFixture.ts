@@ -69,6 +69,21 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     await arcDst.connect(deployer).setToken(arcToken.address);
     expect(await arcDst.arcadeToken()).to.equal(arcToken.address);
 
+    // ================================= AIRDROP VAULT DEPLOYMENT ==============================
+
+    const staleBlock = await ethers.provider.getBlock("latest");
+    const staleBlockNum = staleBlock.number;
+
+    // deploy FrozenLockingVault via proxy
+    const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
+    const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
+    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+    const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
+
+    const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
+
+    await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
+
     // ====================================== AIRDROP SETUP =====================================
 
     // airdrop claims data
@@ -88,27 +103,12 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     const root = merkleTrie.getHexRoot();
 
     // airdrop claim expiration is current unix stamp + 1 hour in seconds
-    const expiration = Math.floor(new Date().getTime() / 1000) + 3600;
-
-    // ================================= AIRDROP VAULT DEPLOYMENT ==============================
-
-    const staleBlock = await ethers.provider.getBlock("latest");
-    const staleBlockNum = staleBlock.number;
-
-    // deploy FrozenLockingVault via proxy
-    const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
-    const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
-    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcToken.address, staleBlockNum);
-    const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
-
-    const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
-
-    await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
+    const expiration = await blockchainTime.secondsFromNow(3600);
 
     // =================================== AIRDROP DEPLOYMENT ==================================
 
     // deploy airdrop contract
-    const ArcAirdrop = await hre.ethers.getContractFactory("Airdrop");
+    const ArcAirdrop = await hre.ethers.getContractFactory("ArcadeAirdrop");
     const arcAirdrop = await ArcAirdrop.deploy(
         signers[0].address, // in production this is to be the governance timelock address
         root,

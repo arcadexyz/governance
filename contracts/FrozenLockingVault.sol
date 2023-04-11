@@ -1,7 +1,10 @@
-// SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.3;
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.18;
 
 import "./external/council/vaults/LockingVault.sol";
+
+import { FLV_WithdrawsFrozen } from "./errors/Governance.sol";
 
 contract FrozenLockingVault is AbstractLockingVault {
     /// @notice Constructs the contract by setting immutables
@@ -14,6 +17,6 @@ contract FrozenLockingVault is AbstractLockingVault {
 
     /// @notice Does nothing, always reverts
     function withdraw(uint256) external pure override {
-        revert("Frozen");
+        revert FLV_WithdrawsFrozen();
     }
 }

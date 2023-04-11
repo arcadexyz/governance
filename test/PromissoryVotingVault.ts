@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
@@ -14,31 +13,12 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
-    before(async function () {
+    beforeEach(async function () {
         ctxVault = await votingVaultFixture();
-        await createSnapshot(provider);
-    });
-    after(async () => {
-        await restoreSnapshot(provider);
-    });
-    beforeEach(async () => {
-        await createSnapshot(provider);
-    });
-    afterEach(async () => {
-        await restoreSnapshot(provider);
     });
 
     describe("Governance flow with promissory vault", async () => {
-        beforeEach(async () => {
-            await createSnapshot(provider);
-        });
-        afterEach(async () => {
-            await restoreSnapshot(provider);
-        });
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            // invoke the fixture functions
-            ctxVault = await votingVaultFixture();
-
             const {
                 signers,
                 coreVoting,
@@ -140,9 +120,6 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
         });
 
         it("Partial token withdrawal reduces delegatee voting power", async () => {
-            // invoke the fixtures
-            ctxVault = await votingVaultFixture();
-
             const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
 
             // mint users some promissory notes
@@ -193,9 +170,6 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
         });
 
         it("All token withdrawal reduces delegatee voting power and withdrawn tokens transferred back user", async () => {
-            // invoke the fixtures
-            ctxVault = await votingVaultFixture();
-
             const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
 
             // mint users some promissory notes
@@ -257,9 +231,6 @@ describe("Vote Execution with Promissory Voting Vault", async () => {
         });
 
         it("It reduces the correct amount of voting power from a delegate when a user changes their delegation", async () => {
-            // invoke the fixtures
-            ctxVault = await votingVaultFixture();
-
             const { signers, token, promissoryVotingVault, getBlock, promissoryNote, mintPromissoryNote } = ctxVault;
 
             // mint users some promissory notes

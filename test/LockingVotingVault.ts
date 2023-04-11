@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { createSnapshot, restoreSnapshot } from "./utils/external/council/utils/snapshots";
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
@@ -13,27 +12,11 @@ describe("Vote Execution with Locking Voting Vault", async () => {
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
-    before(async function () {
+    beforeEach(async function () {
         ctxVotingVault = await votingVaultFixture();
-        await createSnapshot(provider);
-    });
-    after(async () => {
-        await restoreSnapshot(provider);
-    });
-    beforeEach(async () => {
-        await createSnapshot(provider);
-    });
-    afterEach(async () => {
-        await restoreSnapshot(provider);
     });
 
     describe("Governance flow with locking vault", async () => {
-        beforeEach(async () => {
-            await createSnapshot(provider);
-        });
-        afterEach(async () => {
-            await restoreSnapshot(provider);
-        });
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             const { signers, coreVoting, lockingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 
