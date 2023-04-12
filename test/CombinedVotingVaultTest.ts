@@ -40,14 +40,40 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            await uniqueMultiplierVotingVault
+            const txA = await uniqueMultiplierVotingVault
                 .connect(signers[0])
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            const receiptA = await txA.wait();
+
+            // get votingPower multiplier A
+            let multiplierA: BigNumberish;
+            if (receiptA && receiptA.events) {
+                const userMultiplier = new ethers.utils.Interface([
+                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+                ]);
+                const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
+                multiplierA = log.args.multiplier;
+            } else {
+                throw new Error("Multiplier not set");
+            }
 
             // manager sets the value of the reputation NFT 2's multiplier
-            await uniqueMultiplierVotingVault
+            const txB = await uniqueMultiplierVotingVault
                 .connect(signers[0])
                 .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
+            const receiptB = await txB.wait();
+
+            // get votingPower multiplier B
+            let multiplierB: BigNumberish;
+            if (receiptB && receiptB.events) {
+                const userMultiplier = new ethers.utils.Interface([
+                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+                ]);
+                const log = userMultiplier.parseLog(receiptB.events[receiptB.events.length - 1]);
+                multiplierB = log.args.multiplier;
+            } else {
+                throw new Error("Multiplier not set");
+            }
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -77,25 +103,12 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
                 reputationNft.address,
                 signers[1].address,
             );
-            const receipt = await tx4.wait();
-
-            // get votingPower multiplier for signers[0]
-            let multiplier1: BigNumberish;
-            if (receipt && receipt.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
-                multiplier1 = log.args.multiplier;
-            } else {
-                throw new Error("No user multiplier");
-            }
             // view query voting power of signers[1]
             const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
                 tx4.blockNumber,
             );
-            expect(votingPower4).to.be.eq(ONE.mul(multiplier1));
+            expect(votingPower4).to.be.eq(ONE.mul(multiplierA));
 
             // approve signers[2] tokens to unique multiplier voting vault
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -110,7 +123,7 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
                 signers[1].address,
                 tx5.blockNumber,
             );
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA));
 
             // approve signers[3] tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -118,26 +131,13 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             const tx6 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
                 .addNftAndDelegate(ONE, 1, reputationNft2.address, signers[0].address);
-            const receipt2 = await tx6.wait();
-
-            // get votingPower multiplier for signers[3]
-            let multiplier2: BigNumberish;
-            if (receipt2 && receipt2.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receipt2.events[receipt2.events.length - 3]);
-                multiplier2 = log.args.multiplier;
-            } else {
-                throw new Error("No user multiplier");
-            }
 
             // view query voting power of signers[0]
             const votingPower6 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[0].address,
                 tx6.blockNumber,
             );
-            expect(votingPower6).to.be.eq(ONE.mul(multiplier2));
+            expect(votingPower6).to.be.eq(ONE.mul(multiplierB));
 
             // approve signers[1] tokens to unique multiplier voting vault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -145,26 +145,13 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             const tx7 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
-            const receipt3 = await tx7.wait();
-
-            // get votingPower multiplier for signers[1]
-            let multiplier3: BigNumberish;
-            if (receipt3 && receipt3.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receipt3.events[receipt3.events.length - 3]);
-                multiplier3 = log.args.multiplier;
-            } else {
-                throw new Error("No user multiplier");
-            }
 
             // view query voting power of signers[2]
             const votingPower7 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[2].address,
                 tx7.blockNumber,
             );
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplier3));
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplierA));
 
             // create proposal to update V2 originationFee
             // get current originationFee value
@@ -218,9 +205,22 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            await uniqueMultiplierVotingVault
+            const txA = await uniqueMultiplierVotingVault
                 .connect(signers[0])
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            const receiptA = await txA.wait();
+
+            // get votingPower multiplier A
+            let multiplierA: BigNumberish;
+            if (receiptA && receiptA.events) {
+                const userMultiplier = new ethers.utils.Interface([
+                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+                ]);
+                const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
+                multiplierA = log.args.multiplier;
+            } else {
+                throw new Error("Multiplier not set");
+            }
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -253,25 +253,12 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
                 reputationNft.address,
                 signers[1].address,
             );
-            const receipt = await tx4.wait();
-
-            // get votingPower multiplier for signers[0]
-            let multiplier1: BigNumberish;
-            if (receipt && receipt.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receipt.events[receipt.events.length - 3]);
-                multiplier1 = log.args.multiplier;
-            } else {
-                throw new Error("No user multiplier");
-            }
 
             const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
                 tx4.blockNumber,
             );
-            expect(votingPower4).to.be.eq(ONE.mul(multiplier1));
+            expect(votingPower4).to.be.eq(ONE.mul(multiplierA));
 
             // approve signers[2] tokens to unique multiplier voting vault
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -287,7 +274,7 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
                 signers[1].address,
                 tx5.blockNumber,
             );
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplier1));
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA));
 
             // approve signers[3] tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -295,26 +282,13 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             const tx6 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
                 .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
-            const receipt2 = await tx6.wait();
-
-            // get votingPower multiplier for signers[3]
-            let multiplier2: BigNumberish;
-            if (receipt2 && receipt2.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receipt2.events[receipt2.events.length - 3]);
-                multiplier2 = log.args.multiplier;
-            } else {
-                throw new Error("No user multiplier");
-            }
 
             // view query voting power of signers[0]
             const votingPower6 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[0].address,
                 tx6.blockNumber,
             );
-            expect(votingPower6).to.be.eq(ONE.mul(multiplier2));
+            expect(votingPower6).to.be.eq(ONE.mul(multiplierA));
 
             // approve signers[1] tokens to unique multiplier voting vault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -322,26 +296,13 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             const tx7 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
-            const receipt3 = await tx7.wait();
-
-            // get votingPower multiplier for signers[1]
-            let multiplier3: BigNumberish;
-            if (receipt3 && receipt3.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event UserMultiplier(address indexed user, address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receipt3.events[receipt3.events.length - 3]);
-                multiplier3 = log.args.multiplier;
-            } else {
-                throw new Error("No user multiplier");
-            }
 
             // view query voting power of signers[2]
             const votingPower7 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[2].address,
                 tx7.blockNumber,
             );
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplier3));
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplierA));
 
             // prepare proposal data
             const newRolloverFee = 62;

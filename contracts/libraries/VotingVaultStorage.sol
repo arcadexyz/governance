@@ -30,6 +30,7 @@ library VotingVaultStorage {
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
         uint128 tokenId; // ERC1155 token id
+        uint128 multiplier; // the multiplier associated with the user's ERC1155
         address delegatee;
     }
 
@@ -66,8 +67,8 @@ library VotingVaultStorage {
      */
     function mappingAddressToPackedUintUint(
         string memory name
-    ) internal pure returns (mapping(address => AddressUintUint) storage data) {
-        bytes32 typehash = keccak256("mapping(address => AddressUintUint)");
+    ) internal pure returns (mapping(address => mapping(uint128 => AddressUintUint)) storage data) {
+        bytes32 typehash = keccak256("mapping(address => mapping(uint128 => AddressUintUint))");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset
