@@ -27,13 +27,13 @@ import {
  * @title UniqueMultiplierVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
- * The voting power for participants in this voting vault is enhanced by a multiplier.
- * This contract enables holders of specific ERC1155 nfts to gain an advantage wrt voting
- * power for participation in governance. Participants send their ERC20 tokens to the contract
- * and provide their ERC1155 nfts as calldata. Once the contract confirms their ownership
- * of the ERC1155 token id, and matches the ERC1155 address and tokenId to a multiplier,
- * they are able to delegate their voting power for participation in governance.
- * The voting power for participants in this voting vault is enhanced by a multiplier.
+ * The voting power for participants in this voting vault holding reputation ERC1155 nfts
+ * is enhanced by a multiplier. This contract enables holders of specific ERC1155 nfts
+ * to gain an advantage wrt voting power for participation in governance. Participants
+ * send their ERC20 tokens to the contract and provide their ERC1155 nfts as calldata.
+ * Once the contract confirms their ownership of the ERC1155 token id, and matches the
+ * ERC1155 address and tokenId to a multiplier, they are able to delegate their voting
+ * power for participation in governance.
  *
  * This contract is Simple Proxy upgradeable which is the upgradeability system used for voting
  * vaults in Council.
@@ -84,7 +84,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     /**
      * @notice Performs ERC1155 registration and delegation for a caller.
      *
-     * @dev User has to own ERC1155 nft for participation in this voting vault and multiplier access.
+     * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier access.
      *
      * @param _amount                   Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
@@ -107,13 +107,15 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // load the multipliers mapping storage (tokenAddress --> tokenId --> multiplier)
         VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[_tokenAddress][_tokenId];
 
+        // if a user does not own a reputation nft, their multiplier is set to 1
         if (_tokenAddress == address(0) || (_tokenId == 0)) {
             multiplierData.multiplier = 1e18;
         }
 
-        // confirm that the submitted nonzero tokenId has a multiplier, if not, revert
+        // confirm that the user submitted nonzero tokenId has a multiplier, if not, revert
         if (_tokenId != multiplierData.tokenId) revert UMVV_NoMultiplierSet();
 
+        // confirm that the user is a holder of the tokenId, if not, revert
         if ((_tokenAddress != address(0)) && (_tokenId != 0)) {
             if (IERC1155(_tokenAddress).balanceOf(_who, _tokenId) < 1) revert UMVV_DoesNotOwn();
         }
