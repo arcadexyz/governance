@@ -12,14 +12,12 @@ describe("Vote Execution with Locking Voting Vault", async () => {
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
-    before(async function () {
+    beforeEach(async function () {
         ctxVotingVault = await votingVaultFixture();
     });
 
     describe("Governance flow with locking vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            ctxVotingVault = await votingVaultFixture();
-
             const { signers, coreVoting, lockingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 
             // LockingVault users deposits and delegation

@@ -1,19 +1,16 @@
 import { expect } from "chai";
-import { ethers, waffle } from "hardhat";
+import { ethers } from "hardhat";
 
 import { TokenTestContext, tokenFixture } from "../utils/tokenFixture";
 
-const { loadFixture } = waffle;
-
 /**
- * Test suite for the ArcadeToken and ArcadeTokenDistributor contracts.
+ * Test suite for the ArcadeToken, ArcadeTokenDistributor, and Airdrop contracts.
  */
-
 describe("ArcadeToken", function () {
     let ctxToken: TokenTestContext;
 
     beforeEach(async function () {
-        ctxToken = await loadFixture(tokenFixture);
+        ctxToken = await tokenFixture();
     });
 
     describe("Deployment", function () {
@@ -187,7 +184,7 @@ describe("ArcadeToken", function () {
                 treasury,
                 devPartner,
                 communityRewardsPool,
-                airdrop,
+                arcAirdrop,
                 vestingTeamMultisig,
                 vestingPartner,
             } = ctxToken;
@@ -204,9 +201,9 @@ describe("ArcadeToken", function () {
             await expect(await arcDst.connect(deployer).toCommunityRewards(communityRewardsPool.address))
                 .to.emit(arcDst, "Distribute")
                 .withArgs(arcToken.address, communityRewardsPool.address, ethers.utils.parseEther("15000000"));
-            await expect(await arcDst.connect(deployer).toCommunityAirdrop(airdrop.address))
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
                 .to.emit(arcDst, "Distribute")
-                .withArgs(arcToken.address, airdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
             await expect(await arcDst.connect(deployer).toPartnerVesting(vestingPartner.address))
                 .to.emit(arcDst, "Distribute")
                 .withArgs(arcToken.address, vestingPartner.address, ethers.utils.parseEther("32700000"));
@@ -226,7 +223,7 @@ describe("ArcadeToken", function () {
             expect(await arcToken.balanceOf(communityRewardsPool.address)).to.equal(
                 ethers.utils.parseEther("15000000"),
             );
-            expect(await arcToken.balanceOf(airdrop.address)).to.equal(ethers.utils.parseEther("10000000"));
+            expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(ethers.utils.parseEther("10000000"));
             expect(await arcToken.balanceOf(vestingPartner.address)).to.equal(ethers.utils.parseEther("32700000"));
             expect(await arcToken.balanceOf(vestingTeamMultisig.address)).to.equal(ethers.utils.parseEther("16200000"));
 
@@ -274,7 +271,7 @@ describe("ArcadeToken", function () {
                 treasury,
                 devPartner,
                 communityRewardsPool,
-                airdrop,
+                arcAirdrop,
                 vestingTeamMultisig,
                 vestingPartner,
             } = ctxToken;
@@ -290,7 +287,7 @@ describe("ArcadeToken", function () {
             await expect(arcDst.connect(other).toCommunityRewards(communityRewardsPool.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
-            await expect(arcDst.connect(other).toCommunityAirdrop(airdrop.address)).to.be.revertedWith(
+            await expect(arcDst.connect(other).toCommunityAirdrop(arcAirdrop.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
             await expect(arcDst.connect(other).toTeamVesting(vestingTeamMultisig.address)).to.be.revertedWith(
@@ -314,7 +311,7 @@ describe("ArcadeToken", function () {
                 treasury,
                 devPartner,
                 communityRewardsPool,
-                airdrop,
+                arcAirdrop,
                 vestingTeamMultisig,
                 vestingPartner,
             } = ctxToken;
@@ -324,7 +321,7 @@ describe("ArcadeToken", function () {
             await arcDst.connect(deployer).toTreasury(treasury.address);
             await arcDst.connect(deployer).toDevPartner(devPartner.address);
             await arcDst.connect(deployer).toCommunityRewards(communityRewardsPool.address);
-            await arcDst.connect(deployer).toCommunityAirdrop(airdrop.address);
+            await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address);
             await arcDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address);
             await arcDst.connect(deployer).toPartnerVesting(vestingPartner.address);
 
@@ -335,7 +332,7 @@ describe("ArcadeToken", function () {
             await expect(arcDst.connect(deployer).toCommunityRewards(communityRewardsPool.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
             );
-            await expect(arcDst.connect(deployer).toCommunityAirdrop(airdrop.address)).to.be.revertedWith(
+            await expect(arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
             );
             await expect(arcDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address)).to.be.revertedWith(
@@ -344,6 +341,416 @@ describe("ArcadeToken", function () {
             await expect(arcDst.connect(deployer).toPartnerVesting(vestingPartner.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
             );
+        });
+    });
+
+    describe("ArcadeToken Airdrop", () => {
+        it("all recipients claim airdrop and delegate to themselves", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
+                ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+            const proofOther = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                await arcAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate voting power to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[0].value);
+
+            await expect(
+                await arcAirdrop.connect(other).claimAndDelegate(
+                    recipients[1].address, // address to delegate voting power to
+                    recipients[1].value, // total claimable amount
+                    proofOther, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[1].value);
+
+            expect(await arcToken.balanceOf(frozenLockingVault.address)).to.equal(
+                recipients[0].value.add(recipients[1].value),
+            );
+            expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+            );
+            expect(await arcToken.balanceOf(recipients[0].address)).to.equal(0);
+        });
+
+        it("user tries to claim airdrop with invalid proof", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofNotUser = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+            // try to claim with invalid proof
+            await expect(
+                arcAirdrop.connect(other).claimAndDelegate(
+                    other.address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofNotUser, // invalid merkle proof
+                ),
+            ).to.be.revertedWith("AA_NonParticipant()");
+        });
+
+        it("user tries to claim airdrop twice", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, recipients, merkleTrie, frozenLockingVault } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                arcAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[0].value);
+
+            // try to claim again
+            await expect(
+                arcAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            ).to.be.revertedWith("AA_AlreadyClaimed()");
+        });
+
+        it("user tries to claim airdrop after expiration", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, recipients, merkleTrie, blockchainTime } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // fast forward to after the end of the airdrop claim period
+            await blockchainTime.increaseTime(3600);
+
+            // owner reclaims tokens
+            await expect(await arcAirdrop.connect(deployer).reclaim(deployer.address))
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, deployer.address, ethers.utils.parseEther("10000000"));
+
+            // create proof for deployer
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+
+            // claims
+            await expect(
+                arcAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            ).to.be.revertedWith("AA_ClaimingExpired()");
+        });
+
+        it("owner reclaims all unclaimed tokens", async function () {
+            const {
+                arcToken,
+                arcDst,
+                arcAirdrop,
+                deployer,
+                other,
+                recipients,
+                merkleTrie,
+                blockchainTime,
+                frozenLockingVault,
+            } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+            const proofOther = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+            );
+
+            // claims
+            await expect(
+                await arcAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[0].value);
+
+            await expect(
+                await arcAirdrop.connect(other).claimAndDelegate(
+                    recipients[1].address, // address to delegate to
+                    recipients[1].value, // total claimable amount
+                    proofOther, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[1].value);
+
+            expect(await arcToken.balanceOf(deployer.address)).to.equal(0);
+            expect(await arcToken.balanceOf(other.address)).to.equal(0);
+            expect(await arcToken.balanceOf(frozenLockingVault.address)).to.equal(
+                recipients[0].value.add(recipients[1].value),
+            );
+            expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+            );
+
+            // advance time past claiming period
+            await blockchainTime.increaseTime(3600);
+
+            // reclaim all tokens
+            await expect(await arcAirdrop.connect(deployer).reclaim(deployer.address))
+                .to.emit(arcToken, "Transfer")
+                .withArgs(
+                    arcAirdrop.address,
+                    deployer.address,
+                    ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+                );
+
+            expect(await arcToken.balanceOf(deployer.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+            );
+        });
+
+        it("non-owner tries to reclaim all unclaimed tokens", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, other, blockchainTime } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // fast forward to after the end of the airdrop claim period
+            await blockchainTime.increaseTime(3600);
+
+            // non-owner tries to reclaim tokens
+            await expect(arcAirdrop.connect(other).reclaim(other.address)).to.be.revertedWith("Sender not owner");
+        });
+
+        it("owner tries to reclaim tokens before claiming period is over", async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, blockchainTime } = ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // get airdrop expiration time
+            const airdropExpiration = await arcAirdrop.expiration();
+            // get current time
+            const currentTime = await blockchainTime.secondsFromNow(0);
+            expect(airdropExpiration).to.be.greaterThan(currentTime);
+
+            // non-owner tries to reclaim tokens
+            await expect(arcAirdrop.connect(deployer).reclaim(deployer.address)).to.be.revertedWith(
+                "AA_ClaimingNotExpired()",
+            );
+        });
+
+        it("owner changes merkle root", async function () {
+            const { arcAirdrop, deployer } = ctxToken;
+
+            // owner changes merkle root
+            const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
+            await expect(await arcAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot));
+            expect(await arcAirdrop.rewardsRoot()).to.equal(newMerkleRoot);
+        });
+
+        it("non-owner tries to set a new merkle root", async function () {
+            const { arcAirdrop, other } = ctxToken;
+
+            // non-owner tries to change merkle root
+            const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
+            await expect(arcAirdrop.connect(other).setMerkleRoot(newMerkleRoot)).to.be.revertedWith("Sender not owner");
+        });
+    });
+
+    describe("Claiming from upgraded locking vault", function () {
+        beforeEach(async function () {
+            const { arcToken, arcDst, arcAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
+                ctxToken;
+
+            await expect(await arcDst.connect(deployer).toCommunityAirdrop(arcAirdrop.address))
+                .to.emit(arcDst, "Distribute")
+                .withArgs(arcToken.address, arcAirdrop.address, ethers.utils.parseEther("10000000"));
+            await expect(await arcDst.communityAirdropSent()).to.be.true;
+
+            // create proof for other
+            const proofOther = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                await arcAirdrop.connect(other).claimAndDelegate(
+                    recipients[1].address, // address to delegate to
+                    recipients[1].value, // total claimable amount
+                    proofOther, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[1].value);
+
+            await expect(await arcToken.balanceOf(frozenLockingVault.address)).to.equal(recipients[1].value);
+            await expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[1].value),
+            );
+        });
+
+        it("user tries to withdraw from frozen vault", async function () {
+            const { other, recipients, frozenLockingVault } = ctxToken;
+
+            // user tries to claim before vault is upgraded
+            await expect(frozenLockingVault.connect(other).withdraw(recipients[1].value)).to.be.revertedWith(
+                "FLV_WithdrawsFrozen()",
+            );
+        });
+
+        it("owner upgrades vault", async function () {
+            const { arcToken, deployer, simpleProxy, staleBlockNum } = ctxToken;
+
+            // owner upgrades vault
+            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
+            const lockingVault = await lockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+
+            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
+            await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
+        });
+
+        it("mulitple users withdraw after vault upgrade", async function () {
+            const {
+                arcToken,
+                arcAirdrop,
+                deployer,
+                other,
+                recipients,
+                frozenLockingVault,
+                simpleProxy,
+                staleBlockNum,
+                merkleTrie,
+            } = ctxToken;
+
+            // create proof for other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                await arcAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcToken, "Transfer")
+                .withArgs(arcAirdrop.address, frozenLockingVault.address, recipients[0].value);
+
+            await expect(await arcToken.balanceOf(frozenLockingVault.address)).to.equal(
+                recipients[0].value.add(recipients[1].value),
+            );
+            await expect(await arcToken.balanceOf(arcAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+            );
+
+            // deploy new implementation, use same stale block as the frozen vault
+            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
+            let lockingVault = await lockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+
+            // owner upgrades vault
+            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
+            lockingVault = await lockingVault.attach(simpleProxy.address);
+
+            // other claims
+            await expect(await lockingVault.connect(other).withdraw(recipients[1].value))
+                .to.emit(arcToken, "Transfer")
+                .withArgs(lockingVault.address, other.address, recipients[1].value);
+
+            // deployer claims
+            await expect(await lockingVault.connect(deployer).withdraw(recipients[0].value))
+                .to.emit(arcToken, "Transfer")
+                .withArgs(lockingVault.address, deployer.address, recipients[0].value);
+
+            await expect(await arcToken.balanceOf(deployer.address)).to.equal(recipients[0].value);
+            await expect(await arcToken.balanceOf(other.address)).to.equal(recipients[1].value);
+            await expect(await arcToken.balanceOf(lockingVault.address)).to.equal(0);
+        });
+
+        it("user tries to withdraw more than allotted amount", async function () {
+            const { arcToken, deployer, other, recipients, simpleProxy, staleBlockNum } = ctxToken;
+
+            // deploy new implementation, use same stale block as the frozen vault
+            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
+            let lockingVault = await lockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+
+            // owner upgrades vault
+            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
+            lockingVault = await lockingVault.attach(simpleProxy.address);
+
+            // user tries to claim more than allotted amount
+            await expect(lockingVault.connect(other).withdraw(recipients[1].value.add(1))).to.be.reverted;
+
+            await expect(await arcToken.balanceOf(other.address)).to.equal(0);
+        });
+
+        it("user tries to withdraw twice", async function () {
+            const { arcToken, deployer, other, recipients, frozenLockingVault, simpleProxy, staleBlockNum } = ctxToken;
+
+            // deploy new implementation, use same stale block as the frozen vault
+            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
+            let lockingVault = await lockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+
+            // owner upgrades vault
+            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
+            lockingVault = await lockingVault.attach(simpleProxy.address);
+
+            // user claims
+            await expect(await lockingVault.connect(other).withdraw(recipients[1].value))
+                .to.emit(arcToken, "Transfer")
+                .withArgs(lockingVault.address, other.address, recipients[1].value);
+            // user claims again
+            await expect(frozenLockingVault.connect(other).withdraw(recipients[1].value)).to.be.reverted;
         });
     });
 });
