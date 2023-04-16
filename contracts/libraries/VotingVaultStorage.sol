@@ -30,7 +30,7 @@ library VotingVaultStorage {
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
         uint128 tokenId; // ERC1155 token id
-        uint128 multiplier; // the multiplier associated with the user's ERC1155
+        address tokenAddress; // the address of the ERC1155 token
         address delegatee;
     }
 

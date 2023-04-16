@@ -88,6 +88,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     ) external override returns (uint256) {
         // Get our reference to historical data
         History.HistoricalBalances memory votingPower = _votingPower();
+
         // Find the historical data and clear everything more than 'staleBlockLag' into the past
         return votingPower.findAndClear(user, blockNumber, block.number - staleBlockLag);
     }
@@ -103,6 +104,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256) {
         // Get our reference to historical data
         History.HistoricalBalances memory votingPower = _votingPower();
+
         // Find the historical datum
         return votingPower.find(user, blockNumber);
     }

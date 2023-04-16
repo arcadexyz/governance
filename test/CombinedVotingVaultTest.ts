@@ -94,8 +94,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             const votingPower3 = await lockingVotingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
-            // approve signers[0] tokens to unique multiplier voting vault
+            // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
+            await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
             const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
                 ONE,
@@ -110,8 +111,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower4).to.be.eq(ONE.mul(multiplierA));
 
-            // approve signers[2] tokens to unique multiplier voting vault
+            // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
                 await uniqueMultiplierVotingVault
@@ -125,8 +127,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA));
 
-            // approve signers[3] tokens to unique multiplier voting vault
+            // approve signers[3] tokens to unique multiplier voting vault and approves repuation nft
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
+            await reputationNft2.connect(signers[3]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
@@ -139,8 +142,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower6).to.be.eq(ONE.mul(multiplierB));
 
-            // approve signers[1] tokens to unique multiplier voting vault
+            // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
+            await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
@@ -243,8 +247,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
 
             // Unique multiplier voting vault users: Badge registration and delegation
 
-            // approve signers[0] tokens to unique multiplier voting vault
+            // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
+            await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
             // signers[0] registers reputation NFT, deposits ONE tokens and delegates to signers[1]
             const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
@@ -260,8 +265,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower4).to.be.eq(ONE.mul(multiplierA));
 
-            // approve signers[2] tokens to unique multiplier voting vault
+            // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
                 await uniqueMultiplierVotingVault
@@ -276,8 +282,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA));
 
-            // approve signers[3] tokens to unique multiplier voting vault
+            // approve signers[3] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
+            await reputationNft.connect(signers[3]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await uniqueMultiplierVotingVault
                 .connect(signers[3])
@@ -290,8 +297,9 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             );
             expect(votingPower6).to.be.eq(ONE.mul(multiplierA));
 
-            // approve signers[1] tokens to unique multiplier voting vault
+            // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
+            await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await uniqueMultiplierVotingVault
                 .connect(signers[1])
