@@ -16,7 +16,7 @@ describe("Vote Execution with Locking Voting Vault", async () => {
         ctxVotingVault = await votingVaultFixture();
     });
 
-    describe("Governance flow with locking vault", async () => {
+    describe("Governance flow with locking voting vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             const { signers, coreVoting, lockingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 

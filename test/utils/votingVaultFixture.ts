@@ -8,6 +8,7 @@ import { Timelock } from "../../src/types";
 import { PromissoryVotingVault } from "../../src/types/contracts/PromissoryVotingVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
+import { GSCVault } from "../../src/types/contracts/external/council/vaults/GSCVault.sol";
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
 import { deploy } from "./contracts";
 
@@ -16,6 +17,7 @@ type Signer = SignerWithAddress;
 export interface TestContextVotingVault {
     token: MockERC20Council;
     lockingVault: LockingVault;
+    gscVotingVault: GSCVault;
     promissoryVotingVault: PromissoryVotingVault;
     signers: Signer[];
     coreVoting: CoreVoting;
@@ -41,6 +43,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const [wallet] = provider.getWallets();
 
     // init vars
+    const ONE = ethers.utils.parseEther("1");
     const THREE = ethers.utils.parseEther("3");
     const SEVEN = ethers.utils.parseEther("7");
 
@@ -102,6 +105,23 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
     await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock
 
+    const gscCoreVoting = await coreVotingDeployer.deploy(
+        signers[0].address, // deployer address at first, then ownership set to timelock contract
+        SEVEN, // base quorum / default quorum
+        THREE, // min voting power needed to submit a proposal
+        ethers.constants.AddressZero, // GSC contract address
+        votingVaults, // voting vaults array
+    );
+
+    // Deploy the GSC Voting Vault
+    const gscVotingVaultFactory = await ethers.getContractFactory("GSCVault", signers[0]);
+    const gscVotingVault = await gscVotingVaultFactory.deploy(
+        gscCoreVoting.address, // the core voting contract for the GSC
+        ONE, // amount of voting power needed to be on the GSC
+        signers[0].address, // owner of the GSC voting vault contract. should be the timelock
+    );
+    await gscCoreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns gscCoreVoting
+
     const feeController = <FeeController>await deploy("FeeController", signers[0], []);
     await feeController.deployed();
 
@@ -138,6 +158,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         token,
         coreVoting,
         votingVaults,
+        gscVotingVault,
         timelock,
         increaseBlockNumber,
         getBlock,
