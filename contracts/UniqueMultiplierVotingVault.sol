@@ -108,12 +108,8 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // load the multipliers mapping storage (tokenAddress --> tokenId --> multiplier)
         VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress][tokenId];
 
-        // if a user does not specify a reputation nft, their multiplier is set to 1
-        if (tokenAddress == address(0) || tokenId == 0) {
-            multiplierData.multiplier = multiplier;
-        }
-
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
+        // (tokenAddress == address(0) || tokenId == 0) are being checked in multiplier()
         if ((tokenAddress != address(0)) && (tokenId != 0)) {
             if (IERC1155(tokenAddress).balanceOf(who, tokenId) == 0) revert UMVV_DoesNotOwn();
             multiplier = multipliers(tokenAddress, tokenId);
@@ -135,7 +131,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         delegatee = delegatee == address(0) ? who : delegatee;
 
         // calculate the voting power provided by this registration
-        uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
+        uint128 newVotingPower = (amount * multiplier) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
         _registrations()[who] = VotingVaultStorage.Registration(
@@ -344,7 +340,13 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @return                          The token multiplier.
      */
     function multiplier(address tokenAddress, uint128 tokenId) external view returns (uint256) {
+        uint128 multiplier = 1e18;
         VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress][tokenId];
+
+        // if a user does not specify a reputation nft, their multiplier is set to 1
+        if (tokenAddress == address(0) || tokenId == 0) {
+            return multiplier;
+        }
 
         return multiplierData.multiplier;
     }
