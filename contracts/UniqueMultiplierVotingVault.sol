@@ -21,8 +21,6 @@ import {
     UMVV_MultiplierLimit,
     UMVV_NoMultiplierSet
 } from "./errors/Governance.sol";
-/* solhint-disable no-console */
-import "hardhat/console.sol";
 
 /**
  *
@@ -241,11 +239,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         token.transfer(msg.sender, amount);
     }
 
-    // /** TODO: DO NATSPEC
-    //  * @notice Removes tokens from this contract and the voting power they represent.
-    //  *
-    //  * @param nftAmount                 The amount of token to withdraw.
-    //  */
+    /**
+     * @notice A function that allows a user's to withdraw the reputation nft they are using for
+     *         accessing a voting power multiplier.
+     *
+     */
     function withdrawERC1155() public nonReentrant {
         // load the registration
         VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
@@ -259,34 +257,34 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
                 bytes("")
             );
 
-            // remove ERC1155 from registration struct
+            // remove ERC1155 values from registration struct
             registration.tokenAddress = address(0);
             registration.tokenId = 0;
 
-            // update the delegatee's voting power: multiplier value reduced
+            // update the delegatee's voting power based on multiplier removal
             _syncVotingPower(msg.sender, registration);
         } else {
             revert UMVV_DoesNotOwn();
         }
     }
 
-    // /** TODO: DO NATSPEC
-    //  * @notice Removes tokens from this contract and the voting power they represent.
-    //  *
-    //  * @param nftAmount                 The amount of token to withdraw.
-    //  */
+    /**
+     * @notice A function that allows a user's to change the reputation nft they are using for
+     *         accessing a voting power multiplier.
+     *
+     * @param newTokenAddress            Address of the new ERC1155 token the user wants to use.
+     * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
+     */
     function updateERC1155(uint128 newTokenId, address newTokenAddress) external nonReentrant {
         VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
         if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
-            // remove the current reputation nft
             withdrawERC1155();
-            // add the new repuation nft
+
             if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert UMVV_DoesNotOwn();
             uint128 multiplier = multipliers(newTokenAddress, newTokenId);
-
             if (multiplier == 0) revert UMVV_NoMultiplierSet();
 
-            // set the new ERC1155 values in the registration struct
+            // set the new ERC1155 values in the registration
             registration.tokenAddress = newTokenAddress;
             registration.tokenId = newTokenId;
 
@@ -444,19 +442,21 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) internal view virtual returns (uint256) {
         uint256 locked = registration.amount - registration.withdrawn;
         if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
-            uint128 mult = _multipliers()[registration.tokenAddress][registration.tokenId].multiplier;
             return locked * _multipliers()[registration.tokenAddress][registration.tokenId].multiplier;
         }
         return locked;
     }
 
-    /** TODO: Fix ALL NATSPEC
-     * @notice A function to lock a user's tokens into this contract for
-     *         participate in governance.
+    /**
+     * @notice A internal function for locking a user's ERC20 tokens in this contract
+     *         for participation in governance. Calls the _lockNft funtions if a user
+     *         has entered an ERC1155 token address and token id.
      *
      * @param from                      Address of owner tokens are transferred from.
-     * @param tokenAddress              Address of where tokens are transferred to.
-     * @param amount                    Amount of tokens being transferred.
+     * @param amount                    Amount of ERC20 tokens being transferred.
+     * @param tokenAddress              Address of the ERC1155 token being transferred.
+     * @param tokenId                   Id of the ERC1155 token being transferred.
+     * @param nftAmount                 Amount of the ERC1155 token being transferred.
      */
     function _lockTokens(
         address from,
@@ -466,22 +466,22 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         uint128 nftAmount
     ) internal nonReentrant {
         token.transferFrom(from, address(this), amount);
-        // if ERC1155 token address and tokenId is not zero transfer to this contract
+
         if ((tokenAddress != address(0)) && (tokenId != 0)) {
             _lockNft(from, tokenAddress, tokenId, nftAmount);
         }
     }
 
-    /** TODO: Fix ALL NATSPEC
-     * @notice A function to lock a user's tokens into this contract for
-     *         participate in governance.
+    /**
+     * @notice A internal function for locking a user's ERC1155 token in this contract
+     *         for participation in governance.
      *
-     * @param from                      Address of owner tokens are transferred from.
-     * @param tokenAddress              Address of where tokens are transferred to.
-     * @param nftAmount                 Amount of tokens being transferred.
+     * @param from                      Address of owner token is transferred from.
+     * @param tokenAddress              Address of the token being transferred.
+     * @param tokenId                   Id of the token being transferred.
+     * @param nftAmount                 Amount of token being transferred.
      */
     function _lockNft(address from, address tokenAddress, uint128 tokenId, uint128 nftAmount) internal nonReentrant {
-        // transfer ERC1155 to this contract
         IERC1155(tokenAddress).safeTransferFrom(from, address(this), tokenId, nftAmount, bytes(""));
     }
 
@@ -500,9 +500,25 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
     }
 
-    /** TODO: ADD NATSPEC
+    /** @notice A function to handles the receipt of a single ERC1155 token. This function is called
+     * at the end of a safeTransferFrom after the balance has been updated. To accept the transfer,
+     * this must return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
+     *
+     * @param operator                  The address which initiated the transfer.
+     * @param from                      The address which previously owned the token.
+     * @param id                        The ID of the token being transferred.
+     * @param value                     The amount of tokens being transferred.
+     * @param data                      Additional data with no specified format.
+     *
+     * @return                          0xf23a6e61
      */
-    function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual returns (bytes4) {
+    function onERC1155Received(
+        address operator,
+        address from,
+        uint256 id,
+        uint256 value,
+        bytes memory data
+    ) public virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 }
