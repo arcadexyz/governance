@@ -44,7 +44,7 @@ error UMVV_InsufficientRegistrationBalance();
 /**
  * @notice Multiplier limit exceeded.
  */
- error UMVV_MultiplierLimit();
+error UMVV_MultiplierLimit();
 
 /**
  * @notice No multiplier has been set for token .
