@@ -103,16 +103,16 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         address who = msg.sender;
         uint128 withdrawn = 0;
         uint128 blockNumber = uint128(block.number);
-        uint128 multiplier = 1e18;
+        uint256 multiplier = 1e18;
 
         // load the multipliers mapping storage (tokenAddress --> tokenId --> multiplier)
-        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress][tokenId];
+        VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
-        // (tokenAddress == address(0) || tokenId == 0) are being checked in multiplier()
+        // (tokenAddress == address(0) || tokenId == 0) are being checked in getMultiplier()
         if ((tokenAddress != address(0)) && (tokenId != 0)) {
             if (IERC1155(tokenAddress).balanceOf(who, tokenId) == 0) revert UMVV_DoesNotOwn();
-            multiplier = multipliers(tokenAddress, tokenId);
+            multiplier = getMultiplier(tokenAddress, tokenId);
 
             if (multiplier == 0) revert UMVV_NoMultiplierSet();
         }
@@ -121,7 +121,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.Uint256 storage balance = _balance();
 
         // load the registration
-        VotingVaultStorage.Registration storage registration = _registrations()[who];
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[who];
 
         // If the token id is not zero, revert because the Registration is
         // already initialized. Only one Registration per msg.sender
@@ -131,10 +131,10 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         delegatee = delegatee == address(0) ? who : delegatee;
 
         // calculate the voting power provided by this registration
-        uint128 newVotingPower = (amount * multiplier) / MULTIPLIER_DENOMINATOR;
+        uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
-        _registrations()[who] = VotingVaultStorage.Registration(
+        _getRegistrations()[who] = VotingVaultStorage.Registration(
             amount,
             blockNumber,
             newVotingPower,
@@ -163,7 +163,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @return Registration             Registration of the provided address.
      */
     function getRegistration(address who) external view returns (VotingVaultStorage.Registration memory) {
-        return _registrations()[who];
+        return _getRegistrations()[who];
     }
 
     /**
@@ -175,7 +175,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param to                        The address to delegate to.
      */
     function delegate(address to) external virtual {
-        VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
         // If to address is already the delegate, don't send the tx
         if (to == registration.delegatee) revert UMVV_AlreadyDelegated();
 
@@ -209,14 +209,14 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
         // load the registration
-        VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(registration);
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
         if (balance.data < amount) revert UMVV_InsufficientBalance();
         if (registration.amount < amount) revert UMVV_InsufficientRegistrationBalance();
-        if ((withdrawable - amount) >= 0) {
+        if (withdrawable >= amount) {
             // update contract balance
             balance.data -= amount;
             // update withdrawn amount
@@ -225,11 +225,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             // user's ERC1155 token at the time of the call
             _syncVotingPower(msg.sender, registration);
         }
-        if ((withdrawable - amount) == 0) {
+        if (withdrawable == amount) {
             if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
-                withdrawERC1155();
+                withdrawNft();
             }
-            delete _registrations()[msg.sender];
+            delete _getRegistrations()[msg.sender];
         }
         // transfer the token amount to the user
         token.transfer(msg.sender, amount);
@@ -240,9 +240,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *         accessing a voting power multiplier.
      *
      */
-    function withdrawERC1155() public nonReentrant {
+    function withdrawNft() public nonReentrant {
         // load the registration
-        VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
         if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
             // transfer ERC1155 back to the user
             IERC1155(registration.tokenAddress).safeTransferFrom(
@@ -271,13 +271,13 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param newTokenAddress            Address of the new ERC1155 token the user wants to use.
      * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
      */
-    function updateERC1155(uint128 newTokenId, address newTokenAddress) external nonReentrant {
-        VotingVaultStorage.Registration storage registration = _registrations()[msg.sender];
+    function updateNft(uint128 newTokenId, address newTokenAddress) external nonReentrant {
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
         if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
-            withdrawERC1155();
+            withdrawNft();
 
             if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert UMVV_DoesNotOwn();
-            uint128 multiplier = multipliers(newTokenAddress, newTokenId);
+            uint256 multiplier = getMultiplier(newTokenAddress, newTokenId);
             if (multiplier == 0) revert UMVV_NoMultiplierSet();
 
             // set the new ERC1155 values in the registration
@@ -289,22 +289,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         } else {
             revert UMVV_DoesNotOwn();
         }
-    }
-
-    /**
-     * @notice Getter for the multipliers mapping.
-     *
-     * @param  tokenAddress             The token contract address.
-     * @param  tokenId                  The token id of the ERC1155 for which the multiplier is being
-     *                                  retrieved.
-     *
-     * @return multiplierValue          The multiplier value for the token address.
-     *
-     */
-    function multipliers(address tokenAddress, uint128 tokenId) public view returns (uint128) {
-        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress][tokenId];
-        // get multiplier value
-        return multiplierData.multiplier;
     }
 
     /**
@@ -324,7 +308,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) public virtual onlyManager returns (bool multiplierSet) {
         if (multiplierValue >= MAX_MULTIPLIER) revert UMVV_MultiplierLimit();
 
-        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress][tokenId];
+        VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
         multiplierData.multiplier = multiplierValue;
         emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
@@ -339,9 +323,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      * @return                          The token multiplier.
      */
-    function multiplier(address tokenAddress, uint128 tokenId) external view returns (uint256) {
+    function getMultiplier(address tokenAddress, uint128 tokenId) public view returns (uint256) {
         uint128 multiplier = 1e18;
-        VotingVaultStorage.AddressUintUint storage multiplierData = _multipliers()[tokenAddress][tokenId];
+        VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         // if a user does not specify a reputation nft, their multiplier is set to 1
         if (tokenAddress == address(0) || tokenId == 0) {
@@ -378,7 +362,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      * @return registrations                 A storage mapping to look up registrations data
      */
-    function _registrations() internal pure returns (mapping(address => VotingVaultStorage.Registration) storage) {
+    function _getRegistrations() internal pure returns (mapping(address => VotingVaultStorage.Registration) storage) {
         // This call returns a storage mapping with a unique non overwrite-able storage location
         // which can be persisted through upgrades, even if they change storage layout
         return (VotingVaultStorage.mappingAddressToRegistrationPtr("registrations"));
@@ -444,7 +428,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) internal view virtual returns (uint256) {
         uint256 locked = registration.amount - registration.withdrawn;
         if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
-            return locked * _multipliers()[registration.tokenAddress][registration.tokenId].multiplier;
+            return locked * _getMultipliers()[registration.tokenAddress][registration.tokenId].multiplier;
         }
         return locked;
     }
@@ -492,7 +476,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @return                          A storage mapping which can be used to lookup a
      *                                  token's multiplier data and token id data.
      */
-    function _multipliers()
+    function _getMultipliers()
         internal
         pure
         returns (mapping(address => mapping(uint128 => VotingVaultStorage.AddressUintUint)) storage)

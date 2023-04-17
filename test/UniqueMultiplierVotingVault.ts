@@ -284,6 +284,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             const now = getBlock();
             // get signers[1] voting power before they receive any further delegation
             const votingPowerBefore = await uniqueMultiplierVotingVault.queryVotePowerView(signers[1].address, now);
+            expect(votingPowerBefore).to.eq(ONE.mul(multiplierA));
 
             // signers[0] approves 5 tokens to unique multiplier voting vaut and reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -329,9 +330,8 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 signers[1].address,
                 afterBlock,
             );
-
             // confirm that the delegatee voting is now less
-            expect(votingPowerAfter).to.eq(votingPowerBefore);
+            expect(votingPowerAfter).to.eq(ONE.mul(multiplierA));
 
             // signers[0] balance after withdraw
             const withdrawerBalAfter = await token.balanceOf(signers[0].address);
@@ -448,7 +448,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // get new multiplier value
-            const multiplierVal = await uniqueMultiplierVotingVault.multiplier(reputationNft.address, 1);
+            const multiplierVal = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
             await expect(multiplierVal).to.eq(ethers.utils.parseEther("1.2"));
         });
 
@@ -469,11 +469,11 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 .setMultiplier(reputationNft.address, 2, ethers.utils.parseEther("1.4"));
 
             // get multiplier value for tokenId 1
-            const multiplier1Val = await uniqueMultiplierVotingVault.multiplier(reputationNft.address, 1);
+            const multiplier1Val = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
             await expect(multiplier1Val).to.eq(ethers.utils.parseEther("1.2"));
 
             // get multiplier value for tokenId 2
-            const multiplier2Val = await uniqueMultiplierVotingVault.multiplier(reputationNft.address, 2);
+            const multiplier2Val = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 2);
             await expect(multiplier2Val).to.eq(ethers.utils.parseEther("1.4"));
         });
 
@@ -520,7 +520,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
 
             // get the current multiplier
-            const multiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address, 1);
+            const multiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
             await expect(multiplier).to.eq(ethers.utils.parseEther("1.2"));
 
             // manager updates the value of the multiplier
@@ -529,7 +529,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.4"));
 
             // get new multiplier value
-            const newMultiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address, 1);
+            const newMultiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
             await expect(newMultiplier).to.eq(ethers.utils.parseEther("1.4"));
         });
 
@@ -539,7 +539,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             const { uniqueMultiplierVotingVault, reputationNft } = ctxVault;
 
             // get the current multiplier
-            const multiplier = await uniqueMultiplierVotingVault.multiplier(reputationNft.address, 1);
+            const multiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
             await expect(multiplier).to.eq(0);
         });
 
@@ -587,7 +587,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
 
             // get the current multiplier
-            const multiplier = await uniqueMultiplierVotingVault.multiplier(constants.AddressZero, 0);
+            const multiplier = await uniqueMultiplierVotingVault.getMultiplier(constants.AddressZero, 0);
             await expect(multiplier).to.eq(ethers.utils.parseEther("1"));
             expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier));
         });
@@ -626,7 +626,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(erc1155Bal).to.be.eq(1);
         });
 
-        it("Transfers reputation nft back to user when withdrawERC1155() is called", async () => {
+        it("Transfers reputation nft back to user when withdrawNft() is called", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
@@ -654,14 +654,14 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(erc1155Bal).to.be.eq(1);
 
             // user withdraws ERC1155
-            await uniqueMultiplierVotingVault.withdrawERC1155();
+            await uniqueMultiplierVotingVault.withdrawNft();
 
             // check that the user balance for reputation nft is now zero
             const userErc1155Bal2 = await reputationNft.balanceOf(signers[0].address, 1);
             expect(userErc1155Bal2).to.be.eq(1);
         });
 
-        it("Reverts if withdrawERC1155() is called and the user has not deposited a reputationNFT", async () => {
+        it("Reverts if withdrawNft() is called and the user has not deposited a reputationNFT", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
@@ -680,11 +680,11 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
 
             // user calls withdraws ERC1155
-            const tx = uniqueMultiplierVotingVault.withdrawERC1155();
+            const tx = uniqueMultiplierVotingVault.withdrawNft();
             await expect(tx).to.be.revertedWith("UMVV_DoesNotOwn");
         });
 
-        it("Reduces delegatee votingPower if withdrawERC1155() is called and user tokens are still locked", async () => {
+        it("Reduces delegatee votingPower if withdrawNft() is called and user tokens are still locked", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
@@ -739,7 +739,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(votingPower).to.be.eq(ONE.mul(6).mul(multiplierA));
 
             // user withdraws ERC1155
-            const tx2 = await uniqueMultiplierVotingVault.withdrawERC1155();
+            const tx2 = await uniqueMultiplierVotingVault.withdrawNft();
             await tx2.wait();
 
             // get delegatee voting power amount
@@ -751,7 +751,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(votingPowerAfter).to.be.eq(ONE.mul(multiplierA).add(ONE.mul(5)));
         });
 
-        it("When can change their reputation nft wiht updateERC1155()", async () => {
+        it("When can change their reputation nft wiht updateNft()", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
@@ -838,7 +838,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA));
 
             // signers[0] updates their reputation nft to reputationNft2 which is associated with multiplierB
-            const tx2 = await uniqueMultiplierVotingVault.updateERC1155(1, reputationNft2.address);
+            const tx2 = await uniqueMultiplierVotingVault.updateNft(1, reputationNft2.address);
 
             // they are now again holding the reputation nft they have replaced
             const userErc1155Bal = await reputationNft.balanceOf(signers[0].address, 1);
