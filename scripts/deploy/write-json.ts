@@ -31,7 +31,9 @@ export async function writeJson(
     gscCoreVotingAddress: string,
     timelockAddress: string,
     frozenLockingVaultImpAddress: string,
-    simpleProxyAddress: string,
+    frozenLockingVaultProxyAddress: string,
+    vestingVaultImpAddress: string,
+    vestingVaultProxyAddress: string,
     gscVaultAddress: string,
     treasuryAddress: string
 ): Promise<void> {
@@ -53,7 +55,9 @@ export async function writeJson(
         gscCoreVotingAddress,
         timelockAddress,
         frozenLockingVaultImpAddress,
-        simpleProxyAddress,
+        frozenLockingVaultProxyAddress,
+        vestingVaultImpAddress,
+        vestingVaultProxyAddress,
         gscVaultAddress,
         treasuryAddress
     );
@@ -73,7 +77,9 @@ export async function createInfo(
     gscCoreVotingAddress: string,
     timelockAddress: string,
     frozenLockingVaultImpAddress: string,
-    simpleProxyAddress: string,
+    frozenLockingVaultProxyAddress: string,
+    vestingVaultImpAddress: string,
+    vestingVaultProxyAddress: string,
     gscVaultAddress: string,
     treasuryAddress: string
 ): Promise<DeploymentData> {
@@ -129,10 +135,21 @@ export async function createInfo(
         constructorArgs: [arcdTokenAddress, STALE_BLOCK_LAG]
     };
 
-    contractInfo["SimpleProxy"] = {
-        contractAddress: simpleProxyAddress,
-        contractImplementationAddress: await upgrades.erc1967.getImplementationAddress(simpleProxyAddress),
-        constructorArgs: [DEPLOYER_ADDRESS, frozenLockingVaultImpAddress],
+    contractInfo["frozenLockingVaultProxy"] = {
+        contractAddress: frozenLockingVaultProxyAddress,
+        contractImplementationAddress: await upgrades.erc1967.getImplementationAddress(frozenLockingVaultProxyAddress),
+        constructorArgs: [timelockAddress, frozenLockingVaultImpAddress],
+    };
+
+    contractInfo["vestingVaultImp"] = {
+        contractAddress: vestingVaultImpAddress,
+        constructorArgs: [arcdTokenAddress, STALE_BLOCK_LAG]
+    };
+
+    contractInfo["vestingVaultProxy"] = {
+        contractAddress: vestingVaultProxyAddress,
+        contractImplementationAddress: await upgrades.erc1967.getImplementationAddress(vestingVaultProxyAddress),
+        constructorArgs: [timelockAddress, vestingVaultImpAddress],
     };
 
     contractInfo["GSCVault"] = {

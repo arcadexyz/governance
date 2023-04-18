@@ -3,8 +3,6 @@ import hre, { ethers } from "hardhat";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-import { SUBSECTION_SEPARATOR, SECTION_SEPARATOR } from ".test/utils";
-
 import {
     DEPLOYER_ADDRESS,
     TIMELOCK_WAIT_TIME,
@@ -15,6 +13,7 @@ import {
     MIN_PROPOSAL_POWER_GSC,
     GSC_THRESHOLD
 } from "./deployment-params";
+import { SUBSECTION_SEPARATOR, SECTION_SEPARATOR } from ".test/utils";
 
 const jsonContracts: { [key: string]: string } = {
     ArcadeTokenDistributor: "ArcadeTokenDistributor",
@@ -61,8 +60,7 @@ export async function main(
 
     // set vaults in core voting
     await coreVoting.changeVaultStatus(simpleProxy.address, true);
-
-    // set gsc vault in gsc core voting
+    await coreVoting.changeVaultStatus(treasury.address, true);
     await coreVotingGSC.changeVaultStatus(gscVault.address, true);
 
     // authorize gsc vault and change owner to be the coreVoting contract
@@ -113,7 +111,9 @@ if (require.main === module) {
             coreVotingGSC,
             timelock,
             frozenLockingVaultImp,
-            SimpleProxy,
+            frozenLockingVaultProxy,
+            vestingVaultImp,
+            vestingVaultProxy,
             gscVault,
             treasury
         } = res;
@@ -125,7 +125,9 @@ if (require.main === module) {
             coreVotingGSC,
             timelock,
             frozenLockingVaultImp,
-            SimpleProxy,
+            frozenLockingVaultProxy,
+            vestingVaultImp,
+            vestingVaultProxy,
             gscVault,
             treasury
         )

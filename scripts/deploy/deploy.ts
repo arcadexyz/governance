@@ -43,12 +43,12 @@ export async function main(): Promise<DeployedResources> {
 
     console.log(SECTION_SEPARATOR);
     console.log("Deploying ARCD token and token distributor...");
+    console.log(SUBSECTION_SEPARATOR);
 
     // token distributor
     const ARCDDist = await ethers.getContractFactory("ArcadeTokenDistributor");
     const arcdDist = <ArcadeTokenDistributor>await ARCDDist.deploy();
     await arcdDist.deployed();
-
     const arcdDistAddress = arcdDist.address;
     console.log("ArcadeTokenDistributor deployed to:", arcdDistAddress);
     console.log(SUBSECTION_SEPARATOR);
@@ -57,13 +57,12 @@ export async function main(): Promise<DeployedResources> {
     const ARCDToken = await ethers.getContractFactory("ArcadeToken");
     const arcdToken = <ArcadeToken>await ARCDToken.deploy(DEPLOYER_ADDRESS, arcdDist.address);
     await arcdToken.deployed();
-
     const arcdTokenAddress = arcdToken.address;
     console.log("ArcadeToken deployed to:", arcdTokenAddress);
-    console.log(SUBSECTION_SEPARATOR);
 
     console.log(SECTION_SEPARATOR);
     console.log("Deploying goverance...");
+    console.log(SUBSECTION_SEPARATOR);
 
     // core voting
     const CoreVoting = await ethers.getContractFactory("CoreVoting");
@@ -75,7 +74,6 @@ export async function main(): Promise<DeployedResources> {
         []
     );
     await coreVoting.deployed();
-
     const coreVotingAddress = coreVoting.address;
     console.log("CoreVoting deployed to:", coreVotingAddress);
     console.log(SUBSECTION_SEPARATOR);
@@ -89,7 +87,6 @@ export async function main(): Promise<DeployedResources> {
         []
     );
     await gscCoreVoting.deployed();
-
     const gscCoreVotingAddress = gscCoreVoting.address;
     console.log("GSC CoreVoting deployed to:", gscCoreVotingAddress);
     console.log(SUBSECTION_SEPARATOR);
@@ -98,28 +95,38 @@ export async function main(): Promise<DeployedResources> {
     const timelockDeployer = await ethers.getContractFactory("Timelock");
     const timelock = await timelockDeployer.deploy(TIMELOCK_WAIT_TIME, DEPLOYER_ADDRESS, DEPLOYER_ADDRESS);
     await timelock.deployed();
-
     const timelockAddress = timelock.address;
     console.log("Timelock deployed to:", timelockAddress);
     console.log(SUBSECTION_SEPARATOR);
 
-    // frozen locking vault
+    // frozen locking vault (upgradeable by timelock)
     const FrozenLockingVault = await ethers.getContractFactory("FrozenLockingVault");
-    const frozenLockingVaultImp = await FrozenLockingVault.deploy(arcdToken.address, STALE_BLOCK_LAG);
+    const frozenLockingVaultImp = await FrozenLockingVault.deploy(arcdTokenAddress, STALE_BLOCK_LAG);
     await frozenLockingVaultImp.deployed();
-
     const frozenLockingVaultImpAddress = frozenLockingVaultImp.address;
     console.log("FrozenLockingVault Implementation deployed to:", frozenLockingVaultImpAddress);
     console.log(SUBSECTION_SEPARATOR);
 
     const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
-    const simpleProxy = await simpleProxyFactory.deploy(DEPLOYER_ADDRESS, frozenLockingVaultImp.address);
-
-    const simpleProxyAddress = simpleProxy.address;
-    console.log("SimpleProxy deployed to:", simpleProxyAddress);
+    const frozenLockingVaultProxy = await simpleProxyFactory.deploy(timelockAddress, frozenLockingVaultImpAddress);
+    await frozenLockingVaultProxy.deployed();
+    const frozenLockingVaultProxyAddress = frozenLockingVaultProxy.address;
+    console.log("FrozenLockingVault Proxy deployed to:", frozenLockingVaultProxyAddress);
     console.log(SUBSECTION_SEPARATOR);
 
-    // const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
+    // vesting vault (upgradeable by timelock)
+    const VestingVault = await ethers.getContractFactory("VestingVault");
+    const vestingVaultImp = await VestingVault.deploy(arcdTokenAddress, STALE_BLOCK_LAG);
+    await vestingVaultImp.deployed();
+    const vestingVaultImpAddress = vestingVaultImp.address;
+    console.log("vestingVault Implementation deployed to:", vestingVaultImpAddress);
+    console.log(SUBSECTION_SEPARATOR);
+
+    const vestingVaultProxy = await simpleProxyFactory.deploy(timelockAddress, vestingVaultImpAddress);
+    await vestingVaultProxy.deployed();
+    const vestingVaultProxyAddress = vestingVaultProxy.address;
+    console.log("VestingVault Proxy deployed to:", vestingVaultProxyAddress);
+    console.log(SUBSECTION_SEPARATOR);
 
     // GSC vault
     const gscDeployer = await ethers.getContractFactory("GSCVault");
@@ -129,7 +136,6 @@ export async function main(): Promise<DeployedResources> {
         timelock.address
     );
     await gscVault.deployed();
-
     const gscVaultAddress = gscVault.address;
     console.log("GSCVault deployed to:", gscVaultAddress);
     console.log(SUBSECTION_SEPARATOR);
@@ -138,11 +144,11 @@ export async function main(): Promise<DeployedResources> {
     const Treasury = await ethers.getContractFactory("Treasury");
     const treasury = await Treasury.deploy(DEPLOYER_ADDRESS); // council has this as the timelock
     await treasury.deployed();
-
     const treasuryAddress = treasury.address;
     console.log("Treasury deployed to:", treasuryAddress);
     console.log(SUBSECTION_SEPARATOR);
-    
+
+    console.log("Writing deployment artifacts..."")
     await writeJson(
         arcdDistAddress,
         arcdTokenAddress,
@@ -150,7 +156,9 @@ export async function main(): Promise<DeployedResources> {
         gscCoreVotingAddress,
         timelockAddress,
         frozenLockingVaultImpAddress,
-        simpleProxyAddress,
+        frozenLockingVaultProxyAddress,
+        vestingVaultImpAddress,
+        vestingVaultProxyAddress,
         gscVaultAddress,
         treasuryAddress
     );
@@ -164,7 +172,9 @@ export async function main(): Promise<DeployedResources> {
         gscCoreVoting,
         timelock,
         frozenLockingVaultImp,
-        simpleProxy,
+        frozenLockingVaultProxy,
+        vestingVaultImp,
+        vestingVaultProxy,
         gscVault,
         treasury
     };

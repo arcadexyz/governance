@@ -65,9 +65,17 @@ describe("Deployment", function() {
         expect(deployment["FrozenLockingVaultImp"].contractAddress).to.exist;
         expect(deployment["FrozenLockingVaultImp"].constructorArgs.length).to.eq(2);
 
-        expect(deployment["SimpleProxy"]).to.exist;
-        expect(deployment["SimpleProxy"].contractAddress).to.exist;
-        expect(deployment["SimpleProxy"].constructorArgs.length).to.eq(2);
+        expect(deployment["frozenLockingVaultProxy"]).to.exist;
+        expect(deployment["frozenLockingVaultProxy"].contractAddress).to.exist;
+        expect(deployment["frozenLockingVaultProxy"].constructorArgs.length).to.eq(2);
+
+        expect(deployment["VestingVaultImp"]).to.exist;
+        expect(deployment["VestingVaultImp"].contractAddress).to.exist;
+        expect(deployment["VestingVaultImp"].constructorArgs.length).to.eq(2);
+
+        expect(deployment["vestingVaultProxy"]).to.exist;
+        expect(deployment["vestingVaultProxy"].contractAddress).to.exist;
+        expect(deployment["vestingVaultProxy"].constructorArgs.length).to.eq(2);
 
         expect(deployment["GSCVault"]).to.exist;
         expect(deployment["GSCVault"].contractAddress).to.exist;
@@ -88,7 +96,7 @@ describe("Deployment", function() {
             execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: 'inherit' });
         }
 
-        // Make sure ArcadeTokenDistributor has the correct token set initialized correctly
+        // Make sure ArcadeTokenDistributor has the correct token for distribution set
         const ARCDDist = await ethers.getContractFactory("ArcadeTokenDistributor");
         const arcDst = <ArcadeTokenDistributor>await ARCDDist.attach(deployment["ArcadeTokenDistributor"].contractAddress);
 
@@ -97,9 +105,13 @@ describe("Deployment", function() {
         // Make sure ArcadeToken has the correct minter and distributor
         const ARCDToken = await ethers.getContractFactory("ArcadeToken");
         const arcToken = <ArcadeToken>await ARCDToken.attach(deployment["ArcadeToken"].contractAddress);
+        const Timelock = await ethers.getContractFactory("Timelock");
+        const timelock = <Timelock>await timelock.attach(deployment["Timelock"].contractAddress);
 
-        expect(await arcToken.minter()).to.equal(DEPLOYER_ADDRESS);
+        expect(await arcToken.minter()).to.equal(timelock.address);
         expect(await arcToken.distributor()).to.equal(deployment["ArcadeTokenDistributor"].contractAddress);
+
+
     });
 
     it("verifies all contracts on the proper network", async () => {
