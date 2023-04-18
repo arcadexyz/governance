@@ -177,7 +177,7 @@ describe("Deployment", function() {
             execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/verify-contracts.ts ${filename}`, { stdio: 'inherit' });
         }
 
-        const proxyArtifact = await artifacts.readArtifact("ERC1967Proxy");
+        const proxyArtifact = await artifacts.readArtifact("SimpleProxy");
 
         // For each contract - compare verified ABI against artifact ABI
         for (let contractName of Object.keys(deployment)) {
