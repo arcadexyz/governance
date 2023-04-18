@@ -11,7 +11,7 @@ import {
     MIN_PROPOSAL_POWER,
     BASE_QUORUM_GSC,
     MIN_PROPOSAL_POWER_GSC,
-    GSC_THRESHOLD
+    GSC_THRESHOLD,
 } from "./deployment-params";
 import { SUBSECTION_SEPARATOR, SECTION_SEPARATOR } from ".test/utils";
 
@@ -34,7 +34,9 @@ type ContractArgs = {
     coreVotingGSC: Contract;
     timelock: Contract;
     frozenLockingVaultImp: Contract;
-    simpleProxy: Contract;
+    frozenLockingVaultProxy: Contract;
+    vestingVaultImp: Contract;
+    vestingVaultProxy: Contract;
     gscVault: Contract;
     treasury: Contract;
 };
@@ -46,17 +48,21 @@ export async function main(
     coreVotingGSC: Contract,
     timelock: Contract,
     frozenLockingVaultImp: Contract,
-    simpleProxy: Contract,
+    frozenLockingVaultProxy: Contract,
+    vestingVaultImp: Contract,
+    vestingVaultProxy: Contract,
     gscVault: Contract,
     treasury: Contract
 ): Promise<void> {
-    const signers: SignerWithAddress[] = await hre.ethers.getSigners();
-    const [deployer] = signers;
-
     console.log(SECTION_SEPARATOR);
+    console.log("Setup contract state variables and relinquish control...");
 
     // set token in distributor
     await arcadeTokenDistributor.setToken(arcdToken.address);
+
+    // initialize upgradeable vesting vault
+    const vestingVault = await vestingVaultImp.attach(vestingVaultProxy.address);
+    await vestingVault.initialize(VESTING_VAULT_MANAGER, timelock.address);
 
     // set vaults in core voting
     await coreVoting.changeVaultStatus(simpleProxy.address, true);
@@ -102,7 +108,7 @@ if (require.main === module) {
 
     console.log("File:", file);
 
-    // assemble args to access the relevant deplyment json in .deployment
+    // assemble args to access the relevant deployment json in .deployment
     void attachAddresses(file).then((res: ContractArgs) => {
         const {
             arcadeTokenDistributor,

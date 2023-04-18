@@ -19,6 +19,15 @@ import {
     FrozenLockingVault,
 } from "../../../typechain";
 
+import {
+    BASE_QUORUM,
+    MIN_PROPOSAL_POWER,
+    BASE_QUORUM_GSC,
+    MIN_PROPOSAL_POWER_GSC,
+    GSC_THRESHOLD,
+    STALE_BLOCK_LAG
+} from "../deployment-params";
+
 /**
  * Note: Against normal conventions, these tests are interdependent and meant
  * to run sequentially. Each subsequent test relies on the state of the previous.
@@ -30,7 +39,7 @@ describe("Deployment", function() {
     this.timeout(0);
     this.bail();
 
-    it.only("deploys contracts and creates deployment artifacts", async () => {
+    it("deploys contracts and creates deployment artifacts", async () => {
         if (process.env.EXEC) {
             // Deploy everything, via command-line
             console.log(); // whitespace
@@ -111,7 +120,51 @@ describe("Deployment", function() {
         expect(await arcToken.minter()).to.equal(timelock.address);
         expect(await arcToken.distributor()).to.equal(deployment["ArcadeTokenDistributor"].contractAddress);
 
+        // Make sure CoreVoting has the correct state after deployment
+        const CVoting = await ethers.getContractFactory("CoreVoting");
+        const cvoting = <CoreVoting>await CVoting.attach(deployment["CoreVoting"].contractAddress);
+        const gscVault = await ethers.getContractFactory("GSCVault");
+        const gsc = <GSCVault>await gscVault.attach(deployment["GSCVault"].contractAddress);
 
+        expect(await cvoting.owner()).to.equal(timelock.address);
+        expect(await cvoting.baseQuorum()).to.equal(BASE_QUORUM);
+        expect(await cvoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER);
+        expect(await cvoting.authorized(gsc.address)).to.equal(true);
+
+        expect(await cvoting.approvedVaults(gsc.address)).to.equal(true);
+        expect(await cvoting.approvedVaults(frozenLockingVaultProxy.address)).to.equal(true);
+        expect(await cvoting.approvedVaults(vestingVaultProxy.address)).to.equal(true);
+
+        // Make sure CoreVotingGSC has the correct state after deployment
+        const CVotingGSC = await ethers.getContractFactory("CoreVotingGSC");
+        const cvotingGSC = <CoreVotingGSC>await CVotingGSC.attach(deployment["CoreVotingGSC"].contractAddress);
+
+        expect(await cvotingGSC.owner()).to.equal(timelock.address);
+        expect(await cvotingGSC.baseQuorum()).to.equal(BASE_QUORUM_GSC);
+        expect(await cvotingGSC.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_GSC);
+
+        // Make sure Timelock has the correct admin and pending admin
+        expect(await timelock.owner()).to.equal(cvoting.address);
+        expect(await timelock.authorized(cvotingGSC)).to.equal(true);
+
+        // verify GSC Vault has the correct state after deployment
+        expect(await gsc.owner()).to.equal(timelock.address);
+        expect(await gsc.coreVoting()).to.equal(cvoting.address);
+        expect(await gsc.votingPowerBound()).to.equal(GSC_THRESHOLD);
+
+        // verify FrozenLockingVault has the correct state after deployment
+        const FLV = await ethers.getContractFactory("FrozenLockingVaultImp");
+        const flv = await FLV.attach(deployment["FrozenLockingVaultProxy"].contractAddress);
+
+        expect(await flv.token()).to.equal(arcdToken.address);
+        expect(await flv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
+
+        // verify VestingVault has the correct state after deployment
+        const VV = await ethers.getContractFactory("VestingVaultImp");
+        const vv = await VV.attach(deployment["VestingVaultProxy"].contractAddress);
+
+        expect(await vv.token()).to.equal(arcdToken.address);
+        expect(await vv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
     });
 
     it("verifies all contracts on the proper network", async () => {

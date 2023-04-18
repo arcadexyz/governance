@@ -2,6 +2,7 @@ import hre, { ethers } from "hardhat";
 
 import {
     DEPLOYER_ADDRESS,
+    TREASURY_OWNER,
     TIMELOCK_WAIT_TIME,
     STALE_BLOCK_LAG,
     BASE_QUORUM,
@@ -61,7 +62,7 @@ export async function main(): Promise<DeployedResources> {
     console.log("ArcadeToken deployed to:", arcdTokenAddress);
 
     console.log(SECTION_SEPARATOR);
-    console.log("Deploying goverance...");
+    console.log("Deploying governance...");
     console.log(SUBSECTION_SEPARATOR);
 
     // core voting
@@ -142,13 +143,13 @@ export async function main(): Promise<DeployedResources> {
 
     // treasury
     const Treasury = await ethers.getContractFactory("Treasury");
-    const treasury = await Treasury.deploy(DEPLOYER_ADDRESS); // council has this as the timelock
+    const treasury = await Treasury.deploy(TREASURY_OWNER); // typically the timelock but can be changed after
     await treasury.deployed();
     const treasuryAddress = treasury.address;
     console.log("Treasury deployed to:", treasuryAddress);
     console.log(SUBSECTION_SEPARATOR);
 
-    console.log("Writing deployment artifacts..."")
+    console.log("Writing deployment artifacts...");
     await writeJson(
         arcdDistAddress,
         arcdTokenAddress,
