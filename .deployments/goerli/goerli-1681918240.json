@@ -1,0 +1,91 @@
+{
+  "ArcadeTokenDistributor": {
+    "contractAddress": "0x8F8f5ac6a93eFFa29cb82b84a9cADbCD800fFD01",
+    "contractImplementationAddress": "",
+    "constructorArgs": []
+  },
+  "ArcadeToken": {
+    "contractAddress": "0x7377Edd7cE0614F59C2382C3b1F82E72Cee3ff40",
+    "contractImplementationAddress": "",
+    "constructorArgs": [
+      "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
+      "0x8F8f5ac6a93eFFa29cb82b84a9cADbCD800fFD01"
+    ]
+  },
+  "CoreVoting": {
+    "contractAddress": "0x7AA7eaD7867691409075D0c4A3af5A29Bd3d5cCc",
+    "contractImplementationAddress": "",
+    "constructorArgs": [
+      "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
+      10,
+      3,
+      "0x0000000000000000000000000000000000000000",
+      []
+    ]
+  },
+  "CoreVotingGSC": {
+    "contractAddress": "0x484E0db407A6D1c69540C2Ec72AEF56942b39393",
+    "contractImplementationAddress": "",
+    "constructorArgs": [
+      "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
+      10,
+      1,
+      "0x0000000000000000000000000000000000000000",
+      []
+    ]
+  },
+  "Timelock": {
+    "contractAddress": "0x2694F56456c4da6b84d3F2968c0904C3C309D341",
+    "constructorArgs": [
+      259200,
+      "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
+      "0x0a606524006a48C4D93662aA935AEC203CaC98C1"
+    ]
+  },
+  "FrozenLockingVault": {
+    "contractAddress": "0xD14BE1cda30CC125118C32Ebd86c38469A0B54b8",
+    "constructorArgs": [
+      "0x7377Edd7cE0614F59C2382C3b1F82E72Cee3ff40",
+      17046361
+    ]
+  },
+  "FrozenLockingVaultProxy": {
+    "contractAddress": "0xb84717009A6294b704ED93F8Ec8bb801C50457F3",
+    "contractImplementationAddress": "0xD14BE1cda30CC125118C32Ebd86c38469A0B54b8",
+    "constructorArgs": [
+      "0x2694F56456c4da6b84d3F2968c0904C3C309D341",
+      "0xD14BE1cda30CC125118C32Ebd86c38469A0B54b8"
+    ]
+  },
+  "VestingVault": {
+    "contractAddress": "0x64dDee818Eb2869d7B7Cb1E0Aab2f5B4a576eBa7",
+    "constructorArgs": [
+      "0x7377Edd7cE0614F59C2382C3b1F82E72Cee3ff40",
+      17046361
+    ]
+  },
+  "VestingVaultProxy": {
+    "contractAddress": "0xd21e053492067d102487022D24d40778c9561d27",
+    "contractImplementationAddress": "0x64dDee818Eb2869d7B7Cb1E0Aab2f5B4a576eBa7",
+    "constructorArgs": [
+      "0x2694F56456c4da6b84d3F2968c0904C3C309D341",
+      "0x64dDee818Eb2869d7B7Cb1E0Aab2f5B4a576eBa7"
+    ]
+  },
+  "GSCVault": {
+    "contractAddress": "0x8BC2CE73fc22A8Ad03e1c0eCdD8890BFdd3f8393",
+    "contractImplementationAddress": "",
+    "constructorArgs": [
+      "0x7AA7eaD7867691409075D0c4A3af5A29Bd3d5cCc",
+      3,
+      "0x2694F56456c4da6b84d3F2968c0904C3C309D341"
+    ]
+  },
+  "Treasury": {
+    "contractAddress": "0x65994ec9ACA5818B14Eac4bA922831dBC955Ba49",
+    "contractImplementationAddress": "",
+    "constructorArgs": [
+      "0x0a606524006a48C4D93662aA935AEC203CaC98C1"
+    ]
+  }
+}

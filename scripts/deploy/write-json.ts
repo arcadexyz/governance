@@ -130,25 +130,25 @@ export async function createInfo(
         ]
     };
 
-    contractInfo["frozenLockingVaultImp"] = {
+    contractInfo["FrozenLockingVault"] = {
         contractAddress: frozenLockingVaultImpAddress,
         constructorArgs: [arcdTokenAddress, STALE_BLOCK_LAG]
     };
 
-    contractInfo["frozenLockingVaultProxy"] = {
+    contractInfo["FrozenLockingVaultProxy"] = {
         contractAddress: frozenLockingVaultProxyAddress,
-        contractImplementationAddress: await upgrades.erc1967.getImplementationAddress(frozenLockingVaultProxyAddress),
+        contractImplementationAddress: frozenLockingVaultImpAddress,
         constructorArgs: [timelockAddress, frozenLockingVaultImpAddress],
     };
 
-    contractInfo["vestingVaultImp"] = {
+    contractInfo["VestingVault"] = {
         contractAddress: vestingVaultImpAddress,
         constructorArgs: [arcdTokenAddress, STALE_BLOCK_LAG]
     };
 
-    contractInfo["vestingVaultProxy"] = {
+    contractInfo["VestingVaultProxy"] = {
         contractAddress: vestingVaultProxyAddress,
-        contractImplementationAddress: await upgrades.erc1967.getImplementationAddress(vestingVaultProxyAddress),
+        contractImplementationAddress: vestingVaultImpAddress,
         constructorArgs: [timelockAddress, vestingVaultImpAddress],
     };
 

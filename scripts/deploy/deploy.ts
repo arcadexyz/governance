@@ -156,9 +156,9 @@ export async function main(): Promise<DeployedResources> {
         coreVotingAddress,
         gscCoreVotingAddress,
         timelockAddress,
-        frozenLockingVaultImpAddress,
+        await frozenLockingVaultProxy.proxyImplementation(),
         frozenLockingVaultProxyAddress,
-        vestingVaultImpAddress,
+        await vestingVaultProxy.proxyImplementation(),
         vestingVaultProxyAddress,
         gscVaultAddress,
         treasuryAddress

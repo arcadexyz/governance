@@ -1,6 +1,7 @@
 export const DEPLOYER_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // deployer wallet
 
 export const TREASURY_OWNER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
+export const VESTING_VAULT_MANAGER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
 
 export const TIMELOCK_WAIT_TIME = 3600 * 24 * 3; // 3 days (3 days allows for a grace period that is longer than a weekend)
 export const STALE_BLOCK_LAG = 17046361; // Apr-14-2023 03:57:47 PM +UTC

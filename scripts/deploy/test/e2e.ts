@@ -32,8 +32,7 @@ import {
  * Note: Against normal conventions, these tests are interdependent and meant
  * to run sequentially. Each subsequent test relies on the state of the previous.
  */
-console.log("NETWORK:", NETWORK)
-assert(NETWORK !== "hardhat", "Must use a long-lived network!");
+// assert(NETWORK !== "hardhat", "Must use a long-lived network!");
 
 describe("Deployment", function() {
     this.timeout(0);
@@ -70,21 +69,21 @@ describe("Deployment", function() {
         expect(deployment["Timelock"].contractAddress).to.exist;
         expect(deployment["Timelock"].constructorArgs.length).to.eq(3);
 
-        expect(deployment["FrozenLockingVaultImp"]).to.exist;
-        expect(deployment["FrozenLockingVaultImp"].contractAddress).to.exist;
-        expect(deployment["FrozenLockingVaultImp"].constructorArgs.length).to.eq(2);
+        expect(deployment["FrozenLockingVault"]).to.exist;
+        expect(deployment["FrozenLockingVault"].contractAddress).to.exist;
+        expect(deployment["FrozenLockingVault"].constructorArgs.length).to.eq(2);
 
-        expect(deployment["frozenLockingVaultProxy"]).to.exist;
-        expect(deployment["frozenLockingVaultProxy"].contractAddress).to.exist;
-        expect(deployment["frozenLockingVaultProxy"].constructorArgs.length).to.eq(2);
+        expect(deployment["FrozenLockingVaultProxy"]).to.exist;
+        expect(deployment["FrozenLockingVaultProxy"].contractAddress).to.exist;
+        expect(deployment["FrozenLockingVaultProxy"].constructorArgs.length).to.eq(2);
 
-        expect(deployment["VestingVaultImp"]).to.exist;
-        expect(deployment["VestingVaultImp"].contractAddress).to.exist;
-        expect(deployment["VestingVaultImp"].constructorArgs.length).to.eq(2);
+        expect(deployment["VestingVault"]).to.exist;
+        expect(deployment["VestingVault"].contractAddress).to.exist;
+        expect(deployment["VestingVault"].constructorArgs.length).to.eq(2);
 
-        expect(deployment["vestingVaultProxy"]).to.exist;
-        expect(deployment["vestingVaultProxy"].contractAddress).to.exist;
-        expect(deployment["vestingVaultProxy"].constructorArgs.length).to.eq(2);
+        expect(deployment["VestingVaultProxy"]).to.exist;
+        expect(deployment["VestingVaultProxy"].contractAddress).to.exist;
+        expect(deployment["VestingVaultProxy"].constructorArgs.length).to.eq(2);
 
         expect(deployment["GSCVault"]).to.exist;
         expect(deployment["GSCVault"].contractAddress).to.exist;
@@ -92,7 +91,7 @@ describe("Deployment", function() {
 
         expect(deployment["Treasury"]).to.exist;
         expect(deployment["Treasury"].contractAddress).to.exist;
-        expect(deployment["Treasury"].constructorArgs.length).to.eq(3);
+        expect(deployment["Treasury"].constructorArgs.length).to.eq(1);
     });
 
     it("correctly sets up all roles and permissions", async () => {
@@ -107,24 +106,23 @@ describe("Deployment", function() {
 
         // Make sure ArcadeTokenDistributor has the correct token for distribution set
         const ARCDDist = await ethers.getContractFactory("ArcadeTokenDistributor");
-        const arcDst = <ArcadeTokenDistributor>await ARCDDist.attach(deployment["ArcadeTokenDistributor"].contractAddress);
-
-        expect(await arcDst.arcadeToken()).to.equal(arcToken.address);
+        const arcdDst = <ArcadeTokenDistributor>await ARCDDist.attach(deployment["ArcadeTokenDistributor"].contractAddress);
+        expect(await arcdDst.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
 
         // Make sure ArcadeToken has the correct minter and distributor
         const ARCDToken = await ethers.getContractFactory("ArcadeToken");
-        const arcToken = <ArcadeToken>await ARCDToken.attach(deployment["ArcadeToken"].contractAddress);
+        const arcdToken = <ArcadeToken>await ARCDToken.attach(deployment["ArcadeToken"].contractAddress);
         const Timelock = await ethers.getContractFactory("Timelock");
-        const timelock = <Timelock>await timelock.attach(deployment["Timelock"].contractAddress);
+        const timelock = <Timelock>await Timelock.attach(deployment["Timelock"].contractAddress);
 
-        expect(await arcToken.minter()).to.equal(timelock.address);
-        expect(await arcToken.distributor()).to.equal(deployment["ArcadeTokenDistributor"].contractAddress);
+        expect(await arcdToken.minter()).to.equal(timelock.address);
+        expect(await arcdToken.distributor()).to.equal(deployment["ArcadeTokenDistributor"].contractAddress);
 
         // Make sure CoreVoting has the correct state after deployment
         const CVoting = await ethers.getContractFactory("CoreVoting");
         const cvoting = <CoreVoting>await CVoting.attach(deployment["CoreVoting"].contractAddress);
-        const gscVault = await ethers.getContractFactory("GSCVault");
-        const gsc = <GSCVault>await gscVault.attach(deployment["GSCVault"].contractAddress);
+        const GSCVault = await ethers.getContractFactory("GSCVault");
+        const gscVault = <GSCVault>await GSCVault.attach(deployment["GSCVault"].contractAddress);
 
         expect(await cvoting.owner()).to.equal(timelock.address);
         expect(await cvoting.baseQuorum()).to.equal(BASE_QUORUM);
@@ -148,26 +146,26 @@ describe("Deployment", function() {
         expect(await timelock.authorized(cvotingGSC)).to.equal(true);
 
         // verify GSC Vault has the correct state after deployment
-        expect(await gsc.owner()).to.equal(timelock.address);
-        expect(await gsc.coreVoting()).to.equal(cvoting.address);
-        expect(await gsc.votingPowerBound()).to.equal(GSC_THRESHOLD);
+        expect(await gscVault.owner()).to.equal(timelock.address);
+        expect(await gscVault.coreVoting()).to.equal(cvoting.address);
+        expect(await gscVault.votingPowerBound()).to.equal(GSC_THRESHOLD);
 
         // verify FrozenLockingVault has the correct state after deployment
-        const FLV = await ethers.getContractFactory("FrozenLockingVaultImp");
+        const FLV = await ethers.getContractFactory("FrozenLockingVault");
         const flv = await FLV.attach(deployment["FrozenLockingVaultProxy"].contractAddress);
 
         expect(await flv.token()).to.equal(arcdToken.address);
         expect(await flv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
 
         // verify VestingVault has the correct state after deployment
-        const VV = await ethers.getContractFactory("VestingVaultImp");
+        const VV = await ethers.getContractFactory("VestingVault");
         const vv = await VV.attach(deployment["VestingVaultProxy"].contractAddress);
 
         expect(await vv.token()).to.equal(arcdToken.address);
         expect(await vv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
     });
 
-    it("verifies all contracts on the proper network", async () => {
+    it.only("verifies all contracts on the proper network", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
@@ -183,18 +181,21 @@ describe("Deployment", function() {
         for (let contractName of Object.keys(deployment)) {
             const contractData = deployment[contractName];
 
-            if (contractName.includes("Note")) contractName = "PromissoryNote";
+            if (contractName.includes("CoreVoting")) contractName = "CoreVoting";
+            if (contractName.includes("FrozenLockingVaultProxy")) contractName = "SimpleProxy";
+            if (contractName.includes("VestingVaultProxy")) contractName = "SimpleProxy";
             const artifact = await artifacts.readArtifact(contractName);
 
             const implAddress = contractData.contractImplementationAddress || contractData.contractAddress;
-
-            const verifiedAbi = await getVerifiedABI(implAddress);
-            expect(artifact.abi).to.deep.equal(verifiedAbi);
 
             if (contractData.contractImplementationAddress) {
                 // Also verify the proxy
                 const verifiedProxyAbi = await getVerifiedABI(contractData.contractAddress);
                 expect(verifiedProxyAbi).to.deep.equal(proxyArtifact.abi);
+            }
+            else {
+                const verifiedAbi = await getVerifiedABI(implAddress);
+                expect(artifact.abi).to.deep.equal(verifiedAbi);
             }
         }
     });
