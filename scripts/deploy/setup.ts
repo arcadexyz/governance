@@ -60,28 +60,39 @@ export async function main(
     console.log(SECTION_SEPARATOR);
     console.log("Setup contract state variables and relinquish control...");
     // set token in distributor
-    await arcadeTokenDistributor.setToken(arcadeToken.address);
+    tx1 = await arcadeTokenDistributor.setToken(arcadeToken.address);
+    await tx1.wait();
 
     // initialize upgradeable vesting vault
     const vvProxy = await vestingVault.attach(vestingVaultProxy.address);
-    await vvProxy.initialize(VESTING_VAULT_MANAGER, timelock.address);
+    tx2 = await vvProxy.initialize(VESTING_VAULT_MANAGER, timelock.address);
+    await tx2.wait();
 
     // set vaults in core voting
-    await coreVoting.changeVaultStatus(frozenLockingVaultProxy.address, true);
-    await coreVoting.changeVaultStatus(treasury.address, true);
-    await coreVotingGSC.changeVaultStatus(gscVault.address, true);
+    const tx3 = await coreVoting.changeVaultStatus(frozenLockingVaultProxy.address, true);
+    await tx3.wait();
+    const tx4 = await coreVoting.changeVaultStatus(treasury.address, true);
+    await tx4.wait();
+    const tx5 = await coreVotingGSC.changeVaultStatus(gscVault.address, true);
+    await tx5.wait();
 
     // authorize gsc vault and change owner to be the coreVoting contract
-    await coreVoting.authorize(coreVotingGSC.address);
-    await coreVoting.setOwner(timelock.address);
+    const tx6 = await coreVoting.authorize(coreVotingGSC.address);
+    await tx6.wait();
+    const tx7 = await coreVoting.setOwner(timelock.address);
+    await tx7.wait();
 
     // set authorized and owner in timelock
-    await timelock.deauthorize(DEPLOYER_ADDRESS);
-    await timelock.authorize(coreVotingGSC.address);
-    await timelock.setOwner(coreVoting.address);
+    const tx8 = await timelock.deauthorize(DEPLOYER_ADDRESS);
+    await tx8.wait();
+    const tx9 = await timelock.authorize(coreVotingGSC.address);
+    await tx9.wait();
+    const tx10 = await timelock.setOwner(coreVoting.address);
+    await tx10.wait();
 
     // authorize gsc vault and set timelock address
-    await coreVotingGSC.setOwner(timelock.address);
+    const tx11 = await coreVotingGSC.setOwner(timelock.address);
+    await tx11.wait();
 }
 
 async function attachAddresses(jsonFile: string): Promise<ContractArgs> {
@@ -93,7 +104,7 @@ async function attachAddresses(jsonFile: string): Promise<ContractArgs> {
         if (!(key in jsonContracts)) continue;
 
         const argKey = jsonContracts[key];
-        console.log(`Key: ${key}, address: ${jsonData[key]["contractAddress"]}`);
+        // console.log(`Key: ${key}, address: ${jsonData[key]["contractAddress"]}`);
 
         let contract: Contract;
         if (key === "CoreVotingGSC") {

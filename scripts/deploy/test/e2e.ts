@@ -165,7 +165,7 @@ describe("Deployment", function() {
         expect(await vv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
     });
 
-    it.only("verifies all contracts on the proper network", async () => {
+    it("verifies all contracts on the proper network", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
