@@ -35,12 +35,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     // A constant which determines the block before which blocks are ignored
     uint256 public immutable staleBlockLag;
 
-    // A constant which determines the maximum multiplier
-    /* solhint-disable var-name-mixedcase */
-    uint128 public immutable MAX_MULTIPLIER = 1.5e18;
-
-    uint128 public immutable MULTIPLIER_DENOMINATOR = 1;
-
     // ========================================== CONSTRUCTOR ===========================================
 
     /**

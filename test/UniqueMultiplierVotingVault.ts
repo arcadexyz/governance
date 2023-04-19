@@ -433,6 +433,80 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
             );
             expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(multiplierA));
         });
+
+        it("Reverts if a user tries to withdraw an ERC20 amount larger than their withdrawable amount", async () => {
+            // invoke the fixture
+            ctxVault = await votingVaultFixture();
+
+            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts } = ctxVault;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            const txA = await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            const receiptA = await txA.wait();
+
+            // get votingPower multiplier A
+            let multiplierA: BigNumberish;
+            if (receiptA && receiptA.events) {
+                const userMultiplier = new ethers.utils.Interface([
+                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+                ]);
+                const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
+                multiplierA = log.args.multiplier;
+            } else {
+                throw new Error("Multiplier not set");
+            }
+
+            // initialize history for signers[1]
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
+            await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+
+            // signers[1] registers reputation NFT, deposits EIGHT tokens and delegates to self
+            const tx = await (
+                await uniqueMultiplierVotingVault
+                    .connect(signers[1])
+                    .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[1].address)
+            ).wait();
+
+            // signers[0] approves 5 tokens to unique multiplier voting vault and reputation nft
+            await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+
+            // signers[0] registers reputation NFT, deposits FIVE tokens and delegates to self
+            await uniqueMultiplierVotingVault.addNftAndDelegate(
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[0].address,
+            );
+
+            // get signers 1 voting power amount
+            const votingPower = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx.blockNumber,
+            );
+            expect(votingPower).to.be.eq(ONE.mul(8).mul(multiplierA));
+
+            // signers 1 withdraws THREE tokens
+            const tx2 = await uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(3));
+            const votingPower2 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx2.blockNumber,
+            );
+            expect(votingPower2).to.be.eq(ONE.mul(5).mul(multiplierA));
+
+            // calculate sigerns[1] withdrawable amount
+            const withdrawable = votingPower2.div(multiplierA);
+            expect(withdrawable).to.be.eq(ONE.mul(5));
+
+            // signers 1 tries to withdraw SIX tokens (less than registration amount but larger than withdrawable amount)
+            const tx3 = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(6));
+            await expect(tx3).to.be.revertedWith("UMVV_InsufficientWithdrawableBalance");
+        });
     });
 
     describe("Multiplier functionality", async () => {
@@ -681,7 +755,7 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
 
             // user calls withdraws ERC1155
             const tx = uniqueMultiplierVotingVault.withdrawNft();
-            await expect(tx).to.be.revertedWith("UMVV_DoesNotOwn");
+            await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("0x0000000000000000000000000000000000000000", 0)`);
         });
 
         it("Reduces delegatee votingPower if withdrawNft() is called and user tokens are still locked", async () => {
@@ -747,11 +821,12 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 signers[1].address,
                 tx2.blockNumber,
             );
+
             // expect only the votinPower amount associated with signers 0 to have the multiplier value eliminated
             expect(votingPowerAfter).to.be.eq(ONE.mul(multiplierA).add(ONE.mul(5)));
         });
 
-        it("When can change their reputation nft wiht updateNft()", async () => {
+        it("User can change their multiplier with updateNft()", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
 
@@ -836,6 +911,9 @@ describe("Vote Execution with Unique Multiplier Voting Vault", async () => {
                 tx1.blockNumber,
             );
             expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA));
+
+            // signers[0] approves approves other reputation nft to voting vault
+            await reputationNft2.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
             // signers[0] updates their reputation nft to reputationNft2 which is associated with multiplierB
             const tx2 = await uniqueMultiplierVotingVault.updateNft(1, reputationNft2.address);

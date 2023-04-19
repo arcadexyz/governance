@@ -42,15 +42,27 @@ error UMVV_InsufficientBalance();
 error UMVV_InsufficientRegistrationBalance();
 
 /**
+ * @notice Withdrawable tokens less than withdraw request amount.
+ */
+error UMVV_InsufficientWithdrawableBalance();
+
+/**
  * @notice Multiplier limit exceeded.
  */
 error UMVV_MultiplierLimit();
 
 /**
- * @notice No multiplier has been set for token .
- *
+ * @notice No multiplier has been set for token.
  */
 error UMVV_NoMultiplierSet();
+
+/**
+ * @notice The provided token address and token id are invalid.
+ *
+ * @param tokenAddress              The token address provided.
+ * @param tokenId                   The token id provided.
+ */
+error UMVV_InvalidNft(address tokenAddress, uint256 tokenId);
 
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
