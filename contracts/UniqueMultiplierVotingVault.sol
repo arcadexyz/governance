@@ -452,7 +452,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) internal view virtual returns (uint256) {
         uint256 locked = registration.amount - registration.withdrawn;
 
-        if ((registration.tokenAddress != address(0)) && (registration.tokenId != 0)) {
+        if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
             return locked * getMultiplier(registration.tokenAddress, registration.tokenId);
         }
 
