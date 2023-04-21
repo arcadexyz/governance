@@ -4,6 +4,14 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 import {
+    CHANGE_VAULT_STATUS,
+    CHANGE_VAULT_STATUS_QUORUM,
+    SET_LOCK_DURATION,
+    SET_LOCK_DURATION_QUORUM,
+    CHANGE_EXTRA_VOTING_TIME,
+    CHANGE_EXTRA_VOTING_TIME_QUORUM
+} from "./custom-quorum-params";
+import {
     DEPLOYER_ADDRESS,
     TIMELOCK_WAIT_TIME,
     STALE_BLOCK_LAG,
@@ -60,12 +68,11 @@ export async function main(
     console.log(SECTION_SEPARATOR);
     console.log("Setup contract state variables and relinquish control...");
     // set token in distributor
-    tx1 = await arcadeTokenDistributor.setToken(arcadeToken.address);
+    const tx1 = await arcadeTokenDistributor.setToken(arcadeToken.address);
     await tx1.wait();
 
     // initialize upgradeable vesting vault
-    const vvProxy = await vestingVault.attach(vestingVaultProxy.address);
-    tx2 = await vvProxy.initialize(VESTING_VAULT_MANAGER, timelock.address);
+    const tx2 = await vestingVaultProxy.initialize(VESTING_VAULT_MANAGER, timelock.address);
     await tx2.wait();
 
     // set vaults in core voting
@@ -76,23 +83,34 @@ export async function main(
     const tx5 = await coreVotingGSC.changeVaultStatus(gscVault.address, true);
     await tx5.wait();
 
-    // authorize gsc vault and change owner to be the coreVoting contract
-    const tx6 = await coreVoting.authorize(coreVotingGSC.address);
+    // before transferring over ownership, set the custom quorum thresholds
+    // treasury ??
+    // timelock ??
+    // coreVoting
+    const tx6 = await coreVoting.setCustomQuorum(coreVoting.address, CHANGE_VAULT_STATUS, CHANGE_VAULT_STATUS_QUORUM);
     await tx6.wait();
-    const tx7 = await coreVoting.setOwner(timelock.address);
+    const tx7 = await coreVoting.setCustomQuorum(coreVoting.address, SET_LOCK_DURATION, SET_LOCK_DURATION_QUORUM);
     await tx7.wait();
-
-    // set authorized and owner in timelock
-    const tx8 = await timelock.deauthorize(DEPLOYER_ADDRESS);
+    const tx8 = await coreVoting.setCustomQuorum(coreVoting.address, CHANGE_EXTRA_VOTING_TIME, CHANGE_EXTRA_VOTING_TIME_QUORUM);
     await tx8.wait();
-    const tx9 = await timelock.authorize(coreVotingGSC.address);
+
+    // authorize gsc vault and change owner to be the coreVoting contract
+    const tx9 = await coreVoting.authorize(coreVotingGSC.address);
     await tx9.wait();
-    const tx10 = await timelock.setOwner(coreVoting.address);
+    const tx10 = await coreVoting.setOwner(timelock.address);
     await tx10.wait();
 
-    // authorize gsc vault and set timelock address
-    const tx11 = await coreVotingGSC.setOwner(timelock.address);
+    // set authorized and owner in timelock
+    const tx11 = await timelock.deauthorize(DEPLOYER_ADDRESS);
     await tx11.wait();
+    const tx12 = await timelock.authorize(coreVotingGSC.address);
+    await tx12.wait();
+    const tx13 = await timelock.setOwner(coreVoting.address);
+    await tx13.wait();
+
+    // authorize gsc vault and set timelock address
+    const tx14 = await coreVotingGSC.setOwner(timelock.address);
+    await tx14.wait();
 }
 
 async function attachAddresses(jsonFile: string): Promise<ContractArgs> {
