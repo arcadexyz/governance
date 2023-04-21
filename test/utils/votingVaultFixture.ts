@@ -8,7 +8,7 @@ import { Timelock } from "../../src/types";
 import { UniqueMultiplierVotingVault } from "../../src/types/contracts/UniqueMultiplierVotingVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
-import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
+import { LockingVault, VestingVault } from "../../src/types/contracts/external/council/vaults";
 import { deploy } from "./contracts";
 
 type Signer = SignerWithAddress;
@@ -41,7 +41,7 @@ interface Multipliers {
 }
 
 /**
- * This fixture creates a coreVoting deployment with a timelock and lockingVault,
+ * This fixture creates a coreVoting deployment with a timelock and voting vaults,
  * with the parameters for each.
  */
 export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
