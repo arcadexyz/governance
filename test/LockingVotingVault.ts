@@ -5,7 +5,7 @@ import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultF
 
 const { provider } = waffle;
 
-describe("Vote Execution with Locking Voting Vault", async () => {
+describe("Governance Operations with Locking Voting Vault", async () => {
     let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");

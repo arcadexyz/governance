@@ -1,12 +1,11 @@
 import { expect } from "chai";
-import { BigNumberish } from "ethers";
 import { ethers, waffle } from "hardhat";
 
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
 
-describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", async () => {
+describe("Governance Operations with Locking and Unique Multiplier Voting Vaults", async () => {
     let ctxVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
@@ -32,6 +31,7 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
                 reputationNft,
                 reputationNft2,
                 mintNfts,
+                setMultipliers,
                 feeController,
                 votingVaults,
             } = ctxVault;
@@ -40,40 +40,7 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const txA = await uniqueMultiplierVotingVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
-            const receiptA = await txA.wait();
-
-            // get votingPower multiplier A
-            let multiplierA: BigNumberish;
-            if (receiptA && receiptA.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
-                multiplierA = log.args.multiplier;
-            } else {
-                throw new Error("Multiplier not set");
-            }
-
-            // manager sets the value of the reputation NFT 2's multiplier
-            const txB = await uniqueMultiplierVotingVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
-            const receiptB = await txB.wait();
-
-            // get votingPower multiplier B
-            let multiplierB: BigNumberish;
-            if (receiptB && receiptB.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receiptB.events[receiptB.events.length - 1]);
-                multiplierB = log.args.multiplier;
-            } else {
-                throw new Error("Multiplier not set");
-            }
+            const { multiplierA, multiplierB } = await setMultipliers();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -201,6 +168,7 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
                 lockingVotingVault,
                 reputationNft,
                 mintNfts,
+                setMultipliers,
                 feeController,
                 votingVaults,
             } = ctxVault;
@@ -208,23 +176,8 @@ describe("Vote Execution with Locking and Unique Multiplier Voting Vaults", asyn
             // mint users some reputation nfts
             await mintNfts();
 
-            // manager sets the value of the reputation NFT multiplier
-            const txA = await uniqueMultiplierVotingVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
-            const receiptA = await txA.wait();
-
-            // get votingPower multiplier A
-            let multiplierA: BigNumberish;
-            if (receiptA && receiptA.events) {
-                const userMultiplier = new ethers.utils.Interface([
-                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
-                ]);
-                const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
-                multiplierA = log.args.multiplier;
-            } else {
-                throw new Error("Multiplier not set");
-            }
+            // manager sets the multiplier values
+            const { multiplierA } = await setMultipliers();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant

@@ -37,14 +37,12 @@ error UMVV_AlreadyDelegated();
 error UMVV_InsufficientBalance();
 
 /**
- * @notice Deposited tokens less than withdraw amount.
- */
-error UMVV_InsufficientRegistrationBalance();
-
-/**
  * @notice Withdrawable tokens less than withdraw request amount.
+ *
+ * @param withdrawable              The returned withrawable amount from
+ *                                  a user's registration.
  */
-error UMVV_InsufficientWithdrawableBalance();
+error UMVV_InsufficientWithdrawableBalance(uint256 withdrawable);
 
 /**
  * @notice Multiplier limit exceeded.

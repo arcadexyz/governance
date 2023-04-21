@@ -17,7 +17,6 @@ import {
     UMVV_HasRegistration,
     UMVV_AlreadyDelegated,
     UMVV_InsufficientBalance,
-    UMVV_InsufficientRegistrationBalance,
     UMVV_InsufficientWithdrawableBalance,
     UMVV_MultiplierLimit,
     UMVV_NoMultiplierSet,
@@ -220,25 +219,22 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // load the registration
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
-        // get the withdrawable amount
-        uint256 withdrawable = _getWithdrawableAmount(registration);
-
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
-
         if (balance.data < amount) revert UMVV_InsufficientBalance();
-        if (registration.amount < amount) revert UMVV_InsufficientRegistrationBalance();
-        if (withdrawable < amount) revert UMVV_InsufficientWithdrawableBalance();
 
-        if (withdrawable >= amount) {
-            // update contract balance
-            balance.data -= amount;
-            // update withdrawn amount
-            registration.withdrawn += amount;
-            // update the delegatee's voting power. Varies based on the multiplier associated with the
-            // user's ERC1155 token at the time of the call
-            _syncVotingPower(msg.sender, registration);
-        }
+        // get the withdrawable amount
+        uint256 withdrawable = _getWithdrawableAmount(registration);
+        if (registration.amount < amount || withdrawable == 0 || withdrawable < amount)
+            revert UMVV_InsufficientWithdrawableBalance(withdrawable);
+
+        // update contract balance
+        balance.data -= amount;
+        // update withdrawn amount
+        registration.withdrawn += amount;
+        // update the delegatee's voting power. Varies based on the multiplier associated with the
+        // user's ERC1155 token at the time of the call
+        _syncVotingPower(msg.sender, registration);
 
         if (registration.withdrawn == registration.amount) {
             if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
@@ -288,12 +284,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
      */
     function updateNft(uint128 newTokenId, address newTokenAddress) external nonReentrant {
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
-
-        if (registration.tokenAddress == address(0) || registration.tokenId == 0)
-            revert UMVV_InvalidNft(registration.tokenAddress, registration.tokenId);
+        if (newTokenAddress == address(0) || newTokenId == 0) revert UMVV_InvalidNft(newTokenAddress, newTokenId);
 
         if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert UMVV_DoesNotOwn();
+
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // withdraw the current ERC1155 from the registration
         withdrawNft();

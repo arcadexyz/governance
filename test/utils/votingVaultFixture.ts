@@ -1,5 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { constants } from "ethers";
+import { BigNumberish, constants } from "ethers";
 import hre, { ethers, waffle } from "hardhat";
 import "module-alias/register";
 
@@ -28,6 +28,12 @@ export interface TestContextVotingVault {
     reputationNft2: MockERC1155;
     feeController: FeeController;
     mintNfts(): Promise<void>;
+    setMultipliers(): Promise<Multipliers>;
+}
+
+interface Multipliers {
+    multiplierA: BigNumberish;
+    multiplierB: BigNumberish;
 }
 
 /**
@@ -142,6 +148,49 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         }
     };
 
+    const setMultipliers = async (): Promise<Multipliers> => {
+        // manager sets the value of the reputation NFT multiplier
+        const txA = await uniqueMultiplierVotingVault
+            .connect(signers[0])
+            .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+        const receiptA = await txA.wait();
+
+        // get votingPower multiplier A
+        let multiplierA;
+        if (receiptA && receiptA.events) {
+            const userMultiplier = new ethers.utils.Interface([
+                "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+            ]);
+            const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
+            multiplierA = log.args.multiplier;
+        } else {
+            throw new Error("Multiplier not set");
+        }
+
+        // manager sets the value of the reputation NFT 2's multiplier
+        const txB = await uniqueMultiplierVotingVault
+            .connect(signers[0])
+            .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
+        const receiptB = await txB.wait();
+
+        // get votingPower multiplier B
+        let multiplierB;
+        if (receiptB && receiptB.events) {
+            const userMultiplier = new ethers.utils.Interface([
+                "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+            ]);
+            const log = userMultiplier.parseLog(receiptB.events[receiptB.events.length - 1]);
+            multiplierB = log.args.multiplier;
+        } else {
+            throw new Error("Multiplier not set");
+        }
+
+        return {
+            multiplierA,
+            multiplierB,
+        };
+    };
+
     return {
         signers,
         lockingVotingVault,
@@ -155,6 +204,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         getBlock,
         tokenAddress,
         mintNfts,
+        setMultipliers,
         reputationNft,
         reputationNft2,
     };
