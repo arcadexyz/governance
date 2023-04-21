@@ -20,7 +20,9 @@ import {
     UMVV_InsufficientWithdrawableBalance,
     UMVV_MultiplierLimit,
     UMVV_NoMultiplierSet,
-    UMVV_InvalidNft
+    UMVV_InvalidNft,
+    UMVV_ZeroAmount,
+    UMVV_AlreadyInitialized
 } from "./errors/Governance.sol";
 
 /**
@@ -82,7 +84,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      */
     function initialize(address manager) public {
-        require(Storage.uint256Ptr("initialized").data == 0, "initialized");
+        require(Storage.uint256Ptr("initialized").data == 0, "UMVV_AlreadyInitialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("manager"), manager);
         Storage.set(Storage.uint256Ptr("entered"), 1);
@@ -109,7 +111,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) external virtual nonReentrant {
         address who = msg.sender;
         uint128 withdrawn = 0;
-        uint128 blockNumber = uint128(block.number);
         uint256 multiplier = 1e18;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
@@ -140,7 +141,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // set the new registration
         _getRegistrations()[who] = VotingVaultStorage.Registration(
             amount,
-            blockNumber,
             newVotingPower,
             withdrawn,
             tokenId,
@@ -216,6 +216,8 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
+        if (amount == 0) revert UMVV_ZeroAmount();
+
         // load the registration
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -225,8 +227,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(registration);
-        if (registration.amount < amount || withdrawable == 0 || withdrawable < amount)
-            revert UMVV_InsufficientWithdrawableBalance(withdrawable);
+        if (withdrawable < amount) revert UMVV_InsufficientWithdrawableBalance(withdrawable);
 
         // update contract balance
         balance.data -= amount;
@@ -420,10 +421,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function _getWithdrawableAmount(
         VotingVaultStorage.Registration memory registration
     ) internal view returns (uint256) {
-        if (block.number < registration.blockNumber) {
-            return 0;
-        }
-
         if (registration.withdrawn == registration.amount) {
             return 0;
         }

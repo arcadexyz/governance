@@ -62,6 +62,16 @@ error UMVV_NoMultiplierSet();
  */
 error UMVV_InvalidNft(address tokenAddress, uint256 tokenId);
 
+/**
+ * @notice User is calling withdraw() with zero amount.
+ */
+error UMVV_ZeroAmount();
+
+/**
+ * @notice Unique Multiplier Voting Vault already initialized.
+ */
+error UMVV_AlreadyInitialized();
+
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
 

@@ -26,7 +26,6 @@ library VotingVaultStorage {
     // A struct which represents 1 packed storage location (Registration)
     struct Registration {
         uint128 amount; // token amount
-        uint128 blockNumber; // blockNumber of Registration txn
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
         uint128 tokenId; // ERC1155 token id
