@@ -32,8 +32,8 @@ export interface TestContextVotingVault {
 }
 
 interface Multipliers {
-    multiplierA: BigNumberish;
-    multiplierB: BigNumberish;
+    MULTIPLIER_A: BigNumberish;
+    MULTIPLIER_B: BigNumberish;
 }
 
 /**
@@ -156,13 +156,13 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         const receiptA = await txA.wait();
 
         // get votingPower multiplier A
-        let multiplierA;
+        let MULTIPLIER_A;
         if (receiptA && receiptA.events) {
             const userMultiplier = new ethers.utils.Interface([
                 "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
             ]);
             const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
-            multiplierA = log.args.multiplier;
+            MULTIPLIER_A = log.args.multiplier;
         } else {
             throw new Error("Multiplier not set");
         }
@@ -174,20 +174,20 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         const receiptB = await txB.wait();
 
         // get votingPower multiplier B
-        let multiplierB;
+        let MULTIPLIER_B;
         if (receiptB && receiptB.events) {
             const userMultiplier = new ethers.utils.Interface([
                 "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
             ]);
             const log = userMultiplier.parseLog(receiptB.events[receiptB.events.length - 1]);
-            multiplierB = log.args.multiplier;
+            MULTIPLIER_B = log.args.multiplier;
         } else {
             throw new Error("Multiplier not set");
         }
 
         return {
-            multiplierA,
-            multiplierB,
+            MULTIPLIER_A,
+            MULTIPLIER_B,
         };
     };
 

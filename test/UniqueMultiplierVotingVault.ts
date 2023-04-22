@@ -39,7 +39,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA, multiplierB } = await setMultipliers();
+            const { MULTIPLIER_A, MULTIPLIER_B } = await setMultipliers();
 
             // signers[0] approves tokens to unique multiplier vault and approves reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
@@ -57,7 +57,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPower).to.be.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signer tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -73,7 +73,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx1.blockNumber,
             );
-            expect(votingPower1).to.be.eq(ONE.mul(6).mul(multiplierA).div(ONE));
+            expect(votingPower1).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
 
             // approve signer tokens to unique multiplier voting vault
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE.mul(3));
@@ -88,7 +88,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[0].address,
                 tx2.blockNumber,
             );
-            expect(votingPower2).to.be.eq(ONE.mul(3).mul(multiplierB).div(ONE));
+            expect(votingPower2).to.be.eq(ONE.mul(3).mul(MULTIPLIER_B).div(ONE));
 
             // signers[1] approves ONE tokens to voting vault and approves reputation nft
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(3));
@@ -104,7 +104,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[2].address,
                 tx3.blockNumber,
             );
-            expect(votingPower3).to.be.eq(ONE.mul(3).mul(multiplierA).div(ONE));
+            expect(votingPower3).to.be.eq(ONE.mul(3).mul(MULTIPLIER_A).div(ONE));
 
             // proposal creation to update originationFee in FeeController
             // check current originationFee value
@@ -152,7 +152,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -184,7 +184,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPower).to.be.eq(ONE.mul(6).mul(multiplierA).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] withdraws ONE token
             await uniqueMultiplierVotingVault.connect(signers[0]).withdraw(ONE);
@@ -198,7 +198,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // get delegatee voting power after
             const votingPowerAfter = await uniqueMultiplierVotingVault.queryVotePowerView(signers[1].address, nowBlock);
             // confirm that delegatee voting power is ONE less than before withdrawal
-            expect(votingPowerAfter).to.eq(votingPower.sub(ONE.mul(multiplierA).div(ONE)));
+            expect(votingPowerAfter).to.eq(votingPower.sub(ONE.mul(MULTIPLIER_A).div(ONE)));
         });
 
         it("Full token withdrawal reduces delegatee voting power. Withdrawn tokens transferred back to user", async () => {
@@ -212,7 +212,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -226,7 +226,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const now = getBlock();
             // get signers[1] voting power before they receive any further delegation
             const votingPowerBefore = await uniqueMultiplierVotingVault.queryVotePowerView(signers[1].address, now);
-            expect(votingPowerBefore).to.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPowerBefore).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] approves 5 tokens to voting vault and approves reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -254,7 +254,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPower).to.be.eq(ONE.mul(6).mul(multiplierA).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] balance before they withdraw
             const withdrawerBalBefore = await token.balanceOf(signers[0].address);
@@ -273,7 +273,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 afterBlock,
             );
             // confirm that the delegatee voting is now less
-            expect(votingPowerAfter).to.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPowerAfter).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] balance after withdraw
             const withdrawerBalAfter = await token.balanceOf(signers[0].address);
@@ -295,7 +295,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -325,7 +325,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPowerSignersOne).to.be.eq(ONE.mul(6).mul(multiplierA).div(ONE));
+            expect(votingPowerSignersOne).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
 
             // signers [3] approves tokens to voting vault and approves reputation nft
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -341,7 +341,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[0].address,
                 tx2.blockNumber,
             );
-            expect(votingPowerSignersZero).to.be.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPowerSignersZero).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] changes their delegation from users[1] to users[3]
             await (await uniqueMultiplierVotingVault.connect(signers[0]).delegate(signers[3].address)).wait();
@@ -353,14 +353,14 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 afterBlock,
             );
-            expect(votingPowerSignersOneAfter).to.eq(votingPowerSignersOne.sub(ONE.mul(5).mul(multiplierA).div(ONE)));
+            expect(votingPowerSignersOneAfter).to.eq(votingPowerSignersOne.sub(ONE.mul(5).mul(MULTIPLIER_A).div(ONE)));
 
             // confirm that signers[3] has received signers[0]'s voting power
             const votingPowerSignersThreeAfter = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[3].address,
                 afterBlock,
             );
-            expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(multiplierA).div(ONE));
+            expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
         });
         it("Reverts a user calls addNftAndDelegate() with an nft they do not own", async () => {
             // invoke the fixture
@@ -483,7 +483,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the ERC1155 NFT multipliers
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // signers[1] approves tokens to voting vault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -500,7 +500,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // confirm signers[1] registration data
             expect(registration[0]).to.eq(ONE);
-            expect(registration[1]).to.eq(ONE.mul(multiplierA).div(ONE));
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
             expect(registration[2]).to.eq(0);
             expect(registration[3]).to.eq(1);
             expect(registration[4]).to.eq(reputationNft.address);
@@ -772,7 +772,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -805,7 +805,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPower).to.be.eq(ONE.mul(8).mul(multiplierA).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
 
             // signers 1 withdraws THREE tokens
             const tx2 = await uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(3));
@@ -813,10 +813,10 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx2.blockNumber,
             );
-            expect(votingPower2).to.be.eq(ONE.mul(5).mul(multiplierA).div(ONE));
+            expect(votingPower2).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
 
             // calculate sigerns[1] withdrawable amount
-            const withdrawable = votingPower2.div(multiplierA);
+            const withdrawable = votingPower2.div(MULTIPLIER_A);
             expect(withdrawable).to.be.eq(ONE.mul(5).div(ONE));
 
             // signers 1 tries to withdraw SIX tokens (less than registration amount but larger than
@@ -1368,7 +1368,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // initialize history for signers[1]
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -1397,7 +1397,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPower).to.be.eq(ONE.mul(6).mul(multiplierA).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] withdraws ERC1155
             const tx2 = await uniqueMultiplierVotingVault.withdrawNft();
@@ -1410,7 +1410,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
             // expect only the votinPower amount associated with signers[0] to have the multiplier value eliminated
             // from the delegatee's voting power
-            expect(votingPowerAfter).to.be.eq(ONE.mul(multiplierA).div(ONE).add(ONE.mul(5)));
+            expect(votingPowerAfter).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE).add(ONE.mul(5)));
         });
 
         it("User can change their multiplier with updateNft()", async () => {
@@ -1431,7 +1431,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA, multiplierB } = await setMultipliers();
+            const { MULTIPLIER_A, MULTIPLIER_B } = await setMultipliers();
 
             // signers[0] approves tokens to unique multiplier vault and approves reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
@@ -1449,7 +1449,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx.blockNumber,
             );
-            expect(votingPower).to.be.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // signers[1] approves tokens to voting vault and approves reputation nft
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -1465,12 +1465,12 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx1.blockNumber,
             );
-            expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA).div(ONE));
+            expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
             // signers[0] approves reputation nft 2 to voting vault
             await reputationNft2.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
-            // signers[0] updates their reputation nft to reputationNft2 which is associated with multiplierB
+            // signers[0] updates their reputation nft to reputationNft2 which is associated with MULTIPLIER_B
             const tx2 = await uniqueMultiplierVotingVault.updateNft(1, reputationNft2.address);
 
             // they are now again holding the first reputation nft which they have replaced
@@ -1483,7 +1483,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[1].address,
                 tx2.blockNumber,
             );
-            expect(votingPower2).to.be.eq(ONE.mul(5).mul(multiplierA).add(ONE.mul(multiplierB)).div(ONE));
+            expect(votingPower2).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).add(ONE.mul(MULTIPLIER_B)).div(ONE));
         });
     });
 });

@@ -40,7 +40,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            const { multiplierA, multiplierB } = await setMultipliers();
+            const { MULTIPLIER_A, MULTIPLIER_B } = await setMultipliers();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -76,7 +76,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[1].address,
                 tx4.blockNumber,
             );
-            expect(votingPower4).to.be.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -92,7 +92,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[1].address,
                 tx5.blockNumber,
             );
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA).div(ONE));
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[3] tokens to unique multiplier voting vault and approves repuation nft
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -107,7 +107,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[0].address,
                 tx6.blockNumber,
             );
-            expect(votingPower6).to.be.eq(ONE.mul(multiplierB).div(ONE));
+            expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_B).div(ONE));
 
             // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -122,7 +122,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[2].address,
                 tx7.blockNumber,
             );
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplierA).div(ONE));
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
 
             // create proposal to update V2 originationFee
             // get current originationFee value
@@ -177,7 +177,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             await mintNfts();
 
             // manager sets the multiplier values
-            const { multiplierA } = await setMultipliers();
+            const { MULTIPLIER_A } = await setMultipliers();
 
             // LockingVault users: deposits and delegation
             // query voting power to initialize history for every governance participant
@@ -216,7 +216,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[1].address,
                 tx4.blockNumber,
             );
-            expect(votingPower4).to.be.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -233,7 +233,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[1].address,
                 tx5.blockNumber,
             );
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(multiplierA).div(ONE));
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[3] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -248,7 +248,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[0].address,
                 tx6.blockNumber,
             );
-            expect(votingPower6).to.be.eq(ONE.mul(multiplierA).div(ONE));
+            expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -263,7 +263,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers[2].address,
                 tx7.blockNumber,
             );
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(multiplierA).div(ONE));
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
 
             // prepare proposal data
             const newRolloverFee = 62;
