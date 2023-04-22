@@ -58,7 +58,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     /* solhint-disable var-name-mixedcase */
     uint128 public immutable MAX_MULTIPLIER = 1.5e18;
 
-    uint128 public immutable MULTIPLIER_DENOMINATOR = 1;
+    uint128 public immutable MULTIPLIER_DENOMINATOR = 1e18;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -445,7 +445,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         uint256 locked = registration.amount - registration.withdrawn;
 
         if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
-            return locked * getMultiplier(registration.tokenAddress, registration.tokenId);
+            return (locked * getMultiplier(registration.tokenAddress, registration.tokenId)) / MULTIPLIER_DENOMINATOR;
         }
 
         return locked;
