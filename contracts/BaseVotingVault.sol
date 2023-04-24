@@ -10,11 +10,9 @@ import "./external/council/interfaces/IVotingVault.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
 
-import { BVV_MultiplierLimit } from "./errors/Governance.sol";
-
 /**
  *
- * @title PromissoryVotingVault
+ * @title BaseVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
  * This contract is a base voting vault contract for Arcade voting vaults.
@@ -36,12 +34,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
 
     // A constant which determines the block before which blocks are ignored
     uint256 public immutable staleBlockLag;
-
-    // A constant which determines the maximum multiplier
-    /* solhint-disable var-name-mixedcase */
-    uint128 public immutable MAX_MULTIPLIER = 1.5e18;
-
-    uint128 public immutable MULTIPLIER_DENOMINATOR = 1;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -79,7 +71,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      *
      * @param user                       The address we want to load the voting power of.
      * @param blockNumber                Block number to query the user's voting power at.
-     * @param extraData                  The extra calldata is unused in this contract.
+     * @param extraData                  The calldata is unused in this contract.
      *
      * @return                           The number of votes.
      */
@@ -90,6 +82,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     ) external override returns (uint256) {
         // Get our reference to historical data
         History.HistoricalBalances memory votingPower = _votingPower();
+
         // Find the historical data and clear everything more than 'staleBlockLag' into the past
         return votingPower.findAndClear(user, blockNumber, block.number - staleBlockLag);
     }
@@ -105,20 +98,9 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256) {
         // Get our reference to historical data
         History.HistoricalBalances memory votingPower = _votingPower();
+
         // Find the historical datum
         return votingPower.find(user, blockNumber);
-    }
-
-    /**
-     * @notice timelock-only multiplier update function.
-     *
-     * @dev Allows the timelock to update the multiplier.
-     *
-     * @param multiplier_                The new multiplier value.
-     */
-    function setMultiplier(uint256 multiplier_) public onlyTimelock {
-        if (multiplier_ <= MAX_MULTIPLIER) revert BVV_MultiplierLimit();
-        Storage.set(Storage.uint256Ptr("multiplier"), multiplier_);
     }
 
     /**
@@ -144,15 +126,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     }
 
     /**
-     * @notice A function to access the storage of the token vote power multiplier.
-     *
-     * @return                          The token multiplier.
-     */
-    function multiplier() external pure returns (uint256) {
-        return _multiplier().data;
-    }
-
-    /**
      * @notice A function to access the storage of the manager address.
      *
      * @dev The manager can access all functions with the onlyManager modifier.
@@ -164,7 +137,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     }
 
     /**
-     * @notice Timelock-only manager update function.
+     * @notice Timelock only manager update function.
      *
      * @dev Allows the timelock to update the manager address.
      *
@@ -194,20 +167,6 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      */
     function _timelock() internal pure returns (Storage.Address memory) {
         return Storage.addressPtr("timelock");
-    }
-
-    /**
-     * @notice A function to access the storage of the multiplier value.
-     *
-     * @dev The multiplier is a number that boosts the voting power of a user's
-     * governance tokens because of that user simultaneously holding an active loan.
-     * The voting power of the user would equal the product of the number of tokens
-     * deposited into the voting vault multiplied by the value of the multiplier.
-     *
-     * @return                          A struct containing the multiplier uint.
-     */
-    function _multiplier() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("multiplier");
     }
 
     /**

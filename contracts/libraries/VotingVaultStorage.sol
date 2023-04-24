@@ -1,14 +1,14 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity >=0.8.18;
 
 /**
- * Copy of `VestingVaultStorage` with modified scope to match the PromissoryVotingVault
+ * Copy of `VestingVaultStorage` with modified scope to match the UniqueMultiplierVotingVault
  * requirements. These libraries allow for secure storage pointers across proxy
  * implementations and will return storage pointers based on a hashed name and type string.
  */
 
-library PromissoryVotingVaultStorage {
+library VotingVaultStorage {
     /**
     * This library follows a pattern which if solidity had higher level
     * type or macro support would condense quite a bit.
@@ -26,15 +26,22 @@ library PromissoryVotingVaultStorage {
     // A struct which represents 1 packed storage location (Registration)
     struct Registration {
         uint128 amount; // token amount
-        uint128 blockNumber; // blockNumber of Registration txn
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
-        uint128 noteId; // promissoryNote id
+        uint128 tokenId; // ERC1155 token id
+        address tokenAddress; // the address of the ERC1155 token
         address delegatee;
     }
 
+    // A struct which represents 1 packed storage location with a compressed
+    // uint128 pair
+    struct AddressUintUint {
+        uint128 tokenId;
+        uint128 multiplier;
+    }
+
     /**
-     * @notice Returns the storage pointer for a named mapping of address to uint256[]
+     * @notice Returns the storage pointer for a named mapping of address to registration data
      *
      * @param name                      The variable name for the pointer.
      *
@@ -44,6 +51,23 @@ library PromissoryVotingVaultStorage {
         string memory name
     ) internal pure returns (mapping(address => Registration) storage data) {
         bytes32 typehash = keccak256("mapping(address => Registration)");
+        bytes32 offset = keccak256(abi.encodePacked(typehash, name));
+        assembly {
+            data.slot := offset
+        }
+    }
+
+    /**
+     * @notice Returns the storage pointer for a named mapping of address to uint128 pair
+     *
+     * @param name                      The variable name for the pointer.
+     *
+     * @return data                     The mapping pointer.
+     */
+    function mappingAddressToPackedUintUint(
+        string memory name
+    ) internal pure returns (mapping(address => mapping(uint128 => AddressUintUint)) storage data) {
+        bytes32 typehash = keccak256("mapping(address => mapping(uint128 => AddressUintUint))");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset
