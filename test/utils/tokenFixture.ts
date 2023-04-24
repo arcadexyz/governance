@@ -23,8 +23,8 @@ export interface TokenTestContext {
     vestingPartner: Wallet;
     arcAirdrop: Airdrop;
     // contracts
-    arcToken: IArcadeToken;
-    arcDst: ArcadeTokenDistributor;
+    arcdToken: IArcadeToken;
+    arcdDst: ArcadeTokenDistributor;
     // vault contract
     simpleProxy: SimpleProxy;
     frozenLockingVault: LockingVault;
@@ -58,16 +58,16 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     // ==================================== TOKEN DEPLOYMENT ====================================
 
     // deploy the distribution contract
-    const arcDst = <ArcadeTokenDistributor>await deploy("ArcadeTokenDistributor", signers[0], []);
-    await arcDst.deployed();
+    const arcdDst = <ArcadeTokenDistributor>await deploy("ArcadeTokenDistributor", signers[0], []);
+    await arcdDst.deployed();
 
     // deploy the Arcade token, with minter role set to the distribution contract
-    const arcToken = <ArcadeToken>await deploy("ArcadeToken", signers[0], [deployer.address, arcDst.address]);
-    await arcToken.deployed();
+    const arcdToken = <ArcadeToken>await deploy("ArcadeToken", signers[0], [deployer.address, arcdDst.address]);
+    await arcdToken.deployed();
 
     // deployer sets token in the distribution contract
-    await arcDst.connect(deployer).setToken(arcToken.address);
-    expect(await arcDst.arcadeToken()).to.equal(arcToken.address);
+    await arcdDst.connect(deployer).setToken(arcdToken.address);
+    expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
     // ================================= AIRDROP VAULT DEPLOYMENT ==============================
 
@@ -77,7 +77,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     // deploy FrozenLockingVault via proxy
     const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
     const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
-    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcToken.address, staleBlockNum);
+    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
     const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
 
     const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
@@ -112,7 +112,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     const arcAirdrop = await ArcAirdrop.deploy(
         signers[0].address, // in production this is to be the governance timelock address
         root,
-        arcToken.address,
+        arcdToken.address,
         expiration,
         frozenLockingVault.address,
     );
@@ -127,8 +127,8 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
         vestingTeamMultisig,
         vestingPartner,
         arcAirdrop,
-        arcToken,
-        arcDst,
+        arcdToken,
+        arcdDst,
         simpleProxy,
         frozenLockingVault,
         recipients,

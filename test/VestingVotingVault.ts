@@ -1,57 +1,59 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
+import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 /**
  * Test suite for the Arcade vesting contracts.
  */
 describe("Vesting voting vault", function () {
-    let ctxVotingVault: TestContextVotingVault;
     let ctxToken: TokenTestContext;
+    let ctxVotingVault: TestContextVotingVault;
 
     beforeEach(async function () {
-        ctxVotingVault = await votingVaultFixture();
         ctxToken = await tokenFixture();
+        ctxVotingVault = await votingVaultFixture(ctxToken.arcdToken);
     });
 
     describe("Manager only functions", function () {
-        it("Check manager address", async () => {
+        it("check manager address", async () => {
             const { signers, vestingVotingVault } = ctxVotingVault;
             expect(await vestingVotingVault.manager()).to.equal(signers[1].address);
         });
-        it("Cannot set new manager", async () => {
+        it("cannot set new manager", async () => {
             const { signers, vestingVotingVault } = ctxVotingVault;
-            
-            await expect(vestingVotingVault.connect(signers[1]).setManager(signers[0].address)).to.be.revertedWith("!timelock");
+
+            await expect(vestingVotingVault.connect(signers[1]).setManager(signers[0].address)).to.be.revertedWith(
+                "!timelock",
+            );
         });
-        it("deposits and withdraws tokens from the vv", async () => {
+        it("deposit and withdraw tokens from the vv", async () => {
             const { signers, vestingVotingVault } = ctxVotingVault;
-            const { arcToken, arcDst, deployer } = ctxToken;
+            const { arcdToken, arcdDst, deployer } = ctxToken;
 
             // distribute tokens to the vesting vault manager (signers[1])
-            await arcDst.connect(deployer).setToken(arcToken.address);
-            expect(await arcDst.arcadeToken()).to.equal(arcToken.address);
+            await arcdDst.connect(deployer).setToken(arcdToken.address);
+            expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
-            await expect(await arcDst.connect(deployer).toPartnerVesting(signers[1].address))
-                .to.emit(arcDst, "Distribute")
-                .withArgs(arcToken.address, signers[1].address, ethers.utils.parseEther("32700000"));
-            await expect(await arcDst.connect(deployer).toTeamVesting(signers[1].address))
-                .to.emit(arcDst, "Distribute")
-                .withArgs(arcToken.address, signers[1].address, ethers.utils.parseEther("16200000"));
-            expect(await arcDst.vestingTeamSent()).to.be.true;
-            expect(await arcDst.vestingPartnerSent()).to.be.true;
+            await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[1].address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, signers[1].address, ethers.utils.parseEther("32700000"));
+            await expect(await arcdDst.connect(deployer).toTeamVesting(signers[1].address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, signers[1].address, ethers.utils.parseEther("16200000"));
+            expect(await arcdDst.vestingTeamSent()).to.be.true;
+            expect(await arcdDst.vestingPartnerSent()).to.be.true;
 
-            expect(await arcToken.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("48900000"));
-            
-            await arcToken.connect(signers[1]).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("48900000"));
+
+            await arcdToken.connect(signers[1]).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
             await vestingVotingVault.connect(signers[1]).deposit(ethers.utils.parseEther("100"));
-            expect(await arcToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
 
-            await vestingVotingVault.connect(signers[1]).withdraw(ethers.utils.parseEther("100"));
-            expect(await arcToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("0"));
-            expect(await arcToken.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("48900000"));
+            await vestingVotingVault.connect(signers[1]).withdraw(ethers.utils.parseEther("100"), signers[1].address);
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("0"));
+            expect(await arcdToken.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("48900000"));
         });
     });
 });

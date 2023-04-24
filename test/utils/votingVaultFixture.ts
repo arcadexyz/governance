@@ -1,20 +1,16 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumberish, constants } from "ethers";
-import hre, { ethers, waffle } from "hardhat";
+import hre, { ethers } from "hardhat";
 import "module-alias/register";
 
 import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
 import { Timelock } from "../../src/types";
-import { UniqueMultiplierVotingVault } from "../../src/types/contracts/UniqueMultiplierVotingVault.sol";
-import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
-import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
-import { LockingVault, VestingVault } from "../../src/types/contracts/external/council/vaults";
+import { ArcadeToken, CoreVoting, LockingVault, UniqueMultiplierVotingVault, VestingVault } from "../../src/types";
 import { deploy } from "./contracts";
 
 type Signer = SignerWithAddress;
 
 export interface TestContextVotingVault {
-    token: MockERC20Council;
     lockingVotingVault: LockingVault;
     vestingVotingVault: VestingVault;
     uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
@@ -24,7 +20,6 @@ export interface TestContextVotingVault {
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     votingVaults: string[];
     timelock: Timelock;
-    tokenAddress: string;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     getBlock: () => Promise<number>;
     advanceTime: (provider: any, time: number) => Promise<void>;
@@ -45,23 +40,14 @@ interface Multipliers {
  * This fixture creates a coreVoting deployment with a timelock and voting vaults,
  * with the parameters for each.
  */
-export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
+export const votingVaultFixture = async (arcdToken: ArcadeToken): Promise<TestContextVotingVault> => {
     const signers: Signer[] = await ethers.getSigners();
     const votingVaults: string[] = [];
     const arcadeGSCVotingVaults: string[] = [];
 
-    const { provider } = waffle;
-    const [wallet] = provider.getWallets();
-
     // init vars
     const THREE = ethers.utils.parseEther("3");
     const SEVEN = ethers.utils.parseEther("7");
-
-    // deploy the token
-    const erc20Deployer = await ethers.getContractFactory("MockERC20Council", signers[0]);
-    const token = await erc20Deployer.deploy("Arcade", "ARCD", signers[0].address);
-    // update the token address for use in promissory vault deployment
-    const tokenAddress: string = token.address;
 
     // deploy the timelock contract setting the wait time, its owner and GSC address
     const timelockDeployer = await ethers.getContractFactory("Timelock", signers[0]);
@@ -70,13 +56,13 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     // deploy the locking vault contract
     const proxyDeployer = await ethers.getContractFactory("SimpleProxy", signers[0]);
     const lockingVaultFactory = await ethers.getContractFactory("LockingVault", signers[0]);
-    const lockingVaultBase = await lockingVaultFactory.deploy(token.address, 55); // use 199350 with fork of mainnet
+    const lockingVaultBase = await lockingVaultFactory.deploy(arcdToken.address, 55); // use 199350 with fork of mainnet
     const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
     const lockingVotingVault = lockingVaultBase.attach(lockingVaultProxy.address);
 
     // deploy and initialize vesting vault with signers[1] as the manager and the timelock as the owner
     const VestingVaultFactory = await ethers.getContractFactory("VestingVault", signers[0]);
-    const vestingVaultBase = await VestingVaultFactory.deploy(tokenAddress, 55);
+    const vestingVaultBase = await VestingVaultFactory.deploy(arcdToken.address, 55);
     const vestingVaultProxy = await proxyDeployer.deploy(timelock.address, vestingVaultBase.address);
     const vestingVotingVault = vestingVaultBase.attach(vestingVaultProxy.address);
     await vestingVotingVault.initialize(signers[1].address, timelock.address);
@@ -90,7 +76,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
 
     //deploy and initialize promissory voting vault
     const uniqueMultiplierVotingVaultFactory = await ethers.getContractFactory("UniqueMultiplierVotingVault", timelock);
-    const uniqueMultiplierVotingVaultBase = await uniqueMultiplierVotingVaultFactory.deploy(tokenAddress, 55);
+    const uniqueMultiplierVotingVaultBase = await uniqueMultiplierVotingVaultFactory.deploy(arcdToken.address, 55);
     const uniqueMultiplierVotingVaultProxy = await proxyDeployer.deploy(
         timelock.address,
         uniqueMultiplierVotingVaultBase.address,
@@ -106,12 +92,6 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     // push voting vaults into the votingVaults array which is
     // used as an argument in coreVoting's deployment
     votingVaults.push(uniqueMultiplierVotingVault.address, lockingVotingVault.address);
-
-    // give users some balance and set their allowance
-    for (const signer of signers) {
-        await token.setBalance(signer.address, ethers.utils.parseEther("100000"));
-        await token.setAllowance(signer.address, lockingVotingVault.address, ethers.constants.MaxUint256);
-    }
 
     const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", signers[0]);
     // setup coreVoting with parameters as follows:
@@ -177,7 +157,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
 
     const increaseBlockNumber = async (provider: any, times: number) => {
         for (let i = 0; i < times; i++) {
-            await provider.send("evm_mine", []);
+            await ethers.provider.send("evm_mine", []);
         }
     };
 
@@ -243,7 +223,6 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         lockingVotingVault,
         vestingVotingVault,
         uniqueMultiplierVotingVault,
-        token,
         feeController,
         coreVoting,
         arcadeGSCCoreVoting,
@@ -252,7 +231,6 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         timelock,
         increaseBlockNumber,
         getBlock,
-        tokenAddress,
         mintNfts,
         setMultipliers,
         reputationNft,

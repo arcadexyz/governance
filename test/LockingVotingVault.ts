@@ -1,11 +1,13 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
+import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Locking Voting Vault", async () => {
+    let ctxToken: TokenTestContext;
     let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
@@ -13,14 +15,32 @@ describe("Governance Operations with Locking Voting Vault", async () => {
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     beforeEach(async function () {
-        ctxVotingVault = await votingVaultFixture();
+        ctxToken = await tokenFixture();
+        const { arcdToken, arcdDst, deployer } = ctxToken;
+        ctxVotingVault = await votingVaultFixture(arcdToken);
+        const { signers, lockingVotingVault } = ctxVotingVault;
+
+        // distribute tokens to signers[0]/ deployer for testing
+        await arcdDst.connect(deployer).setToken(arcdToken.address);
+        expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
+        // mint tokens take tokens from the distributor for use in tests
+        await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[0].address))
+            .to.emit(arcdDst, "Distribute")
+            .withArgs(arcdToken.address, signers[0].address, ethers.utils.parseEther("32700000"));
+        expect(await arcdDst.vestingPartnerSent()).to.be.true;
+
+        // transfer tokens to signers and approve locking vault to spend
+        for (let i = 0; i < signers.length; i++) {
+            await arcdToken.connect(signers[0]).transfer(signers[i].address, ONE.mul(100));
+            await arcdToken.connect(signers[i]).approve(lockingVotingVault.address, MAX);
+        }
     });
 
     describe("Locking voting vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 
-            // LockingVault users deposits and delegation
+            // LockingVotingVault users deposits and delegation
             // query voting power to initialize history for every governance participant
             const tx = await (
                 await lockingVotingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)

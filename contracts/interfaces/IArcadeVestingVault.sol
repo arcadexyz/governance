@@ -6,9 +6,9 @@ import "../external/council/interfaces/IVotingVault.sol";
 import "../external/council/libraries/VestingVaultStorage.sol";
 
 /**
- * @notice The council-kit UI supports all public functions defined below. For a complete 
+ * @notice The council-kit UI supports all public functions defined below. For a complete
  * front end implementation, the only manager functions need to be implemented along with
- * the acceptGrant method. 
+ * the acceptGrant method.
  *
  * By exposing the only manager functions and the accept grant function, the vesting
  * manager can add and remove grants, deposit and withdraw funds. When a grant is added,

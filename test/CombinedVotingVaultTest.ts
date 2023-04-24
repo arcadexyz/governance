@@ -1,29 +1,48 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
+import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
 import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Locking and Unique Multiplier Voting Vaults", async () => {
-    let ctxVault: TestContextVotingVault;
+    let ctxToken: TokenTestContext;
+    let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     beforeEach(async function () {
-        ctxVault = await votingVaultFixture();
+        ctxToken = await tokenFixture();
+        const { arcdToken, arcdDst, deployer } = ctxToken;
+        ctxVotingVault = await votingVaultFixture(arcdToken);
+        const { signers, lockingVotingVault } = ctxVotingVault;
+
+        // distribute tokens to signers[0]/ deployer for testing
+        await arcdDst.connect(deployer).setToken(arcdToken.address);
+        expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
+        // mint tokens take tokens from the distributor for use in tests
+        await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[0].address))
+            .to.emit(arcdDst, "Distribute")
+            .withArgs(arcdToken.address, signers[0].address, ethers.utils.parseEther("32700000"));
+        expect(await arcdDst.vestingPartnerSent()).to.be.true;
+
+        // transfer tokens to signers and approve locking vault to spend
+        for (let i = 0; i < signers.length; i++) {
+            await arcdToken.connect(signers[0]).transfer(signers[i].address, ONE.mul(100));
+            await arcdToken.connect(signers[i]).approve(lockingVotingVault.address, MAX);
+        }
     });
 
     describe("Governance flow with combination of voting vaults types", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            // invoke the fixture function
+            const { arcdToken } = ctxToken;
             const {
                 signers,
                 coreVoting,
                 increaseBlockNumber,
-                token,
                 uniqueMultiplierVotingVault,
                 lockingVotingVault,
                 reputationNft,
@@ -32,7 +51,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 setMultipliers,
                 feeController,
                 votingVaults,
-            } = ctxVault;
+            } = ctxVotingVault;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -60,7 +79,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower3).to.be.eq(ONE);
 
             // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
-            await token.approve(uniqueMultiplierVotingVault.address, ONE);
+            await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
             const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
@@ -77,7 +96,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
-            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
             await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
@@ -93,7 +112,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[3] tokens to unique multiplier voting vault and approves repuation nft
-            await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
+            await arcdToken.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft2.connect(signers[3]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await uniqueMultiplierVotingVault
@@ -108,7 +127,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_B).div(ONE));
 
             // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
             await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await uniqueMultiplierVotingVault
@@ -150,12 +169,11 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
         });
 
         it("Executes the correct proposal out of many", async () => {
-            // invoke the fixture function
+            const { arcdToken } = ctxToken;
             const {
                 signers,
                 coreVoting,
                 increaseBlockNumber,
-                token,
                 uniqueMultiplierVotingVault,
                 lockingVotingVault,
                 reputationNft,
@@ -163,7 +181,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 setMultipliers,
                 feeController,
                 votingVaults,
-            } = ctxVault;
+            } = ctxVotingVault;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -192,7 +210,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
 
             // Unique multiplier voting vault users: Badge registration and delegation
             // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
-            await token.approve(uniqueMultiplierVotingVault.address, ONE);
+            await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
             // signers[0] registers reputation NFT, deposits ONE tokens and delegates to signers[1]
@@ -210,7 +228,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
-            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
             await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
@@ -227,7 +245,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[3] tokens to unique multiplier voting vault and approves reputation nft
-            await token.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
+            await arcdToken.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.connect(signers[3]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await uniqueMultiplierVotingVault
@@ -242,7 +260,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
             // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
             await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await uniqueMultiplierVotingVault
@@ -260,7 +278,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             const newRolloverFee = 62;
             const targetAddress = [feeController.address];
             const fcFactory = await ethers.getContractFactory("FeeController");
-            // encode function signature and new rolloverfee amount to pass in proposal
+            // encode function signature and new rollover fee amount to pass in proposal
             const rolloverFeeCalldata = fcFactory.interface.encodeFunctionData("setRolloverFee", [newRolloverFee]);
             // generate proposal => proposalId # 0
             await coreVoting
