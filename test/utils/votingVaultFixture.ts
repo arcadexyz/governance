@@ -86,6 +86,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         uniqueMultiplierVotingVaultProxy.address,
     );
     await uniqueMultiplierVotingVault.initialize(
+        signers[0].address, // timelock address who can update the manager
         signers[0].address, // manager address who can update unique multiplier values
     );
 

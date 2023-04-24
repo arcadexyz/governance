@@ -80,12 +80,14 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
+     * @param timelock                 The address of the timelock who can update the manager address.
      * @param manager                  The address of the manager who can update the unique multiplier values.
      *
      */
-    function initialize(address manager) public {
+    function initialize(address timelock, address manager) public {
         require(Storage.uint256Ptr("initialized").data == 0, "UMVV_AlreadyInitialized");
         Storage.set(Storage.uint256Ptr("initialized"), 1);
+        Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
@@ -420,7 +422,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      */
     function _getWithdrawableAmount(
         VotingVaultStorage.Registration memory registration
-    ) internal view returns (uint256) {
+    ) internal pure returns (uint256) {
         if (registration.withdrawn == registration.amount) {
             return 0;
         }

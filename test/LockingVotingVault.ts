@@ -18,8 +18,6 @@ describe("Governance Operations with Locking Voting Vault", async () => {
 
     describe("Governance flow with locking vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            ctxVotingVault = await votingVaultFixture();
-
             const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxVotingVault;
 
             // LockingVault users deposits and delegation
@@ -44,9 +42,6 @@ describe("Governance Operations with Locking Voting Vault", async () => {
             expect(votingPower3).to.be.eq(ONE);
 
             // proposal creation to update originationFee in FeeController
-            // check current originationFee value
-            const currentOgFee = (await feeController.getOriginationFee()).toString();
-
             const newFee = 55;
             const targetAddress = [feeController.address];
             // create an interface to access feeController abi
@@ -71,7 +66,6 @@ describe("Governance Operations with Locking Voting Vault", async () => {
             // proposal execution
             await coreVoting.connect(signers[0]).execute(0, targetAddress, [feeContCalldata]);
             const originationFee = await feeController.getOriginationFee();
-            expect(originationFee).to.not.equal(currentOgFee);
             expect(originationFee).to.equal(newFee);
         });
     });

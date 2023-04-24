@@ -19,8 +19,6 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
     describe("Governance flow with combination of voting vaults types", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
             // invoke the fixture function
-            ctxVault = await votingVaultFixture();
-
             const {
                 signers,
                 coreVoting,
@@ -125,9 +123,6 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
 
             // create proposal to update V2 originationFee
-            // get current originationFee value
-            const currentOgFee = (await feeController.getOriginationFee()).toString();
-
             const newFee = 60;
             const targetAddress = [feeController.address];
             // create an interface to access feeController abi
@@ -151,14 +146,11 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             // proposal execution
             await coreVoting.connect(signers[0]).execute(0, targetAddress, [feeContCalldata]);
             const originationFee = await feeController.getOriginationFee();
-            expect(originationFee).to.not.equal(currentOgFee);
             expect(originationFee).to.equal(newFee);
         });
 
         it("Executes the correct proposal out of many", async () => {
             // invoke the fixture function
-            ctxVault = await votingVaultFixture();
-
             const {
                 signers,
                 coreVoting,
@@ -276,8 +268,6 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 .connect(signers[0])
                 .proposal(votingVaults, zeroExtraData, targetAddress, [rolloverFeeCalldata], MAX, 0);
 
-            // get current originationFee value
-            const currentOgFee = (await feeController.getOriginationFee()).toString();
             const newFee = 60;
             // encode function signature and new fee origination fee amount
             const feeContCalldata = fcFactory.interface.encodeFunctionData("setOriginationFee", [newFee]);
@@ -298,7 +288,6 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             // execute proposalId #1
             await coreVoting.connect(signers[0]).execute(1, targetAddress, [feeContCalldata]);
             const originationFee = await feeController.getOriginationFee();
-            expect(originationFee).to.not.equal(currentOgFee);
             expect(originationFee).to.equal(newFee);
         });
     });
