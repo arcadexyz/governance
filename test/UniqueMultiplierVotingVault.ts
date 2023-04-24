@@ -865,7 +865,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
 
             const tx = uniqueMultiplierVotingVault.withdrawNft();
-
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("${reputationNft.address}", ${0})`);
         });
 
@@ -1029,7 +1028,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] tries to update ERC1155 in their registration using zero token address and zero token id
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).updateNft(0, constants.AddressZero);
-
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("0x0000000000000000000000000000000000000000", 0)`);
         });
 
@@ -1052,7 +1050,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] tries to update ERC1155 in their registration using zero token address and zero token id
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).updateNft(0, reputationNft.address);
-
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("${reputationNft.address}", 0)`);
         });
 
@@ -1095,7 +1092,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] tries to update ERC1155 in their registration, replacing reputationNft2 by reputationNft
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).updateNft(1, reputationNft.address);
-
             await expect(tx).to.be.revertedWith("UMVV_DoesNotOwn");
         });
 
@@ -1290,7 +1286,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const tx = uniqueMultiplierVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
-
             await expect(tx).to.be.revertedWith("UMVV_NoMultiplierSet");
         });
 

@@ -191,7 +191,6 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             expect(votingPower3).to.be.eq(ONE);
 
             // Unique multiplier voting vault users: Badge registration and delegation
-
             // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
             await token.approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
@@ -279,7 +278,6 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
 
             // pass proposal with YES majority
             await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 1, 0); // yes vote on proposalId 1
-
             await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 1, 1); // no vote on proposalId 1
 
             //increase blockNumber to exceed 3 day default lock duration set in coreVoting

@@ -101,7 +101,6 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     }
 
     const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", signers[0]);
-
     // setup coreVoting with parameters as follows:
     // for initial testing purposes, we are setting the default quorum to 7
     // min voting power needed for propoasal submission is set to 3
