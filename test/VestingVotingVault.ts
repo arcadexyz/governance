@@ -7,7 +7,7 @@ import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
 /**
  * Test suite for the Arcade vesting contracts.
  */
-describe("Vesting Vault", function () {
+describe("Vesting voting vault", function () {
     let ctxVotingVault: TestContextVotingVault;
     let ctxToken: TokenTestContext;
 
@@ -18,16 +18,16 @@ describe("Vesting Vault", function () {
 
     describe("Manager only functions", function () {
         it("Check manager address", async () => {
-            const { signers, vestingVault } = ctxVotingVault;
-            expect(await vestingVault.manager()).to.equal(signers[1].address);
+            const { signers, vestingVotingVault } = ctxVotingVault;
+            expect(await vestingVotingVault.manager()).to.equal(signers[1].address);
         });
         it("Cannot set new manager", async () => {
-            const { signers, vestingVault } = ctxVotingVault;
+            const { signers, vestingVotingVault } = ctxVotingVault;
             
-            await expect(vestingVault.connect(signers[1]).setManager(signers[0].address)).to.be.revertedWith("!timelock");
+            await expect(vestingVotingVault.connect(signers[1]).setManager(signers[0].address)).to.be.revertedWith("!timelock");
         });
         it("deposits and withdraws tokens from the vv", async () => {
-            const { signers, vestingVault } = ctxVotingVault;
+            const { signers, vestingVotingVault } = ctxVotingVault;
             const { arcToken, arcDst, deployer } = ctxToken;
 
             // distribute tokens to the vesting vault manager (signers[1])
@@ -45,12 +45,12 @@ describe("Vesting Vault", function () {
 
             expect(await arcToken.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("48900000"));
             
-            await arcToken.connect(signers[1]).approve(vestingVault.address, ethers.utils.parseEther("100"));
-            await vestingVault.connect(signers[1]).deposit(ethers.utils.parseEther("100"));
-            expect(await arcToken.balanceOf(vestingVault.address)).to.equal(ethers.utils.parseEther("100"));
+            await arcToken.connect(signers[1]).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(signers[1]).deposit(ethers.utils.parseEther("100"));
+            expect(await arcToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
 
-            await vestingVault.connect(signers[1]).withdraw(ethers.utils.parseEther("100"));
-            expect(await arcToken.balanceOf(vestingVault.address)).to.equal(ethers.utils.parseEther("0"));
+            await vestingVotingVault.connect(signers[1]).withdraw(ethers.utils.parseEther("100"));
+            expect(await arcToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("0"));
             expect(await arcToken.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("48900000"));
         });
     });

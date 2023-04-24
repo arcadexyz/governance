@@ -16,6 +16,7 @@ type Signer = SignerWithAddress;
 export interface TestContextVotingVault {
     token: MockERC20Council;
     lockingVotingVault: LockingVault;
+    vestingVotingVault: VestingVault;
     uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
     arcadeGSCVotingVault: ArcadeGSCVotingVault;
     signers: Signer[];
@@ -66,12 +67,19 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const timelockDeployer = await ethers.getContractFactory("Timelock", signers[0]);
     const timelock = await timelockDeployer.deploy(1000, signers[0].address, constants.AddressZero);
 
-    // deploy the voting vault contract
-    const proxyDeployer = await ethers.getContractFactory("SimpleProxy", wallet);
-    const lockingVotingVaultFactory = await ethers.getContractFactory("LockingVault", timelock);
-    const lockingVotingVaultBase = await lockingVotingVaultFactory.deploy(token.address, 55); // use 199350 with fork of mainnet
-    const lockingVotingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVotingVaultBase.address);
-    const lockingVotingVault = await lockingVotingVaultBase.attach(lockingVotingVaultProxy.address);
+    // deploy the locking vault contract
+    const proxyDeployer = await ethers.getContractFactory("SimpleProxy", signers[0]);
+    const lockingVaultFactory = await ethers.getContractFactory("LockingVault", signers[0]);
+    const lockingVaultBase = await lockingVaultFactory.deploy(token.address, 55); // use 199350 with fork of mainnet
+    const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
+    const lockingVotingVault = lockingVaultBase.attach(lockingVaultProxy.address);
+
+    // deploy and initialize vesting vault with signers[1] as the manager and the timelock as the owner
+    const VestingVaultFactory = await ethers.getContractFactory("VestingVault", signers[0]);
+    const vestingVaultBase = await VestingVaultFactory.deploy(tokenAddress, 55);
+    const vestingVaultProxy = await proxyDeployer.deploy(timelock.address, vestingVaultBase.address);
+    const vestingVotingVault = vestingVaultBase.attach(vestingVaultProxy.address);
+    await vestingVotingVault.initialize(signers[1].address, timelock.address);
 
     const reputationNftFactory = await hre.ethers.getContractFactory("MockERC1155");
     const reputationNft = <MockERC1155>await reputationNftFactory.deploy("MockERC1155");
@@ -108,7 +116,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", signers[0]);
     // setup coreVoting with parameters as follows:
     // for initial testing purposes, we are setting the default quorum to 7
-    // min voting power needed for propoasal submission is set to 3
+    // min voting power needed for proposal submission is set to 3
     // GSC contract address is set to zero - GSC not used
     // array of voting vaults which will be used in coreVoting
     const coreVoting = await coreVotingDeployer.deploy(
@@ -233,6 +241,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     return {
         signers,
         lockingVotingVault,
+        vestingVotingVault,
         uniqueMultiplierVotingVault,
         token,
         feeController,
