@@ -1,13 +1,13 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
-import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
+import { TestContextVotingVault, governanceFixture } from "./utils/governanceFixture";
+import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Locking Voting Vault", async () => {
-    let ctxToken: TokenTestContext;
+    let ctxToken: TestContextToken;
     let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
@@ -17,7 +17,7 @@ describe("Governance Operations with Locking Voting Vault", async () => {
     beforeEach(async function () {
         ctxToken = await tokenFixture();
         const { arcdToken, arcdDst, deployer } = ctxToken;
-        ctxVotingVault = await votingVaultFixture(arcdToken);
+        ctxVotingVault = await governanceFixture(arcdToken);
         const { signers, lockingVotingVault } = ctxVotingVault;
 
         // distribute tokens to signers[0]/ deployer for testing

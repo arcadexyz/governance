@@ -1,19 +1,19 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
-import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
-import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
+import { TestContextVotingVault, governanceFixture } from "./utils/governanceFixture";
+import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 /**
  * Test suite for the Arcade vesting contracts.
  */
 describe("Vesting voting vault", function () {
-    let ctxToken: TokenTestContext;
+    let ctxToken: TestContextToken;
     let ctxVotingVault: TestContextVotingVault;
 
     beforeEach(async function () {
         ctxToken = await tokenFixture();
-        ctxVotingVault = await votingVaultFixture(ctxToken.arcdToken);
+        ctxVotingVault = await governanceFixture(ctxToken.arcdToken);
     });
 
     describe("Manager only functions", function () {

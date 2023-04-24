@@ -4,31 +4,26 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { Airdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault, SimpleProxy } from "../../src/types";
+import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault, SimpleProxy } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
 
 type Signer = SignerWithAddress;
 
-export interface TokenTestContext {
-    // airdrop recipients
+export interface TestContextToken {
     deployer: Signer;
     other: Signer;
-    // initial distribution recipients
     treasury: Wallet;
     devPartner: Wallet;
     communityRewardsPool: Wallet;
     vestingTeamMultisig: Wallet;
     vestingPartner: Wallet;
-    arcAirdrop: Airdrop;
-    // contracts
+    arcdAirdrop: ArcadeAirdrop;
     arcdToken: IArcadeToken;
     arcdDst: ArcadeTokenDistributor;
-    // vault contract
     simpleProxy: SimpleProxy;
     frozenLockingVault: LockingVault;
-    // test helpers
     recipients: Account;
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
@@ -37,10 +32,12 @@ export interface TokenTestContext {
 }
 
 /**
- * Sets up the test context for the Arcade token, deploying the Arcade token and
- * the distribution contract and returning it for use in unit testing.
+ * This fixture  test context for the Arcade token, deploying the Arcade token, distribution and airdrop contracts
+ * and returning them for use in unit testing.
  */
-export const tokenFixture = async (): Promise<TokenTestContext> => {
+export const tokenFixture = async (): Promise<TestContextToken> => {
+    const blockchainTime = new BlockchainTime();
+
     // ======================================== ACCOUNTS ========================================
     const signers: Signer[] = await hre.ethers.getSigners();
     const deployer: Signer = signers[0];
@@ -53,11 +50,9 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     const vestingTeamMultisig = new Wallet.createRandom();
     const vestingPartner = new Wallet.createRandom();
 
-    const blockchainTime = new BlockchainTime();
-
     // ==================================== TOKEN DEPLOYMENT ====================================
 
-    // deploy the distribution contract
+    // deploy distribution contract
     const arcdDst = <ArcadeTokenDistributor>await deploy("ArcadeTokenDistributor", signers[0], []);
     await arcdDst.deployed();
 
@@ -69,7 +64,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     await arcdDst.connect(deployer).setToken(arcdToken.address);
     expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
-    // ================================= AIRDROP VAULT DEPLOYMENT ==============================
+    // ========================== UPGRADEABLE AIRDROP VAULT DEPLOYMENT =========================
 
     const staleBlock = await ethers.provider.getBlock("latest");
     const staleBlockNum = staleBlock.number;
@@ -102,21 +97,20 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
     const merkleTrie = await getMerkleTree(recipients);
     const root = merkleTrie.getHexRoot();
 
-    // airdrop claim expiration is current unix stamp + 1 hour in seconds
+    // airdrop claim expiration is current unix stamp + 1 hour
     const expiration = await blockchainTime.secondsFromNow(3600);
 
     // =================================== AIRDROP DEPLOYMENT ==================================
 
     // deploy airdrop contract
-    const ArcAirdrop = await hre.ethers.getContractFactory("ArcadeAirdrop");
-    const arcAirdrop = await ArcAirdrop.deploy(
+    const arcdAirdrop = <ArcadeAirdrop>await deploy("ArcadeAirdrop", signers[0], [
         signers[0].address, // in production this is to be the governance timelock address
         root,
         arcdToken.address,
         expiration,
         frozenLockingVault.address,
-    );
-    await arcAirdrop.deployed();
+    ]);
+    await arcdAirdrop.deployed();
 
     return {
         deployer,
@@ -126,7 +120,7 @@ export const tokenFixture = async (): Promise<TokenTestContext> => {
         communityRewardsPool,
         vestingTeamMultisig,
         vestingPartner,
-        arcAirdrop,
+        arcdAirdrop,
         arcdToken,
         arcdDst,
         simpleProxy,

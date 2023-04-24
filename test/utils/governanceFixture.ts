@@ -1,7 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumberish, constants } from "ethers";
-import hre, { ethers } from "hardhat";
-import "module-alias/register";
+import { ethers } from "hardhat";
 
 import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
 import { Timelock } from "../../src/types";
@@ -11,6 +10,7 @@ import { deploy } from "./contracts";
 type Signer = SignerWithAddress;
 
 export interface TestContextVotingVault {
+    signers: Signer[];
     lockingVotingVault: LockingVault;
     vestingVotingVault: VestingVault;
     uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
@@ -26,6 +26,7 @@ export interface TestContextVotingVault {
     reputationNft: MockERC1155;
     reputationNft2: MockERC1155;
     feeController: FeeController;
+    increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     mintNfts(): Promise<void>;
     setMultipliers(): Promise<Multipliers>;
     promissoryNote: PromissoryNote;
@@ -37,80 +38,73 @@ interface Multipliers {
 }
 
 /**
- * This fixture creates a coreVoting deployment with a timelock and voting vaults,
- * with the parameters for each.
+ * This fixture creates an complete governance deployment. It deploys the following voting vaults: locking vault,
+ * vesting vault, unique multiplier voting vault. Along with the core voting and timelock contracts used in voting.
  */
-export const votingVaultFixture = async (arcdToken: ArcadeToken): Promise<TestContextVotingVault> => {
+export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestContextVotingVault> => {
     const signers: Signer[] = await ethers.getSigners();
     const votingVaults: string[] = [];
     const arcadeGSCVotingVaults: string[] = [];
 
-    // init vars
-    const THREE = ethers.utils.parseEther("3");
-    const SEVEN = ethers.utils.parseEther("7");
+    const staleBlock = await ethers.provider.getBlock("latest");
+    const staleBlockNum = staleBlock.number;
 
-    // deploy the timelock contract setting the wait time, its owner and GSC address
-    const timelockDeployer = await ethers.getContractFactory("Timelock", signers[0]);
-    const timelock = await timelockDeployer.deploy(1000, signers[0].address, constants.AddressZero);
-
-    // deploy the locking vault contract
-    const proxyDeployer = await ethers.getContractFactory("SimpleProxy", signers[0]);
-    const lockingVaultFactory = await ethers.getContractFactory("LockingVault", signers[0]);
-    const lockingVaultBase = await lockingVaultFactory.deploy(arcdToken.address, 55); // use 199350 with fork of mainnet
-    const lockingVaultProxy = await proxyDeployer.deploy(signers[0].address, lockingVaultBase.address);
-    const lockingVotingVault = lockingVaultBase.attach(lockingVaultProxy.address);
+    // deploy locking vault
+    const lockingVotingVault = <LockingVault>(
+        await deploy("LockingVault", signers[0], [arcdToken.address, staleBlockNum])
+    );
+    await lockingVotingVault.deployed();
 
     // deploy and initialize vesting vault with signers[1] as the manager and the timelock as the owner
-    const VestingVaultFactory = await ethers.getContractFactory("VestingVault", signers[0]);
-    const vestingVaultBase = await VestingVaultFactory.deploy(arcdToken.address, 55);
-    const vestingVaultProxy = await proxyDeployer.deploy(timelock.address, vestingVaultBase.address);
-    const vestingVotingVault = vestingVaultBase.attach(vestingVaultProxy.address);
-    await vestingVotingVault.initialize(signers[1].address, timelock.address);
-
-    const reputationNftFactory = await hre.ethers.getContractFactory("MockERC1155");
-    const reputationNft = <MockERC1155>await reputationNftFactory.deploy("MockERC1155");
-    await reputationNft.deployed();
-
-    const reputationNft2 = <MockERC1155>await reputationNftFactory.deploy("MockERC1155");
-    await reputationNft2.deployed();
-
-    //deploy and initialize promissory voting vault
-    const uniqueMultiplierVotingVaultFactory = await ethers.getContractFactory("UniqueMultiplierVotingVault", timelock);
-    const uniqueMultiplierVotingVaultBase = await uniqueMultiplierVotingVaultFactory.deploy(arcdToken.address, 55);
-    const uniqueMultiplierVotingVaultProxy = await proxyDeployer.deploy(
-        timelock.address,
-        uniqueMultiplierVotingVaultBase.address,
+    const vestingVotingVault = <VestingVault>(
+        await deploy("VestingVault", signers[0], [arcdToken.address, staleBlockNum])
     );
-    const uniqueMultiplierVotingVault = uniqueMultiplierVotingVaultBase.attach(
-        uniqueMultiplierVotingVaultProxy.address,
+    await vestingVotingVault.deployed();
+    await vestingVotingVault.initialize(signers[1].address, signers[2].address);
+
+    // deploy and initialize unique multiplier voting vault
+    const uniqueMultiplierVotingVault = <UniqueMultiplierVotingVault>(
+        await deploy("UniqueMultiplierVotingVault", signers[0], [arcdToken.address, staleBlockNum])
     );
+    await uniqueMultiplierVotingVault.deployed();
     await uniqueMultiplierVotingVault.initialize(
         signers[0].address, // timelock address who can update the manager
         signers[0].address, // manager address who can update unique multiplier values
     );
 
-    // push voting vaults into the votingVaults array which is
-    // used as an argument in coreVoting's deployment
+    // voting vault array
     votingVaults.push(uniqueMultiplierVotingVault.address, lockingVotingVault.address);
 
-    const coreVotingDeployer = await ethers.getContractFactory("CoreVoting", signers[0]);
-    // setup coreVoting with parameters as follows:
+    // core voting parameters
+    const MIN_VOTE_POWER = ethers.utils.parseEther("3");
+    const DEFAULT_QUORUM = ethers.utils.parseEther("7");
+
+    // deploy coreVoting with following parameters:
     // for initial testing purposes, we are setting the default quorum to 7
     // min voting power needed for proposal submission is set to 3
     // GSC contract address is set to zero - GSC not used
-    // array of voting vaults which will be used in coreVoting
-    const coreVoting = await coreVotingDeployer.deploy(
+    // array of voting vaults which will be used for voting
+    const coreVoting = <CoreVoting>await deploy("CoreVoting", signers[0], [
         signers[0].address, // deployer address at first, then ownership set to timelock contract
-        SEVEN, // base quorum / default quorum
-        THREE, // min voting power needed to submit a proposal
+        DEFAULT_QUORUM, // base quorum / default quorum
+        MIN_VOTE_POWER, // min voting power needed to submit a proposal
         ethers.constants.AddressZero, // GSC contract address
         votingVaults, // voting vaults array
-    );
+    ]);
 
     // approve the voting vaults for the votingVaults array
     await coreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
 
     // grant roles and update ownership
+    // deploy timelock
+    const timelock = <Timelock>await deploy("Timelock", signers[0], [
+        1000, // wait time
+        signers[0].address, // owner
+        constants.AddressZero, // authorized account
+    ]);
+    await timelock.deployed();
+
+    // grant governance owners and authorization
     await coreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns coreVoting
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
     await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock
@@ -138,6 +132,16 @@ export const votingVaultFixture = async (arcdToken: ArcadeToken): Promise<TestCo
     const feeController = <FeeController>await deploy("FeeController", signers[0], []);
     await feeController.deployed();
     // set FeeController admin to be set to CoreVoting.sol
+    // deploy mock reputation badges
+    const reputationNft = <MockERC1155>await deploy("MockERC1155", signers[0], []);
+    await reputationNft.deployed();
+    const reputationNft2 = <MockERC1155>await deploy("MockERC1155", signers[0], []);
+    await reputationNft2.deployed();
+
+    // deploy mock fee controller
+    const feeController = <FeeController>await deploy("FeeController", signers[0], []);
+    await feeController.deployed();
+    // set admin to be set to CoreVoting
     const updateFeeControllerAdmin = await feeController.transferOwnership(coreVoting.address);
     await updateFeeControllerAdmin.wait();
 
@@ -149,11 +153,6 @@ export const votingVaultFixture = async (arcdToken: ArcadeToken): Promise<TestCo
     await promissoryNote.initialize(arcadeGSCCoreVoting.address);
 
     // ================================== HELPER FUNCTIONS ==============================================
-
-    const getBlock = async () => {
-        const latestBlock: number = (await ethers.provider.getBlock("latest")).number;
-        return latestBlock;
-    };
 
     const increaseBlockNumber = async (provider: any, times: number) => {
         for (let i = 0; i < times; i++) {
@@ -223,19 +222,16 @@ export const votingVaultFixture = async (arcdToken: ArcadeToken): Promise<TestCo
         lockingVotingVault,
         vestingVotingVault,
         uniqueMultiplierVotingVault,
-        feeController,
         coreVoting,
         arcadeGSCCoreVoting,
         votingVaults,
         arcadeGSCVotingVault,
         timelock,
-        increaseBlockNumber,
-        getBlock,
-        mintNfts,
-        setMultipliers,
         reputationNft,
         reputationNft2,
-        advanceTime,
-        promissoryNote,
+        feeController,
+        increaseBlockNumber,
+        mintNfts,
+        setMultipliers,
     };
 };

@@ -2,13 +2,13 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { TokenTestContext, tokenFixture } from "./utils/tokenFixture";
-import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
+import { TestContextVotingVault, governanceFixture } from "./utils/governanceFixture";
+import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Unique Multiplier Voting Vault", async () => {
-    let ctxToken: TokenTestContext;
+    let ctxToken: TestContextToken;
     let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
@@ -18,7 +18,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
     beforeEach(async function () {
         ctxToken = await tokenFixture();
         const { arcdToken, arcdDst, deployer } = ctxToken;
-        ctxVotingVault = await votingVaultFixture(arcdToken);
+        ctxVotingVault = await governanceFixture(arcdToken);
         const { signers } = ctxVotingVault;
 
         // distribute tokens to signers[0]/ deployer for testing
@@ -156,9 +156,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Partial token withdrawal reduces delegatee voting power", async () => {
-            const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, getBlock, setMultipliers } =
-                ctxVotingVault;
+            const { arcdToken, blockchainTime } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -206,7 +205,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // confirm current contract balance equals previous balance minus ONE
             expect(contractBalanceAfter).to.eq(contractBalance.sub(ONE));
 
-            const nowBlock = getBlock();
+            const nowBlock = await blockchainTime.secondsFromNow(0);
             // get delegatee voting power after
             const votingPowerAfter = await uniqueMultiplierVotingVault.queryVotePowerView(signers[1].address, nowBlock);
             // confirm that delegatee voting power is ONE less than before withdrawal
@@ -214,9 +213,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Full token withdrawal reduces delegatee voting power. Withdrawn tokens transferred back to user", async () => {
-            const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, getBlock, setMultipliers } =
-                ctxVotingVault;
+            const { arcdToken, blockchainTime } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -233,7 +231,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 .connect(signers[1])
                 .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
-            const now = getBlock();
+            const now = await blockchainTime.secondsFromNow(0);
             // get signers[1] voting power before they receive any further delegation
             const votingPowerBefore = await uniqueMultiplierVotingVault.queryVotePowerView(signers[1].address, now);
             expect(votingPowerBefore).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
@@ -276,7 +274,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // confirm current contract balance is balance minus amount withdrawn
             expect(contractBalanceAfter).to.eq(contractBalance.sub(ONE.mul(5)));
 
-            const afterBlock = getBlock();
+            const afterBlock = await blockchainTime.secondsFromNow(0);
             // get delegatee voting power after token withdrawal
             const votingPowerAfter = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
@@ -295,9 +293,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("It reduces the correct amount of voting power from a delegate when a user changes their delegation", async () => {
-            const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, getBlock, setMultipliers } =
-                ctxVotingVault;
+            const { arcdToken, blockchainTime } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -354,7 +351,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // signers[0] changes their delegation from users[1] to users[3]
             await (await uniqueMultiplierVotingVault.connect(signers[0]).delegate(signers[3].address)).wait();
 
-            const afterBlock = getBlock();
+            const afterBlock = await blockchainTime.secondsFromNow(0);
 
             // confirm that signers[1] lost signers[0]'s voting power
             const votingPowerSignersOneAfter = await uniqueMultiplierVotingVault.queryVotePowerView(
