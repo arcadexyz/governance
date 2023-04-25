@@ -6,16 +6,16 @@ import "./external/council/CoreVoting.sol";
 
 /**
  *
- * @title GSCCoreVoting
+ * @title ArcadeGscCoreVoting
  * @author Non-Fungible Technologies, Inc.
  *
  *
- * The GSC core voting contract allows a voting process for those who have been allocated governance
- * power in the GSC where members are able to execute proposals.
+ * The Arcade core voting contract allows a voting process for GSC members who have been allocated
+ * governance power to execute proposals via the GSC vault.
  *
  */
 
-contract GSCoreVoting is CoreVoting {
+contract ArcadeGscCoreVoting is CoreVoting {
     // ==================================== CONSTRUCTOR ================================================
 
     /**

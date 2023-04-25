@@ -28,7 +28,7 @@ const { provider } = waffle;
  * souce: //docs.element.fi/governance-council/council-protocol-overview/governance-steering-council
  */
 
-describe("Vote Execution with GSC Voting Vault", async () => {
+describe("Vote Execution with Arcade GSC Voting Vault", async () => {
     let ctxVotingVault: TestContextVotingVault;
 
     const ONE = ethers.utils.parseEther("1");
@@ -39,12 +39,12 @@ describe("Vote Execution with GSC Voting Vault", async () => {
         ctxVotingVault = await votingVaultFixture();
     });
 
-    describe("Governance flow with gsc voting vault", async () => {
-        it("Executes proposal to pause V2 Promissory Notes transfers with a GSC vote: YES", async () => {
+    describe("Governance flow with Arcade gsc voting vault", async () => {
+        it("Executes proposal to pause V2 Promissory Notes transfers with an Arcade GSC vote: YES", async () => {
             const {
                 signers,
-                gscCoreVoting,
-                gscVotingVault,
+                arcadeGscCoreVoting,
+                arcadeGscVotingVault,
                 uniqueMultiplierVotingVault,
                 increaseBlockNumber,
                 promissoryNote,
@@ -79,16 +79,16 @@ describe("Vote Execution with GSC Voting Vault", async () => {
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[0].address);
 
             // check that each of signers[0, 1, 2, 3] meets the GSC membership requirements
-            await gscVotingVault
+            await arcadeGscVotingVault
                 .connect(signers[0])
                 .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
-            await gscVotingVault
+            await arcadeGscVotingVault
                 .connect(signers[1])
                 .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
-            await gscVotingVault
+            await arcadeGscVotingVault
                 .connect(signers[2])
                 .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
-            await gscVotingVault
+            await arcadeGscVotingVault
                 .connect(signers[3])
                 .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
 
@@ -97,19 +97,19 @@ describe("Vote Execution with GSC Voting Vault", async () => {
 
             // query voting powerof every GSC governance participants. Each should have one vote
             // view query voting power of signers[1]
-            const votingPower = await gscVotingVault.queryVotePower(signers[1].address, 20, "0x");
+            const votingPower = await arcadeGscVotingVault.queryVotePower(signers[1].address, 20, "0x");
             expect(votingPower).to.be.eq(ONE.div(ONE));
 
             // view query voting power of signers[2]
-            const votingPower2 = await gscVotingVault.queryVotePower(signers[2].address, 20, "0x");
+            const votingPower2 = await arcadeGscVotingVault.queryVotePower(signers[2].address, 20, "0x");
             expect(votingPower2).to.be.eq(ONE.div(ONE));
 
             // view query voting power of signers[3]
-            const votingPower3 = await gscVotingVault.queryVotePower(signers[3].address, 20, "0x");
+            const votingPower3 = await arcadeGscVotingVault.queryVotePower(signers[3].address, 20, "0x");
             expect(votingPower3).to.be.eq(ONE.div(ONE));
 
             // view query voting power of signers[0]. owner automatically gets 100K voting power on GSC
-            const votingPower4 = await gscVotingVault.queryVotePower(signers[0].address, 20, "0x");
+            const votingPower4 = await arcadeGscVotingVault.queryVotePower(signers[0].address, 20, "0x");
             expect(votingPower4).to.be.eq(ONE.mul(100000).div(ONE));
 
             // proposal creation code for setting V2 promissoryNote contract to paused()
@@ -120,21 +120,21 @@ describe("Vote Execution with GSC Voting Vault", async () => {
             const pNoteCalldata = pNfactory.interface.encodeFunctionData("setPaused", [true]);
 
             // any GSC member creates the proposal with a YES ballot
-            await gscCoreVoting
+            await arcadeGscCoreVoting
                 .connect(signers[1])
                 .proposal([uniqueMultiplierVotingVault.address], zeroExtraData, targetAddress, [pNoteCalldata], MAX, 0);
 
             // pass proposal with YES majority
-            await gscCoreVoting.connect(signers[0]).vote([gscVotingVault.address], zeroExtraData, 0, 0); // yes vote
-            await gscCoreVoting.connect(signers[1]).vote([gscVotingVault.address], zeroExtraData, 0, 0); // yes vote
-            await gscCoreVoting.connect(signers[2]).vote([gscVotingVault.address], zeroExtraData, 0, 0); // yes vote
-            await gscCoreVoting.connect(signers[3]).vote([gscVotingVault.address], zeroExtraData, 0, 0); // yes vote
+            await arcadeGscCoreVoting.connect(signers[0]).vote([arcadeGscVotingVault.address], zeroExtraData, 0, 0); // yes vote
+            await arcadeGscCoreVoting.connect(signers[1]).vote([arcadeGscVotingVault.address], zeroExtraData, 0, 0); // yes vote
+            await arcadeGscCoreVoting.connect(signers[2]).vote([arcadeGscVotingVault.address], zeroExtraData, 0, 0); // yes vote
+            await arcadeGscCoreVoting.connect(signers[3]).vote([arcadeGscVotingVault.address], zeroExtraData, 0, 0); // yes vote
 
             //increase blockNumber to exceed 3 day default lock duration set in gscCoreVoting
             await increaseBlockNumber(provider, 19488);
 
             // execute proposal
-            await gscCoreVoting.connect(signers[1]).execute(0, targetAddress, [pNoteCalldata]);
+            await arcadeGscCoreVoting.connect(signers[1]).execute(0, targetAddress, [pNoteCalldata]);
             // confirm with view function paused() that it is indeed paused
             expect(await promissoryNote.paused()).to.eq(true);
         });
