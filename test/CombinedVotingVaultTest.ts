@@ -1,14 +1,14 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextVotingVault, governanceFixture } from "./utils/governanceFixture";
+import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Locking and Unique Multiplier Voting Vaults", async () => {
     let ctxToken: TestContextToken;
-    let ctxVotingVault: TestContextVotingVault;
+    let ctxGovernance: TestContextGovernance;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
@@ -17,8 +17,8 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
     beforeEach(async function () {
         ctxToken = await tokenFixture();
         const { arcdToken, arcdDst, deployer } = ctxToken;
-        ctxVotingVault = await governanceFixture(arcdToken);
-        const { signers, lockingVotingVault } = ctxVotingVault;
+        ctxGovernance = await governanceFixture(arcdToken);
+        const { signers, lockingVotingVault } = ctxGovernance;
 
         // distribute tokens to signers[0]/ deployer for testing
         await arcdDst.connect(deployer).setToken(arcdToken.address);
@@ -51,7 +51,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 setMultipliers,
                 feeController,
                 votingVaults,
-            } = ctxVotingVault;
+            } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -181,7 +181,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 setMultipliers,
                 feeController,
                 votingVaults,
-            } = ctxVotingVault;
+            } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();

@@ -9,7 +9,7 @@ import { deploy } from "./contracts";
 
 type Signer = SignerWithAddress;
 
-export interface TestContextVotingVault {
+export interface TestContextGovernance {
     signers: Signer[];
     lockingVotingVault: LockingVault;
     vestingVotingVault: VestingVault;
@@ -41,7 +41,7 @@ interface Multipliers {
  * This fixture creates an complete governance deployment. It deploys the following voting vaults: locking vault,
  * vesting vault, unique multiplier voting vault. Along with the core voting and timelock contracts used in voting.
  */
-export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestContextVotingVault> => {
+export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestContextGovernance> => {
     const signers: Signer[] = await ethers.getSigners();
     const votingVaults: string[] = [];
     const arcadeGSCVotingVaults: string[] = [];
@@ -55,7 +55,7 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     );
     await lockingVotingVault.deployed();
 
-    // deploy and initialize vesting vault with signers[1] as the manager and the timelock as the owner
+    // deploy and initialize vesting vault with signers[1] as the manager and signers[2] as the owner
     const vestingVotingVault = <VestingVault>(
         await deploy("VestingVault", signers[0], [arcdToken.address, staleBlockNum])
     );

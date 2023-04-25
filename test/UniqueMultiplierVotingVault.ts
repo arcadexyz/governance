@@ -2,14 +2,14 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextVotingVault, governanceFixture } from "./utils/governanceFixture";
+import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Unique Multiplier Voting Vault", async () => {
     let ctxToken: TestContextToken;
-    let ctxVotingVault: TestContextVotingVault;
+    let ctxGovernance: TestContextGovernance;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
@@ -18,8 +18,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
     beforeEach(async function () {
         ctxToken = await tokenFixture();
         const { arcdToken, arcdDst, deployer } = ctxToken;
-        ctxVotingVault = await governanceFixture(arcdToken);
-        const { signers } = ctxVotingVault;
+        ctxGovernance = await governanceFixture(arcdToken);
+        const { signers } = ctxGovernance;
 
         // distribute tokens to signers[0]/ deployer for testing
         await arcdDst.connect(deployer).setToken(arcdToken.address);
@@ -49,7 +49,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 mintNfts,
                 setMultipliers,
                 feeController,
-            } = ctxVotingVault;
+            } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -157,7 +157,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Partial token withdrawal reduces delegatee voting power", async () => {
             const { arcdToken, blockchainTime } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -214,7 +214,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Full token withdrawal reduces delegatee voting power. Withdrawn tokens transferred back to user", async () => {
             const { arcdToken, blockchainTime } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -294,7 +294,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("It reduces the correct amount of voting power from a delegate when a user changes their delegation", async () => {
             const { arcdToken, blockchainTime } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -370,7 +370,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts a user calls addNftAndDelegate() with an nft they do not own", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -402,7 +402,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         it("Reverts when user who has an existing registration tries to call addNftAndDelegate() again", async () => {
             const { arcdToken } = ctxToken;
             const { signers, uniqueMultiplierVotingVault, reputationNft, reputationNft2, mintNfts, setMultipliers } =
-                ctxVotingVault;
+                ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -432,7 +432,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Allows user to self-delegate", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -468,7 +468,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Returns a user's registration with getRegistration()", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -500,7 +500,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts when calling delegate() when 'to' is already the user's delegatee", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -530,7 +530,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("withdraw() correctly transfers all deposited ERC20 tokens back to the user if no ERC1155 nft has been deposited with registration", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -561,7 +561,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("full withdraw() transfers nft back to the user if ERC1155 address and ERC1155 id does not equal zero", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -605,7 +605,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if user tries to call withdraw() on amount larger than contract ERC20 balance", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -630,7 +630,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if user calls withdraw() with an amount larger than their registration amount", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -664,7 +664,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if user tries calls withdraw() with ZERO amount", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -689,7 +689,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("ERC1155 stays locked when a user withdraws a fraction of their deposited tokens", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -743,7 +743,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if a user calls withdraw() an ERC20 amount larger than their 'withdrawable' amount", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -924,7 +924,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Transfers reputation nft back to user when withdrawNft() is called", async () => {
             const { arcdToken } = ctxToken;
-            const { uniqueMultiplierVotingVault, signers, reputationNft, mintNfts } = ctxVotingVault;
+            const { uniqueMultiplierVotingVault, signers, reputationNft, mintNfts } = ctxGovernance;
 
             // mint user some nfts
             await mintNfts();
@@ -957,7 +957,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts when withdrawNft() is called on an invalid token address", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -984,7 +984,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts when withdrawNft() is called on an invalid token id", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1010,7 +1010,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if withdrawNft() is called and the user has not deposited an ERC1155 nft", async () => {
             const { arcdToken } = ctxToken;
-            const { uniqueMultiplierVotingVault, signers } = ctxVotingVault;
+            const { uniqueMultiplierVotingVault, signers } = ctxGovernance;
 
             // signers[0] approves 5 tokens to voting vault
             await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE);
@@ -1030,7 +1030,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reduces delegatee votingPower if withdrawNft() is called and user tokens are still locked", async () => {
             const { arcdToken } = ctxToken;
-            const { uniqueMultiplierVotingVault, signers, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { uniqueMultiplierVotingVault, signers, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint user some nfts
             await mintNfts();
@@ -1090,7 +1090,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 reputationNft2, // other ERC1155 reputation NFT w/ different multiplier
                 mintNfts,
                 setMultipliers,
-            } = ctxVotingVault;
+            } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1153,7 +1153,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if user calls updateNft() with invalid token address", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -1176,7 +1176,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if user calls updateNft() with invalid token id", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -1200,7 +1200,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         it("Reverts if user calls updateNft() with ERC1155 token they do not own", async () => {
             const { arcdToken } = ctxToken;
             const { signers, uniqueMultiplierVotingVault, reputationNft, reputationNft2, mintNfts, setMultipliers } =
-                ctxVotingVault;
+                ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -1235,7 +1235,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Returns ZERO when _getWithdrawableAmount() is triggered for a non-registration", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1265,7 +1265,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Returns ZERO when _getWithdrawableAmount() is triggered where a user's registration withdrawable amount would be overdrawn", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1306,7 +1306,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("should fail to initialize if already initialized", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // call initialize again after initialization has already run after deployment
             const tx = uniqueMultiplierVotingVault.initialize(signers[0].address, signers[0].address);
@@ -1316,7 +1316,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
     describe("Multiplier functionality", async () => {
         it("Sets the multiplier value", async () => {
-            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxGovernance;
 
             // manager updates the value of the ERC1155 token multiplier
             await uniqueMultiplierVotingVault
@@ -1329,7 +1329,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Reverts if setMultiplier() is called with a value higher than multiplier limit", async () => {
-            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxGovernance;
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value higher than limit
             const tx = uniqueMultiplierVotingVault
@@ -1340,7 +1340,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Sets a multiplier for each different tokenId of the same ERC1155 token address", async () => {
-            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxGovernance;
 
             // manager sets the value of the multiplier for ERC1155's token id 1
             await uniqueMultiplierVotingVault
@@ -1362,7 +1362,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Fails if the caller is not the manager", async () => {
-            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxGovernance;
 
             // non-manager account to try to update the value of the token address multiplier
             const tx = uniqueMultiplierVotingVault
@@ -1372,7 +1372,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Only timelock can set a new manager", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // timelock sets a new manager
             await uniqueMultiplierVotingVault.connect(signers[0]).setManager(signers[5].address);
@@ -1380,7 +1380,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Correctly updates the value of multiplier", async () => {
-            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft } = ctxGovernance;
 
             // manager sets the value of the token address multiplier
             await uniqueMultiplierVotingVault
@@ -1402,7 +1402,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("Returns ZERO if getMultiplier() is called on a token that does not have a multiplier", async () => {
-            const { uniqueMultiplierVotingVault, reputationNft } = ctxVotingVault;
+            const { uniqueMultiplierVotingVault, reputationNft } = ctxGovernance;
 
             // no multiplier has been set for reputationNft.address
             // get reputationNft.address multiplier
@@ -1412,7 +1412,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Reverts if addNftAndDelegate() is called with a token that does not have a multiplier", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts } = ctxVotingVault;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts } = ctxGovernance;
 
             // mint nft for user
             await mintNfts();
@@ -1430,7 +1430,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Multiplier value returns ONE when addNftAndDelegate() is called with ERC1155 token address == 0", async () => {
             const { arcdToken } = ctxToken;
-            const { uniqueMultiplierVotingVault, signers } = ctxVotingVault;
+            const { uniqueMultiplierVotingVault, signers } = ctxGovernance;
 
             // signers[0] approves 5 tokens to unique multiplier voting vault and approves reputation nft
             await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -1457,7 +1457,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
         it("Multiplier value returns ONE when addNftAndDelegate() is called with ERC1155 token id == 0", async () => {
             const { arcdToken } = ctxToken;
-            const { uniqueMultiplierVotingVault, signers, reputationNft } = ctxVotingVault;
+            const { uniqueMultiplierVotingVault, signers, reputationNft } = ctxGovernance;
 
             // signers[0] approves 5 tokens to unique multiplier voting vault and approves reputation nft
             await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));

@@ -1,14 +1,14 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextVotingVault, governanceFixture } from "./utils/governanceFixture";
+import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider } = waffle;
 
 describe("Governance Operations with Locking Voting Vault", async () => {
     let ctxToken: TestContextToken;
-    let ctxVotingVault: TestContextVotingVault;
+    let ctxGovernance: TestContextGovernance;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
@@ -17,8 +17,8 @@ describe("Governance Operations with Locking Voting Vault", async () => {
     beforeEach(async function () {
         ctxToken = await tokenFixture();
         const { arcdToken, arcdDst, deployer } = ctxToken;
-        ctxVotingVault = await governanceFixture(arcdToken);
-        const { signers, lockingVotingVault } = ctxVotingVault;
+        ctxGovernance = await governanceFixture(arcdToken);
+        const { signers, lockingVotingVault } = ctxGovernance;
 
         // distribute tokens to signers[0]/ deployer for testing
         await arcdDst.connect(deployer).setToken(arcdToken.address);
@@ -38,7 +38,7 @@ describe("Governance Operations with Locking Voting Vault", async () => {
 
     describe("Locking voting vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxVotingVault;
+            const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxGovernance;
 
             // LockingVotingVault users deposits and delegation
             // query voting power to initialize history for every governance participant
