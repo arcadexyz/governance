@@ -8,7 +8,6 @@ import { Timelock } from "../../src/types";
 import { UniqueMultiplierVotingVault } from "../../src/types/contracts/UniqueMultiplierVotingVault.sol";
 import { CoreVoting } from "../../src/types/contracts/external/council/CoreVoting";
 import { MockERC20Council } from "../../src/types/contracts/external/council/mocks/MockERC20Council";
-import { GSCVault } from "../../src/types/contracts/external/council/vaults/GSCVault.sol";
 import { LockingVault } from "../../src/types/contracts/external/council/vaults/LockingVault.sol";
 import { deploy } from "./contracts";
 
@@ -18,10 +17,10 @@ export interface TestContextVotingVault {
     token: MockERC20Council;
     lockingVotingVault: LockingVault;
     uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
-    arcadeGscVotingVault: GSCVault;
+    arcadeGSCVotingVault: ArcadeGSCVotingVault;
     signers: Signer[];
     coreVoting: CoreVoting;
-    arcadeGscCoreVoting: CoreVoting;
+    arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     votingVaults: string[];
     timelock: Timelock;
     tokenAddress: string;
@@ -48,7 +47,7 @@ interface Multipliers {
 export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const signers: Signer[] = await ethers.getSigners();
     const votingVaults: string[] = [];
-    const arcadeGscVotingVaults: string[] = [];
+    const arcadeGSCVotingVaults: string[] = [];
 
     const { provider } = waffle;
     const [wallet] = provider.getWallets();
@@ -125,27 +124,27 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
     await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock
 
-    const arcadeGscCoreVoting = await coreVotingDeployer.deploy(
+    const arcadeGSCCoreVoting = await coreVotingDeployer.deploy(
         signers[0].address, // deployer address at first, then ownership set to timelock contract
         3, // quorum
         1, // voting power needed to submit a proposal
         ethers.constants.AddressZero, // GSC contract address when it's deployed
-        arcadeGscVotingVaults, // gsc voting vault array (the vaults where GSC members voting power is held)
+        arcadeGSCVotingVaults, // gsc voting vault array (the vaults where GSC members voting power is held)
     );
 
     // Deploy the GSC Voting Vault
-    const gscVotingVaultFactory = await ethers.getContractFactory("GSCVault", signers[0]);
-    const arcadeGscVotingVault = await gscVotingVaultFactory.deploy(
-        arcadeGscCoreVoting.address, // the core voting contract for the Arcade GSC
+    const gscVotingVaultFactory = await ethers.getContractFactory("ArcadeGSCVotingVault", signers[0]);
+    const arcadeGSCVotingVault = await gscVotingVaultFactory.deploy(
+        arcadeGSCCoreVoting.address, // the core voting contract for the Arcade GSC
         50, // amount of voting power needed to be on the GSC (using 50 for ease of testing. Council GSC on Mainnet requires 110,000)
         signers[0].address, // owner of the GSC voting vault contract. should be the timelock
     );
 
     // approve the voting vaults for the gsc voting vault array
-    await arcadeGscCoreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
-    await arcadeGscCoreVoting.changeVaultStatus(arcadeGscVotingVault.address, true);
+    await arcadeGSCCoreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
+    await arcadeGSCCoreVoting.changeVaultStatus(arcadeGSCVotingVault.address, true);
     // add vote power counting vaults into the GSC voting vaults array
-    await arcadeGscCoreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns gscCoreVoting
+    await arcadeGSCCoreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns gscCoreVoting
 
     // deploy feeController for voting vault testing
     const feeController = <FeeController>await deploy("FeeController", signers[0], []);
@@ -159,7 +158,7 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     const pNoteSymbol = "PN";
     const promissoryNote = <PromissoryNote>await deploy("PromissoryNote", signers[0], [pNoteName, pNoteSymbol]);
     // grant admin access to GSC core voting
-    await promissoryNote.initialize(arcadeGscCoreVoting.address);
+    await promissoryNote.initialize(arcadeGSCCoreVoting.address);
 
     // ================================== HELPER FUNCTIONS ==============================================
 
@@ -238,9 +237,9 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         token,
         feeController,
         coreVoting,
-        arcadeGscCoreVoting,
+        arcadeGSCCoreVoting,
         votingVaults,
-        arcadeGscVotingVault,
+        arcadeGSCVotingVault,
         timelock,
         increaseBlockNumber,
         getBlock,

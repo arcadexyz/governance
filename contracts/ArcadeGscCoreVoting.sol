@@ -6,7 +6,7 @@ import "./external/council/CoreVoting.sol";
 
 /**
  *
- * @title ArcadeGscCoreVoting
+ * @title ArcadeGSCCoreVoting
  * @author Non-Fungible Technologies, Inc.
  *
  *
@@ -15,7 +15,7 @@ import "./external/council/CoreVoting.sol";
  *
  */
 
-contract ArcadeGscCoreVoting is CoreVoting {
+contract ArcadeGSCCoreVoting is CoreVoting {
     // ==================================== CONSTRUCTOR ================================================
 
     /**
