@@ -57,7 +57,7 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
 
     // deploy and initialize vesting vault with signers[1] as the manager and signers[2] as the owner
     const vestingVotingVault = <VestingVault>(
-        await deploy("VestingVault", signers[0], [arcdToken.address, staleBlockNum])
+        await deploy("ARCDVestingVault", signers[0], [arcdToken.address, staleBlockNum])
     );
     await vestingVotingVault.deployed();
     await vestingVotingVault.initialize(signers[1].address, signers[2].address);
@@ -73,7 +73,7 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     );
 
     // voting vault array
-    votingVaults.push(uniqueMultiplierVotingVault.address, lockingVotingVault.address);
+    votingVaults = [uniqueMultiplierVotingVault.address, lockingVotingVault.address, vestingVotingVault.address];
 
     // core voting parameters
     const MIN_VOTE_POWER = ethers.utils.parseEther("3");

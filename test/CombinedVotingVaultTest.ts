@@ -152,14 +152,14 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             // signer holding enough voting power for proposal creation creates proposal
             await coreVoting
                 .connect(signers[0])
-                .proposal(votingVaults, zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
+                .proposal([votingVaults[0], votingVaults[1]], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
             // pass proposal with YES majority
-            await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 0, 0); // yes vote
+            await coreVoting.connect(signers[2]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 0, 0); // yes vote
 
-            await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 0, 1); // no vote
+            await coreVoting.connect(signers[1]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 0, 1); // no vote
 
-            //increase blockNumber to exceed 3 day default lock duration set in coreVoting
+            // increase blockNumber to exceed 3 day default lock duration set in coreVoting
             await increaseBlockNumber(provider, 19488);
 
             // proposal execution
@@ -283,7 +283,14 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             // generate proposal => proposalId # 0
             await coreVoting
                 .connect(signers[0])
-                .proposal(votingVaults, zeroExtraData, targetAddress, [rolloverFeeCalldata], MAX, 0);
+                .proposal(
+                    [votingVaults[0], votingVaults[1]],
+                    zeroExtraData,
+                    targetAddress,
+                    [rolloverFeeCalldata],
+                    MAX,
+                    0,
+                );
 
             const newFee = 60;
             // encode function signature and new fee origination fee amount
@@ -292,11 +299,11 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             // create an alternate proposal
             await coreVoting
                 .connect(signers[0])
-                .proposal(votingVaults, zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
+                .proposal([votingVaults[0], votingVaults[1]], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
             // pass proposal with YES majority
-            await coreVoting.connect(signers[2]).vote(votingVaults, zeroExtraData, 1, 0); // yes vote on proposalId 1
-            await coreVoting.connect(signers[1]).vote(votingVaults, zeroExtraData, 1, 1); // no vote on proposalId 1
+            await coreVoting.connect(signers[2]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 1, 0); // yes vote on proposalId 1
+            await coreVoting.connect(signers[1]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 1, 1); // no vote on proposalId 1
 
             //increase blockNumber to exceed 3 day default lock duration set in coreVoting
             await increaseBlockNumber(provider, 19488);
