@@ -138,3 +138,8 @@ error AVV_CliffNotReached();
  * @notice Tokens cannot be re-delegated to the same address.
  */
 error AVV_AlreadyDelegated();
+
+/**
+ * @notice The amount provided is either zero or greater than the remaining allocation.
+ */
+error AVV_InvalidAmount();

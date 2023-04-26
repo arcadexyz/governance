@@ -10,7 +10,9 @@ interface IARCDVestingVault {
      */
     function getGrant(address _who) external view returns (ARCDVestingVaultStorage.Grant memory);
 
-    function claim() external;
+    function claimable(address _who) external view returns (uint256);
+
+    function claim(uint256 _amount) external;
 
     function delegate(address _to) external;
 

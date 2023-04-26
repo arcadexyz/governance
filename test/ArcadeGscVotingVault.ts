@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
+import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider } = waffle;
 
@@ -31,14 +31,13 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
                 increaseBlockNumber,
                 promissoryNote,
                 timelock,
-                blockchainTime
+                blockchainTime,
             } = ctxGovernance;
 
             // distribute tokens to test users
             await arcdDst.connect(deployer).setToken(arcdToken.address);
             expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
-            const partnerVestingAmount = await arcdDst.vestingPartnerAmount();
             const teamVestingAmount = await arcdDst.vestingTeamAmount();
             await expect(await arcdDst.connect(deployer).toTeamVesting(signers[0].address))
                 .to.emit(arcdDst, "Distribute")
@@ -46,7 +45,7 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
             expect(await arcdDst.vestingTeamSent()).to.be.true;
             expect(await arcdToken.balanceOf(signers[0].address)).to.equal(teamVestingAmount);
             // distribute to other users
-            for(let i = 5; i < 9; i++) {
+            for (let i = 5; i < 9; i++) {
                 await arcdToken.connect(signers[0]).transfer(signers[i].address, ONE.mul(50));
             }
 

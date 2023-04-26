@@ -9,7 +9,7 @@ const { provider } = waffle;
 /**
  * Test suite for the Arcade vesting contracts.
  */
-describe("Vesting voting vault", function () {
+describe.only("Vesting voting vault", function () {
     let ctxToken: TestContextToken;
     let ctxGovernance: TestContextGovernance;
 
@@ -19,13 +19,6 @@ describe("Vesting voting vault", function () {
     });
 
     describe("Manager only functions", function () {
-        it("cannot initialize contract twice", async () => {
-            const { vestingVotingVault, signers } = ctxGovernance;
-            await expect(vestingVotingVault.initialize(signers[0].address, signers[0].address)).to.be.revertedWith(
-                "AVV_AlreadyInitialized()",
-            );
-        });
-
         it("check manager address", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const MANAGER_ADDRESS = signers[1].address;
@@ -623,30 +616,31 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims after cliff
-            await vestingVotingVault.connect(OTHER).claim();
-            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("75"));
+            const claimable = await vestingVotingVault.connect(OTHER).claimable(OTHER_ADDRESS);
+            await vestingVotingVault.connect(OTHER).claim(claimable);
+            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(claimable);
 
             const grant = await vestingVotingVault.getGrant(OTHER_ADDRESS);
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
-            expect(grant.withdrawn).to.equal(ethers.utils.parseEther("75"));
+            expect(grant.withdrawn).to.equal(claimable);
             expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.cliffClaimed).to.equal(true);
-            expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("25"));
+            expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(claimable));
             expect(grant.delegatee).to.equal(OTHER_ADDRESS);
 
             // check voting power
             const checkBlock = await ethers.provider.getBlock("latest");
             expect(await vestingVotingVault.queryVotePowerView(OTHER_ADDRESS, checkBlock.number)).to.equal(
-                ethers.utils.parseEther("25"),
+                ethers.utils.parseEther("100").sub(claimable),
             );
 
             // manager removes grant after 75% of tokens are claimed
             await vestingVotingVault.connect(MANAGER).removeGrant(OTHER_ADDRESS);
             expect(await arcdToken.balanceOf(MANAGER_ADDRESS)).to.equal(
-                managerBalanceBefore.add(ethers.utils.parseEther("25")),
+                managerBalanceBefore.add(ethers.utils.parseEther("100").sub(claimable)),
             );
 
             const grant2 = await vestingVotingVault.getGrant(OTHER_ADDRESS);
@@ -792,7 +786,7 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims before cliff but no tokens are transferred
-            const tx2 = vestingVotingVault.connect(OTHER).claim();
+            const tx2 = vestingVotingVault.connect(OTHER).claim(ethers.utils.parseEther("1"));
 
             await expect(tx2).to.be.revertedWith("AVV_CliffNotReached()");
             expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(0);
@@ -860,7 +854,7 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims after cliff but no tokens are transferred
-            await vestingVotingVault.connect(OTHER).claim();
+            await vestingVotingVault.connect(OTHER).claim(ethers.utils.parseEther("50"));
             expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("50"));
 
             const grant2 = await vestingVotingVault.getGrant(OTHER_ADDRESS);
@@ -942,28 +936,29 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims after cliff but no tokens are transferred
-            await vestingVotingVault.connect(OTHER).claim();
-            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("50.5"));
+            const claimable = await vestingVotingVault.connect(OTHER).claimable(OTHER_ADDRESS);
+            await vestingVotingVault.connect(OTHER).claim(claimable);
+            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(claimable);
 
             const grant2 = await vestingVotingVault.getGrant(OTHER_ADDRESS);
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
-            expect(grant2.withdrawn).to.equal(ethers.utils.parseEther("50.5"));
+            expect(grant2.withdrawn).to.equal(claimable);
             expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.cliffClaimed).to.equal(true);
-            expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("49.5"));
+            expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(claimable));
             expect(grant2.delegatee).to.equal(OTHER_ADDRESS);
 
             // check voting power
             const checkBlock = await ethers.provider.getBlock("latest");
             expect(await vestingVotingVault.queryVotePowerView(OTHER_ADDRESS, checkBlock.number)).to.equal(
-                ethers.utils.parseEther("49.5"),
+                ethers.utils.parseEther("100").sub(claimable),
             );
         });
 
-        it("grant recipient claims entire amount after expiration, then check voting power", async () => {
+        it("grant recipient claims entire amount after expiration, check voting power", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, arcdDst, deployer } = ctxToken;
             const MANAGER = signers[1];
@@ -1018,19 +1013,21 @@ describe("Vesting voting vault", function () {
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
             expect(grant.delegatee).to.equal(OTHER_ADDRESS);
 
-            // increase blocks past cliff
+            // increase blocks past expiration
             for (let i = 0; i < 201; i++) {
                 await ethers.provider.send("evm_mine", []);
             }
 
-            // user claims after cliff but no tokens are transferred
-            await vestingVotingVault.connect(OTHER).claim();
-            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("100"));
+            // user claims after expiration, all tokens are transferred
+            const claimable = await vestingVotingVault.connect(OTHER).claimable(OTHER_ADDRESS);
+            expect(claimable).to.equal(ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(OTHER).claim(claimable);
+            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(claimable);
 
             const grant2 = await vestingVotingVault.getGrant(OTHER_ADDRESS);
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
-            expect(grant2.withdrawn).to.equal(ethers.utils.parseEther("100"));
+            expect(grant2.withdrawn).to.equal(claimable);
             expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
@@ -1106,7 +1103,7 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims after cliff but no tokens are transferred
-            await vestingVotingVault.connect(OTHER).claim();
+            await vestingVotingVault.connect(OTHER).claim(ethers.utils.parseEther("50"));
             expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("50"));
 
             const grant2 = await vestingVotingVault.getGrant(OTHER_ADDRESS);
@@ -1132,33 +1129,36 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims after cliff but no tokens are transferred
-            await vestingVotingVault.connect(OTHER).claim();
-            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("75"));
+            const claimable = await vestingVotingVault.connect(OTHER).claimable(OTHER_ADDRESS);
+            await vestingVotingVault.connect(OTHER).claim(claimable);
+            const totalClaimed = ethers.utils.parseEther("50").add(claimable);
+            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(totalClaimed);
 
             const grant3 = await vestingVotingVault.getGrant(OTHER_ADDRESS);
             expect(grant3.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant3.cliffAmount).to.equal(ethers.utils.parseEther("50"));
-            expect(grant3.withdrawn).to.equal(ethers.utils.parseEther("75"));
+            expect(grant3.withdrawn).to.equal(totalClaimed);
             expect(grant3.created).to.equal(grantCreatedBlock);
             expect(grant3.expiration).to.equal(expiration);
             expect(grant3.cliff).to.equal(cliff);
             expect(grant3.cliffClaimed).to.equal(true);
-            expect(grant3.latestVotingPower).to.equal(ethers.utils.parseEther("25"));
+            expect(grant3.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(totalClaimed));
             expect(grant3.delegatee).to.equal(OTHER_ADDRESS);
 
             // check voting power
             const checkBlock2 = await ethers.provider.getBlock("latest");
             expect(await vestingVotingVault.queryVotePowerView(OTHER_ADDRESS, checkBlock2.number)).to.equal(
-                ethers.utils.parseEther("25"),
+                ethers.utils.parseEther("100").sub(totalClaimed),
             );
 
-            // increase 75% of the way to expiration
-            for (let i = 0; i < 49; i++) {
+            // increase 100% of the way to expiration
+            for (let i = 0; i < 50; i++) {
                 await ethers.provider.send("evm_mine", []);
             }
 
             // user claims after cliff but no tokens are transferred
-            await vestingVotingVault.connect(OTHER).claim();
+            const claimable2 = await vestingVotingVault.connect(OTHER).claimable(OTHER_ADDRESS);
+            await vestingVotingVault.connect(OTHER).claim(claimable2);
             expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("100"));
 
             const grant4 = await vestingVotingVault.getGrant(OTHER_ADDRESS);

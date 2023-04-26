@@ -19,7 +19,8 @@ import {
     AVV_HasGrant,
     AVV_NoGrantSet,
     AVV_CliffNotReached,
-    AVV_AlreadyDelegated
+    AVV_AlreadyDelegated,
+    AVV_InvalidAmount
 } from "./errors/Governance.sol";
 
 /**
@@ -53,20 +54,10 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
      * @param _token              The ERC20 token to grant.
      * @param _stale              Stale block used for voting power calculations
      */
-    constructor(IERC20 _token, uint256 _stale) {
+    constructor(IERC20 _token, uint256 _stale, address manager_, address timelock_) {
         token = _token;
         staleBlockLag = _stale;
-    }
 
-    /**
-     * @notice Initialization function to set initial variables. Can only be called once.
-     *
-     * @param manager_           The vault manager can add and remove grants.
-     * @param timelock_          The timelock address can change the manager.
-     */
-    function initialize(address manager_, address timelock_) public {
-        if (Storage.uint256Ptr("initialized").data == 1) revert AVV_AlreadyInitialized();
-        Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
     }
@@ -235,17 +226,38 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
     }
 
     /**
+     * @notice Returns the claimable amount for a given grant.
+     *
+     * @param _who                    Address to query.
+     */
+    function claimable(address _who) public view returns (uint256) {
+        return _getWithdrawableAmount(_grants()[_who]);
+    }
+
+    /**
      * @notice Grant owners use to claim all withdrawable value from a grant. Voting power
      *         is recalculated factoring in the amount withdrawn.
+     *
+     * @param _amount                 The amount to withdraw.
      */
-    function claim() public virtual {
+    function claim(uint256 _amount) public virtual {
         // load the grant
         ARCDVestingVaultStorage.Grant storage grant = _grants()[msg.sender];
         if (grant.cliff > block.number) revert AVV_CliffNotReached();
 
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(grant);
-        grant.withdrawn += uint128(withdrawable);
+        if (_amount > withdrawable) revert AVV_InsufficientBalance();
+        if (_amount == 0) revert AVV_InvalidAmount();
+        if (grant.withdrawn + _amount > grant.allocation) revert AVV_InvalidAmount();
+
+        if (_amount == withdrawable) {
+            grant.withdrawn += uint128(withdrawable);
+        } else {
+            // update the grant's withdrawn amount
+            grant.withdrawn += uint128(_amount);
+            withdrawable = _amount;
+        }
 
         // update the user's voting power
         _syncVotingPower(msg.sender, grant);
@@ -389,15 +401,14 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
         if (block.number >= _grant.expiration) {
             return (_grant.allocation - _grant.withdrawn);
         }
-        // check if cliff amount has been claimed
+        // if cliff amount has not been claimed and after cliff
         if (block.number >= _grant.cliff && !_grant.cliffClaimed) {
             uint256 unlocked = (_grant.allocation * (block.number - _grant.created)) /
                 (_grant.expiration - _grant.created);
 
             return (uint256(_grant.cliffAmount) + (unlocked - _grant.cliffAmount)) - _grant.withdrawn;
         }
-        // if cliff amount has been claimed, calculate the amount the grantee can
-        // withdraw minus the cliff amount
+        // if cliff amount has been claimed and after cliff
         if (block.number >= _grant.cliff && _grant.cliffClaimed) {
             uint256 unlocked = (_grant.allocation * (block.number - _grant.created)) /
                 (_grant.expiration - _grant.created);
@@ -465,5 +476,10 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
 
 // Deployable version of the abstract contract
 contract ARCDVestingVault is AbstractARCDVestingVault {
-    constructor(IERC20 _token, uint256 _stale) AbstractARCDVestingVault(_token, _stale) {}
+    constructor(
+        IERC20 _token,
+        uint256 _stale,
+        address manager_,
+        address timelock_
+    ) AbstractARCDVestingVault(_token, _stale, manager_, timelock_) {}
 }

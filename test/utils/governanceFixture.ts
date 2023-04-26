@@ -57,12 +57,16 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     );
     await lockingVotingVault.deployed();
 
-    // deploy and initialize vesting vault with signers[1] as the manager and signers[2] as the owner
+    // deploy vesting vault with signers[1] as the manager and signers[2] as the owner
     const vestingVotingVault = <VestingVault>(
-        await deploy("ARCDVestingVault", signers[0], [arcdToken.address, staleBlockNum])
+        await deploy("ARCDVestingVault", signers[0], [
+            arcdToken.address,
+            staleBlockNum,
+            signers[1].address,
+            signers[2].address,
+        ])
     );
     await vestingVotingVault.deployed();
-    await vestingVotingVault.initialize(signers[1].address, signers[2].address);
 
     // deploy and initialize unique multiplier voting vault
     const uniqueMultiplierVotingVault = <UniqueMultiplierVotingVault>(
@@ -116,7 +120,7 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     // ================================== ARCADE GSC VOTING VAULTS ==============================
 
     // Deploy the GSC Voting Vault
-    const arcadeGSCVotingVault = <CoreVoting>await deploy( "ArcadeGSCVotingVault", signers[0], [
+    const arcadeGSCVotingVault = <CoreVoting>await deploy("ArcadeGSCVotingVault", signers[0], [
         coreVoting.address, // the core voting contract
         50, // amount of voting power needed to be on the GSC (using 50 for ease of testing. Council GSC on Mainnet requires 110,000)
         timelock.address, // owner of the GSC voting vault contract: the timelock contract
