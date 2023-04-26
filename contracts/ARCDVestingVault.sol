@@ -249,7 +249,6 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
         uint256 withdrawable = _getWithdrawableAmount(grant);
         if (_amount > withdrawable) revert AVV_InsufficientBalance();
         if (_amount == 0) revert AVV_InvalidAmount();
-        if (grant.withdrawn + _amount > grant.allocation) revert AVV_InvalidAmount();
 
         if (_amount == withdrawable) {
             grant.withdrawn += uint128(withdrawable);
