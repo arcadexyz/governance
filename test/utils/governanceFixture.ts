@@ -6,6 +6,7 @@ import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
 import { Timelock } from "../../src/types";
 import { ArcadeToken, CoreVoting, LockingVault, UniqueMultiplierVotingVault, VestingVault } from "../../src/types";
 import { deploy } from "./contracts";
+import { BlockchainTime } from "./time";
 
 type Signer = SignerWithAddress;
 
@@ -15,21 +16,18 @@ export interface TestContextGovernance {
     vestingVotingVault: VestingVault;
     uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
     arcadeGSCVotingVault: ArcadeGSCVotingVault;
-    signers: Signer[];
     coreVoting: CoreVoting;
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     votingVaults: string[];
     timelock: Timelock;
-    increaseBlockNumber: (provider: any, times: number) => Promise<void>;
-    getBlock: () => Promise<number>;
-    advanceTime: (provider: any, time: number) => Promise<void>;
     reputationNft: MockERC1155;
     reputationNft2: MockERC1155;
     feeController: FeeController;
+    promissoryNote: PromissoryNote;
+    blockchainTime: BlockchainTime;
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     mintNfts(): Promise<void>;
     setMultipliers(): Promise<Multipliers>;
-    promissoryNote: PromissoryNote;
 }
 
 interface Multipliers {
@@ -38,16 +36,20 @@ interface Multipliers {
 }
 
 /**
- * This fixture creates an complete governance deployment. It deploys the following voting vaults: locking vault,
- * vesting vault, unique multiplier voting vault. Along with the core voting and timelock contracts used in voting.
+ * This fixture creates a complete governance deployment. It deploys the following voting vaults: locking vault,
+ * vesting vault, unique multiplier voting vault for use with the base core voting and timelock contracts.
+ * In addition, this fixture sets up a GSC committee which has its own core voting contract and own voting vault.
  */
 export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestContextGovernance> => {
+    const blockchainTime = new BlockchainTime();
     const signers: Signer[] = await ethers.getSigners();
-    const votingVaults: string[] = [];
-    const arcadeGSCVotingVaults: string[] = [];
+    let votingVaults: string[] = [];
+    let arcadeGSCVotingVaults: string[] = [];
 
     const staleBlock = await ethers.provider.getBlock("latest");
     const staleBlockNum = staleBlock.number;
+
+    // ================================= CORE VOTING VAULTS =================================
 
     // deploy locking vault
     const lockingVotingVault = <LockingVault>(
@@ -75,6 +77,8 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     // voting vault array
     votingVaults = [uniqueMultiplierVotingVault.address, lockingVotingVault.address, vestingVotingVault.address];
 
+    // ==================================== BASE CORE VOTING ==================================
+
     // core voting parameters
     const MIN_VOTE_POWER = ethers.utils.parseEther("3");
     const DEFAULT_QUORUM = ethers.utils.parseEther("7");
@@ -91,11 +95,11 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
         ethers.constants.AddressZero, // GSC contract address
         votingVaults, // voting vaults array
     ]);
+    await coreVoting.deployed();
 
     // approve the voting vaults for the votingVaults array
     await coreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
 
-    // grant roles and update ownership
     // deploy timelock
     const timelock = <Timelock>await deploy("Timelock", signers[0], [
         1000, // wait time
@@ -109,29 +113,31 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
     await timelock.connect(signers[0]).setOwner(coreVoting.address); // coreVoting is set as owner of timelock
 
-    const arcadeGSCCoreVoting = await coreVotingDeployer.deploy(
+    // ================================== ARCADE GSC VOTING VAULTS ==============================
+
+    // Deploy the GSC Voting Vault
+    const arcadeGSCVotingVault = <CoreVoting>await deploy( "ArcadeGSCVotingVault", signers[0], [
+        coreVoting.address, // the core voting contract
+        50, // amount of voting power needed to be on the GSC (using 50 for ease of testing. Council GSC on Mainnet requires 110,000)
+        timelock.address, // owner of the GSC voting vault contract: the timelock contract
+    ]);
+    await arcadeGSCVotingVault.deployed();
+
+    arcadeGSCVotingVaults = [arcadeGSCVotingVault.address];
+
+    // ================================== ARCADE GSC CORE VOTING ================================
+
+    const arcadeGSCCoreVoting = <CoreVoting>await deploy("CoreVoting", signers[0], [
         signers[0].address, // deployer address at first, then ownership set to timelock contract
         3, // quorum
         1, // voting power needed to submit a proposal
         ethers.constants.AddressZero, // GSC contract address when it's deployed
         arcadeGSCVotingVaults, // gsc voting vault array (the vaults where GSC members voting power is held)
-    );
+    ]);
+    await arcadeGSCCoreVoting.deployed();
 
-    // Deploy the GSC Voting Vault
-    const gscVotingVaultFactory = await ethers.getContractFactory("ArcadeGSCVotingVault", signers[0]);
-    const arcadeGSCVotingVault = await gscVotingVaultFactory.deploy(
-        coreVoting.address, // the core voting contract
-        50, // amount of voting power needed to be on the GSC (using 50 for ease of testing. Council GSC on Mainnet requires 110,000)
-        timelock.address, // owner of the GSC voting vault contract: the timelock contract
-    );
+    // ================================ EXTERNAL RESOURCES ================================
 
-    // approve the voting vaults for the gsc voting vault array
-    await arcadeGSCCoreVoting.changeVaultStatus(arcadeGSCVotingVault.address, true);
-
-    // deploy feeController for voting vault testing
-    const feeController = <FeeController>await deploy("FeeController", signers[0], []);
-    await feeController.deployed();
-    // set FeeController admin to be set to CoreVoting.sol
     // deploy mock reputation badges
     const reputationNft = <MockERC1155>await deploy("MockERC1155", signers[0], []);
     await reputationNft.deployed();
@@ -141,7 +147,7 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     // deploy mock fee controller
     const feeController = <FeeController>await deploy("FeeController", signers[0], []);
     await feeController.deployed();
-    // set admin to be set to CoreVoting
+    // set FeeController admin to be set to CoreVoting.sol
     const updateFeeControllerAdmin = await feeController.transferOwnership(coreVoting.address);
     await updateFeeControllerAdmin.wait();
 
@@ -152,17 +158,12 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
     // grant admin access to GSC core voting
     await promissoryNote.initialize(arcadeGSCCoreVoting.address);
 
-    // ================================== HELPER FUNCTIONS ==============================================
+    // ================================== HELPER FUNCTIONS ==================================
 
     const increaseBlockNumber = async (provider: any, times: number) => {
         for (let i = 0; i < times; i++) {
             await ethers.provider.send("evm_mine", []);
         }
-    };
-
-    const advanceTime = async (provider: any, time: number) => {
-        await provider.send("evm_increaseTime", [time]);
-        await provider.send("evm_mine", []);
     };
 
     // mint users some reputation nfts
@@ -222,14 +223,16 @@ export const governanceFixture = async (arcdToken: ArcadeToken): Promise<TestCon
         lockingVotingVault,
         vestingVotingVault,
         uniqueMultiplierVotingVault,
+        arcadeGSCVotingVault,
         coreVoting,
         arcadeGSCCoreVoting,
         votingVaults,
-        arcadeGSCVotingVault,
         timelock,
         reputationNft,
         reputationNft2,
         feeController,
+        promissoryNote,
+        blockchainTime,
         increaseBlockNumber,
         mintNfts,
         setMultipliers,
