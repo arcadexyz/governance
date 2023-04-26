@@ -6,28 +6,6 @@ import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultF
 
 const { provider } = waffle;
 
-/**
- * The GSC voting vault gives one vote to each member of the GSC council. When attached to a core voting contract,
- * it enables the council members to vote on proposals and execute them only with agreement from the council.
- *
- * The GSC can propose on-chain votes directly without meeting the minimum requirement of voting power for proposal
- * creation (aka spam threshold), and it can move directly to on-chain voting. This is in contrast to the rest of
- * the governance community’s proposal creation process, an off-chain poll, and lastly an on-chain vote.
- *
- * The GSC can make calls that have any custom GSC consensus requirement, ranging from one GSC member vote to a
- * supermajority. This means a wide variety of committee-based vote systems can run in parallel to the main voting
- * system! This is accomplished by using a copy of the core voting contract.
- *
- * The GSC is a group of delegates, each of whom has reached a pre-established threshold of delegated voting power,
- * giving them additional governance powers within the system, and as a result, additional responsibilities.
- * GSC members can have different special functions (propose votes directly on chain, spend a portion of treasury
- * funds at their discretion, etc.), different responsibilities (DAO2DAO relationships, collaborations, treasury
- * management, community engagement, etc.), and might (depending upon a vote) be compensated for the time and effort
- * that they dedicate to improving the protocol. All of these functions and responsibilities must be defined and
- * ratified through the governance process.
- * souce: //docs.element.fi/governance-council/council-protocol-overview/governance-steering-council
- */
-
 describe("Vote Execution with Arcade GSC Voting Vault", async () => {
     let ctxVotingVault: TestContextVotingVault;
 
@@ -50,6 +28,7 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
                 promissoryNote,
                 token,
                 advanceTime,
+                timelock,
             } = ctxVotingVault;
 
             // using signers[0, 1, 2, 3] as GSC members
@@ -95,7 +74,7 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
             // fast forward 4 days to complete new member idle wait time
             await advanceTime(provider, 345600);
 
-            // query voting powerof every GSC governance participants. Each should have one vote
+            // query voting power of every GSC governance participants. Each should have one vote
             // view query voting power of signers[1]
             const votingPower = await arcadeGSCVotingVault.queryVotePower(signers[1].address, 20, "0x");
             expect(votingPower).to.be.eq(ONE.div(ONE));
@@ -108,9 +87,14 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
             const votingPower3 = await arcadeGSCVotingVault.queryVotePower(signers[3].address, 20, "0x");
             expect(votingPower3).to.be.eq(ONE.div(ONE));
 
-            // view query voting power of signers[0]. owner automatically gets 100K voting power on GSC
+            // view query voting power of signers[0]
             const votingPower4 = await arcadeGSCVotingVault.queryVotePower(signers[0].address, 20, "0x");
-            expect(votingPower4).to.be.eq(ONE.mul(100000).div(ONE));
+            expect(votingPower4).to.be.eq(ONE.div(ONE));
+
+            // view query voting power of the timelock contract who is the owner of this voting vault
+            // owner automatically gets 100K voting power on the GSC
+            const votingPower5 = await arcadeGSCVotingVault.queryVotePower(timelock.address, 20, "0x");
+            expect(votingPower5).to.be.eq(ONE.mul(100000).div(ONE));
 
             // proposal creation code for setting V2 promissoryNote contract to paused()
             const targetAddress = [promissoryNote.address];
@@ -122,13 +106,12 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
             // any GSC member creates the proposal with a YES ballot
             await arcadeGSCCoreVoting
                 .connect(signers[1])
-                .proposal([uniqueMultiplierVotingVault.address], zeroExtraData, targetAddress, [pNoteCalldata], MAX, 0);
+                .proposal([arcadeGSCVotingVault.address], zeroExtraData, targetAddress, [pNoteCalldata], MAX, 0);
 
             // pass proposal with YES majority
             await arcadeGSCCoreVoting.connect(signers[0]).vote([arcadeGSCVotingVault.address], zeroExtraData, 0, 0); // yes vote
             await arcadeGSCCoreVoting.connect(signers[1]).vote([arcadeGSCVotingVault.address], zeroExtraData, 0, 0); // yes vote
             await arcadeGSCCoreVoting.connect(signers[2]).vote([arcadeGSCVotingVault.address], zeroExtraData, 0, 0); // yes vote
-            await arcadeGSCCoreVoting.connect(signers[3]).vote([arcadeGSCVotingVault.address], zeroExtraData, 0, 0); // yes vote
 
             //increase blockNumber to exceed 3 day default lock duration set in gscCoreVoting
             await increaseBlockNumber(provider, 19488);

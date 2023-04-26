@@ -119,6 +119,9 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
         votingVaults, // voting vaults array
     );
 
+    // approve the voting vaults for the votingVaults array
+    await coreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
+
     // grant roles and update ownership
     await coreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns coreVoting
     await timelock.connect(signers[0]).deauthorize(signers[0].address); // timelock revokes deployer ownership
@@ -135,16 +138,13 @@ export const votingVaultFixture = async (): Promise<TestContextVotingVault> => {
     // Deploy the GSC Voting Vault
     const gscVotingVaultFactory = await ethers.getContractFactory("ArcadeGSCVotingVault", signers[0]);
     const arcadeGSCVotingVault = await gscVotingVaultFactory.deploy(
-        arcadeGSCCoreVoting.address, // the core voting contract for the Arcade GSC
+        coreVoting.address, // the core voting contract
         50, // amount of voting power needed to be on the GSC (using 50 for ease of testing. Council GSC on Mainnet requires 110,000)
-        signers[0].address, // owner of the GSC voting vault contract. should be the timelock
+        timelock.address, // owner of the GSC voting vault contract: the timelock contract
     );
 
     // approve the voting vaults for the gsc voting vault array
-    await arcadeGSCCoreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
     await arcadeGSCCoreVoting.changeVaultStatus(arcadeGSCVotingVault.address, true);
-    // add vote power counting vaults into the GSC voting vaults array
-    await arcadeGSCCoreVoting.connect(signers[0]).setOwner(timelock.address); // timelock owns gscCoreVoting
 
     // deploy feeController for voting vault testing
     const feeController = <FeeController>await deploy("FeeController", signers[0], []);
