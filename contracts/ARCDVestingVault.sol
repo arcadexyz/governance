@@ -335,15 +335,13 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
         // get the change in voting power. Negative if the voting power is reduced
         int256 change = int256(newVotingPower) - int256(uint256(_grant.latestVotingPower));
         // do nothing if there is no change
-        if (change == 0) return;
-        if (change > 0) {
-            votingPower.push(_grant.delegatee, delegateeVotes + uint256(change));
-        } else {
+        if (change < 0) {
             // if the change is negative, we multiply by -1 to avoid underflow when casting
             votingPower.push(_grant.delegatee, delegateeVotes - uint256(change * -1));
+            emit VoteChange(_grant.delegatee, _who, change);
+
+            _grant.latestVotingPower = uint128(newVotingPower);
         }
-        emit VoteChange(_grant.delegatee, _who, change);
-        _grant.latestVotingPower = uint128(newVotingPower);
     }
 
     /**
@@ -406,8 +404,6 @@ abstract contract AbstractARCDVestingVault is IARCDVestingVault {
 
             return unlocked - _grant.withdrawn;
         }
-        // else return 0
-        return 0;
     }
 
     /**
