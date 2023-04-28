@@ -28,6 +28,7 @@ library VotingVaultStorage {
         uint128 amount; // token amount
         uint128 latestVotingPower;
         uint128 withdrawn; // amount of tokens withdrawn from voting vault
+        uint128 addedAmount; // amount added to top up voting power ERC20 deposit
         uint128 tokenId; // ERC1155 token id
         address tokenAddress; // the address of the ERC1155 token
         address delegatee;

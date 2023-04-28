@@ -478,9 +478,10 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             expect(registration[0]).to.eq(ONE);
             expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
             expect(registration[2]).to.eq(0);
-            expect(registration[3]).to.eq(1);
-            expect(registration[4]).to.eq(reputationNft.address);
-            expect(registration[5]).to.eq(signers[1].address);
+            expect(registration[3]).to.eq(0);
+            expect(registration[4]).to.eq(1);
+            expect(registration[5]).to.eq(reputationNft.address);
+            expect(registration[6]).to.eq(signers[1].address);
         });
 
         it("Reverts when calling delegate() when 'to' is already the user's delegatee", async () => {
@@ -504,7 +505,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // get signers[1] registration
             const registration = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
             // confirm that signers[2] is signers[1] delegatee
-            expect(registration[5]).to.eq(signers[2].address);
+            expect(registration[6]).to.eq(signers[2].address);
 
             // signers[1] calls delegate() on signers[2] who is already their delegate
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).delegate(signers[2].address);
@@ -780,6 +781,127 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await expect(tx3).to.be.revertedWith(`UMVV_InsufficientWithdrawableBalance(${ONE.mul(5)})`);
         });
 
+        it("addTokens() transfers added funds the contract and increases delegatee voting power", async () => {
+            const { signers, token, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // initialize history for signers[1]
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
+            const tx = await uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+            await tx.wait();
+
+            // get user balance before addTokens()
+            const userBalBefore = await token.balanceOf(signers[1].address);
+            // get contract balance before addTokens()
+            const contractBalBefore = await token.balanceOf(uniqueMultiplierVotingVault.address);
+
+            // get delegatee voting power amount
+            const votingPower = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx.blockNumber,
+            );
+            expect(votingPower).to.be.eq(ONE.mul(5));
+
+            // signers[1] approves TWO more tokens to be added their registration
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
+            // adds TWO tokens
+            const tx2 = await uniqueMultiplierVotingVault.connect(signers[1]).addTokens(ONE.mul(2));
+            await tx2.wait();
+
+            // get contract balance after add tokens
+            const contractBalAfter = await token.balanceOf(uniqueMultiplierVotingVault.address);
+            // get user balance after add tokens
+            const userBalAfter = await token.balanceOf(signers[1].address);
+
+            // confirm contract balance now has TWO more tokens
+            await expect(contractBalAfter).to.eq(contractBalBefore.add(ONE.mul(2)));
+            // confirm user balance has 2 less tokens
+            await expect(userBalAfter).to.eq(userBalBefore.sub(ONE.mul(2)));
+
+            // confirm the delegatee voting power has increased with the added tokens
+            const votingPower2 = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx2.blockNumber,
+            );
+            expect(votingPower2).to.be.eq(ONE.mul(7));
+        });
+
+        it("addTokens() updates the addedAmount in the registration data", async () => {
+            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVault;
+
+            // mint users some ERC1155 nfts
+            await mintNfts();
+
+            // manager sets the value of the ERC1155 NFT multipliers
+            const { MULTIPLIER_A } = await setMultipliers();
+
+            // signers[1] approves tokens to voting vault
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
+            await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+
+            // signers[1] registers and delegates to self by not specifying a delegation address
+            const tx = await uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addNftAndDelegate(ONE, 1, reputationNft.address, constants.AddressZero);
+            await tx.wait();
+
+            // get signers[1] registration
+            const registration = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
+
+            // confirm signers[1] registration data
+            expect(registration[0]).to.eq(ONE);
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(registration[2]).to.eq(0);
+            expect(registration[3]).to.eq(0); // addedAmount
+            expect(registration[4]).to.eq(1);
+            expect(registration[5]).to.eq(reputationNft.address);
+            expect(registration[6]).to.eq(signers[1].address);
+
+            // signers[1] approves TWO more tokens to voting vault
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
+            // signers[1] adds TWO more tokens to their registration
+            const tx2 = await uniqueMultiplierVotingVault.connect(signers[1]).addTokens(ONE.mul(2));
+            await tx2.wait();
+
+            // get signers[1] registration
+            const registration2 = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
+
+            // added amount in registration, now equals TWO
+            expect(registration2[3]).to.eq(ONE.mul(2));
+        });
+
+        it("reverts if addTokens() is called with amount zero", async () => {
+            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVault;
+
+            // mint users some ERC1155 nfts
+            await mintNfts();
+
+            // manager sets the value of the ERC1155 NFT multipliers
+            await setMultipliers();
+
+            // signers[2] approves tokens to voting vault
+            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(10));
+            await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+
+            // signers[2] registers depositing TEN tokens and delegating to self
+            await uniqueMultiplierVotingVault
+                .connect(signers[2])
+                .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
+
+            // signers[2] calls addTokens with amount 0
+            const tx = uniqueMultiplierVotingVault.connect(signers[2]).addTokens(0);
+
+            await expect(tx).to.be.revertedWith("UMVV_ZeroAmount");
+        });
+
         it("Transfers reputation nft back to user when withdrawNft() is called", async () => {
             // invoke the fixture function
             ctxVault = await votingVaultFixture();
@@ -867,7 +989,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const tx = uniqueMultiplierVotingVault.withdrawNft();
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("${reputationNft.address}", ${0})`);
         });
-
         it("Reverts if withdrawNft() is called and the user has not deposited an ERC1155 nft", async () => {
             const { uniqueMultiplierVotingVault, signers, token } = ctxVault;
 

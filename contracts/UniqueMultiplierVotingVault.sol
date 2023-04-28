@@ -113,6 +113,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) external virtual nonReentrant {
         address who = msg.sender;
         uint128 withdrawn = 0;
+        uint128 addedAmount = 0;
         uint256 multiplier = 1e18;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
@@ -145,6 +146,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             amount,
             newVotingPower,
             withdrawn,
+            addedAmount,
             tokenId,
             tokenAddress,
             delegatee
@@ -239,7 +241,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // user's ERC1155 token at the time of the call
         _syncVotingPower(msg.sender, registration);
 
-        if (registration.withdrawn == registration.amount) {
+        if (registration.withdrawn == (registration.amount + registration.addedAmount)) {
             if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
                 withdrawNft();
             }
@@ -248,6 +250,32 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
         // transfer the token amount to the user
         token.transfer(msg.sender, amount);
+    }
+
+    /**
+     * @notice Tops up a user's locked ERC20 token amount in this contract.
+     *         Consequently, the user's delegatee gains voting power associated
+     *         with the newly added tokens.
+     *
+     * @param amount                      The amount of token to add.
+     */
+    function addTokens(uint128 amount) external virtual nonReentrant {
+        if (amount == 0) revert UMVV_ZeroAmount();
+        // load the registration
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+
+        // get this contract's balance
+        Storage.Uint256 storage balance = _balance();
+        // update contract balance
+        balance.data += amount;
+
+        // update added amount
+        registration.addedAmount += amount;
+        // update the delegatee's voting power
+        _syncVotingPower(msg.sender, registration);
+
+        // transfer user ERC20 amount into this contract
+        _lockTokens(msg.sender, amount, address(0), 0, 0);
     }
 
     /**
@@ -423,11 +451,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function _getWithdrawableAmount(
         VotingVaultStorage.Registration memory registration
     ) internal pure returns (uint256) {
-        if (registration.withdrawn == registration.amount) {
+        if (registration.withdrawn == (registration.amount + registration.addedAmount)) {
             return 0;
         }
 
-        uint256 withdrawable = registration.amount - registration.withdrawn;
+        uint256 withdrawable = (registration.amount + registration.addedAmount) - registration.withdrawn;
 
         return withdrawable;
     }
@@ -444,7 +472,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function _currentVotingPower(
         VotingVaultStorage.Registration memory registration
     ) internal view virtual returns (uint256) {
-        uint256 locked = registration.amount - registration.withdrawn;
+        uint256 locked = (registration.amount + registration.addedAmount) - registration.withdrawn;
 
         if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
             return (locked * getMultiplier(registration.tokenAddress, registration.tokenId)) / MULTIPLIER_DENOMINATOR;
