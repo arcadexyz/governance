@@ -77,7 +77,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
     // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
 
-    /**
+    /** TODO: add NATSPEC re. total entries
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
      * @param timelock                 The address of the timelock who can update the manager address.
@@ -89,6 +89,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
+        Storage.set(Storage.uint256Ptr("totalentries"), 0);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 
@@ -123,6 +124,19 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             multiplier = getMultiplier(tokenAddress, tokenId);
 
             if (multiplier == 0) revert UMVV_NoMultiplierSet();
+
+            uint128 currentEntry = getTotalEntries();
+            ++currentEntry;
+
+            // load the nftIndex
+            VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[currentEntry][tokenAddress][tokenId];
+            // add data to NftIndex
+            _getNftIndexes()[currentEntry][tokenAddress][tokenId] = VotingVaultStorage.NftIndex(
+                tokenId,
+                who,
+                delegatee
+            );
+            setTotalEntries(currentEntry);
         }
 
         // load this contract's balance storage
@@ -351,7 +365,37 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // set multiplier value
         multiplierData.multiplier = multiplierValue;
 
+        // check if the voting power of delgatees needs to be updated
+        uint128 entries = getTotalEntries();
+        // check that an index has been set:
+        VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[entries][tokenAddress][tokenId];
+
+        // if token ID and delegator have been set, then there is an index for that nft
+        if (nftIndex.tokenId != 0 && nftIndex.delegator != address(0)) {
+            // get every record and sync its delegatee voting power
+            for (uint128 i = entries; i > 0; --i) {
+                // load the nftIndex of every entry
+                VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[i][tokenAddress][tokenId];
+
+                // get its delegator registration
+                VotingVaultStorage.Registration storage registration = _getRegistrations()[nftIndex.delegator];
+
+                // sync voting power that registration's delegatee
+                _syncVotingPower(nftIndex.delegator, registration);
+            }
+        }
+
         emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
+    }
+
+    // TODO: natspec
+    function setTotalEntries(uint256 currentTotal) internal {
+        Storage.set(Storage.uint256Ptr("totalentries"), currentTotal);
+    }
+
+    // TODO: natspec
+    function getTotalEntries() public view returns (uint128) {
+        return uint128((Storage.uint256Ptr("totalentries")).data);
     }
 
     /**
@@ -410,6 +454,21 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
+     * @notice A single function endpoint for loading NftIndex storage
+     *
+     * @return nftIndexes                   A storage mapping to look up nft indexes data
+     */
+    function _getNftIndexes()
+        internal
+        pure
+        returns (mapping(uint128 => mapping(address => mapping(uint128 => VotingVaultStorage.NftIndex))) storage)
+    {
+        // This call returns a storage mapping with a unique non overwrite-able storage location
+        // which can be persisted through upgrades, even if they change storage layout
+        return (VotingVaultStorage.mappingAddressToNftIndex("nftindexes"));
+    }
+
+    /**
      * @notice Helper to update a delegatee's voting power.
      *
      * @param who                        The address who's voting power we need to sync.
@@ -422,13 +481,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         uint256 delegateeVotes = votingPower.loadTop(registration.delegatee);
 
         uint256 newVotingPower = _currentVotingPower(registration);
-
         // get the change in voting power. Negative if the voting power is reduced
         int256 change = int256(newVotingPower) - int256(uint256(registration.latestVotingPower));
 
         // do nothing if there is no change
         if (change == 0) return;
-
         if (change > 0) {
             votingPower.push(registration.delegatee, delegateeVotes + uint256(change));
         } else {

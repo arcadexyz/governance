@@ -1461,5 +1461,107 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await expect(multiplier).to.eq(ethers.utils.parseEther("1"));
             expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(ONE));
         });
+
+        it("When mutliplier value is updated, delegatee votingpower is synced with new multiplier value", async () => {
+            // when set mutliplier is called on an nft that already has a multiplier the voting power of all the
+            // users with this nft is updated to the new multiplier value
+            const { signers, uniqueMultiplierVotingVault, reputationNft, setMultipliers, token, mintNfts, getBlock } =
+                ctxVault;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            const { MULTIPLIER_A } = await setMultipliers();
+
+            // signers[0] approves tokens to unique multiplier vault and approves reputation nft
+            await token.approve(uniqueMultiplierVotingVault.address, ONE);
+            await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+
+            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            const tx = await uniqueMultiplierVotingVault.addNftAndDelegate(
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
+
+            // get signers[1] voting power
+            const votingPower1Before = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                tx.blockNumber,
+            );
+            expect(votingPower1Before).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+
+            // approve signer tokens to unique multiplier voting vault and approves reputation nft
+            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+
+            // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[3]
+            const tx1 = await uniqueMultiplierVotingVault
+                .connect(signers[2])
+                .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[3].address);
+
+            // view query voting power of signers[3]
+            const votingPower3Before = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[3].address,
+                tx1.blockNumber,
+            );
+            expect(votingPower3Before).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
+
+            // get the current multiplier
+            const multiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
+            await expect(multiplier).to.eq(ethers.utils.parseEther("1.2"));
+
+            // manager updates the value of the multiplier
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.4"));
+
+            // get new multiplier value
+            const newMultiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
+            await expect(newMultiplier).to.eq(ethers.utils.parseEther("1.4"));
+
+            const nowBlock = getBlock();
+
+            // confirm that signers[1] voting power value is updated because of new multiplier value
+            const votingPower1After = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                nowBlock,
+            );
+            expect(votingPower1After).to.eq(ONE.mul(newMultiplier).div(ONE));
+
+            //confirm that signers[3] voting power value is updated because of new multiplier value
+            const votingPower3After = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[3].address,
+                nowBlock,
+            );
+            expect(votingPower3After).to.eq(ONE.mul(5).mul(newMultiplier).div(ONE));
+
+            // manager updates the value of the multiplier again: reduces it
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.1"));
+
+            // get new multiplier value
+            const reducedMultiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
+            await expect(reducedMultiplier).to.eq(ethers.utils.parseEther("1.1"));
+
+            const currentBlock = getBlock();
+
+            // confirm that signers[1] voting power value is reduced because of new multiplier value
+            const votingPower1C = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[1].address,
+                currentBlock,
+            );
+            expect(votingPower1C).to.eq(ONE.mul(reducedMultiplier).div(ONE));
+
+            //confirm that signers[3] voting power value is reduced because of new multiplier value
+            const votingPower3C = await uniqueMultiplierVotingVault.queryVotePowerView(
+                signers[3].address,
+                currentBlock,
+            );
+            expect(votingPower3C).to.eq(ONE.mul(5).mul(reducedMultiplier).div(ONE));
+        });
     });
 });
