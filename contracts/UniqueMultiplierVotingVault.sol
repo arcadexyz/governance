@@ -77,7 +77,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
     // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
 
-    /** TODO: add NATSPEC re. total entries
+    /**
      * @notice initialization function to set initial variables. Can only be called once after deployment.
      *
      * @param timelock                 The address of the timelock who can update the manager address.
