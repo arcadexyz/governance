@@ -2,9 +2,14 @@
 
 pragma solidity ^0.8.18;
 
-// Copy of `Storage` with modified scope to match the VestingVault requirements
-// This library allows for secure storage pointers across proxy implementations
-// It will return storage pointers based on a hashed name and type string.
+/**
+ * @title ARCDVestingVaultStorage
+ * @author Non-Fungible Technologies, Inc.
+ *
+ * Copy of Council `Storage` with modified scope to match the VestingVault requirements.
+ * This library allows for secure storage pointers across proxy implementations.
+ * It will return storage pointers based on a hashed name and type string.
+ */
 library ARCDVestingVaultStorage {
     // This library follows a pattern which if solidity had higher level
     // type or macro support would condense quite a bit.
@@ -26,7 +31,6 @@ library ARCDVestingVaultStorage {
         uint128 created;
         uint128 expiration;
         uint128 cliff;
-        bool cliffClaimed;
         uint128 latestVotingPower;
         address delegatee;
     }

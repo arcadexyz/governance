@@ -89,11 +89,6 @@ error FLV_WithdrawsFrozen();
 /// @notice All errors prefixed with AVV_, to separate from other contracts in governance.
 
 /**
- * @notice Contract is already initialized.
- */
-error AVV_AlreadyInitialized();
-
-/**
  * @notice Caller is not the manager.
  */
 error AVV_NotManager();

@@ -29,6 +29,7 @@ export interface TestContextToken {
     merkleTrie: MerkleTree;
     expiration: number;
     staleBlockNum: number;
+    bootstrapVestingManager: () => Promise<void>;
 }
 
 /**
@@ -112,6 +113,26 @@ export const tokenFixture = async (): Promise<TestContextToken> => {
     ]);
     await arcdAirdrop.deployed();
 
+    // ==================================== HELPER FUNCTIONS ===================================
+
+    const bootstrapVestingManager = async (): Promise<void> => {
+        // distribute tokens to the vesting vault manager
+        await arcdDst.connect(deployer).setToken(arcdToken.address);
+        expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
+
+        const partnerVestingAmount = await arcdDst.vestingPartnerAmount();
+        const teamVestingAmount = await arcdDst.vestingTeamAmount();
+        await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[1].address))
+            .to.emit(arcdDst, "Distribute")
+            .withArgs(arcdToken.address, signers[1].address, partnerVestingAmount);
+        await expect(await arcdDst.connect(deployer).toTeamVesting(signers[1].address))
+            .to.emit(arcdDst, "Distribute")
+            .withArgs(arcdToken.address, signers[1].address, teamVestingAmount);
+        expect(await arcdDst.vestingTeamSent()).to.be.true;
+        expect(await arcdDst.vestingPartnerSent()).to.be.true;
+        expect(await arcdToken.balanceOf(signers[1].address)).to.equal(partnerVestingAmount.add(teamVestingAmount));
+    };
+
     return {
         deployer,
         other,
@@ -130,5 +151,6 @@ export const tokenFixture = async (): Promise<TestContextToken> => {
         merkleTrie,
         expiration,
         staleBlockNum,
+        bootstrapVestingManager,
     };
 };
