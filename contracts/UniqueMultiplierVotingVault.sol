@@ -367,35 +367,28 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
 
         // check if the voting power of delgatees needs to be updated
         uint128 entries = getTotalEntries();
-        // check that an index has been set:
+        // load the index of the last entry
         VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[entries][tokenAddress][tokenId];
 
-        // if token ID and delegator have been set, then there is an index for that nft
+        // if token ID and delegator are not zero, then there is an index for that nft
         if (nftIndex.tokenId != 0 && nftIndex.delegator != address(0)) {
-            // get every record and sync its delegatee voting power
+            // for every record check if delegatee voting power needs sync'ing
             for (uint128 i = entries; i > 0; --i) {
-                // load the nftIndex of every entry
+                // load the nftIndex entry
                 VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[i][tokenAddress][tokenId];
 
                 // get its delegator registration
                 VotingVaultStorage.Registration storage registration = _getRegistrations()[nftIndex.delegator];
 
-                // sync voting power that registration's delegatee
-                _syncVotingPower(nftIndex.delegator, registration);
+                // if the delegatee in nftIndex is still as delegatee in registration
+                if (nftIndex.delegatee == registration.delegatee) {
+                    // sync voting power for that delegatee
+                    _syncVotingPower(nftIndex.delegator, registration);
+                }
             }
         }
 
         emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
-    }
-
-    // TODO: natspec
-    function setTotalEntries(uint256 currentTotal) internal {
-        Storage.set(Storage.uint256Ptr("totalentries"), currentTotal);
-    }
-
-    // TODO: natspec
-    function getTotalEntries() public view returns (uint128) {
-        return uint128((Storage.uint256Ptr("totalentries")).data);
     }
 
     /**
@@ -416,6 +409,15 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         }
 
         return multiplierData.multiplier;
+    }
+
+    /**
+     * @notice A function to access the storage of the number of nftIndex entries.
+     *
+     * @return                          The number of entries that have been indexed.
+     */
+    function getTotalEntries() public view returns (uint128) {
+        return uint128((Storage.uint256Ptr("totalentries")).data);
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -589,6 +591,15 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // This call returns a storage mapping with a unique non overwrite-able storage layout
         // which can be persisted through upgrades, even if they change storage layout
         return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
+    }
+
+    /**
+     * @notice A internal function for updating the tally of indexed nft entries.
+     *
+     * @param currentTotal                The value of the last set tally.
+     */
+    function setTotalEntries(uint256 currentTotal) internal {
+        Storage.set(Storage.uint256Ptr("totalentries"), currentTotal);
     }
 
     /** @notice A function to handles the receipt of a single ERC1155 token. This function is called

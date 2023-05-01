@@ -1549,6 +1549,13 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             const currentBlock = getBlock();
 
+            // are the delegatees in the nftIndex still delegatees in the registration
+            const registrationSignersZero = await uniqueMultiplierVotingVault.getRegistration(signers[0].address);
+            expect(registrationSignersZero[6]).to.eq(signers[1].address);
+
+            const registrationSignersTwo = await uniqueMultiplierVotingVault.getRegistration(signers[2].address);
+            expect(registrationSignersTwo[6]).to.eq(signers[3].address);
+
             // confirm that signers[1] voting power value is reduced because of new multiplier value
             const votingPower1C = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
