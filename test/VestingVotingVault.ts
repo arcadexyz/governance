@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
-const { provider } = waffle;
+const { provider, loadFixture } = waffle;
 
 /**
  * Test suite for the Arcade vesting vault contracts.
@@ -12,10 +12,15 @@ const { provider } = waffle;
 describe("Vesting voting vault", function () {
     let ctxToken: TestContextToken;
     let ctxGovernance: TestContextGovernance;
+    let fixtureToken: () => Promise<TestContextToken>;
+    let fixtureGov: () => Promise<TestContextGovernance>;
 
     beforeEach(async function () {
-        ctxToken = await tokenFixture();
-        ctxGovernance = await governanceFixture(ctxToken.arcdToken);
+        fixtureToken = await tokenFixture();
+        ctxToken = await loadFixture(fixtureToken);
+
+        fixtureGov = await governanceFixture(ctxToken.arcdToken);
+        ctxGovernance = await loadFixture(fixtureGov);
     });
 
     describe("Manager only functions", function () {
@@ -199,7 +204,7 @@ describe("Vesting voting vault", function () {
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
             );
-            await expect(tx).to.be.revertedWith("AVV_InsufficientBalance()");
+            await expect(tx).to.be.revertedWith("AVV_InsufficientBalance(0)");
         });
 
         it("add grant with invalid cliff and start times", async () => {
@@ -302,7 +307,7 @@ describe("Vesting voting vault", function () {
             // manager tries to withdraw
             await expect(
                 vestingVotingVault.connect(MANAGER).withdraw(ethers.utils.parseEther("100"), MANAGER_ADDRESS),
-            ).to.be.revertedWith("AVV_InsufficientBalance()");
+            ).to.be.revertedWith("AVV_InsufficientBalance(0)");
         });
 
         it("manager tries to add grant for account that already exists", async () => {
@@ -487,7 +492,13 @@ describe("Vesting voting vault", function () {
 
             // user cannot claim tokens after grant is removed
             await expect(vestingVotingVault.connect(OTHER).claim(ethers.utils.parseEther("1"))).to.be.revertedWith(
-                "AVV_InsufficientBalance()",
+                `AVV_NoGrantSet()`,
+            );
+
+            // check users voting power
+            const checkBlock = await ethers.provider.getBlock("latest");
+            expect(await vestingVotingVault.queryVotePowerView(OTHER_ADDRESS, checkBlock.number)).to.equal(
+                ethers.utils.parseEther("0"),
             );
         });
 
@@ -544,6 +555,50 @@ describe("Vesting voting vault", function () {
     });
 
     describe("Grant claiming", () => {
+        it("user tries to claim without grant allocated", async () => {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const { arcdToken, bootstrapVestingManager } = ctxToken;
+            const MANAGER = signers[1];
+            const MANAGER_ADDRESS = signers[1].address;
+            const OTHER_ADDRESS = signers[0].address;
+            const THIRD_PARTY = signers[2];
+            const THIRD_PARTY_ADDRESS = signers[2].address;
+
+            await bootstrapVestingManager();
+
+            // manager deposits tokens into the vesting vault
+            await arcdToken.connect(MANAGER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+
+            // add grant
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const grantCreatedBlock = currentBlock + 1; // 1 block in the future
+            const cliff = grantCreatedBlock + 100; // 100 blocks in the future
+            const expiration = grantCreatedBlock + 200; // 200 blocks in the future
+            await vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
+                OTHER_ADDRESS, // recipient
+                ethers.utils.parseEther("100"), // grant amount
+                ethers.utils.parseEther("50"), // cliff unlock amount
+                0, // start time is current block
+                expiration,
+                cliff,
+                OTHER_ADDRESS, // voting power delegate
+            );
+            // increase blocks to right before cliff
+            for (let i = 0; i < 98; i++) {
+                await ethers.provider.send("evm_mine", []);
+            }
+
+            // user claims before cliff but no tokens are transferred
+            const tx2 = vestingVotingVault.connect(THIRD_PARTY).claim(ethers.utils.parseEther("1"));
+
+            await expect(tx2).to.be.revertedWith("AVV_NoGrantSet()");
+            expect(await arcdToken.balanceOf(THIRD_PARTY_ADDRESS)).to.equal(0);
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+        });
+
         it("grant recipient tries to claim before cliff", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
@@ -582,7 +637,7 @@ describe("Vesting voting vault", function () {
             // user claims before cliff but no tokens are transferred
             const tx2 = vestingVotingVault.connect(OTHER).claim(ethers.utils.parseEther("1"));
 
-            await expect(tx2).to.be.revertedWith("AVV_CliffNotReached()");
+            await expect(tx2).to.be.revertedWith(`AVV_CliffNotReached(${cliff})`);
             expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(0);
             expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
         });
@@ -894,7 +949,7 @@ describe("Vesting voting vault", function () {
             // user specifies more than claimable amount
             await expect(
                 vestingVotingVault.connect(OTHER).claim(claimable2.add(ethers.utils.parseEther(".01"))),
-            ).to.be.revertedWith("AVV_InsufficientBalance()");
+            ).to.be.revertedWith(`AVV_InsufficientBalance(${claimable2})`);
 
             // user specifies zero as claimable amount
             await expect(vestingVotingVault.connect(OTHER).claim(0)).to.be.revertedWith("AVV_InvalidAmount()");
@@ -1022,7 +1077,7 @@ describe("Vesting voting vault", function () {
             // user specifies more than claimable amount
             await expect(
                 vestingVotingVault.connect(OTHER).claim(claimable2.add(ethers.utils.parseEther(".01"))),
-            ).to.be.revertedWith("AVV_InsufficientBalance()");
+            ).to.be.revertedWith(`AVV_InsufficientBalance(${claimable2})`);
 
             // user specifies zero as claimable amount
             await expect(vestingVotingVault.connect(OTHER).claim(0)).to.be.revertedWith("AVV_InvalidAmount()");

@@ -5,19 +5,24 @@ import { ethers, waffle } from "hardhat";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
-const { provider } = waffle;
+const { provider, loadFixture } = waffle;
 
 describe("Vote Execution with Arcade GSC Voting Vault", async () => {
     let ctxToken: TestContextToken;
     let ctxGovernance: TestContextGovernance;
+    let fixtureToken: () => Promise<TestContextToken>;
+    let fixtureGov: () => Promise<TestContextGovernance>;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     beforeEach(async function () {
-        ctxToken = await tokenFixture();
-        ctxGovernance = await governanceFixture(ctxToken.arcdToken);
+        fixtureToken = await tokenFixture();
+        ctxToken = await loadFixture(fixtureToken);
+
+        fixtureGov = await governanceFixture(ctxToken.arcdToken);
+        ctxGovernance = await loadFixture(fixtureGov);
     });
 
     describe("Governance flow with Arcade gsc voting vault", async () => {

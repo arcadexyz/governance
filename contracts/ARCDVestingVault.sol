@@ -79,6 +79,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      */
     modifier onlyManager() {
         if (msg.sender != _manager().data) revert AVV_NotManager();
+
         _;
     }
 
@@ -87,6 +88,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      */
     modifier onlyTimelock() {
         if (msg.sender != _timelock().data) revert AVV_NotTimelock();
+
         _;
     }
 
@@ -126,7 +128,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
         if (cliffAmount >= amount) revert AVV_InvalidCliffAmount();
 
         Storage.Uint256 storage unassigned = _unassigned();
-        if (unassigned.data < amount) revert AVV_InsufficientBalance();
+        if (unassigned.data < amount) revert AVV_InsufficientBalance(unassigned.data);
 
         // load the grant
         ARCDVestingVaultStorage.Grant storage grant = _grants()[who];
@@ -185,12 +187,11 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
 
         // transfer the remaining tokens to the vesting manager
         uint256 remaining = grant.allocation - grant.withdrawn;
+        grant.withdrawn += uint128(remaining);
         token.transfer(_manager().data, remaining);
 
         // update the delegatee's voting power
-        History.HistoricalBalances memory votingPower = _votingPower();
-        uint256 delegateeVotes = votingPower.loadTop(grant.delegatee);
-        votingPower.push(grant.delegatee, delegateeVotes - grant.latestVotingPower);
+        _syncVotingPower(who, grant);
 
         // Emit the vote change event
         emit VoteChange(grant.delegatee, who, -1 * int256(uint256(grant.latestVotingPower)));
@@ -224,7 +225,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      */
     function withdraw(uint256 amount, address recipient) public virtual onlyManager {
         Storage.Uint256 storage unassigned = _unassigned();
-        if (unassigned.data < amount) revert AVV_InsufficientBalance();
+        if (unassigned.data < amount) revert AVV_InsufficientBalance(unassigned.data);
         // update unassigned value
         unassigned.data -= amount;
         token.transfer(recipient, amount);
@@ -236,6 +237,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      * @notice Returns the claimable amount for a given grant.
      *
      * @param who                    Address to query.
+     *
+     * @return Token amount that can be claimed.
      */
     function claimable(address who) public view returns (uint256) {
         return _getWithdrawableAmount(_grants()[who]);
@@ -248,19 +251,21 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      * @param amount                 The amount to withdraw.
      */
     function claim(uint256 amount) public virtual nonReentrant {
+        if (amount == 0) revert AVV_InvalidAmount();
+
         // load the grant
         ARCDVestingVaultStorage.Grant storage grant = _grants()[msg.sender];
-        if (grant.cliff > block.number) revert AVV_CliffNotReached();
+        if (grant.allocation == 0) revert AVV_NoGrantSet();
+        if (grant.cliff > block.number) revert AVV_CliffNotReached(grant.cliff);
 
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(grant);
-        if (amount > withdrawable) revert AVV_InsufficientBalance();
-        if (amount == 0) revert AVV_InvalidAmount();
+        if (amount > withdrawable) revert AVV_InsufficientBalance(withdrawable);
 
+        // update the grant's withdrawn amount
         if (amount == withdrawable) {
             grant.withdrawn += uint128(withdrawable);
         } else {
-            // update the grant's withdrawn amount
             grant.withdrawn += uint128(amount);
             withdrawable = amount;
         }
@@ -317,7 +322,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
 
     /**
      * @notice Function where the timelock can update the manager. Can be used in case the
-     *         managers wallet is compromised.
+     *         manager's wallet is compromised.
      *
      * @param manager_            The new manager address.
      */
@@ -331,6 +336,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      * @notice Calculates and returns how many tokens a grant owner can withdraw.
      *
      * @param grant                    The memory location of the loaded grant.
+     *
+     * @return Amount of tokens the grant owner can withdraw.
      */
     function _getWithdrawableAmount(ARCDVestingVaultStorage.Grant memory grant) internal view returns (uint256) {
         // if before cliff or created date, no tokens have unlocked
@@ -343,8 +350,10 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
         }
         // if after cliff, return vested amount minus what has already been withdrawn
         if (block.number >= grant.cliff) {
-            uint256 unlocked = (((grant.allocation - grant.cliffAmount) * (block.number - grant.cliff)) /
-                (grant.expiration - grant.cliff)) + grant.cliffAmount;
+            uint256 postCliffAmount = grant.allocation - grant.cliffAmount;
+            uint256 blocksElapsedSinceCliff = block.number - grant.cliff;
+            uint256 totalBlocksPostCliff = grant.expiration - grant.cliff;
+            uint256 unlocked = grant.cliffAmount + (postCliffAmount * blocksElapsedSinceCliff) / totalBlocksPostCliff;
 
             return unlocked - grant.withdrawn;
         }
@@ -402,6 +411,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      * @param user                  The address we want to query.
      * @param blockNumber           The block number to query user's voting power at.
      * @param extraData             Unused.
+     *
+     * @return The voting power of the user at the given block number.
      */
     function queryVotePower(
         address user,
@@ -419,6 +430,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      *
      * @param user                  The address we want to query.
      * @param blockNumber           The block number to query user's voting power at.
+     *
+     * @return The voting power of the user at the given block number.
      */
     function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256) {
         // Get our reference to historical data
@@ -431,6 +444,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      * @notice Getter function for the grants mapping.
      *
      * @param who            The owner of the grant to query
+     *
+     * @return               The user's grant object.
      */
     function getGrant(address who) external view returns (ARCDVestingVaultStorage.Grant memory) {
         return _grants()[who];
@@ -460,6 +475,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
 
     /**
      * @notice A function to access the storage of the manager address.
+     *
+     * @return Pointer to the manager address.
      */
     function _manager() internal pure returns (Storage.Address memory) {
         return Storage.addressPtr("manager");
@@ -467,6 +484,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
 
     /**
      * @notice A function to access the storage of the timelock address.
+     *
+     * @return Pointer to the timelock address.
      */
     function _timelock() internal pure returns (Storage.Address memory) {
         return Storage.addressPtr("timelock");

@@ -4,20 +4,25 @@ import { ethers, waffle } from "hardhat";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
-const { provider } = waffle;
+const { provider, loadFixture } = waffle;
 
 describe("Governance Operations with Locking and Unique Multiplier Voting Vaults", async () => {
     let ctxToken: TestContextToken;
     let ctxGovernance: TestContextGovernance;
+    let fixtureToken: () => Promise<TestContextToken>;
+    let fixtureGov: () => Promise<TestContextGovernance>;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     beforeEach(async function () {
-        ctxToken = await tokenFixture();
+        fixtureToken = await tokenFixture();
+        ctxToken = await loadFixture(fixtureToken);
         const { arcdToken, arcdDst, deployer } = ctxToken;
-        ctxGovernance = await governanceFixture(arcdToken);
+
+        fixtureGov = await governanceFixture(ctxToken.arcdToken);
+        ctxGovernance = await loadFixture(fixtureGov);
         const { signers, lockingVotingVault } = ctxGovernance;
 
         // distribute tokens to signers[0]/ deployer for testing

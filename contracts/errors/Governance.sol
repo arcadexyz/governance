@@ -111,8 +111,10 @@ error AVV_InvalidCliffAmount();
 
 /**
  * @notice Insufficient balance to carry out the transaction.
+ *
+ * @param amountAvailable           The amount available in the vault.
  */
-error AVV_InsufficientBalance();
+error AVV_InsufficientBalance(uint256 amountAvailable);
 
 /**
  * @notice Grant has already been created for specified user.
@@ -126,8 +128,10 @@ error AVV_NoGrantSet();
 
 /**
  * @notice Tokens cannot be claimed before the cliff.
+ *
+ * @param cliffBlock                The block number when grant claims begin.
  */
-error AVV_CliffNotReached();
+error AVV_CliffNotReached(uint256 cliffBlock);
 
 /**
  * @notice Tokens cannot be re-delegated to the same address.
@@ -135,6 +139,6 @@ error AVV_CliffNotReached();
 error AVV_AlreadyDelegated();
 
 /**
- * @notice The amount provided is either zero or greater than the remaining allocation.
+ * @notice Cannot withdraw zero tokens.
  */
 error AVV_InvalidAmount();

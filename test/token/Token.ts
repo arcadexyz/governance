@@ -1,16 +1,19 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, waffle } from "hardhat";
 
 import { TestContextToken, tokenFixture } from "../utils/tokenFixture";
 
+const { loadFixture } = waffle;
 /**
  * Test suite for the ArcadeToken, ArcadeTokenDistributor, and Airdrop contracts.
  */
 describe("ArcadeToken", function () {
     let ctxToken: TestContextToken;
+    let fixtureToken: () => Promise<TestContextToken>;
 
     beforeEach(async function () {
-        ctxToken = await tokenFixture();
+        fixtureToken = await loadFixture(tokenFixture);
+        ctxToken = await fixtureToken();
     });
 
     describe("Deployment", function () {
