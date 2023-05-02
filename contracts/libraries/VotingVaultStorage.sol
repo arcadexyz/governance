@@ -41,14 +41,6 @@ library VotingVaultStorage {
         uint128 multiplier;
     }
 
-    // A struct which represents 1 packed storage location with a compressed
-    // uint128 and address pair
-    struct NftIndex {
-        uint128 tokenId;
-        address delegator;
-        address delegatee;
-    }
-
     /**
      * @notice Returns the storage pointer for a named mapping of address to registration data
      *
@@ -77,24 +69,6 @@ library VotingVaultStorage {
         string memory name
     ) internal pure returns (mapping(address => mapping(uint128 => AddressUintUint)) storage data) {
         bytes32 typehash = keccak256("mapping(address => mapping(uint128 => AddressUintUint))");
-        bytes32 offset = keccak256(abi.encodePacked(typehash, name));
-        assembly {
-            data.slot := offset
-        }
-    }
-
-    /**
-     * @notice Returns the storage pointer for a named mapping of address to uint128
-     *         and address pair
-     *
-     * @param name                      The variable name for the pointer.
-     *
-     * @return data                     The mapping pointer.
-     */
-    function mappingAddressToNftIndex(
-        string memory name
-    ) internal pure returns (mapping(uint128 => mapping(address => mapping(uint128 => NftIndex))) storage data) {
-        bytes32 typehash = keccak256("mapping(uint128 => mapping(address => mapping(uint128 => NftIndex)))");
         bytes32 offset = keccak256(abi.encodePacked(typehash, name));
         assembly {
             data.slot := offset

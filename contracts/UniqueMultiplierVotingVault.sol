@@ -89,7 +89,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
-        Storage.set(Storage.uint256Ptr("totalentries"), 0);
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 
@@ -124,19 +123,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             multiplier = getMultiplier(tokenAddress, tokenId);
 
             if (multiplier == 0) revert UMVV_NoMultiplierSet();
-
-            uint128 currentEntry = getTotalEntries();
-            ++currentEntry;
-
-            // load the nftIndex
-            VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[currentEntry][tokenAddress][tokenId];
-            // add data to NftIndex
-            _getNftIndexes()[currentEntry][tokenAddress][tokenId] = VotingVaultStorage.NftIndex(
-                tokenId,
-                who,
-                delegatee
-            );
-            setTotalEntries(currentEntry);
         }
 
         // load this contract's balance storage
@@ -365,29 +351,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // set multiplier value
         multiplierData.multiplier = multiplierValue;
 
-        // check if the voting power of delgatees needs to be updated
-        uint128 entries = getTotalEntries();
-        // load the index of the last entry
-        VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[entries][tokenAddress][tokenId];
-
-        // if token ID and delegator are not zero, then there is an index for that nft
-        if (nftIndex.tokenId != 0 && nftIndex.delegator != address(0)) {
-            // for every record check if delegatee voting power needs sync'ing
-            for (uint128 i = entries; i > 0; --i) {
-                // load the nftIndex entry
-                VotingVaultStorage.NftIndex storage nftIndex = _getNftIndexes()[i][tokenAddress][tokenId];
-
-                // get its delegator registration
-                VotingVaultStorage.Registration storage registration = _getRegistrations()[nftIndex.delegator];
-
-                // if the delegatee in nftIndex is still as delegatee in registration
-                if (nftIndex.delegatee == registration.delegatee) {
-                    // sync voting power for that delegatee
-                    _syncVotingPower(nftIndex.delegator, registration);
-                }
-            }
-        }
-
         emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
     }
 
@@ -412,12 +375,18 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice A function to access the storage of the number of nftIndex entries.
+     * @notice Update a user registration voting power.
      *
-     * @return                          The number of entries that have been indexed.
+     * @dev Voting power is only updated for this block onward. See Council contract History.sol
+     *      for more on how voting power is tracked and queried.
+     *      Anybody can update a user's registration voting power.
+     *
+     * @param who                       The address who's registration voting power this function
+     *                                  updates.
      */
-    function getTotalEntries() public view returns (uint128) {
-        return uint128((Storage.uint256Ptr("totalentries")).data);
+    function updateVotingPower(address who) public {
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[who];
+        _syncVotingPower(who, registration);
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -456,21 +425,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice A single function endpoint for loading NftIndex storage
-     *
-     * @return nftIndexes                   A storage mapping to look up nft indexes data
-     */
-    function _getNftIndexes()
-        internal
-        pure
-        returns (mapping(uint128 => mapping(address => mapping(uint128 => VotingVaultStorage.NftIndex))) storage)
-    {
-        // This call returns a storage mapping with a unique non overwrite-able storage location
-        // which can be persisted through upgrades, even if they change storage layout
-        return (VotingVaultStorage.mappingAddressToNftIndex("nftindexes"));
-    }
-
-    /**
      * @notice Helper to update a delegatee's voting power.
      *
      * @param who                        The address who's voting power we need to sync.
@@ -479,7 +433,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      */
     function _syncVotingPower(address who, VotingVaultStorage.Registration storage registration) internal {
         History.HistoricalBalances memory votingPower = _votingPower();
-
         uint256 delegateeVotes = votingPower.loadTop(registration.delegatee);
 
         uint256 newVotingPower = _currentVotingPower(registration);
@@ -591,15 +544,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // This call returns a storage mapping with a unique non overwrite-able storage layout
         // which can be persisted through upgrades, even if they change storage layout
         return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
-    }
-
-    /**
-     * @notice A internal function for updating the tally of indexed nft entries.
-     *
-     * @param currentTotal                The value of the last set tally.
-     */
-    function setTotalEntries(uint256 currentTotal) internal {
-        Storage.set(Storage.uint256Ptr("totalentries"), currentTotal);
     }
 
     /** @notice A function to handles the receipt of a single ERC1155 token. This function is called
