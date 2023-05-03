@@ -1354,7 +1354,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("reverts if withdraw() is called before unlock", async () => {
-            const { signers, token, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+            const { arcdToken } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1363,7 +1364,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await setMultipliers();
 
             // initialize history for signers[1]
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
 
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await uniqueMultiplierVotingVault
@@ -1376,7 +1377,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("reverts if unlock() is called more than once", async () => {
-            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1393,7 +1394,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("reverts if address other than timelock calls unlock()", async () => {
-            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1703,7 +1704,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
     describe("BaseVotingVault functionality", async () => {
         it("reverts if setTimelock() is called by an address other that the timelock", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // other account tries to set a new timelock address
             const tx = uniqueMultiplierVotingVault.connect(signers[4]).setTimelock(signers[5].address);
@@ -1711,7 +1712,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("successfully sets the address of the timelock with setTimelock()", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // timelock sets a new timelock address
             await uniqueMultiplierVotingVault.connect(signers[0]).setTimelock(signers[5].address);
@@ -1722,7 +1723,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("reverts if setManager() is called by an address other that the timelock", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // other account tries to set a new manager
             const tx = uniqueMultiplierVotingVault.connect(signers[4]).setManager(signers[5].address);
@@ -1730,7 +1731,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("successfully sets a new manager with setManager()", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // timelock sets a new timelock address
             await uniqueMultiplierVotingVault.connect(signers[0]).setManager(signers[5].address);
@@ -1741,7 +1742,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("calling timelock() returns the address of the timelock", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
 
             // get timelock address
             const timelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).timelock();

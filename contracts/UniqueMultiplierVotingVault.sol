@@ -23,7 +23,7 @@ import {
     UMVV_InvalidNft,
     UMVV_ZeroAmount,
     UMVV_AlreadyInitialized,
-    UMVV_ArrayTooManyElements
+    UMVV_ArrayTooManyElements,
     UMVV_NotUnlocked,
     UMVV_AlreadyUnlocked
 } from "./errors/Governance.sol";
