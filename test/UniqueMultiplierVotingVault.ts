@@ -1352,6 +1352,59 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const tx = uniqueMultiplierVotingVault.initialize(signers[0].address, signers[0].address);
             await expect(tx).to.be.revertedWith("UMVV_AlreadyInitialized");
         });
+
+        it("reverts if withdraw() is called before unlock", async () => {
+            const { signers, token, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // initialize history for signers[1]
+            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
+            await uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+
+            // signers[1] withdraws their deposited token
+            const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(5));
+            await expect(tx).to.be.revertedWith("UMVV_NotUnlocked");
+        });
+
+        it("reverts if unlock() is called more than once", async () => {
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
+            // call unlock again
+            const tx = uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+            await expect(tx).to.be.revertedWith("UMVV_AlreadyUnlocked");
+        });
+
+        it("reverts if address other than timelock calls unlock()", async () => {
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // other account tries to unlock ERC20 withdrawals
+            const tx = uniqueMultiplierVotingVault.connect(signers[1]).unlock();
+            await expect(tx).to.be.revertedWith("!timelock");
+        });
     });
 
     describe("Multiplier functionality", async () => {
@@ -1645,6 +1698,54 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await expect(
                 uniqueMultiplierVotingVault.connect(signers[0]).updateVotingPower(addresses),
             ).to.be.revertedWith("UMVV_ArrayTooManyElements()");
+        });
+    });
+
+    describe("BaseVotingVault functionality", async () => {
+        it("reverts if setTimelock() is called by an address other that the timelock", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // other account tries to set a new timelock address
+            const tx = uniqueMultiplierVotingVault.connect(signers[4]).setTimelock(signers[5].address);
+            await expect(tx).to.be.revertedWith("!timelock");
+        });
+
+        it("successfully sets the address of the timelock with setTimelock()", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // timelock sets a new timelock address
+            await uniqueMultiplierVotingVault.connect(signers[0]).setTimelock(signers[5].address);
+
+            // get the new timelock address
+            const newTimelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).timelock();
+            await expect(newTimelockAddress).to.eq(signers[5].address);
+        });
+
+        it("reverts if setManager() is called by an address other that the timelock", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // other account tries to set a new manager
+            const tx = uniqueMultiplierVotingVault.connect(signers[4]).setManager(signers[5].address);
+            await expect(tx).to.be.revertedWith("!timelock");
+        });
+
+        it("successfully sets a new manager with setManager()", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // timelock sets a new timelock address
+            await uniqueMultiplierVotingVault.connect(signers[0]).setManager(signers[5].address);
+
+            // get the new timelock address
+            const newTimelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).manager();
+            await expect(newTimelockAddress).to.eq(signers[5].address);
+        });
+
+        it("calling timelock() returns the address of the timelock", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+
+            // get timelock address
+            const timelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).timelock();
+            await expect(timelockAddress).to.eq(signers[0].address);
         });
     });
 });

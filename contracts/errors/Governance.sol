@@ -77,6 +77,15 @@ error UMVV_AlreadyInitialized();
  */
 error UMVV_ArrayTooManyElements();
 
+/** @notice Unique Multiplier Voting Vault has already been unlocked.
+ */
+error UMVV_AlreadyUnlocked();
+
+/**
+ * @notice ERC20 withdrawals from Unique Multiplier Voting Vault are frozen.
+ */
+error UMVV_NotUnlocked();
+
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
 
