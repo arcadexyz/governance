@@ -267,7 +267,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // update contract balance
         balance.data += amount;
 
-        // update added amount
+        // update registration amount
         registration.amount += amount;
         // update the delegatee's voting power
         _syncVotingPower(msg.sender, registration);
