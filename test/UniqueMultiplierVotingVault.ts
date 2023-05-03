@@ -987,6 +987,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const tx = uniqueMultiplierVotingVault.withdrawNft();
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("${reputationNft.address}", ${0})`);
         });
+
         it("Reverts if withdrawNft() is called and the user has not deposited an ERC1155 nft", async () => {
             const { uniqueMultiplierVotingVault, signers, token } = ctxVault;
 
@@ -1460,7 +1461,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(ONE));
         });
 
-        it("Calling updateVotingPower() syncs a delegatee's voting power when a mutliplier value is adjusted ", async () => {
+        it("Calling updateVotingPower() syncs delegatees' voting power when a mutliplier value is adjusted ", async () => {
             const { signers, uniqueMultiplierVotingVault, reputationNft, setMultipliers, token, mintNfts, getBlock } =
                 ctxVault;
 
@@ -1527,12 +1528,14 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
             expect(votingPower1After).to.eq(votingPower1Before);
 
-            // signers[3] calls updateVotingPower on signers[0], to adjust their registration delegatee voting power
-            await uniqueMultiplierVotingVault.connect(signers[3]).updateVotingPower(signers[0].address);
+            // signers[3] calls updateVotingPower on signers[0] and signers[2], to adjust their registration delegatee voting power
+            await uniqueMultiplierVotingVault
+                .connect(signers[3])
+                .updateVotingPower([signers[0].address, signers[2].address]);
 
             const nowBlock2 = getBlock();
 
-            // signers[1] voting power has now refelects new multiplier value boost
+            // signers[1] voting power has now reflects new multiplier value boost
             const votingPower1AfterUpdateVP = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
                 nowBlock2,
@@ -1555,8 +1558,10 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
             expect(votingPower3After).to.eq(votingPower3Before);
 
-            // sigenrs[0] calls updateVotingPower on signers[2], to adjust their delegatee's voting power
-            await uniqueMultiplierVotingVault.connect(signers[0]).updateVotingPower(signers[2].address);
+            // signers[0] calls updateVotingPower on signers[2] and signers[0], to adjust their delegatee's voting power
+            await uniqueMultiplierVotingVault
+                .connect(signers[0])
+                .updateVotingPower([signers[0].address, signers[2].address]);
 
             const currentBlock = getBlock();
 
@@ -1566,6 +1571,19 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 currentBlock,
             );
             expect(votingPower3C).to.eq(ONE.mul(5).mul(reducedMultiplier).div(ONE));
+        });
+
+        it("Reverts if updateVotingPower() is called with more than 50 addresses", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const addresses = [];
+
+            for (let i = 0; i < 51; i++) {
+                addresses.push(signers[5].address);
+            }
+
+            await expect(
+                uniqueMultiplierVotingVault.connect(signers[0]).updateVotingPower(addresses),
+            ).to.be.revertedWith("UMVV_ArrayTooManyElements()");
         });
     });
 });

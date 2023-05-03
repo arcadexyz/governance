@@ -22,7 +22,8 @@ import {
     UMVV_NoMultiplierSet,
     UMVV_InvalidNft,
     UMVV_ZeroAmount,
-    UMVV_AlreadyInitialized
+    UMVV_AlreadyInitialized,
+    UMVV_ArrayTooManyElements
 } from "./errors/Governance.sol";
 
 /**
@@ -373,19 +374,22 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
-     * @notice Update a user registration voting power.
+     * @notice Update users' registration voting power.
      *
      * @dev Voting power is only updated for this block onward. See Council contract History.sol
      *      for more on how voting power is tracked and queried.
-     *      Anybody can update a user's registration voting power.
+     *      Anybody can update up to 50 users' registration voting power.
      *
-     * @param who                       The address who's registration voting power this function
-     *                                  updates.
+     * @param userAddresses             Array of addresses whose registration voting power this
+     *                                  function updates.
      */
-    function updateVotingPower(address who) public {
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[who];
+    function updateVotingPower(address[] memory userAddresses) public {
+        if (userAddresses.length > 50) revert UMVV_ArrayTooManyElements();
 
-        _syncVotingPower(who, registration);
+        for (uint256 i = 0; i < userAddresses.length; i++) {
+            VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
+            _syncVotingPower(userAddresses[i], registration);
+        }
     }
 
     // ================================ HELPER FUNCTIONS ===================================
