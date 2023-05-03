@@ -22,7 +22,8 @@ import {
     UMVV_NoMultiplierSet,
     UMVV_InvalidNft,
     UMVV_ZeroAmount,
-    UMVV_AlreadyInitialized
+    UMVV_AlreadyInitialized,
+    UMVV_ArrayTooManyElements
 } from "./errors/Governance.sol";
 
 /**
@@ -251,6 +252,32 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     }
 
     /**
+     * @notice Tops up a user's locked ERC20 token amount in this contract.
+     *         Consequently, the user's delegatee gains voting power associated
+     *         with the newly added tokens.
+     *
+     * @param amount                      The amount of token to add.
+     */
+    function addTokens(uint128 amount) external virtual nonReentrant {
+        if (amount == 0) revert UMVV_ZeroAmount();
+        // load the registration
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+
+        // get this contract's balance
+        Storage.Uint256 storage balance = _balance();
+        // update contract balance
+        balance.data += amount;
+
+        // update registration amount
+        registration.amount += amount;
+        // update the delegatee's voting power
+        _syncVotingPower(msg.sender, registration);
+
+        // transfer user ERC20 amount into this contract
+        _lockTokens(msg.sender, amount, address(0), 0, 0);
+    }
+
+    /**
      * @notice A function that allows a user's to withdraw the ERC1155 nft they are using for
      *         accessing a voting power multiplier.
      *
@@ -346,6 +373,25 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         return multiplierData.multiplier;
     }
 
+    /**
+     * @notice Update users' registration voting power.
+     *
+     * @dev Voting power is only updated for this block onward. See Council contract History.sol
+     *      for more on how voting power is tracked and queried.
+     *      Anybody can update up to 50 users' registration voting power.
+     *
+     * @param userAddresses             Array of addresses whose registration voting power this
+     *                                  function updates.
+     */
+    function updateVotingPower(address[] memory userAddresses) public {
+        if (userAddresses.length > 50) revert UMVV_ArrayTooManyElements();
+
+        for (uint256 i = 0; i < userAddresses.length; i++) {
+            VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
+            _syncVotingPower(userAddresses[i], registration);
+        }
+    }
+
     // ================================ HELPER FUNCTIONS ===================================
 
     /**
@@ -390,17 +436,14 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      */
     function _syncVotingPower(address who, VotingVaultStorage.Registration storage registration) internal {
         History.HistoricalBalances memory votingPower = _votingPower();
-
         uint256 delegateeVotes = votingPower.loadTop(registration.delegatee);
 
         uint256 newVotingPower = _currentVotingPower(registration);
-
         // get the change in voting power. Negative if the voting power is reduced
         int256 change = int256(newVotingPower) - int256(uint256(registration.latestVotingPower));
 
         // do nothing if there is no change
         if (change == 0) return;
-
         if (change > 0) {
             votingPower.push(registration.delegatee, delegateeVotes + uint256(change));
         } else {

@@ -72,6 +72,11 @@ error UMVV_ZeroAmount();
  */
 error UMVV_AlreadyInitialized();
 
+/**
+ * @notice Provided addresses array holds more than 50 addresses.
+ */
+error UMVV_ArrayTooManyElements();
+
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
 
