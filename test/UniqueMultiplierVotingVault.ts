@@ -166,6 +166,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // mint users some reputation nfts
             await mintNfts();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
 
@@ -222,6 +225,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // mint users some reputation nfts
             await mintNfts();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
@@ -542,6 +548,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the reputation NFT multiplier
             await setMultipliers();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // initialize history for signers[1]
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
 
@@ -572,6 +581,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             const amountToDeposit = ONE;
             const amountToWithdraw = ONE;
@@ -617,6 +629,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[1] approves tokens to voting vault
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
@@ -641,6 +656,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // signers[1] approves tokens to voting vault
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -676,6 +694,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[2] approves tokens to voting vault
             await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(10));
             await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
@@ -700,6 +721,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // signers[0] approves 5 tokens to voting vault and approves reputation nft
             await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -754,6 +778,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // initialize history for signers[1]
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -1265,6 +1292,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[0].address,
             );
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[1] tries to withdraw ONE tokens
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE);
             await expect(tx).to.be.revertedWith("UMVV_InsufficientWithdrawableBalance(0)");
@@ -1303,6 +1333,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await uniqueMultiplierVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, signers[1].address);
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // signers[1] withdraws all of their deposited tokens
             await uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(10));

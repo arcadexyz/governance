@@ -76,6 +76,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     // Event to track multipliers
     event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
 
+    // Event for withdrawal unlock
+    event WithdrawalsUnlocked(address uniqueMultiplierVotingVault);
+
     // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
 
     /**
@@ -91,6 +94,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
         Storage.set(Storage.uint256Ptr("entered"), 1);
+        Storage.set(Storage.uint256Ptr("locked"), 1);
     }
 
     /**
@@ -219,6 +223,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
+        if (getIsLocked().data == 1) revert UMVV_WithdrawalsFrozen();
         if (amount == 0) revert UMVV_ZeroAmount();
 
         // load the registration
@@ -389,7 +394,25 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         for (uint256 i = 0; i < userAddresses.length; i++) {
             VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
             _syncVotingPower(userAddresses[i], registration);
-        }
+    }
+
+    /** @notice A function to access the storage of the value of "locked".
+     *
+     * @return                          A struct containing the value of "locked".
+     */
+    function getIsLocked() public view returns (Storage.Uint256 memory) {
+        return Storage.uint256Ptr("locked");
+    }
+
+    /**
+     * @notice An Timelock only function for ERC20 allowing withdrawals.
+     *
+     * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
+     */
+    function unlock() external onlyTimelock {
+        Storage.set(Storage.uint256Ptr("locked"), 2);
+
+        emit WithdrawalsUnlocked(address(this));
     }
 
     // ================================ HELPER FUNCTIONS ===================================
