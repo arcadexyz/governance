@@ -537,7 +537,7 @@ describe("Vesting voting vault", function () {
             );
         });
 
-        it("non-manager tries to revoke grant", async () => {
+        it("non-manager tries to add grant", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
             const MANAGER = signers[1];
@@ -567,6 +567,42 @@ describe("Vesting voting vault", function () {
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
             );
+            await expect(tx).to.be.revertedWith("AVV_NotManager()");
+        });
+
+        it("non-manager tries to revoke grant", async () => {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const { arcdToken, bootstrapVestingManager } = ctxToken;
+            const MANAGER = signers[1];
+            const MANAGER_ADDRESS = signers[1].address;
+            const OTHER_ADDRESS = signers[0].address;
+            const OTHER = signers[0];
+
+            await bootstrapVestingManager();
+
+            // manager deposits tokens
+            await arcdToken.connect(MANAGER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+
+            // other account tries to add grant
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const grantCreatedBlock = currentBlock + 1; // 1 block in the future
+            const cliff = grantCreatedBlock + 100; // 100 blocks in the future
+            const expiration = grantCreatedBlock + 200; // 200 blocks in the future
+            await vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
+                OTHER_ADDRESS, // recipient
+                ethers.utils.parseEther("100"), // grant amount
+                ethers.utils.parseEther("50"), // cliff unlock amount
+                0, // start time is current block
+                expiration,
+                cliff,
+                OTHER_ADDRESS, // voting power delegate
+            );
+
+            // other account tries to revoke grant
+            const tx = vestingVotingVault.connect(OTHER).revokeGrant(OTHER_ADDRESS);
             await expect(tx).to.be.revertedWith("AVV_NotManager()");
         });
 
