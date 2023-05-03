@@ -1,26 +1,51 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
+import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
+import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
-const { provider } = waffle;
+const { provider, loadFixture } = waffle;
 
 describe("Governance Operations with Locking Voting Vault", async () => {
-    let ctxVotingVault: TestContextVotingVault;
+    let ctxToken: TestContextToken;
+    let ctxGovernance: TestContextGovernance;
+    let fixtureToken: () => Promise<TestContextToken>;
+    let fixtureGov: () => Promise<TestContextGovernance>;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     beforeEach(async function () {
-        ctxVotingVault = await votingVaultFixture();
+        fixtureToken = await tokenFixture();
+        ctxToken = await loadFixture(fixtureToken);
+        const { arcdToken, arcdDst, deployer } = ctxToken;
+
+        fixtureGov = await governanceFixture(ctxToken.arcdToken);
+        ctxGovernance = await loadFixture(fixtureGov);
+        const { signers, lockingVotingVault } = ctxGovernance;
+
+        // distribute tokens to signers[0]/ deployer for testing
+        await arcdDst.connect(deployer).setToken(arcdToken.address);
+        expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
+        // mint tokens take tokens from the distributor for use in tests
+        await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[0].address))
+            .to.emit(arcdDst, "Distribute")
+            .withArgs(arcdToken.address, signers[0].address, ethers.utils.parseEther("32700000"));
+        expect(await arcdDst.vestingPartnerSent()).to.be.true;
+
+        // transfer tokens to signers and approve locking vault to spend
+        for (let i = 0; i < signers.length; i++) {
+            await arcdToken.connect(signers[0]).transfer(signers[i].address, ONE.mul(100));
+            await arcdToken.connect(signers[i]).approve(lockingVotingVault.address, MAX);
+        }
     });
 
-    describe("Governance flow with locking vault", async () => {
+    describe("Locking voting vault", async () => {
         it("Executes V2 OriginationFee update with a vote: YES", async () => {
-            const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxVotingVault;
+            const { signers, coreVoting, lockingVotingVault, increaseBlockNumber, feeController } = ctxGovernance;
 
-            // LockingVault users deposits and delegation
+            // LockingVotingVault users deposits and delegation
             // query voting power to initialize history for every governance participant
             const tx = await (
                 await lockingVotingVault.deposit(signers[2].address, ONE.mul(3), signers[0].address)

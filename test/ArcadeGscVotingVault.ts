@@ -2,23 +2,32 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { TestContextVotingVault, votingVaultFixture } from "./utils/votingVaultFixture";
+import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
+import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
-const { provider } = waffle;
+const { provider, loadFixture } = waffle;
 
 describe("Vote Execution with Arcade GSC Voting Vault", async () => {
-    let ctxVotingVault: TestContextVotingVault;
+    let ctxToken: TestContextToken;
+    let ctxGovernance: TestContextGovernance;
+    let fixtureToken: () => Promise<TestContextToken>;
+    let fixtureGov: () => Promise<TestContextGovernance>;
 
     const ONE = ethers.utils.parseEther("1");
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
     beforeEach(async function () {
-        ctxVotingVault = await votingVaultFixture();
+        fixtureToken = await tokenFixture();
+        ctxToken = await loadFixture(fixtureToken);
+
+        fixtureGov = await governanceFixture(ctxToken.arcdToken);
+        ctxGovernance = await loadFixture(fixtureGov);
     });
 
     describe("Governance flow with Arcade gsc voting vault", async () => {
         it("Executes proposal to pause V2 Promissory Notes transfers with an Arcade GSC vote: YES", async () => {
+            const { arcdToken, arcdDst, deployer } = ctxToken;
             const {
                 signers,
                 arcadeGSCCoreVoting,
@@ -26,33 +35,47 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
                 uniqueMultiplierVotingVault,
                 increaseBlockNumber,
                 promissoryNote,
-                token,
-                advanceTime,
                 timelock,
-            } = ctxVotingVault;
+                blockchainTime,
+            } = ctxGovernance;
+
+            // distribute tokens to test users
+            await arcdDst.connect(deployer).setToken(arcdToken.address);
+            expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
+
+            const teamVestingAmount = await arcdDst.vestingTeamAmount();
+            await expect(await arcdDst.connect(deployer).toTeamVesting(signers[0].address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, signers[0].address, teamVestingAmount);
+            expect(await arcdDst.vestingTeamSent()).to.be.true;
+            expect(await arcdToken.balanceOf(signers[0].address)).to.equal(teamVestingAmount);
+            // distribute to other users
+            for (let i = 5; i < 9; i++) {
+                await arcdToken.connect(signers[0]).transfer(signers[i].address, ONE.mul(50));
+            }
 
             // using signers[0, 1, 2, 3] as GSC members
             // UniqueMultiplierVotingVault users delegate to members who will become GSC:
             // signers[5] deposits tokens and delegates to signers[1]
-            await token.connect(signers[5]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
+            await arcdToken.connect(signers[5]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
             await uniqueMultiplierVotingVault
                 .connect(signers[5])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[1].address);
 
             // signers[6] deposits tokens and delegates to signers[2]
-            await token.connect(signers[6]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
+            await arcdToken.connect(signers[6]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
             await uniqueMultiplierVotingVault
                 .connect(signers[6])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[2].address);
 
             // signers[7] deposits tokens and delegates to signers[3]
-            await token.connect(signers[7]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
+            await arcdToken.connect(signers[7]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
             await uniqueMultiplierVotingVault
                 .connect(signers[7])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[3].address);
 
             // signers[8] deposits tokens and delegates to signers[0]
-            await token.connect(signers[8]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
+            await arcdToken.connect(signers[8]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
             await uniqueMultiplierVotingVault
                 .connect(signers[8])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[0].address);
@@ -72,7 +95,7 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
                 .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
 
             // fast forward 4 days to complete new member idle wait time
-            await advanceTime(provider, 345600);
+            await blockchainTime.increaseTime(3600 * 24 * 4);
 
             // query voting power of every GSC governance participants. Each should have one vote
             // view query voting power of signers[1]

@@ -4,137 +4,156 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { Airdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault, SimpleProxy } from "../../src/types";
+import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault, SimpleProxy } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
 
 type Signer = SignerWithAddress;
 
-export interface TokenTestContext {
-    // airdrop recipients
+export interface TestContextToken {
     deployer: Signer;
     other: Signer;
-    // initial distribution recipients
     treasury: Wallet;
     devPartner: Wallet;
     communityRewardsPool: Wallet;
     vestingTeamMultisig: Wallet;
     vestingPartner: Wallet;
-    arcAirdrop: Airdrop;
-    // contracts
-    arcToken: IArcadeToken;
-    arcDst: ArcadeTokenDistributor;
-    // vault contract
+    arcdAirdrop: ArcadeAirdrop;
+    arcdToken: IArcadeToken;
+    arcdDst: ArcadeTokenDistributor;
     simpleProxy: SimpleProxy;
     frozenLockingVault: LockingVault;
-    // test helpers
     recipients: Account;
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
     expiration: number;
     staleBlockNum: number;
+    bootstrapVestingManager: () => Promise<void>;
 }
 
 /**
- * Sets up the test context for the Arcade token, deploying the Arcade token and
- * the distribution contract and returning it for use in unit testing.
+ * This fixture  test context for the Arcade token, deploying the Arcade token, distribution and airdrop contracts
+ * and returning them for use in unit testing.
  */
-export const tokenFixture = async (): Promise<TokenTestContext> => {
-    // ======================================== ACCOUNTS ========================================
-    const signers: Signer[] = await hre.ethers.getSigners();
-    const deployer: Signer = signers[0];
-    const other: Signer = signers[1];
+// export const tokenFixture = async (): Promise<TestContextToken> => {
+export const tokenFixture = (): (() => Promise<TestContextToken>) => {
+    return async (): Promise<TestContextToken> => {
+        const blockchainTime = new BlockchainTime();
 
-    // mock recipients for distribution
-    const treasury = new Wallet.createRandom();
-    const devPartner = new Wallet.createRandom();
-    const communityRewardsPool = new Wallet.createRandom();
-    const vestingTeamMultisig = new Wallet.createRandom();
-    const vestingPartner = new Wallet.createRandom();
+        // ======================================== ACCOUNTS ========================================
+        const signers: Signer[] = await hre.ethers.getSigners();
+        const deployer: Signer = signers[0];
+        const other: Signer = signers[1];
 
-    const blockchainTime = new BlockchainTime();
+        // mock recipients for distribution
+        const treasury = new Wallet.createRandom();
+        const devPartner = new Wallet.createRandom();
+        const communityRewardsPool = new Wallet.createRandom();
+        const vestingTeamMultisig = new Wallet.createRandom();
+        const vestingPartner = new Wallet.createRandom();
 
-    // ==================================== TOKEN DEPLOYMENT ====================================
+        // ==================================== TOKEN DEPLOYMENT ====================================
 
-    // deploy the distribution contract
-    const arcDst = <ArcadeTokenDistributor>await deploy("ArcadeTokenDistributor", signers[0], []);
-    await arcDst.deployed();
+        // deploy distribution contract
+        const arcdDst = <ArcadeTokenDistributor>await deploy("ArcadeTokenDistributor", signers[0], []);
+        await arcdDst.deployed();
 
-    // deploy the Arcade token, with minter role set to the distribution contract
-    const arcToken = <ArcadeToken>await deploy("ArcadeToken", signers[0], [deployer.address, arcDst.address]);
-    await arcToken.deployed();
+        // deploy the Arcade token, with minter role set to the distribution contract
+        const arcdToken = <ArcadeToken>await deploy("ArcadeToken", signers[0], [deployer.address, arcdDst.address]);
+        await arcdToken.deployed();
 
-    // deployer sets token in the distribution contract
-    await arcDst.connect(deployer).setToken(arcToken.address);
-    expect(await arcDst.arcadeToken()).to.equal(arcToken.address);
+        // deployer sets token in the distribution contract
+        await arcdDst.connect(deployer).setToken(arcdToken.address);
+        expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
-    // ================================= AIRDROP VAULT DEPLOYMENT ==============================
+        // ========================== UPGRADEABLE AIRDROP VAULT DEPLOYMENT =========================
 
-    const staleBlock = await ethers.provider.getBlock("latest");
-    const staleBlockNum = staleBlock.number;
+        const staleBlock = await ethers.provider.getBlock("latest");
+        const staleBlockNum = staleBlock.number;
 
-    // deploy FrozenLockingVault via proxy
-    const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
-    const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
-    const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcToken.address, staleBlockNum);
-    const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
+        // deploy FrozenLockingVault via proxy
+        const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
+        const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
+        const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
+        const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
 
-    const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
+        const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
 
-    await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
+        await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
 
-    // ====================================== AIRDROP SETUP =====================================
+        // ====================================== AIRDROP SETUP =====================================
 
-    // airdrop claims data
-    const recipients: Account = [
-        {
-            address: deployer.address,
-            value: ethers.utils.parseEther("100"),
-        },
-        {
-            address: other.address,
-            value: ethers.utils.parseEther("100"),
-        },
-    ];
+        // airdrop claims data
+        const recipients: Account = [
+            {
+                address: deployer.address,
+                value: ethers.utils.parseEther("100"),
+            },
+            {
+                address: other.address,
+                value: ethers.utils.parseEther("100"),
+            },
+        ];
 
-    // hash leaves
-    const merkleTrie = await getMerkleTree(recipients);
-    const root = merkleTrie.getHexRoot();
+        // hash leaves
+        const merkleTrie = await getMerkleTree(recipients);
+        const root = merkleTrie.getHexRoot();
 
-    // airdrop claim expiration is current unix stamp + 1 hour in seconds
-    const expiration = await blockchainTime.secondsFromNow(3600);
+        // airdrop claim expiration is current unix stamp + 1 hour
+        const expiration = await blockchainTime.secondsFromNow(3600);
 
-    // =================================== AIRDROP DEPLOYMENT ==================================
+        // =================================== AIRDROP DEPLOYMENT ==================================
 
-    // deploy airdrop contract
-    const ArcAirdrop = await hre.ethers.getContractFactory("ArcadeAirdrop");
-    const arcAirdrop = await ArcAirdrop.deploy(
-        signers[0].address, // in production this is to be the governance timelock address
-        root,
-        arcToken.address,
-        expiration,
-        frozenLockingVault.address,
-    );
-    await arcAirdrop.deployed();
+        // deploy airdrop contract
+        const arcdAirdrop = <ArcadeAirdrop>await deploy("ArcadeAirdrop", signers[0], [
+            signers[0].address, // in production this is to be the governance timelock address
+            root,
+            arcdToken.address,
+            expiration,
+            frozenLockingVault.address,
+        ]);
+        await arcdAirdrop.deployed();
 
-    return {
-        deployer,
-        other,
-        treasury,
-        devPartner,
-        communityRewardsPool,
-        vestingTeamMultisig,
-        vestingPartner,
-        arcAirdrop,
-        arcToken,
-        arcDst,
-        simpleProxy,
-        frozenLockingVault,
-        recipients,
-        blockchainTime,
-        merkleTrie,
-        expiration,
-        staleBlockNum,
+        // ==================================== HELPER FUNCTIONS ===================================
+
+        const bootstrapVestingManager = async (): Promise<void> => {
+            // distribute tokens to the vesting vault manager
+            await arcdDst.connect(deployer).setToken(arcdToken.address);
+            expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
+
+            const partnerVestingAmount = await arcdDst.vestingPartnerAmount();
+            const teamVestingAmount = await arcdDst.vestingTeamAmount();
+            await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[1].address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, signers[1].address, partnerVestingAmount);
+            await expect(await arcdDst.connect(deployer).toTeamVesting(signers[1].address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, signers[1].address, teamVestingAmount);
+            expect(await arcdDst.vestingTeamSent()).to.be.true;
+            expect(await arcdDst.vestingPartnerSent()).to.be.true;
+            expect(await arcdToken.balanceOf(signers[1].address)).to.equal(partnerVestingAmount.add(teamVestingAmount));
+        };
+
+        return {
+            deployer,
+            other,
+            treasury,
+            devPartner,
+            communityRewardsPool,
+            vestingTeamMultisig,
+            vestingPartner,
+            arcdAirdrop,
+            arcdToken,
+            arcdDst,
+            simpleProxy,
+            frozenLockingVault,
+            recipients,
+            blockchainTime,
+            merkleTrie,
+            expiration,
+            staleBlockNum,
+            bootstrapVestingManager,
+        };
     };
 };
