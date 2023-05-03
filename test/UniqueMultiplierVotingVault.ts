@@ -1461,7 +1461,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(ONE));
         });
 
-        it("Calling updateVotingPower() syncs delegatees' voting power when a mutliplier value is adjusted ", async () => {
+        it("Calling updateVotingPower() syncs delegatees' voting power when a mutliplier value is adjusted", async () => {
             const { signers, uniqueMultiplierVotingVault, reputationNft, setMultipliers, token, mintNfts, getBlock } =
                 ctxVault;
 
