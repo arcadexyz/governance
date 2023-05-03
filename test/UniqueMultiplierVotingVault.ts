@@ -478,10 +478,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             expect(registration[0]).to.eq(ONE);
             expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
             expect(registration[2]).to.eq(0);
-            expect(registration[3]).to.eq(0);
-            expect(registration[4]).to.eq(1);
-            expect(registration[5]).to.eq(reputationNft.address);
-            expect(registration[6]).to.eq(signers[1].address);
+            expect(registration[3]).to.eq(1);
+            expect(registration[4]).to.eq(reputationNft.address);
+            expect(registration[5]).to.eq(signers[1].address);
         });
 
         it("Reverts when calling delegate() when 'to' is already the user's delegatee", async () => {
@@ -505,7 +504,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // get signers[1] registration
             const registration = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
             // confirm that signers[2] is signers[1] delegatee
-            expect(registration[6]).to.eq(signers[2].address);
+            expect(registration[5]).to.eq(signers[2].address);
 
             // signers[1] calls delegate() on signers[2] who is already their delegate
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).delegate(signers[2].address);
@@ -834,7 +833,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             expect(votingPower2).to.be.eq(ONE.mul(7));
         });
 
-        it("addTokens() updates the addedAmount in the registration data", async () => {
+        it("addTokens() updates the amount in the registration data", async () => {
             const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVault;
 
             // mint users some ERC1155 nfts
@@ -857,13 +856,12 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const registration = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
 
             // confirm signers[1] registration data
-            expect(registration[0]).to.eq(ONE);
-            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
-            expect(registration[2]).to.eq(0);
-            expect(registration[3]).to.eq(0); // addedAmount
-            expect(registration[4]).to.eq(1);
-            expect(registration[5]).to.eq(reputationNft.address);
-            expect(registration[6]).to.eq(signers[1].address);
+            expect(registration[0]).to.eq(ONE); // amount
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE)); // latestVotingPower
+            expect(registration[2]).to.eq(0); // withdrawn
+            expect(registration[3]).to.eq(1); // tokenId
+            expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
+            expect(registration[5]).to.eq(signers[1].address); // delegatee
 
             // signers[1] approves TWO more tokens to voting vault
             await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
@@ -875,7 +873,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const registration2 = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
 
             // added amount in registration, now equals TWO
-            expect(registration2[3]).to.eq(ONE.mul(2));
+            expect(registration2[0]).to.eq(ONE.mul(3));
         });
 
         it("reverts if addTokens() is called with amount zero", async () => {

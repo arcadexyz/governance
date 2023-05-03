@@ -113,7 +113,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     ) external virtual nonReentrant {
         address who = msg.sender;
         uint128 withdrawn = 0;
-        uint128 addedAmount = 0;
         uint256 multiplier = 1e18;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
@@ -146,7 +145,6 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
             amount,
             newVotingPower,
             withdrawn,
-            addedAmount,
             tokenId,
             tokenAddress,
             delegatee
@@ -241,7 +239,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         // user's ERC1155 token at the time of the call
         _syncVotingPower(msg.sender, registration);
 
-        if (registration.withdrawn == (registration.amount + registration.addedAmount)) {
+        if (registration.withdrawn == registration.amount) {
             if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
                 withdrawNft();
             }
@@ -270,7 +268,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         balance.data += amount;
 
         // update added amount
-        registration.addedAmount += amount;
+        registration.amount += amount;
         // update the delegatee's voting power
         _syncVotingPower(msg.sender, registration);
 
@@ -386,6 +384,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      */
     function updateVotingPower(address who) public {
         VotingVaultStorage.Registration storage registration = _getRegistrations()[who];
+
         _syncVotingPower(who, registration);
     }
 
@@ -463,11 +462,11 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function _getWithdrawableAmount(
         VotingVaultStorage.Registration memory registration
     ) internal pure returns (uint256) {
-        if (registration.withdrawn == (registration.amount + registration.addedAmount)) {
+        if (registration.withdrawn == registration.amount) {
             return 0;
         }
 
-        uint256 withdrawable = (registration.amount + registration.addedAmount) - registration.withdrawn;
+        uint256 withdrawable = registration.amount - registration.withdrawn;
 
         return withdrawable;
     }
@@ -484,7 +483,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function _currentVotingPower(
         VotingVaultStorage.Registration memory registration
     ) internal view virtual returns (uint256) {
-        uint256 locked = (registration.amount + registration.addedAmount) - registration.withdrawn;
+        uint256 locked = registration.amount - registration.withdrawn;
 
         if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
             return (locked * getMultiplier(registration.tokenAddress, registration.tokenId)) / MULTIPLIER_DENOMINATOR;
