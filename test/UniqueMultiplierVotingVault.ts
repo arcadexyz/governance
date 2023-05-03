@@ -534,7 +534,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] calls delegate() on signers[2] who is already their delegate
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).delegate(signers[2].address);
-
             await expect(tx).to.be.revertedWith("UMVV_AlreadyDelegated");
         });
 
@@ -567,7 +566,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // get user balance after withdraw
             const balanceAfter = await arcdToken.balanceOf(signers[1].address);
-
             // confirm user balance has grown by 5 tokens after withdraw
             expect(balanceAfter).to.eq(balanceBefore.add(ONE.mul(5)));
         });
@@ -643,7 +641,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] calls withdraw for FIVE tokens, which is larger than what the contract holds
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(5));
-
             await expect(tx).to.be.revertedWith("UMVV_InsufficientBalance");
         });
 
@@ -680,7 +677,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] calls withdraw for THREE tokens, which is larger than what they have deposited in their registration
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(3));
-
             await expect(tx).to.be.revertedWith(`UMVV_InsufficientWithdrawableBalance(${ONE})`);
         });
 
@@ -708,7 +704,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[2] calls withdraw for 0 tokens
             const tx = uniqueMultiplierVotingVault.connect(signers[2]).withdraw(0);
-
             await expect(tx).to.be.revertedWith("UMVV_ZeroAmount");
         });
 
@@ -926,7 +921,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // get signers[1] registration
             const registration2 = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
-
             // added amount in registration, now equals TWO
             expect(registration2[0]).to.eq(ONE.mul(3));
         });
@@ -952,7 +946,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[2] calls addTokens with amount 0
             const tx = uniqueMultiplierVotingVault.connect(signers[2]).addTokens(0);
-
             await expect(tx).to.be.revertedWith("UMVV_ZeroAmount");
         });
 
@@ -1012,7 +1005,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
 
             const tx = uniqueMultiplierVotingVault.withdrawNft();
-
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("${constants.AddressZero}", ${0})`);
         });
 
