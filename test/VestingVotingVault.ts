@@ -263,6 +263,41 @@ describe("Vesting voting vault", function () {
             await expect(tx3).to.be.revertedWith("AVV_InvalidSchedule()");
         });
 
+        it("add grant with delegate as grant recipient", async () => {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const { arcdToken, bootstrapVestingManager } = ctxToken;
+            const MANAGER = signers[1];
+            const MANAGER_ADDRESS = signers[1].address;
+            const OTHER_ADDRESS = signers[0].address;
+
+            await bootstrapVestingManager();
+
+            // manager deposits tokens
+            await arcdToken.connect(MANAGER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+
+            // add grant with delegate as grant recipient
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const grantCreatedBlock = currentBlock + 1; // 1 block in the future
+            const cliff = grantCreatedBlock + 100; // 100 blocks in the future
+            const expiration = grantCreatedBlock + 200; // 200 blocks in the future
+            await vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
+                OTHER_ADDRESS, // recipient
+                ethers.utils.parseEther("100"), // grant amount
+                ethers.utils.parseEther("50"), // cliff unlock amount
+                0, // start time is after or equal to expiration
+                expiration,
+                cliff,
+                ethers.constants.AddressZero, // pass in zero to delegate to grant recipient
+            );
+
+            // get grant
+            const grant = await vestingVotingVault.getGrant(OTHER_ADDRESS);
+            expect(grant.delegatee).to.equal(OTHER_ADDRESS);
+        });
+
         it("add grant and delegate then manager tries to withdraw", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
@@ -386,7 +421,7 @@ describe("Vesting voting vault", function () {
             await expect(tx).to.be.revertedWith("AVV_InvalidCliffAmount()");
         });
 
-        it("manager removes grant and receives granted tokens", async () => {
+        it("manager revokes grant and receives granted tokens", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
             const MANAGER = signers[1];
@@ -417,8 +452,8 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // voting power delegate
             );
 
-            // manager removes grant before any tokens are claimed
-            await vestingVotingVault.connect(MANAGER).removeGrant(OTHER_ADDRESS);
+            // manager revokes grant before any tokens are claimed
+            await vestingVotingVault.connect(MANAGER).revokeGrant(OTHER_ADDRESS);
             expect(await arcdToken.balanceOf(MANAGER_ADDRESS)).to.equal(
                 managerBalanceBefore.add(ethers.utils.parseEther("100")),
             );
@@ -434,7 +469,7 @@ describe("Vesting voting vault", function () {
             expect(grant.delegatee).to.equal(ethers.constants.AddressZero);
         });
 
-        it("manager removes grant and receives remaining unvested tokens", async () => {
+        it("manager revokes grant and receives remaining unvested tokens", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
             const MANAGER = signers[1];
@@ -472,9 +507,9 @@ describe("Vesting voting vault", function () {
                 await ethers.provider.send("evm_mine", []);
             }
 
-            // manager removes grant
+            // manager revokes grant
             // 75% of tokens are sent to recipient, manager receives remaining 25%
-            await vestingVotingVault.connect(MANAGER).removeGrant(OTHER_ADDRESS);
+            await vestingVotingVault.connect(MANAGER).revokeGrant(OTHER_ADDRESS);
             const managerBalanceAfter = await arcdToken.balanceOf(MANAGER_ADDRESS);
             expect(managerBalanceAfter.sub(managerBalanceBefore)).to.equal(
                 ethers.utils.parseEther("100").sub(ethers.utils.parseEther("75")),
@@ -490,7 +525,7 @@ describe("Vesting voting vault", function () {
             expect(grant2.latestVotingPower).to.equal(0);
             expect(grant2.delegatee).to.equal(ethers.constants.AddressZero);
 
-            // user cannot claim tokens after grant is removed
+            // user cannot claim tokens after grant is revoked
             await expect(vestingVotingVault.connect(OTHER).claim(ethers.utils.parseEther("1"))).to.be.revertedWith(
                 `AVV_NoGrantSet()`,
             );
@@ -502,7 +537,7 @@ describe("Vesting voting vault", function () {
             );
         });
 
-        it("non-manager tries to remove grant", async () => {
+        it("non-manager tries to revoke grant", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
             const MANAGER = signers[1];
@@ -535,7 +570,7 @@ describe("Vesting voting vault", function () {
             await expect(tx).to.be.revertedWith("AVV_NotManager()");
         });
 
-        it("manager tries to remove grant that does not exist", async () => {
+        it("manager tries to revoke grant that does not exist", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
             const MANAGER = signers[1];
@@ -548,8 +583,8 @@ describe("Vesting voting vault", function () {
             await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
             expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
 
-            // manager removes grant non-existent grant
-            const tx2 = vestingVotingVault.connect(MANAGER).removeGrant(OTHER_ADDRESS);
+            // manager revokes grant non-existent grant
+            const tx2 = vestingVotingVault.connect(MANAGER).revokeGrant(OTHER_ADDRESS);
             await expect(tx2).to.be.revertedWith("AVV_NoGrantSet()");
         });
     });

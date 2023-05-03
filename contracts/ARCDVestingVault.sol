@@ -173,7 +173,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      *
      * @param who             The grant owner.
      */
-    function removeGrant(address who) public virtual onlyManager {
+    function revokeGrant(address who) public virtual onlyManager {
         // load the grant
         ARCDVestingVaultStorage.Grant storage grant = _grants()[who];
 
@@ -341,7 +341,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      */
     function _getWithdrawableAmount(ARCDVestingVaultStorage.Grant memory grant) internal view returns (uint256) {
         // if before cliff or created date, no tokens have unlocked
-        if (block.number < grant.cliff || block.number < grant.created) {
+        if (block.number < grant.cliff) {
             return 0;
         }
         // if after expiration, return the full allocation minus what has already been withdrawn

@@ -37,7 +37,7 @@ interface IARCDVestingVault {
         address _delegatee
     ) external;
 
-    function removeGrant(address _who) external;
+    function revokeGrant(address _who) external;
 
     function deposit(uint256 _amount) external;
 

@@ -807,7 +807,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("addTokens() transfers added funds the contract and increases delegatee voting power", async () => {
-            const { signers, token, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxVault;
+            const { arcdToken } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -816,17 +817,17 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await setMultipliers();
 
             // initialize history for signers[1]
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            // signers[1] registers reputation NFT, deposits ONE arcdToken and delegates to self
             const tx = await uniqueMultiplierVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
             await tx.wait();
 
             // get user balance before addTokens()
-            const userBalBefore = await token.balanceOf(signers[1].address);
+            const userBalBefore = await arcdToken.balanceOf(signers[1].address);
             // get contract balance before addTokens()
-            const contractBalBefore = await token.balanceOf(uniqueMultiplierVotingVault.address);
+            const contractBalBefore = await arcdToken.balanceOf(uniqueMultiplierVotingVault.address);
 
             // get delegatee voting power amount
             const votingPower = await uniqueMultiplierVotingVault.queryVotePowerView(
@@ -835,23 +836,23 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
             expect(votingPower).to.be.eq(ONE.mul(5));
 
-            // signers[1] approves TWO more tokens to be added their registration
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
-            // adds TWO tokens
+            // signers[1] approves TWO more arcdToken to be added their registration
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
+            // adds TWO arcdTokens
             const tx2 = await uniqueMultiplierVotingVault.connect(signers[1]).addTokens(ONE.mul(2));
             await tx2.wait();
 
-            // get contract balance after add tokens
-            const contractBalAfter = await token.balanceOf(uniqueMultiplierVotingVault.address);
-            // get user balance after add tokens
-            const userBalAfter = await token.balanceOf(signers[1].address);
+            // get contract balance after add arcdTokens
+            const contractBalAfter = await arcdToken.balanceOf(uniqueMultiplierVotingVault.address);
+            // get user balance after add arcdTokens
+            const userBalAfter = await arcdToken.balanceOf(signers[1].address);
 
             // confirm contract balance now has TWO more tokens
             await expect(contractBalAfter).to.eq(contractBalBefore.add(ONE.mul(2)));
-            // confirm user balance has 2 less tokens
+            // confirm user balance has 2 less arcdTokens
             await expect(userBalAfter).to.eq(userBalBefore.sub(ONE.mul(2)));
 
-            // confirm the delegatee voting power has increased with the added tokens
+            // confirm the delegatee voting power has increased with the added arcdTokens
             const votingPower2 = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
                 tx2.blockNumber,
@@ -860,7 +861,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("addTokens() updates the amount in the registration data", async () => {
-            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVault;
+            const { arcdToken } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -868,8 +870,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the ERC1155 NFT multipliers
             const { MULTIPLIER_A } = await setMultipliers();
 
-            // signers[1] approves tokens to voting vault
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
+            // signers[1] approves arcdToken to voting vault
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
             // signers[1] registers and delegates to self by not specifying a delegation address
@@ -889,9 +891,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
             expect(registration[5]).to.eq(signers[1].address); // delegatee
 
-            // signers[1] approves TWO more tokens to voting vault
-            await token.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
-            // signers[1] adds TWO more tokens to their registration
+            // signers[1] approves TWO more arcdTokens to voting vault
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(2));
+            // signers[1] adds TWO more arcdTokens to their registration
             const tx2 = await uniqueMultiplierVotingVault.connect(signers[1]).addTokens(ONE.mul(2));
             await tx2.wait();
 
@@ -903,7 +905,8 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
         });
 
         it("reverts if addTokens() is called with amount zero", async () => {
-            const { signers, token, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxVault;
+            const { arcdToken } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -911,11 +914,11 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
 
-            // signers[2] approves tokens to voting vault
-            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(10));
+            // signers[2] approves arcdTokens to voting vault
+            await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(10));
             await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
-            // signers[2] registers depositing TEN tokens and delegating to self
+            // signers[2] registers depositing TEN arcdTokens and delegating to self
             await uniqueMultiplierVotingVault
                 .connect(signers[2])
                 .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
@@ -1486,9 +1489,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(ONE));
         });
 
-        it("Calling updateVotingPower() syncs delegatees' voting power when a mutliplier value is adjusted", async () => {
-            const { signers, uniqueMultiplierVotingVault, reputationNft, setMultipliers, token, mintNfts, getBlock } =
-                ctxVault;
+        it("Calling updateVotingPower() syncs delegates voting power when a multiplier value is adjusted", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, reputationNft, setMultipliers, mintNfts } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
@@ -1496,11 +1499,11 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
 
-            // signers[0] approves tokens to unique multiplier vault and approves reputation nft
-            await token.approve(uniqueMultiplierVotingVault.address, ONE);
+            // signers[0] approves arcdTokens to unique multiplier vault and approves reputation nft
+            await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
-            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            // signers[0] registers reputation NFT, deposits arcdTokens and delegates to signers[1]
             const tx = await uniqueMultiplierVotingVault.addNftAndDelegate(
                 ONE,
                 1,
@@ -1515,11 +1518,11 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
             expect(votingPower1Before).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
-            // signers[2] approves tokens to unique multiplier voting vault and approves reputation nft
-            await token.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+            // signers[2] approves arcdTokens to unique multiplier voting vault and approves reputation nft
+            await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
             await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
 
-            // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[3]
+            // signers[2] registers reputation NFT, deposits 5 arcdTokens and delegates to signers[3]
             const tx1 = await uniqueMultiplierVotingVault
                 .connect(signers[2])
                 .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[3].address);
@@ -1544,12 +1547,12 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             const newMultiplier = await uniqueMultiplierVotingVault.getMultiplier(reputationNft.address, 1);
             await expect(newMultiplier).to.eq(ethers.utils.parseEther("1.4"));
 
-            const nowBlock = getBlock();
+            const nowBlock = await ethers.provider.getBlock("latest");
 
             // signers[1] voting power is still as it was before the multiplier update
             const votingPower1After = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
-                nowBlock,
+                nowBlock.number,
             );
             expect(votingPower1After).to.eq(votingPower1Before);
 
@@ -1558,12 +1561,12 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 .connect(signers[3])
                 .updateVotingPower([signers[0].address, signers[2].address]);
 
-            const nowBlock2 = getBlock();
+            const nowBlock2 = await ethers.provider.getBlock("latest");
 
             // signers[1] voting power has now reflects new multiplier value boost
             const votingPower1AfterUpdateVP = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[1].address,
-                nowBlock2,
+                nowBlock2.number,
             );
             expect(votingPower1AfterUpdateVP).to.eq(ONE.mul(newMultiplier).div(ONE));
 
@@ -1579,7 +1582,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // signers[3] voting power value is still the same as pre multiplier updates
             const votingPower3After = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[3].address,
-                nowBlock,
+                nowBlock.number,
             );
             expect(votingPower3After).to.eq(votingPower3Before);
 
@@ -1588,18 +1591,18 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 .connect(signers[0])
                 .updateVotingPower([signers[0].address, signers[2].address]);
 
-            const currentBlock = getBlock();
+            const currentBlock = await ethers.provider.getBlock("latest");
 
             //confirm that signers[3] voting power is now aligned with the reduced multiplier value
             const votingPower3C = await uniqueMultiplierVotingVault.queryVotePowerView(
                 signers[3].address,
-                currentBlock,
+                currentBlock.number,
             );
             expect(votingPower3C).to.eq(ONE.mul(5).mul(reducedMultiplier).div(ONE));
         });
 
         it("Reverts if updateVotingPower() is called with more than 50 addresses", async () => {
-            const { signers, uniqueMultiplierVotingVault } = ctxVault;
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
             const addresses = [];
 
             for (let i = 0; i < 51; i++) {
