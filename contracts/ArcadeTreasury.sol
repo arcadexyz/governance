@@ -5,6 +5,8 @@ pragma solidity ^0.8.18;
 import "./external/council/libraries/Authorizable.sol";
 import "./external/council/interfaces/IERC20.sol";
 
+import "./libraries/HashedStorageReentrancyBlock.sol";
+
 /**
  * @title ArcadeTreasury
  * @author Non-Fungible Technologies, Inc.
@@ -18,7 +20,7 @@ import "./external/council/interfaces/IERC20.sol";
  * and the GSC CoreVoting contract. In each of these CoreVote contracts, the custom quorums
  * for each spend function are set to the appropriate threshold.
  */
-contract ArcadeTreasury is Authorizable {
+contract ArcadeTreasury is Authorizable, HashedStorageReentrancyBlock {
     /// @notice constant which represents ether
     address internal constant ETH_CONSTANT = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
@@ -52,21 +54,33 @@ contract ArcadeTreasury is Authorizable {
 
     // ===== TRANSFERS =====
 
-    function smallSpend(address token, uint256 amount, address destination) external onlyAuthorized {
+    function smallSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
+        require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
+        require(spendThresholds[token].small != 0, "ArcadeTreasury: token not supported");
+        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+
         // get small spend threshold for this token
         uint256 smallSpendLimit = spendThresholds[address(token)].small;
 
         _spend(token, amount, destination, smallSpendLimit);
     }
 
-    function mediumSpend(address token, uint256 amount, address destination) external onlyAuthorized {
+    function mediumSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
+        require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
+        require(spendThresholds[token].small != 0, "ArcadeTreasury: token not supported");
+        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+
         // get medium spend threshold for this token
         uint256 mediumSpendLimit = spendThresholds[address(token)].medium;
 
         _spend(token, amount, destination, mediumSpendLimit);
     }
 
-    function largeSpend(address token, uint256 amount, address destination) external onlyAuthorized {
+    function largeSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
+        require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
+        require(spendThresholds[token].small != 0, "ArcadeTreasury: token not supported");
+        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+
         // get high spend threshold for this token
         uint256 highSpendLimit = spendThresholds[address(token)].large;
 
@@ -75,21 +89,33 @@ contract ArcadeTreasury is Authorizable {
 
     // ===== APPROVALS =====
 
-    function approveSmallSpend(address token, address spender, uint256 amount) external onlyAuthorized {
+    function approveSmallSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
+        require(spender != address(0), "ArcadeTreasury: cannot send approve address");
+        require(spendThresholds[token].small != 0, "ArcadeTreasury: token not supported");
+        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+
         // get small spend threshold for this token
         uint256 smallSpendLimit = spendThresholds[address(token)].small;
 
         _approve(token, spender, amount, smallSpendLimit);
     }
 
-    function approveMediumSpend(address token, address spender, uint256 amount) external onlyAuthorized {
+    function approveMediumSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
+        require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
+        require(spendThresholds[token].small != 0, "ArcadeTreasury: token not supported");
+        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+
         // get medium spend threshold for this token
         uint256 mediumSpendLimit = spendThresholds[address(token)].medium;
 
         _approve(token, spender, amount, mediumSpendLimit);
     }
 
-    function approveLargeSpend(address token, address spender, uint256 amount) external onlyAuthorized {
+    function approveLargeSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
+        require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
+        require(spendThresholds[token].small != 0, "ArcadeTreasury: token not supported");
+        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+
         // get large spend threshold for this token
         uint256 largeSpendLimit = spendThresholds[address(token)].large;
 
@@ -111,7 +137,7 @@ contract ArcadeTreasury is Authorizable {
         spendThresholds[token] = thresholds;
     }
 
-    function genericCall(address _target, bytes calldata _callData) external onlyOwner {
+    function genericCall(address _target, bytes calldata _callData) external onlyOwner nonReentrant {
         // low level call and insist it succeeds
         (bool status, ) = _target.call(_callData);
         require(status, "Call failed");
