@@ -23,7 +23,9 @@ import {
     UMVV_InvalidNft,
     UMVV_ZeroAmount,
     UMVV_AlreadyInitialized,
-    UMVV_ArrayTooManyElements
+    UMVV_ArrayTooManyElements,
+    UMVV_Locked,
+    UMVV_AlreadyUnlocked
 } from "./errors/Governance.sol";
 
 /**
@@ -76,6 +78,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     // Event to track multipliers
     event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
 
+    // Event for withdrawal unlock
+    event WithdrawalsUnlocked();
+
     // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
 
     /**
@@ -91,6 +96,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
         Storage.set(Storage.uint256Ptr("entered"), 1);
+        Storage.set(Storage.uint256Ptr("locked"), 1);
     }
 
     /**
@@ -216,9 +222,12 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *         user's locked ERC1155 (if utilized) is also transfered back to them. Consequently, the user's
      *         delegatee loses the voting power associated with the aforementioned tokens.
      *
+     * @dev Withdraw is unlocked when the locked state variable is set to 2.
+     *
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
+        if (getIsLocked() == 1) revert UMVV_Locked();
         if (amount == 0) revert UMVV_ZeroAmount();
 
         // load the registration
@@ -386,10 +395,30 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     function updateVotingPower(address[] memory userAddresses) public {
         if (userAddresses.length > 50) revert UMVV_ArrayTooManyElements();
 
-        for (uint256 i = 0; i < userAddresses.length; i++) {
+        for (uint256 i = 0; i < userAddresses.length; ++i) {
             VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
             _syncVotingPower(userAddresses[i], registration);
         }
+    }
+
+    /** @notice A function to access the value of "locked".
+     *
+     * @return                          The value of "locked".
+     */
+    function getIsLocked() public view returns (uint256) {
+        return Storage.uint256Ptr("locked").data;
+    }
+
+    /**
+     * @notice An Timelock only function for ERC20 allowing withdrawals.
+     *
+     * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
+     */
+    function unlock() external onlyTimelock {
+        if (getIsLocked() != 1) revert UMVV_AlreadyUnlocked();
+        Storage.set(Storage.uint256Ptr("locked"), 2);
+
+        emit WithdrawalsUnlocked();
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -417,13 +446,12 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     /**
      * @notice A single function endpoint for loading Registration storage
      *
-     * @dev Only one Registration is allowed per user. Registrations SHOULD NOT BE MODIFIED
+     * @dev Only one Registration is allowed per user.
      *
      * @return registrations                 A storage mapping to look up registrations data
      */
     function _getRegistrations() internal pure returns (mapping(address => VotingVaultStorage.Registration) storage) {
-        // This call returns a storage mapping with a unique non overwrite-able storage location
-        // which can be persisted through upgrades, even if they change storage layout
+        // This call returns a storage mapping with a unique non overwrite-able storage location.
         return (VotingVaultStorage.mappingAddressToRegistrationPtr("registrations"));
     }
 
@@ -544,8 +572,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         pure
         returns (mapping(address => mapping(uint128 => VotingVaultStorage.AddressUintUint)) storage)
     {
-        // This call returns a storage mapping with a unique non overwrite-able storage layout
-        // which can be persisted through upgrades, even if they change storage layout
+        // This call returns a storage mapping with a unique non overwrite-able storage layout.
         return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
     }
 

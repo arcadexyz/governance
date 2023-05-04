@@ -166,6 +166,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // mint users some reputation nfts
             await mintNfts();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
 
@@ -222,6 +225,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // mint users some reputation nfts
             await mintNfts();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
@@ -528,7 +534,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] calls delegate() on signers[2] who is already their delegate
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).delegate(signers[2].address);
-
             await expect(tx).to.be.revertedWith("UMVV_AlreadyDelegated");
         });
 
@@ -541,6 +546,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // initialize history for signers[1]
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -558,7 +566,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // get user balance after withdraw
             const balanceAfter = await arcdToken.balanceOf(signers[1].address);
-
             // confirm user balance has grown by 5 tokens after withdraw
             expect(balanceAfter).to.eq(balanceBefore.add(ONE.mul(5)));
         });
@@ -572,6 +579,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             const amountToDeposit = ONE;
             const amountToWithdraw = ONE;
@@ -617,6 +627,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[1] approves tokens to voting vault
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
             await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
@@ -628,7 +641,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] calls withdraw for FIVE tokens, which is larger than what the contract holds
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(5));
-
             await expect(tx).to.be.revertedWith("UMVV_InsufficientBalance");
         });
 
@@ -641,6 +653,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // signers[1] approves tokens to voting vault
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE);
@@ -662,7 +677,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] calls withdraw for THREE tokens, which is larger than what they have deposited in their registration
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(3));
-
             await expect(tx).to.be.revertedWith(`UMVV_InsufficientWithdrawableBalance(${ONE})`);
         });
 
@@ -676,6 +690,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // manager sets the value of the ERC1155 NFT multipliers
             await setMultipliers();
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[2] approves tokens to voting vault
             await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(10));
             await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
@@ -687,7 +704,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[2] calls withdraw for 0 tokens
             const tx = uniqueMultiplierVotingVault.connect(signers[2]).withdraw(0);
-
             await expect(tx).to.be.revertedWith("UMVV_ZeroAmount");
         });
 
@@ -700,6 +716,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // signers[0] approves 5 tokens to voting vault and approves reputation nft
             await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
@@ -754,6 +773,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // manager sets the value of the reputation NFT multiplier
             const { MULTIPLIER_A } = await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
 
             // initialize history for signers[1]
             await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
@@ -899,7 +921,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // get signers[1] registration
             const registration2 = await uniqueMultiplierVotingVault.getRegistration(signers[1].address);
-
             // added amount in registration, now equals TWO
             expect(registration2[0]).to.eq(ONE.mul(3));
         });
@@ -925,7 +946,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[2] calls addTokens with amount 0
             const tx = uniqueMultiplierVotingVault.connect(signers[2]).addTokens(0);
-
             await expect(tx).to.be.revertedWith("UMVV_ZeroAmount");
         });
 
@@ -985,7 +1005,6 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             );
 
             const tx = uniqueMultiplierVotingVault.withdrawNft();
-
             await expect(tx).to.be.revertedWith(`UMVV_InvalidNft("${constants.AddressZero}", ${0})`);
         });
 
@@ -1265,6 +1284,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 signers[0].address,
             );
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[1] tries to withdraw ONE tokens
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE);
             await expect(tx).to.be.revertedWith("UMVV_InsufficientWithdrawableBalance(0)");
@@ -1304,6 +1326,9 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, signers[1].address);
 
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
             // signers[1] withdraws all of their deposited tokens
             await uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(10));
 
@@ -1318,6 +1343,60 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             // call initialize again after initialization has already run after deployment
             const tx = uniqueMultiplierVotingVault.initialize(signers[0].address, signers[0].address);
             await expect(tx).to.be.revertedWith("UMVV_AlreadyInitialized");
+        });
+
+        it("reverts if withdraw() is called before unlock", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // initialize history for signers[1]
+            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
+
+            // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
+            await uniqueMultiplierVotingVault
+                .connect(signers[1])
+                .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+
+            // signers[1] withdraws their deposited token
+            const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(5));
+            await expect(tx).to.be.revertedWith("UMVV_Locked");
+        });
+
+        it("reverts if unlock() is called more than once", async () => {
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // timelock unlocks ERC20 withdrawals
+            await uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+
+            // call unlock again
+            const tx = uniqueMultiplierVotingVault.connect(signers[0]).unlock();
+            await expect(tx).to.be.revertedWith("UMVV_AlreadyUnlocked");
+        });
+
+        it("reverts if address other than timelock calls unlock()", async () => {
+            const { signers, uniqueMultiplierVotingVault, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            await setMultipliers();
+
+            // other account tries to unlock ERC20 withdrawals
+            const tx = uniqueMultiplierVotingVault.connect(signers[1]).unlock();
+            await expect(tx).to.be.revertedWith("!timelock");
         });
     });
 
@@ -1612,6 +1691,54 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
             await expect(
                 uniqueMultiplierVotingVault.connect(signers[0]).updateVotingPower(addresses),
             ).to.be.revertedWith("UMVV_ArrayTooManyElements()");
+        });
+    });
+
+    describe("BaseVotingVault functionality", async () => {
+        it("reverts if setTimelock() is called by an address other that the timelock", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
+
+            // other account tries to set a new timelock address
+            const tx = uniqueMultiplierVotingVault.connect(signers[4]).setTimelock(signers[5].address);
+            await expect(tx).to.be.revertedWith("!timelock");
+        });
+
+        it("successfully sets the address of the timelock with setTimelock()", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
+
+            // timelock sets a new timelock address
+            await uniqueMultiplierVotingVault.connect(signers[0]).setTimelock(signers[5].address);
+
+            // get the new timelock address
+            const newTimelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).timelock();
+            await expect(newTimelockAddress).to.eq(signers[5].address);
+        });
+
+        it("reverts if setManager() is called by an address other that the timelock", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
+
+            // other account tries to set a new manager
+            const tx = uniqueMultiplierVotingVault.connect(signers[4]).setManager(signers[5].address);
+            await expect(tx).to.be.revertedWith("!timelock");
+        });
+
+        it("successfully sets a new manager with setManager()", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
+
+            // timelock sets a new timelock address
+            await uniqueMultiplierVotingVault.connect(signers[0]).setManager(signers[5].address);
+
+            // get the new timelock address
+            const newTimelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).manager();
+            await expect(newTimelockAddress).to.eq(signers[5].address);
+        });
+
+        it("calling timelock() returns the address of the timelock", async () => {
+            const { signers, uniqueMultiplierVotingVault } = ctxGovernance;
+
+            // get timelock address
+            const timelockAddress = await uniqueMultiplierVotingVault.connect(signers[1]).timelock();
+            await expect(timelockAddress).to.eq(signers[0].address);
         });
     });
 });
