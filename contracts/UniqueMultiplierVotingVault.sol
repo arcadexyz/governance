@@ -227,7 +227,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
-        if (getIsLocked().data == 1) revert UMVV_Locked();
+        if (getIsLocked() == 1) revert UMVV_Locked();
         if (amount == 0) revert UMVV_ZeroAmount();
 
         // load the registration
@@ -401,12 +401,12 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         }
     }
 
-    /** @notice A function to access the storage of the value of "locked".
+    /** @notice A function to access the value of "locked".
      *
-     * @return                          A struct containing the value of "locked".
+     * @return                          The value of "locked".
      */
-    function getIsLocked() public pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("locked");
+    function getIsLocked() public view returns (uint256) {
+        return Storage.uint256Ptr("locked").data;
     }
 
     /**
@@ -415,7 +415,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
      */
     function unlock() external onlyTimelock {
-        if (getIsLocked().data != 1) revert UMVV_AlreadyUnlocked();
+        if (getIsLocked() != 1) revert UMVV_AlreadyUnlocked();
         Storage.set(Storage.uint256Ptr("locked"), 2);
 
         emit WithdrawalsUnlocked();
