@@ -187,8 +187,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
      *                                    indexed storage.
      */
     function _votingPower() internal pure returns (History.HistoricalBalances memory) {
-        // This call returns a storage mapping with a unique non overwrite-able storage location
-        // which can be persisted through upgrades, even if they change storage layout.
+        // This call returns a storage mapping with a unique non overwrite-able storage location.
         return (History.load("votingPower"));
     }
 }

@@ -24,7 +24,7 @@ import {
     UMVV_ZeroAmount,
     UMVV_AlreadyInitialized,
     UMVV_ArrayTooManyElements,
-    UMVV_NotUnlocked,
+    UMVV_Locked,
     UMVV_AlreadyUnlocked
 } from "./errors/Governance.sol";
 
@@ -79,7 +79,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
 
     // Event for withdrawal unlock
-    event WithdrawalsUnlocked(address uniqueMultiplierVotingVault);
+    event WithdrawalsUnlocked();
 
     // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
 
@@ -222,10 +222,12 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *         user's locked ERC1155 (if utilized) is also transfered back to them. Consequently, the user's
      *         delegatee loses the voting power associated with the aforementioned tokens.
      *
+     * @dev Withdraw is unlocked when the locked state variable is set to 2.
+     *
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
-        if (getIsLocked().data == 1) revert UMVV_NotUnlocked();
+        if (getIsLocked().data == 1) revert UMVV_Locked();
         if (amount == 0) revert UMVV_ZeroAmount();
 
         // load the registration
@@ -403,7 +405,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      * @return                          A struct containing the value of "locked".
      */
-    function getIsLocked() public view returns (Storage.Uint256 memory) {
+    function getIsLocked() public pure returns (Storage.Uint256 memory) {
         return Storage.uint256Ptr("locked");
     }
 
@@ -416,7 +418,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         if (getIsLocked().data != 1) revert UMVV_AlreadyUnlocked();
         Storage.set(Storage.uint256Ptr("locked"), 2);
 
-        emit WithdrawalsUnlocked(address(this));
+        emit WithdrawalsUnlocked();
     }
 
     // ================================ HELPER FUNCTIONS ===================================
@@ -449,8 +451,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @return registrations                 A storage mapping to look up registrations data
      */
     function _getRegistrations() internal pure returns (mapping(address => VotingVaultStorage.Registration) storage) {
-        // This call returns a storage mapping with a unique non overwrite-able storage location
-        // which can be persisted through upgrades, even if they change storage layout
+        // This call returns a storage mapping with a unique non overwrite-able storage location.
         return (VotingVaultStorage.mappingAddressToRegistrationPtr("registrations"));
     }
 
@@ -571,8 +572,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         pure
         returns (mapping(address => mapping(uint128 => VotingVaultStorage.AddressUintUint)) storage)
     {
-        // This call returns a storage mapping with a unique non overwrite-able storage layout
-        // which can be persisted through upgrades, even if they change storage layout
+        // This call returns a storage mapping with a unique non overwrite-able storage layout.
         return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
     }
 

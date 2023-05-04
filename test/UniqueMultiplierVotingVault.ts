@@ -1365,7 +1365,7 @@ describe("Governance Operations with Unique Multiplier Voting Vault", async () =
 
             // signers[1] withdraws their deposited token
             const tx = uniqueMultiplierVotingVault.connect(signers[1]).withdraw(ONE.mul(5));
-            await expect(tx).to.be.revertedWith("UMVV_NotUnlocked");
+            await expect(tx).to.be.revertedWith("UMVV_Locked");
         });
 
         it("reverts if unlock() is called more than once", async () => {
