@@ -77,7 +77,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].small;
-        require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
+        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -94,7 +94,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].medium;
-        require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
+        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -111,7 +111,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].large;
-        require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
+        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -130,7 +130,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].small;
-        require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
+        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
 
         _approve(token, spender, amount, spendLimit);
     }
@@ -147,7 +147,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].medium;
-        require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
+        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
 
         _approve(token, spender, amount, spendLimit);
     }
@@ -164,7 +164,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].large;
-        require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
+        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
 
         _approve(token, spender, amount, spendLimit);
     }
@@ -185,7 +185,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
             "Thresholds must be in ascending order"
         );
         // verify none of the thesholds are 0
-        require(thresholds.small != 0 && thresholds.medium != 0 && thresholds.large != 0, "Thresholds cannot be 0");
+        require(thresholds.small != 0, "Small thresholds cannot be 0");
         // verify that the token is not the 0x00 address
         require(token != address(0), "Token cannot be 0x00");
 
@@ -204,7 +204,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param calldatas         array of bytes data to use for each call
      */
     function batchCalls(address[] memory targets, bytes[] calldata calldatas) external onlyOwner nonReentrant {
-        require(targets.length == calldatas.length, "invalid array lengths");
+        require(targets.length == calldatas.length, "array length mismatch");
         // execute a package of low level calls
         for (uint256 i = 0; i < targets.length; i++) {
             (bool success, ) = targets[i].call(calldatas[i]);
