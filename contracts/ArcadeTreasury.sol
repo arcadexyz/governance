@@ -8,6 +8,15 @@ import "./external/council/libraries/Authorizable.sol";
 import "./external/council/interfaces/IERC20.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
+import {
+    T_ZeroAddress,
+    T_ZeroAmount,
+    T_ThresholdNotSet,
+    T_ThresholdsNotAscending,
+    T_ArrayLengthMismatch,
+    T_CallFailed,
+    T_BlockSpendLimit
+} from "./errors/Treasury.sol";
 
 /**
  * @title ArcadeTreasury
@@ -74,27 +83,27 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param destination       address to send the tokens to
      */
     function smallSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
-        require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
-        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+        if (destination == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].small;
-        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
+        if (spendLimit == 0) revert T_ThresholdNotSet();
 
         _spend(token, amount, destination, spendLimit);
     }
 
     /**
      * @notice function to spend a medium amount of tokens from the treasury. This function
-     * should have the medium quorum of the three spend functions.
+     * should have the middle quorum of the three spend functions.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
     function mediumSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
-        require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
-        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+        if (destination == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].medium;
-        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
+        if (spendLimit == 0) revert T_ThresholdNotSet();
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -108,10 +117,10 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param destination       address to send the tokens to
      */
     function largeSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
-        require(destination != address(0), "ArcadeTreasury: cannot send to zero address");
-        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+        if (destination == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].large;
-        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
+        if (spendLimit == 0) revert T_ThresholdNotSet();
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -127,27 +136,27 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to approve
      */
     function approveSmallSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
-        require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
-        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+        if (spender == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].small;
-        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
+        if (spendLimit == 0) revert T_ThresholdNotSet();
 
         _approve(token, spender, amount, spendLimit);
     }
 
     /**
      * @notice function to approve a medium amount of tokens from the treasury. This function
-     * should have the medium quorum of the three approve functions.
+     * should have the middle quorum of the three approve functions.
      *
      * @param token             address of the token to approve
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
     function approveMediumSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
-        require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
-        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+        if (spender == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].medium;
-        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
+        if (spendLimit == 0) revert T_ThresholdNotSet();
 
         _approve(token, spender, amount, spendLimit);
     }
@@ -161,10 +170,10 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to approve
      */
     function approveLargeSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
-        require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
-        require(amount != 0, "ArcadeTreasury: amount cannot be zero");
+        if (spender == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].large;
-        require(spendLimit != 0, "ArcadeTreasury: threshold not set");
+        if (spendLimit == 0) revert T_ThresholdNotSet();
 
         _approve(token, spender, amount, spendLimit);
     }
@@ -179,15 +188,14 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param thresholds        struct containing the thresholds to set
      */
     function setThreshold(address token, SpendThreshold memory thresholds) external onlyOwner {
-        // verify that the thresholds are in ascending order
-        require(
-            thresholds.small < thresholds.medium && thresholds.medium < thresholds.large,
-            "Thresholds must be in ascending order"
-        );
-        // verify none of the thesholds are 0
-        require(thresholds.small != 0, "Small thresholds cannot be 0");
-        // verify that the token is not the 0x00 address
-        require(token != address(0), "Token cannot be 0x00");
+        // verify thresholds are ascending from small to large
+        if (thresholds.large < thresholds.medium || thresholds.medium < thresholds.small) {
+            revert T_ThresholdsNotAscending();
+        }
+        // verify small threshold is not zero
+        if (thresholds.small == 0) revert T_ZeroAmount();
+        // verify that the token is not the zero address
+        if (token == address(0)) revert T_ZeroAddress();
 
         // Overwrite the spend limits for specified token
         spendThresholds[token] = thresholds;
@@ -204,12 +212,12 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param calldatas         array of bytes data to use for each call
      */
     function batchCalls(address[] memory targets, bytes[] calldata calldatas) external onlyOwner nonReentrant {
-        require(targets.length == calldatas.length, "array length mismatch");
+        if (targets.length != calldatas.length) revert T_ArrayLengthMismatch();
         // execute a package of low level calls
         for (uint256 i = 0; i < targets.length; i++) {
             (bool success, ) = targets[i].call(calldatas[i]);
             // revert if a single call fails
-            require(success == true, "call reverted");
+            if (success == false) revert T_CallFailed();
         }
     }
 
@@ -227,7 +235,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
     function _spend(address token, uint256 amount, address destination, uint256 limit) internal {
         // check that after processing this we will not have spent more than the block limit
         uint256 spentThisBlock = blockExpenditure[block.number];
-        require(amount + spentThisBlock <= limit, "Spend Limit Exceeded");
+        if (amount + spentThisBlock > limit) revert T_BlockSpendLimit();
         blockExpenditure[block.number] = amount + spentThisBlock;
 
         // transfer tokens
@@ -252,7 +260,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
     function _approve(address token, address spender, uint256 amount, uint256 limit) internal {
         // check that after processing this we will not have spent more than the block limit
         uint256 spentThisBlock = blockExpenditure[block.number];
-        require(amount + spentThisBlock <= limit, "Spend Limit Exceeded");
+        if (amount + spentThisBlock > limit) revert T_BlockSpendLimit();
         blockExpenditure[block.number] = amount + spentThisBlock;
 
         // approve tokens

@@ -86,7 +86,7 @@ describe("Arcade Treasury", async () => {
 
             await expect(
                 arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds),
-            ).to.be.revertedWith(`Thresholds must be in ascending order`);
+            ).to.be.revertedWith("T_ThresholdsNotAscending()");
 
             const thresholds2: Thresholds = [
                 ethers.utils.parseEther("100"),
@@ -96,7 +96,7 @@ describe("Arcade Treasury", async () => {
 
             await expect(
                 arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds2),
-            ).to.be.revertedWith(`Thresholds must be in ascending order`);
+            ).to.be.revertedWith("T_ThresholdsNotAscending()");
 
             const thresholds3: Thresholds = [
                 ethers.utils.parseEther("1000"),
@@ -106,7 +106,17 @@ describe("Arcade Treasury", async () => {
 
             await expect(
                 arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds3),
-            ).to.be.revertedWith(`Thresholds must be in ascending order`);
+            ).to.be.revertedWith("T_ThresholdsNotAscending()");
+
+            const thresholds4: Thresholds = [
+                ethers.constants.Zero,
+                ethers.utils.parseEther("2"),
+                ethers.utils.parseEther("10"),
+            ];
+
+            await expect(
+                arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds4),
+            ).to.be.revertedWith("T_ZeroAmount()");
         });
 
         it("Cannot add threshold for zero address", async () => {
@@ -123,21 +133,7 @@ describe("Arcade Treasury", async () => {
 
             await expect(
                 arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(ethers.constants.AddressZero, thresholds),
-            ).to.be.revertedWith(`Token cannot be 0x00`);
-        });
-
-        it("None of the threshold levels can be zero", async () => {
-            const { arcdToken } = ctxToken;
-            const { signers, arcadeTreasury } = ctxGovernance;
-            const MOCK_TIMELOCK = signers[0];
-            const MOCK_CORE_VOTING = signers[1];
-            const MOCK_GSC_CORE_VOTING = signers[2];
-
-            const thresholds: Thresholds = [ethers.constants.Zero, ethers.utils.parseEther('2'), ethers.utils.parseEther('10')];
-
-            await expect(
-                arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds),
-            ).to.be.revertedWith(`Small thresholds cannot be 0`);
+            ).to.be.revertedWith("T_ZeroAddress()");
         });
 
         it("Try to spend/approve without thresholds set", async () => {
@@ -145,43 +141,42 @@ describe("Arcade Treasury", async () => {
             const { signers, arcadeTreasury } = ctxGovernance;
             const MOCK_CORE_VOTING = signers[1];
 
-
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[3].address),
-            ).to.be.revertedWith(`ArcadeTreasury: threshold not set`);
+            ).to.be.revertedWith("T_ThresholdNotSet()");
 
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .mediumSpend(arcdToken.address, ethers.utils.parseEther("500"), signers[3].address),
-            ).to.be.revertedWith(`ArcadeTreasury: threshold not set`);
+            ).to.be.revertedWith("T_ThresholdNotSet()");
 
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .largeSpend(arcdToken.address, ethers.utils.parseEther("1000"), signers[3].address),
-            ).to.be.revertedWith(`ArcadeTreasury: threshold not set`);
+            ).to.be.revertedWith("T_ThresholdNotSet()");
 
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveSmallSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("100")),
-            ).to.be.revertedWith(`ArcadeTreasury: threshold not set`);
+            ).to.be.revertedWith("T_ThresholdNotSet()");
 
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveMediumSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("100")),
-            ).to.be.revertedWith(`ArcadeTreasury: threshold not set`);
+            ).to.be.revertedWith("T_ThresholdNotSet()");
 
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveLargeSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("100")),
-            ).to.be.revertedWith(`ArcadeTreasury: threshold not set`);
-        })
+            ).to.be.revertedWith("T_ThresholdNotSet()");
+        });
     });
 
     describe("Withdraw tokens", async () => {
@@ -275,42 +270,42 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("101"), signers[3].address),
-            ).to.be.revertedWith(`Spend Limit Exceeded`);
+            ).to.be.revertedWith("T_BlockSpendLimit()");
 
             // send amount as zero
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("0"), signers[3].address),
-            ).to.be.revertedWith(`ArcadeTreasury: amount cannot be zero`);
+            ).to.be.revertedWith("T_ZeroAmount()");
 
             // recipient as zero address
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
-            ).to.be.revertedWith(`ArcadeTreasury: cannot send to zero address`);
+            ).to.be.revertedWith("T_ZeroAddress()");
 
             // try to approve more than threshold limit
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveSmallSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("101")),
-            ).to.be.revertedWith(`Spend Limit Exceeded`);
+            ).to.be.revertedWith("T_BlockSpendLimit()");
 
             // try to approve zero amount
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveSmallSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("0")),
-            ).to.be.revertedWith(`ArcadeTreasury: amount cannot be zero`);
+            ).to.be.revertedWith("T_ZeroAmount()");
 
             // try to approve to zero address
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveSmallSpend(arcdToken.address, ethers.constants.AddressZero, ethers.utils.parseEther("100")),
-            ).to.be.revertedWith(`ArcadeTreasury: cannot approve zero address`);
+            ).to.be.revertedWith("T_ZeroAddress()");
         });
 
         it("medium spend", async () => {
@@ -375,35 +370,35 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .mediumSpend(arcdToken.address, ethers.utils.parseEther("501"), signers[3].address),
-            ).to.be.revertedWith(`Spend Limit Exceeded`);
+            ).to.be.revertedWith("T_BlockSpendLimit()");
 
             // send amount as zero
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .mediumSpend(arcdToken.address, ethers.utils.parseEther("0"), signers[3].address),
-            ).to.be.revertedWith(`ArcadeTreasury: amount cannot be zero`);
+            ).to.be.revertedWith("T_ZeroAmount()");
 
             // recipient as zero address
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .mediumSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
-            ).to.be.revertedWith(`ArcadeTreasury: cannot send to zero address`);
+            ).to.be.revertedWith("T_ZeroAddress()");
 
             // try to approve more than threshold limit
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveMediumSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("501")),
-            ).to.be.revertedWith(`Spend Limit Exceeded`);
+            ).to.be.revertedWith("T_BlockSpendLimit()");
 
             // try to approve zero amount
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveMediumSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("0")),
-            ).to.be.revertedWith(`ArcadeTreasury: amount cannot be zero`);
+            ).to.be.revertedWith("T_ZeroAmount()");
 
             // try to approve to zero address
             await expect(
@@ -414,7 +409,7 @@ describe("Arcade Treasury", async () => {
                         ethers.constants.AddressZero,
                         ethers.utils.parseEther("500"),
                     ),
-            ).to.be.revertedWith(`ArcadeTreasury: cannot approve zero address`);
+            ).to.be.revertedWith("T_ZeroAddress()");
         });
 
         it("large spend", async () => {
@@ -479,35 +474,35 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .largeSpend(arcdToken.address, ethers.utils.parseEther("1001"), signers[3].address),
-            ).to.be.revertedWith(`Spend Limit Exceeded`);
+            ).to.be.revertedWith("T_BlockSpendLimit()");
 
             // send amount as zero
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .largeSpend(arcdToken.address, ethers.utils.parseEther("0"), signers[3].address),
-            ).to.be.revertedWith(`ArcadeTreasury: amount cannot be zero`);
+            ).to.be.revertedWith("T_ZeroAmount()");
 
             // recipient as zero address
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .largeSpend(arcdToken.address, ethers.utils.parseEther("1000"), ethers.constants.AddressZero),
-            ).to.be.revertedWith(`ArcadeTreasury: cannot send to zero address`);
+            ).to.be.revertedWith("T_ZeroAddress()");
 
             // try to approve more than threshold limit
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveLargeSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("1001")),
-            ).to.be.revertedWith(`Spend Limit Exceeded`);
+            ).to.be.revertedWith("T_BlockSpendLimit()");
 
             // try to approve zero amount
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveLargeSpend(arcdToken.address, signers[3].address, ethers.utils.parseEther("0")),
-            ).to.be.revertedWith(`ArcadeTreasury: amount cannot be zero`);
+            ).to.be.revertedWith("T_ZeroAmount()");
 
             // try to approve to zero address
             await expect(
@@ -518,7 +513,7 @@ describe("Arcade Treasury", async () => {
                         ethers.constants.AddressZero,
                         ethers.utils.parseEther("1000"),
                     ),
-            ).to.be.revertedWith(`ArcadeTreasury: cannot approve zero address`);
+            ).to.be.revertedWith("T_ZeroAddress()");
         });
     });
 
@@ -530,7 +525,6 @@ describe("Arcade Treasury", async () => {
 
             await setTreasuryThresholds();
 
-            // try to spend more than threshold limit
             await expect(
                 arcadeTreasury
                     .connect(OTHER_ACCOUNT)
@@ -580,16 +574,11 @@ describe("Arcade Treasury", async () => {
             const tokenFactory = await ethers.getContractFactory("ArcadeToken");
             const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
                 OTHER_ACCOUNT.address,
-                ethers.utils.parseEther("10000")
+                ethers.utils.parseEther("10000"),
             ]);
 
             await expect(
-                arcadeTreasury
-                    .connect(OTHER_ACCOUNT)
-                    .batchCalls(
-                        [arcdToken.address],
-                        [tokenCalldata]
-                    ),
+                arcadeTreasury.connect(OTHER_ACCOUNT).batchCalls([arcdToken.address], [tokenCalldata]),
             ).to.be.revertedWith(`Sender not owner`);
         });
 
@@ -603,13 +592,10 @@ describe("Arcade Treasury", async () => {
             const tokenFactory = await ethers.getContractFactory("ArcadeToken");
             const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
                 MOCK_TIMELOCK.address,
-                ethers.utils.parseEther("10000")
+                ethers.utils.parseEther("10000"),
             ]);
 
-            await arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls(
-                [arcdToken.address],
-                [tokenCalldata]
-            );
+            await arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]);
 
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25490000"));
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("10000"));
@@ -625,13 +611,12 @@ describe("Arcade Treasury", async () => {
             const tokenFactory = await ethers.getContractFactory("ArcadeToken");
             const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
                 MOCK_TIMELOCK.address,
-                ethers.utils.parseEther("10000")
+                ethers.utils.parseEther("10000"),
             ]);
 
-            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls(
-                [],
-                [tokenCalldata]
-            )).to.be.revertedWith(`array length mismatch`);
+            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([], [tokenCalldata])).to.be.revertedWith(
+                "T_ArrayLengthMismatch()",
+            );
 
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
@@ -647,13 +632,12 @@ describe("Arcade Treasury", async () => {
             const tokenFactory = await ethers.getContractFactory("ArcadeToken");
             const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
                 arcdToken.address,
-                ethers.utils.parseEther("25500001")
+                ethers.utils.parseEther("25500001"),
             ]);
 
-            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls(
-                [arcdToken.address],
-                [tokenCalldata]
-            )).to.be.revertedWith(`call reverted`);
+            await expect(
+                arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]),
+            ).to.be.revertedWith("T_CallFailed()");
 
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
