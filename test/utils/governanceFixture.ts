@@ -4,7 +4,14 @@ import { ethers } from "hardhat";
 
 import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
 import { Timelock } from "../../src/types";
-import { ArcadeToken, CoreVoting, LockingVault, NFTBoostVault, VestingVault } from "../../src/types";
+import {
+    ArcadeToken,
+    ArcadeTreasury,
+    CoreVoting,
+    LockingVault,
+    NFTBoostVault,
+    VestingVault,
+} from "../../src/types";
 import { deploy } from "./contracts";
 import { BlockchainTime } from "./time";
 
@@ -20,6 +27,7 @@ export interface TestContextGovernance {
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     votingVaults: string[];
     timelock: Timelock;
+    arcadeTreasury: ArcadeTreasury;
     reputationNft: MockERC1155;
     reputationNft2: MockERC1155;
     feeController: FeeController;
@@ -28,11 +36,18 @@ export interface TestContextGovernance {
     increaseBlockNumber: (provider: any, times: number) => Promise<void>;
     mintNfts(): Promise<void>;
     setMultipliers(): Promise<Multipliers>;
+    setTreasuryThresholds(): Promise<Thresholds[]>;
 }
 
 interface Multipliers {
     MULTIPLIER_A: BigNumberish;
     MULTIPLIER_B: BigNumberish;
+}
+
+interface Thresholds {
+    small: BigNumberish;
+    medium: BigNumberish;
+    large: BigNumberish;
 }
 
 /**
@@ -140,6 +155,14 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         ]);
         await arcadeGSCCoreVoting.deployed();
 
+        // ===================================== TREASURY =====================================
+
+        const arcadeTreasury = <ArcadeTreasury>await deploy("ArcadeTreasury", signers[0], [
+            signers[0].address, // mock timelock
+            signers[1].address, // mock core voting
+            signers[2].address, // mock GSC core voting
+        ]);
+
         // ================================ EXTERNAL RESOURCES ================================
 
         // deploy mock reputation badges
@@ -222,6 +245,30 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             };
         };
 
+        const setTreasuryThresholds = async () => {
+            const arcdThresholds: Thresholds = [
+                ethers.utils.parseEther("100"),
+                ethers.utils.parseEther("500"),
+                ethers.utils.parseEther("1000"),
+            ];
+
+            const ethThresholds: Thresholds = [
+                ethers.utils.parseEther("1"),
+                ethers.utils.parseEther("5"),
+                ethers.utils.parseEther("10"),
+            ];
+            // set arcd threshold
+            const tx = await arcadeTreasury.connect(signers[0]).setThreshold(arcdToken.address, arcdThresholds);
+            await tx.wait();
+            // set eth threshold
+            const tx2 = await arcadeTreasury
+                .connect(signers[0])
+                .setThreshold("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", ethThresholds);
+            await tx2.wait();
+
+            return [arcdThresholds, ethThresholds];
+        };
+
         return {
             signers,
             lockingVotingVault,
@@ -232,6 +279,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             arcadeGSCCoreVoting,
             votingVaults,
             timelock,
+            arcadeTreasury,
             reputationNft,
             reputationNft2,
             feeController,
@@ -240,6 +288,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             increaseBlockNumber,
             mintNfts,
             setMultipliers,
+            setTreasuryThresholds,
         };
     };
 };

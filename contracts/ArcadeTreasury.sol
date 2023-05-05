@@ -127,7 +127,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to approve
      */
     function approveSmallSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
-        require(spender != address(0), "ArcadeTreasury: cannot send approve address");
+        require(spender != address(0), "ArcadeTreasury: cannot approve zero address");
         require(amount != 0, "ArcadeTreasury: amount cannot be zero");
         uint256 spendLimit = spendThresholds[token].small;
         require(spendLimit != 0, "ArcadeTreasury: invalid spend limit");
