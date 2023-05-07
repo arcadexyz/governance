@@ -45,3 +45,9 @@ error T_CallFailed();
  * @notice Cannot withdraw or approve more than each tokens preset spend limits per block.
  */
 error T_BlockSpendLimit();
+
+/**
+ * @notice Cannot make calls to addresses which have thresholds set. This is also a way to block
+ * calls to unwanted addresses or bypass treasury withdraw functions.
+ */
+error T_InvalidTarget(address target);

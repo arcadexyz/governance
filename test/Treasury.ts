@@ -582,12 +582,10 @@ describe("Arcade Treasury", async () => {
             ).to.be.revertedWith(`Sender not owner`);
         });
 
-        it("external call to transfer any token amount", async () => {
+        it("external call to transfer any token amount, with no threshold", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const { signers, arcadeTreasury } = ctxGovernance;
             const MOCK_TIMELOCK = signers[0];
-
-            await setTreasuryThresholds();
 
             const tokenFactory = await ethers.getContractFactory("ArcadeToken");
             const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
@@ -624,10 +622,8 @@ describe("Arcade Treasury", async () => {
 
         it("external call fails", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const { signers, arcadeTreasury } = ctxGovernance;
             const MOCK_TIMELOCK = signers[0];
-
-            await setTreasuryThresholds();
 
             const tokenFactory = await ethers.getContractFactory("ArcadeToken");
             const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
@@ -638,6 +634,27 @@ describe("Arcade Treasury", async () => {
             await expect(
                 arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]),
             ).to.be.revertedWith("T_CallFailed()");
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
+            await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
+        });
+
+        it("external call to transfer with threshold set fails", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const MOCK_TIMELOCK = signers[0];
+
+            await setTreasuryThresholds();
+
+            const tokenFactory = await ethers.getContractFactory("ArcadeToken");
+            const tokenCalldata = tokenFactory.interface.encodeFunctionData("transfer", [
+                MOCK_TIMELOCK.address,
+                ethers.utils.parseEther("10000"),
+            ]);
+
+            await expect(
+                arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]),
+            ).to.be.revertedWith(`T_InvalidTarget("${arcdToken.address}")`);
 
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));

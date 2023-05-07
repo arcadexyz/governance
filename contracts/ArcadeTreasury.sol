@@ -15,7 +15,8 @@ import {
     T_ThresholdsNotAscending,
     T_ArrayLengthMismatch,
     T_CallFailed,
-    T_BlockSpendLimit
+    T_BlockSpendLimit,
+    T_InvalidTarget
 } from "./errors/Treasury.sol";
 
 /**
@@ -215,6 +216,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
         if (targets.length != calldatas.length) revert T_ArrayLengthMismatch();
         // execute a package of low level calls
         for (uint256 i = 0; i < targets.length; i++) {
+            if (spendThresholds[targets[i]].small != 0) revert T_InvalidTarget(targets[i]);
             (bool success, ) = targets[i].call(calldatas[i]);
             // revert if a single call fails
             if (success == false) revert T_CallFailed();
