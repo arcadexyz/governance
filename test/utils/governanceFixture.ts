@@ -158,8 +158,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         // ===================================== TREASURY =====================================
 
         const arcadeTreasury = <ArcadeTreasury>await deploy("ArcadeTreasury", signers[0], [
-            signers[0].address, // mock timelock
-            signers[1].address, // mock core voting
+            signers[1].address, // mock timelock
             signers[2].address, // mock GSC core voting
         ]);
 
@@ -258,11 +257,11 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
                 ethers.utils.parseEther("10"),
             ];
             // set arcd threshold
-            const tx = await arcadeTreasury.connect(signers[0]).setThreshold(arcdToken.address, arcdThresholds);
+            const tx = await arcadeTreasury.connect(signers[1]).setThreshold(arcdToken.address, arcdThresholds);
             await tx.wait();
             // set eth threshold
             const tx2 = await arcadeTreasury
-                .connect(signers[0])
+                .connect(signers[1])
                 .setThreshold("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", ethThresholds);
             await tx2.wait();
 

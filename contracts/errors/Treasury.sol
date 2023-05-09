@@ -49,5 +49,14 @@ error T_BlockSpendLimit();
 /**
  * @notice Cannot make calls to addresses which have thresholds set. This is also a way to block
  * calls to unwanted addresses or bypass treasury withdraw functions.
+ *
+ * @param target               Specified address of the target contract.
  */
 error T_InvalidTarget(address target);
+
+/**
+ * @notice Caller is either not an authorized address or the owner of the contract.
+ *
+ * @param sender               Function caller.
+ */
+error T_Unauthorized(address sender);

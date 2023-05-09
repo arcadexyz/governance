@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./external/council/libraries/Authorizable.sol";
 import "./external/council/interfaces/IERC20.sol";
 
-import "./libraries/HashedStorageReentrancyBlock.sol";
 import {
     T_ZeroAddress,
     T_ZeroAmount,
@@ -16,7 +15,8 @@ import {
     T_ArrayLengthMismatch,
     T_CallFailed,
     T_BlockSpendLimit,
-    T_InvalidTarget
+    T_InvalidTarget,
+    T_Unauthorized
 } from "./errors/Treasury.sol";
 
 /**
@@ -25,12 +25,13 @@ import {
  *
  * This contract is used to hold funds for the Arcade treasury. Each token held by this
  * contract has three thresholds associated with it: (1) large amount, (2) medium amount,
- *  and (3) small amount. The only way to modify these thresholds is via the governance timelock.
+ * and (3) small amount. The only way to modify these thresholds is via the governance.
  *
  * For each spend threshold, there is a corresponding spend function which can be called by
- * an authorized address. These authorized addresses are both the base CoreVoting contract
- * and the GSC CoreVoting contract. In each of these CoreVote contracts, the custom quorums
- * for each spend function are set to the appropriate threshold.
+ * an authorized address. For small spends either governance or the GSC Core Voting contract
+ * can execute transfer or approvals. For medium and larger spends, only governance is approve.
+ * In the GSC Core Voting contract, a custom quorum for each small spend function shall be set
+ * to the appropriate threshold.
  */
 contract ArcadeTreasury is Authorizable, ReentrancyGuard {
     /// @notice constant which represents ether
@@ -62,12 +63,10 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @notice contract constructor
      *
      * @param _timelock              address of the timelock contract
-     * @param _coreVoting            address of the core voting contract
      * @param _gscCoreVoting         address of the gsc core voting contract
      */
-    constructor(address _timelock, address _coreVoting, address _gscCoreVoting) {
+    constructor(address _timelock, address _gscCoreVoting) {
         setOwner(_timelock);
-        _authorize(_coreVoting);
         _authorize(_gscCoreVoting);
     }
 
@@ -83,7 +82,8 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
-    function smallSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
+    function smallSpend(address token, uint256 amount, address destination) external nonReentrant {
+        if (!isAuthorized(msg.sender) && msg.sender != owner) revert T_Unauthorized(msg.sender);
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].small;
@@ -100,7 +100,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
-    function mediumSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
+    function mediumSpend(address token, uint256 amount, address destination) external onlyOwner nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].medium;
@@ -117,7 +117,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
-    function largeSpend(address token, uint256 amount, address destination) external onlyAuthorized nonReentrant {
+    function largeSpend(address token, uint256 amount, address destination) external onlyOwner nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].large;
@@ -136,7 +136,8 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
-    function approveSmallSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
+    function approveSmallSpend(address token, address spender, uint256 amount) external nonReentrant {
+        if (!isAuthorized(msg.sender) && msg.sender != owner) revert T_Unauthorized(msg.sender);
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].small;
@@ -153,7 +154,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
-    function approveMediumSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
+    function approveMediumSpend(address token, address spender, uint256 amount) external onlyOwner nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].medium;
@@ -170,7 +171,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
-    function approveLargeSpend(address token, address spender, uint256 amount) external onlyAuthorized nonReentrant {
+    function approveLargeSpend(address token, address spender, uint256 amount) external onlyOwner nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].large;
