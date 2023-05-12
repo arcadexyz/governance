@@ -15,7 +15,8 @@ import {
     T_CallFailed,
     T_BlockSpendLimit,
     T_InvalidTarget,
-    T_Unauthorized
+    T_Unauthorized,
+    T_GSCSpendLimitReached
 } from "./errors/Treasury.sol";
 
 /**
@@ -44,6 +45,11 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant GSC_CORE_VOTING_ROLE = keccak256("GSC_CORE_VOTING");
     bytes32 public constant CORE_VOTING_ROLE = keccak256("CORE_VOTING");
+
+    /// @notice GSC spend limit
+    uint256 public immutable gscSpendLimit;
+    /// @notice GSC spend counter
+    uint256 public gscSpendCounter;
 
     /// @notice constant which represents ether
     address internal constant ETH_CONSTANT = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
@@ -75,13 +81,15 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      *
      * @param _timelock              address of the timelock contract
      */
-    constructor(address _timelock) {
+    constructor(address _timelock, uint256 _gscSpendLimit) {
         if (_timelock == address(0)) revert T_ZeroAddress();
 
         _setupRole(ADMIN_ROLE, _timelock);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(GSC_CORE_VOTING_ROLE, ADMIN_ROLE);
         _setRoleAdmin(CORE_VOTING_ROLE, ADMIN_ROLE);
+
+        gscSpendLimit = _gscSpendLimit;
     }
 
     // =========== ONLY AUTHORIZED ===========
@@ -100,10 +108,16 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
         if (!hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
             revert T_Unauthorized(msg.sender);
         }
+        if (hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && gscSpendCounter >= gscSpendLimit) {
+            revert T_GSCSpendLimitReached();
+        }
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
+
         uint256 spendLimit = spendThresholds[token].small;
         if (spendLimit == 0) revert T_ThresholdNotSet();
+
+        gscSpendCounter++;
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -164,10 +178,16 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
         if (!hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
             revert T_Unauthorized(msg.sender);
         }
+        if (hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && gscSpendCounter >= gscSpendLimit) {
+            revert T_GSCSpendLimitReached();
+        }
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
+
         uint256 spendLimit = spendThresholds[token].small;
         if (spendLimit == 0) revert T_ThresholdNotSet();
+
+        gscSpendCounter++;
 
         _approve(token, spender, amount, spendLimit);
     }
@@ -259,6 +279,10 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
             // revert if a single call fails
             if (success == false) revert T_CallFailed();
         }
+    }
+
+    function resetGSCSpendCounter() external onlyRole(ADMIN_ROLE) {
+        gscSpendCounter = 0;
     }
 
     // =============== HELPERS ===============

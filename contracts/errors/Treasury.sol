@@ -60,3 +60,8 @@ error T_InvalidTarget(address target);
  * @param sender               Function caller.
  */
 error T_Unauthorized(address sender);
+
+/**
+ * @notice Transfers and approvals are blocked. The GSC has exceeded its spend limit.
+ */
+error T_GSCSpendLimitReached();

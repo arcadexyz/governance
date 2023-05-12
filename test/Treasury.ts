@@ -635,7 +635,7 @@ describe("Arcade Treasury", async () => {
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
         });
 
-        it("external call to transfer with threshold set fails", async () => {
+        it("external call to transfer a token with threshold set fails", async () => {
             const { arcdToken } = ctxToken;
             const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
             const MOCK_TIMELOCK = signers[1];
@@ -654,6 +654,243 @@ describe("Arcade Treasury", async () => {
 
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
+        });
+    });
+
+    describe("GSC small spend limits", async () => {
+        it("GSC spends 3 times then is blocked", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const MOCK_GSC_CORE_VOTING = signers[3];
+
+            await setTreasuryThresholds();
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499900"));
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("200"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499800"));
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("300"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499700"));
+
+            // gsc core voting - tries to spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            ).to.be.revertedWith("T_GSCSpendLimitReached()");
+        });
+
+        it("GSC approves 3 times then is blocked", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const MOCK_GSC_CORE_VOTING = signers[3];
+
+            await setTreasuryThresholds();
+
+            // gsc core voting - approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.allowance(arcadeTreasury.address, signers[4].address)).to.eq(
+                ethers.utils.parseEther("100"),
+            );
+
+            // gsc core voting - approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.allowance(arcadeTreasury.address, signers[4].address)).to.eq(
+                ethers.utils.parseEther("100"),
+            );
+
+            // gsc core voting - approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.allowance(arcadeTreasury.address, signers[4].address)).to.eq(
+                ethers.utils.parseEther("100"),
+            );
+
+            // gsc core voting - tries to approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            ).to.be.revertedWith("T_GSCSpendLimitReached()");
+        });
+
+        it("GSC approves or spends 3 times, then blocked", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const MOCK_GSC_CORE_VOTING = signers[3];
+
+            await setTreasuryThresholds();
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499900"));
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("200"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499800"));
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("300"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499700"));
+
+            // gsc core voting - tries to spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            ).to.be.revertedWith("T_GSCSpendLimitReached()");
+        });
+
+        it("GSC spends 3 times, then unblocked by timelock", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const TIMELOCK = signers[1];
+            const MOCK_GSC_CORE_VOTING = signers[3];
+
+            await setTreasuryThresholds();
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499900"));
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("200"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499800"));
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("300"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499700"));
+
+            // gsc core voting - tries to spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            ).to.be.revertedWith("T_GSCSpendLimitReached()");
+
+            // timelock - unblock spend limit
+            await arcadeTreasury.connect(TIMELOCK).resetGSCSpendCounter();
+
+            expect(await arcadeTreasury.gscSpendCounter()).to.eq(0);
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
+            )
+                .to.emit(arcdToken, `Transfer`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("400"));
+
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499600"));
         });
     });
 });
