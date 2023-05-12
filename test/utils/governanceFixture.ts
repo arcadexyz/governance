@@ -12,6 +12,7 @@ import {
     NFTBoostVault,
     VestingVault,
 } from "../../src/types";
+import { CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./constants";
 import { deploy } from "./contracts";
 import { BlockchainTime } from "./time";
 
@@ -159,8 +160,11 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         const arcadeTreasury = <ArcadeTreasury>await deploy("ArcadeTreasury", signers[0], [
             signers[1].address, // mock timelock
-            signers[2].address, // mock GSC core voting
         ]);
+
+        // setup access roles
+        await arcadeTreasury.connect(signers[1]).grantRole(CORE_VOTING_ROLE, signers[2].address);
+        await arcadeTreasury.connect(signers[1]).grantRole(GSC_CORE_VOTING_ROLE, signers[3].address);
 
         // ================================ EXTERNAL RESOURCES ================================
 

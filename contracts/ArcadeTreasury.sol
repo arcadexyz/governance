@@ -3,9 +3,8 @@
 pragma solidity ^0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-
-import "./external/council/libraries/Authorizable.sol";
-import "./external/council/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {
     T_ZeroAddress,
@@ -25,15 +24,27 @@ import {
  *
  * This contract is used to hold funds for the Arcade treasury. Each token held by this
  * contract has three thresholds associated with it: (1) large amount, (2) medium amount,
- * and (3) small amount. The only way to modify these thresholds is via the governance.
+ * and (3) small amount. The only way to modify these thresholds is via the governance
+ * timelock.
  *
  * For each spend threshold, there is a corresponding spend function which can be called by
- * an authorized address. For small spends either governance or the GSC Core Voting contract
- * can execute transfer or approvals. For medium and larger spends, only governance is approve.
- * In the GSC Core Voting contract, a custom quorum for each small spend function shall be set
- * to the appropriate threshold.
+ * an authorized address. For small spends either General Core Voting or the GSC Core Voting
+ *  contracts can execute transfer or approvals. For medium and larger spends, only General Core
+ * Voting is able to make calls to these functions. In both Core Voting contracts, a custom
+ * quorum for each spend function shall be set to the appropriate threshold.
+ *
+ * Since the GSC has the ability to execute small spends without passing a vote through the
+ * GSC Core Voting contract, the GSC is limited to 5 small spends. This is to prevent the GSC
+ * from executing a large number of small spends which could be done to drain the treasury.
+ * If the GSC runs out of small spends and needs more the General Core Voting voters can pass
+ * a vote to reset the GSC's small spend counter.
  */
-contract ArcadeTreasury is Authorizable, ReentrancyGuard {
+contract ArcadeTreasury is AccessControl, ReentrancyGuard {
+    /// @notice access control roles
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
+    bytes32 public constant GSC_CORE_VOTING_ROLE = keccak256("GSC_CORE_VOTING");
+    bytes32 public constant CORE_VOTING_ROLE = keccak256("CORE_VOTING");
+
     /// @notice constant which represents ether
     address internal constant ETH_CONSTANT = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
 
@@ -63,11 +74,14 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @notice contract constructor
      *
      * @param _timelock              address of the timelock contract
-     * @param _gscCoreVoting         address of the gsc core voting contract
      */
-    constructor(address _timelock, address _gscCoreVoting) {
-        setOwner(_timelock);
-        _authorize(_gscCoreVoting);
+    constructor(address _timelock) {
+        if (_timelock == address(0)) revert T_ZeroAddress();
+
+        _setupRole(ADMIN_ROLE, _timelock);
+        _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(GSC_CORE_VOTING_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(CORE_VOTING_ROLE, ADMIN_ROLE);
     }
 
     // =========== ONLY AUTHORIZED ===========
@@ -83,7 +97,9 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param destination       address to send the tokens to
      */
     function smallSpend(address token, uint256 amount, address destination) external nonReentrant {
-        if (!isAuthorized(msg.sender) && msg.sender != owner) revert T_Unauthorized(msg.sender);
+        if (!hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
+            revert T_Unauthorized(msg.sender);
+        }
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].small;
@@ -100,7 +116,11 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
-    function mediumSpend(address token, uint256 amount, address destination) external onlyOwner nonReentrant {
+    function mediumSpend(
+        address token,
+        uint256 amount,
+        address destination
+    ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].medium;
@@ -117,7 +137,11 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
-    function largeSpend(address token, uint256 amount, address destination) external onlyOwner nonReentrant {
+    function largeSpend(
+        address token,
+        uint256 amount,
+        address destination
+    ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].large;
@@ -137,7 +161,9 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param amount            amount of tokens to approve
      */
     function approveSmallSpend(address token, address spender, uint256 amount) external nonReentrant {
-        if (!isAuthorized(msg.sender) && msg.sender != owner) revert T_Unauthorized(msg.sender);
+        if (!hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
+            revert T_Unauthorized(msg.sender);
+        }
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].small;
@@ -154,7 +180,11 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
-    function approveMediumSpend(address token, address spender, uint256 amount) external onlyOwner nonReentrant {
+    function approveMediumSpend(
+        address token,
+        address spender,
+        uint256 amount
+    ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].medium;
@@ -171,7 +201,11 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
-    function approveLargeSpend(address token, address spender, uint256 amount) external onlyOwner nonReentrant {
+    function approveLargeSpend(
+        address token,
+        address spender,
+        uint256 amount
+    ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
         uint256 spendLimit = spendThresholds[token].large;
@@ -189,7 +223,7 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param token             address of the token to set the thresholds for
      * @param thresholds        struct containing the thresholds to set
      */
-    function setThreshold(address token, SpendThreshold memory thresholds) external onlyOwner {
+    function setThreshold(address token, SpendThreshold memory thresholds) external onlyRole(ADMIN_ROLE) {
         // verify thresholds are ascending from small to large
         if (thresholds.large < thresholds.medium || thresholds.medium < thresholds.small) {
             revert T_ThresholdsNotAscending();
@@ -213,7 +247,10 @@ contract ArcadeTreasury is Authorizable, ReentrancyGuard {
      * @param targets           array of addresses to call
      * @param calldatas         array of bytes data to use for each call
      */
-    function batchCalls(address[] memory targets, bytes[] calldata calldatas) external onlyOwner nonReentrant {
+    function batchCalls(
+        address[] memory targets,
+        bytes[] calldata calldatas
+    ) external onlyRole(ADMIN_ROLE) nonReentrant {
         if (targets.length != calldatas.length) revert T_ArrayLengthMismatch();
         // execute a package of low level calls
         for (uint256 i = 0; i < targets.length; i++) {
