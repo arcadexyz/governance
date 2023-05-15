@@ -105,10 +105,12 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * @param destination       address to send the tokens to
      */
     function smallSpend(address token, uint256 amount, address destination) external nonReentrant {
-        if (!hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
+        bool isGSC = hasRole(GSC_CORE_VOTING_ROLE, msg.sender);
+
+        if (!isGSC && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
             revert T_Unauthorized(msg.sender);
         }
-        if (hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && gscSpendCounter >= gscSpendLimit) {
+        if (isGSC && gscSpendCounter >= gscSpendLimit) {
             revert T_GSCSpendLimitReached();
         }
         if (destination == address(0)) revert T_ZeroAddress();
@@ -117,7 +119,9 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
         uint256 spendLimit = spendThresholds[token].small;
         if (spendLimit == 0) revert T_ThresholdNotSet();
 
-        gscSpendCounter++;
+        if (isGSC) {
+            gscSpendCounter++;
+        }
 
         _spend(token, amount, destination, spendLimit);
     }
@@ -175,10 +179,12 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * @param amount            amount of tokens to approve
      */
     function approveSmallSpend(address token, address spender, uint256 amount) external nonReentrant {
-        if (!hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
+        bool isGSC = hasRole(GSC_CORE_VOTING_ROLE, msg.sender);
+
+        if (!isGSC && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
             revert T_Unauthorized(msg.sender);
         }
-        if (hasRole(GSC_CORE_VOTING_ROLE, msg.sender) && gscSpendCounter >= gscSpendLimit) {
+        if (isGSC && gscSpendCounter >= gscSpendLimit) {
             revert T_GSCSpendLimitReached();
         }
         if (spender == address(0)) revert T_ZeroAddress();
@@ -187,7 +193,9 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
         uint256 spendLimit = spendThresholds[token].small;
         if (spendLimit == 0) revert T_ThresholdNotSet();
 
-        gscSpendCounter++;
+        if (isGSC) {
+            gscSpendCounter++;
+        }
 
         _approve(token, spender, amount, spendLimit);
     }

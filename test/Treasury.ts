@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
 import { ADMIN_ROLE, CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./utils/constants";
+import { deploy } from "./utils/deploy";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
@@ -33,6 +34,15 @@ describe("Arcade Treasury", async () => {
         expect(await arcdDst.treasurySent()).to.be.true;
 
         expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(treasuryAmount);
+    });
+
+    it("cannot deploy with timelock set to zero address", async () => {
+        const { signers } = ctxGovernance;
+
+        // deploy with timelock set to zero address
+        await expect(deploy("ArcadeTreasury", signers[0], [ethers.constants.AddressZero, 3])).to.be.revertedWith(
+            "T_ZeroAddress()",
+        );
     });
 
     describe("Add token withdrawal thresholds", async () => {
@@ -191,10 +201,42 @@ describe("Arcade Treasury", async () => {
             });
             expect(await provider.getBalance(arcadeTreasury.address)).to.equal(ethers.utils.parseEther("1000"));
 
-            // core voting - spend ARCD
+            // ======= GSC Param Reverts =======
+
+            // send amount as zero
             await expect(
                 arcadeTreasury
-                    .connect(MOCK_CORE_VOTING)
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("0"), signers[4].address),
+            ).to.be.revertedWith("T_ZeroAmount()");
+
+            // recipient as zero address
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
+            ).to.be.revertedWith("T_ZeroAddress()");
+
+            // try to approve zero amount
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("0")),
+            ).to.be.revertedWith("T_ZeroAmount()");
+
+            // try to approve to zero address
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, ethers.constants.AddressZero, ethers.utils.parseEther("100")),
+            ).to.be.revertedWith("T_ZeroAddress()");
+
+            // ======= GSC Spends =======
+
+            // gsc core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
             )
                 .to.emit(arcdToken, `Transfer`)
@@ -204,10 +246,74 @@ describe("Arcade Treasury", async () => {
 
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499900"));
 
-            // gsc core voting - spend ARCD
+            // gsc core voting - approve ARCD
             await expect(
                 arcadeTreasury
                     .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            // gsc core voting - approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
+
+            // try to spend more than limit (3)
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_GSC_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
+            ).to.be.revertedWith("T_GSCSpendLimitReached()");
+
+            // ======= Core Voting Param Reverts =======
+
+            // try to spend more than threshold limit
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("101"), signers[4].address),
+            ).to.be.revertedWith("T_BlockSpendLimit()");
+
+            // send amount as zero
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("0"), signers[4].address),
+            ).to.be.revertedWith("T_ZeroAmount()");
+
+            // recipient as zero address
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
+            ).to.be.revertedWith("T_ZeroAddress()");
+
+            // try to approve zero amount
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("0")),
+            ).to.be.revertedWith("T_ZeroAmount()");
+
+            // try to approve to zero address
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .approveSmallSpend(arcdToken.address, ethers.constants.AddressZero, ethers.utils.parseEther("100")),
+            ).to.be.revertedWith("T_ZeroAddress()");
+
+            // ======= Core Voting Spends =======
+
+            // core voting - spend ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), signers[4].address),
             )
                 .to.emit(arcdToken, `Transfer`)
@@ -237,70 +343,11 @@ describe("Arcade Treasury", async () => {
             // core voting - approve ARCD
             await expect(
                 arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
+                    .connect(MOCK_CORE_VOTING)
                     .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
             )
                 .to.emit(arcdToken, `Approval`)
                 .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
-
-            await expect(await arcdToken.allowance(arcadeTreasury.address, signers[4].address)).to.eq(
-                ethers.utils.parseEther("100"),
-            );
-
-            // gsc core voting - approve ARCD
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("100")),
-            )
-                .to.emit(arcdToken, `Approval`)
-                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
-
-            await expect(await arcdToken.allowance(arcadeTreasury.address, signers[4].address)).to.eq(
-                ethers.utils.parseEther("100"),
-            );
-
-            // try to spend more than threshold limit
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .smallSpend(arcdToken.address, ethers.utils.parseEther("101"), signers[4].address),
-            ).to.be.revertedWith("T_BlockSpendLimit()");
-
-            // send amount as zero
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .smallSpend(arcdToken.address, ethers.utils.parseEther("0"), signers[4].address),
-            ).to.be.revertedWith("T_ZeroAmount()");
-
-            // recipient as zero address
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
-            ).to.be.revertedWith("T_ZeroAddress()");
-
-            // try to approve more than threshold limit
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("101")),
-            ).to.be.revertedWith("T_BlockSpendLimit()");
-
-            // try to approve zero amount
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .approveSmallSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("0")),
-            ).to.be.revertedWith("T_ZeroAmount()");
-
-            // try to approve to zero address
-            await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .approveSmallSpend(arcdToken.address, ethers.constants.AddressZero, ethers.utils.parseEther("100")),
-            ).to.be.revertedWith("T_ZeroAddress()");
         });
 
         it("medium spend", async () => {
@@ -330,6 +377,15 @@ describe("Arcade Treasury", async () => {
 
             await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("500"));
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499500"));
+
+            // core voting - approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .approveMediumSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("500")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("500"));
 
             // core voting - spend ETH
             const balanceBeforeUser = await ethers.provider.getBalance(signers[4].address);
@@ -423,6 +479,15 @@ describe("Arcade Treasury", async () => {
             await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("1000"));
             await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499000"));
 
+            // core voting - approve ARCD
+            await expect(
+                arcadeTreasury
+                    .connect(MOCK_CORE_VOTING)
+                    .approveLargeSpend(arcdToken.address, signers[4].address, ethers.utils.parseEther("1000")),
+            )
+                .to.emit(arcdToken, `Approval`)
+                .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("1000"));
+
             // core voting - spend ETH
             const balanceBeforeUser = await ethers.provider.getBalance(signers[4].address);
             const balanceBeforeTreasury = await ethers.provider.getBalance(arcadeTreasury.address);
@@ -486,9 +551,7 @@ describe("Arcade Treasury", async () => {
                     ),
             ).to.be.revertedWith("T_ZeroAddress()");
         });
-    });
 
-    describe("Spending permissions", async () => {
         it("non authorized account tries to spend/approve tokens", async () => {
             const { arcdToken } = ctxToken;
             const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
