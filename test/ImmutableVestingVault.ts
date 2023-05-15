@@ -10,7 +10,7 @@ const { loadFixture } = waffle;
 /**
  * Test suite for the ImmutableVestingVault contract.
  */
-describe("Vesting voting vault", function () {
+describe("Immutable vesting vault", function () {
     let ctxToken: TestContextToken;
     let ctxGovernance: TestContextGovernance;
     let fixtureToken: () => Promise<TestContextToken>;
