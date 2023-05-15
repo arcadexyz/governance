@@ -24,12 +24,12 @@ contract ImmutableVestingVault is ARCDVestingVault {
      * @param manager_            The address of the manager.
      * @param timelock_           The address of the timelock.
      */
-    constructor(IERC20 _token, uint256 _stale, address manager_, address timelock_) ARCDVestingVault(
-        _token,
-        _stale,
-        manager_,
-        timelock_
-    ) {}
+    constructor(
+        IERC20 _token,
+        uint256 _stale,
+        address manager_,
+        address timelock_
+    ) ARCDVestingVault(_token, _stale, manager_, timelock_) {}
 
     /**
      * @notice All grants are immutable and cannot be revoked.
