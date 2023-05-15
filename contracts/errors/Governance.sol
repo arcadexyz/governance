@@ -151,3 +151,10 @@ error AVV_AlreadyDelegated();
  * @notice Cannot withdraw zero tokens.
  */
 error AVV_InvalidAmount();
+
+// ==================================== IMMUTABLE VESTING VAULT ======================================
+
+/**
+ * @notice Grants cannot be revoked from the immutable vesting vault.
+ */
+error IVV_ImmutableGrants();
