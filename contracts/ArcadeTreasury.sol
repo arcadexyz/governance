@@ -33,12 +33,13 @@ import {
  * only the CORE_VOTING_ROLE role. In the Core Voting contract, a custom quorum for each
  * spend function shall be set to the appropriate threshold.
  *
- * In order to enable the GSC to execute smaller spends from the Treasury, the GSC has an
- * allowance for each token. The GSC can spend up to the allowance amount for each token.
- * The GSC allowance can be updated by the contract's ADMIN role. When updating the GSC's
- * allowance for a specific token, the allowance cannot be higher than the small threshold
- * set for the token. This is to force large spends to be voted on by governance. There is
- * a cooldown period between each GSC allowance update of 7 days.
+ * In order to enable the GSC to execute smaller spends from the Treasury without going
+ * through the entire governance process, the GSC has an allowance for each token. The
+ * GSC can spend up to the allowance amount for each token. The GSC allowance can be updated
+ * by the contract's ADMIN role. When updating the GSC's allowance for a specific token,
+ * the allowance cannot be higher than the small threshold set for the token. This is to
+ * force spends larger than the small threshold to always be voted on by governance.
+ * Additionally, there is a cool down period between each GSC allowance update of 7 days.
  */
 contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     /// @notice access control roles
