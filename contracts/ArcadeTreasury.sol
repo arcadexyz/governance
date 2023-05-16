@@ -16,7 +16,8 @@ import {
     T_BlockSpendLimit,
     T_InvalidTarget,
     T_Unauthorized,
-    T_GSCSpendLimitReached
+    T_InvalidAllowance,
+    T_CoolDownPeriod
 } from "./errors/Treasury.sol";
 
 /**
@@ -26,19 +27,18 @@ import {
  * This contract is used to hold funds for the Arcade treasury. Each token held by this
  * contract has three thresholds associated with it: (1) large amount, (2) medium amount,
  * and (3) small amount. The only way to modify these thresholds is via the governance
- * timelock.
+ * timelock which holds the ADMIN role.
  *
  * For each spend threshold, there is a corresponding spend function which can be called by
- * an authorized address. For small spends either General Core Voting or the GSC Core Voting
- *  contracts can execute transfer or approvals. For medium and larger spends, only General Core
- * Voting is able to make calls to these functions. In both Core Voting contracts, a custom
- * quorum for each spend function shall be set to the appropriate threshold.
+ * only the CORE_VOTING_ROLE role. In the Core Voting contract, a custom quorum for each
+ * spend function shall be set to the appropriate threshold.
  *
- * Since the GSC has the ability to execute small spends without passing a vote through the
- * GSC Core Voting contract, the GSC is limited to 5 small spends. This is to prevent the GSC
- * from executing a large number of small spends which could be done to drain the treasury.
- * If the GSC runs out of small spends and needs more the General Core Voting voters can pass
- * a vote to reset the GSC's small spend counter.
+ * In order to enable the GSC to execute smaller spends from the Treasury, the GSC has an
+ * allowance for each token. The GSC can spend up to the allowance amount for each token.
+ * The GSC allowance can be updated by the contract's ADMIN role. When updating the GSC's
+ * allowance for a specific token, the allowance cannot be higher than the small threshold
+ * set for the token. This is to force large spends to be voted on by governance. There is
+ * a cooldown period between each GSC allowance update of 7 days.
  */
 contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     /// @notice access control roles
@@ -46,13 +46,14 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     bytes32 public constant GSC_CORE_VOTING_ROLE = keccak256("GSC_CORE_VOTING");
     bytes32 public constant CORE_VOTING_ROLE = keccak256("CORE_VOTING");
 
-    /// @notice GSC spend limit
-    uint256 public immutable gscSpendLimit;
-    /// @notice GSC spend counter
-    uint256 public gscSpendCounter;
-
     /// @notice constant which represents ether
     address internal constant ETH_CONSTANT = address(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+
+    /// @notice constant which represents the minimum amount of time between allowance sets
+    uint48 public constant SET_ALLOWANCE_COOL_DOWN = 7 days;
+
+    /// @notice the last timestamp when the allowance was set for a token
+    mapping(address => uint48) public lastAllowanceSet;
 
     /// @notice struct of spend thresholds
     struct SpendThreshold {
@@ -64,6 +65,9 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     /// @notice mapping of token address to spend thresholds
     mapping(address => SpendThreshold) public spendThresholds;
 
+    /// @notice mapping of token address to GSC allowance amount
+    mapping(address => uint256) public gscAllowance;
+
     /// @notice mapping storing how much is spent or approved in each block.
     mapping(uint256 => uint256) public blockExpenditure;
 
@@ -71,30 +75,53 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     event SpendThresholdsUpdated(address indexed token, SpendThreshold thresholds);
 
     /// @notice event emitted when a token is spent
-    event TeasuryTransfer(address indexed token, address indexed destination, uint256 amount);
+    event TreasuryTransfer(address indexed token, address indexed destination, uint256 amount);
 
     /// @notice event emitted when a token is approved
     event TreasuryApproval(address indexed token, address indexed spender, uint256 amount);
+
+    /// @notice event emitted when the GSC allowance is updated for a token
+    event GSCAllowanceUpdated(address indexed token, uint256 amount);
 
     /**
      * @notice contract constructor
      *
      * @param _timelock              address of the timelock contract
      */
-    constructor(address _timelock, uint256 _gscSpendLimit) {
+    constructor(address _timelock) {
         if (_timelock == address(0)) revert T_ZeroAddress();
 
         _setupRole(ADMIN_ROLE, _timelock);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(GSC_CORE_VOTING_ROLE, ADMIN_ROLE);
         _setRoleAdmin(CORE_VOTING_ROLE, ADMIN_ROLE);
-
-        gscSpendLimit = _gscSpendLimit;
     }
 
     // =========== ONLY AUTHORIZED ===========
 
     // ===== TRANSFERS =====
+
+    /**
+     * @notice function for the GSC to spend tokens from the treasury. The amount to be
+     * spent must be less than or equal to the GSC's allowance for that specific token.
+     *
+     * @param token             address of the token to spend
+     * @param amount            amount of tokens to spend
+     * @param destination       address to send the tokens to
+     */
+    function gscSpend(
+        address token,
+        uint256 amount,
+        address destination
+    ) external onlyRole(GSC_CORE_VOTING_ROLE) nonReentrant {
+        if (destination == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
+
+        // Will underflow if amount is greater than remaining allowance
+        gscAllowance[token] -= amount;
+
+        _spend(token, amount, destination, spendThresholds[token].small);
+    }
 
     /**
      * @notice function to spend a small amount of tokens from the treasury. This function
@@ -104,26 +131,15 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * @param amount            amount of tokens to spend
      * @param destination       address to send the tokens to
      */
-    function smallSpend(address token, uint256 amount, address destination) external nonReentrant {
-        bool isGSC = hasRole(GSC_CORE_VOTING_ROLE, msg.sender);
-
-        if (!isGSC && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
-            revert T_Unauthorized(msg.sender);
-        }
-        if (isGSC && gscSpendCounter >= gscSpendLimit) {
-            revert T_GSCSpendLimitReached();
-        }
+    function smallSpend(
+        address token,
+        uint256 amount,
+        address destination
+    ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
 
-        uint256 spendLimit = spendThresholds[token].small;
-        if (spendLimit == 0) revert T_ThresholdNotSet();
-
-        if (isGSC) {
-            gscSpendCounter++;
-        }
-
-        _spend(token, amount, destination, spendLimit);
+        _spend(token, amount, destination, spendThresholds[token].small);
     }
 
     /**
@@ -141,10 +157,8 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
-        uint256 spendLimit = spendThresholds[token].medium;
-        if (spendLimit == 0) revert T_ThresholdNotSet();
 
-        _spend(token, amount, destination, spendLimit);
+        _spend(token, amount, destination, spendThresholds[token].medium);
     }
 
     /**
@@ -162,13 +176,33 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
-        uint256 spendLimit = spendThresholds[token].large;
-        if (spendLimit == 0) revert T_ThresholdNotSet();
 
-        _spend(token, amount, destination, spendLimit);
+        _spend(token, amount, destination, spendThresholds[token].large);
     }
 
     // ===== APPROVALS =====
+
+    /**
+     * @notice function for the GSC to approve tokens to be pulled from the treasury. The
+     * amount to be approved must be less than or equal to the GSC's allowance for that specific token.
+     *
+     * @param token             address of the token to approve
+     * @param spender           address to approve
+     * @param amount            amount of tokens to approve
+     */
+    function gscApprove(
+        address token,
+        address spender,
+        uint256 amount
+    ) external onlyRole(GSC_CORE_VOTING_ROLE) nonReentrant {
+        if (spender == address(0)) revert T_ZeroAddress();
+        if (amount == 0) revert T_ZeroAmount();
+
+        // Will underflow if amount is greater than remaining allowance
+        gscAllowance[token] -= amount;
+
+        _approve(token, spender, amount, spendThresholds[token].small);
+    }
 
     /**
      * @notice function to approve a small amount of tokens from the treasury. This function
@@ -178,26 +212,15 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * @param spender           address to approve
      * @param amount            amount of tokens to approve
      */
-    function approveSmallSpend(address token, address spender, uint256 amount) external nonReentrant {
-        bool isGSC = hasRole(GSC_CORE_VOTING_ROLE, msg.sender);
-
-        if (!isGSC && !hasRole(CORE_VOTING_ROLE, msg.sender)) {
-            revert T_Unauthorized(msg.sender);
-        }
-        if (isGSC && gscSpendCounter >= gscSpendLimit) {
-            revert T_GSCSpendLimitReached();
-        }
+    function approveSmallSpend(
+        address token,
+        address spender,
+        uint256 amount
+    ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
 
-        uint256 spendLimit = spendThresholds[token].small;
-        if (spendLimit == 0) revert T_ThresholdNotSet();
-
-        if (isGSC) {
-            gscSpendCounter++;
-        }
-
-        _approve(token, spender, amount, spendLimit);
+        _approve(token, spender, amount, spendThresholds[token].small);
     }
 
     /**
@@ -215,10 +238,8 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
-        uint256 spendLimit = spendThresholds[token].medium;
-        if (spendLimit == 0) revert T_ThresholdNotSet();
 
-        _approve(token, spender, amount, spendLimit);
+        _approve(token, spender, amount, spendThresholds[token].medium);
     }
 
     /**
@@ -236,17 +257,15 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress();
         if (amount == 0) revert T_ZeroAmount();
-        uint256 spendLimit = spendThresholds[token].large;
-        if (spendLimit == 0) revert T_ThresholdNotSet();
 
-        _approve(token, spender, amount, spendLimit);
+        _approve(token, spender, amount, spendThresholds[token].large);
     }
 
-    // ============== ONLY OWNER ==============
+    // ============== ONLY ADMIN ==============
 
     /**
      * @notice function to set the spend/approve thresholds for a token. This function is only
-     * callable by the timelock.
+     * callable by the contract admin.
      *
      * @param token             address of the token to set the thresholds for
      * @param thresholds        struct containing the thresholds to set
@@ -268,8 +287,41 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     }
 
     /**
+     * @notice function to set the GSC allowance for a token. This function is only callable
+     * by the contract admin. The new allowance must be less than or equal to the small
+     * spend threshold for that specific token. There is a cool down period of 7 days
+     * after this function has been called where it cannot be called again. Once the cooldown
+     * period is over the allowance can be updated by the admin again.
+     *
+     * @param token             address of the token to set the allowance for
+     * @param newAllowance      new allowance to set
+     */
+    function setGSCAllowance(address token, uint256 newAllowance) external onlyRole(ADMIN_ROLE) {
+        if (token == address(0)) revert T_ZeroAddress();
+        if (newAllowance == 0) revert T_ZeroAmount();
+
+        // enfore cool down period
+        if (uint48(block.timestamp) < lastAllowanceSet[token] + SET_ALLOWANCE_COOL_DOWN) {
+            revert T_CoolDownPeriod(block.timestamp, lastAllowanceSet[token] + SET_ALLOWANCE_COOL_DOWN);
+        }
+
+        uint256 spendLimit = spendThresholds[token].small;
+
+        // new limit cannot be more than the small threshold
+        if (newAllowance > spendLimit) {
+            revert T_InvalidAllowance(newAllowance, spendLimit);
+        }
+
+        // update allowance state
+        lastAllowanceSet[token] = uint48(block.timestamp);
+        gscAllowance[token] = newAllowance;
+
+        emit GSCAllowanceUpdated(token, newAllowance);
+    }
+
+    /**
      * @notice function to execute arbitrary calls from the treasury. This function is only
-     * callable by the timelock. All calls are executed in order, and if any of them fail
+     * callable by the contract admin. All calls are executed in order, and if any of them fail
      * the entire transaction is reverted.
      *
      * @param targets           array of addresses to call
@@ -287,10 +339,6 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
             // revert if a single call fails
             if (success == false) revert T_CallFailed();
         }
-    }
-
-    function resetGSCSpendCounter() external onlyRole(ADMIN_ROLE) {
-        gscSpendCounter = 0;
     }
 
     // =============== HELPERS ===============
@@ -317,7 +365,7 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
             IERC20(token).transfer(destination, amount);
         }
 
-        emit TeasuryTransfer(token, destination, amount);
+        emit TreasuryTransfer(token, destination, amount);
     }
 
     /**

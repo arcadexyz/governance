@@ -158,10 +158,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         // ===================================== TREASURY =====================================
 
-        const arcadeTreasury = <ArcadeTreasury>await deploy("ArcadeTreasury", signers[0], [
-            signers[1].address, // mock timelock
-            3, // GSC spend limit
-        ]);
+        const arcadeTreasury = <ArcadeTreasury>await deploy("ArcadeTreasury", signers[0], [signers[1].address]);
 
         // setup access roles
         await arcadeTreasury.connect(signers[1]).grantRole(CORE_VOTING_ROLE, signers[2].address);

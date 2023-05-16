@@ -62,6 +62,11 @@ error T_InvalidTarget(address target);
 error T_Unauthorized(address sender);
 
 /**
- * @notice Transfers and approvals are blocked. The GSC has exceeded its spend limit.
+ * @notice When setting a new allowance for a token it cannot be more than that tokens small spend threshold.
  */
-error T_GSCSpendLimitReached();
+error T_InvalidAllowance(uint256 newAllowance, uint256 currentAllowance);
+
+/**
+ * @notice Must wait 7 days since last allowance was set to set a new one.
+ */
+error T_CoolDownPeriod(uint256 currentTime, uint256 coolDownPeriodEnd);
