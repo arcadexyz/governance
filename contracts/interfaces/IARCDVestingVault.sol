@@ -16,14 +16,6 @@ interface IARCDVestingVault {
 
     function delegate(address _to) external;
 
-    function queryVotePower(address user, uint256 blockNumber, bytes calldata extraData) external returns (uint256);
-
-    function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256);
-
-    function timelock() external pure returns (address);
-
-    function manager() external pure returns (address);
-
     /**
      * @notice Only Manager functions
      */
@@ -42,11 +34,4 @@ interface IARCDVestingVault {
     function deposit(uint256 _amount) external;
 
     function withdraw(uint256 _amount, address _recipient) external;
-
-    /**
-     * @notice Only Timelock functions
-     */
-    function setTimelock(address timelock_) external;
-
-    function setManager(address manager_) external;
 }

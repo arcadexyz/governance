@@ -10,6 +10,8 @@ import "./external/council/interfaces/IVotingVault.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
 
+import { BVV_NotManager, BVV_NotTimelock } from "./errors/Governance.sol";
+
 /**
  *
  * @title BaseVotingVault
@@ -56,12 +58,12 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     // ========================================== MODIFIER ==============================================
 
     modifier onlyTimelock() {
-        require(msg.sender == _timelock().data, "!timelock");
+        if (msg.sender != _timelock().data) revert BVV_NotTimelock();
         _;
     }
 
     modifier onlyManager() {
-        require(msg.sender == _manager().data, "!manager");
+        if (msg.sender != _manager().data) revert BVV_NotManager();
         _;
     }
 

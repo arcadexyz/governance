@@ -9,10 +9,9 @@ import "./external/council/libraries/Storage.sol";
 import "./libraries/ARCDVestingVaultStorage.sol";
 import "./libraries/HashedStorageReentrancyBlock.sol";
 import "./interfaces/IARCDVestingVault.sol";
+import "./BaseVotingVault.sol";
 
 import {
-    AVV_NotManager,
-    AVV_NotTimelock,
     AVV_InvalidSchedule,
     AVV_InvalidCliffAmount,
     AVV_InsufficientBalance,
@@ -43,19 +42,12 @@ import {
  *      by this version of the VestingVault. When grants are added the contracts will not transfer
  *      in tokens on each add but rather check for solvency via state variables.
  */
-contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
+contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, BaseVotingVault {
     // Bring our libraries into scope
     using History for History.HistoricalBalances;
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
     using Storage for Storage.Uint256;
-
-    // The ERC20 token to use for grants
-    IERC20 public immutable token;
-    // How far back stale blocks are
-    uint256 public immutable staleBlockLag;
-
-    event VoteChange(address indexed to, address indexed from, int256 amount);
 
     /**
      * @notice Constructs the contract.
@@ -65,31 +57,10 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      * @param manager_            The address of the manager.
      * @param timelock_           The address of the timelock.
      */
-    constructor(IERC20 _token, uint256 _stale, address manager_, address timelock_) {
-        token = _token;
-        staleBlockLag = _stale;
-
+    constructor(IERC20 _token, uint256 _stale, address manager_, address timelock_) BaseVotingVault(_token, _stale) {
         Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
         Storage.set(Storage.uint256Ptr("entered"), 1);
-    }
-
-    /**
-     * @notice Modifier to check that the caller is the manager.
-     */
-    modifier onlyManager() {
-        if (msg.sender != _manager().data) revert AVV_NotManager();
-
-        _;
-    }
-
-    /**
-     * @notice Modifier to check that the caller is the manager.
-     */
-    modifier onlyTimelock() {
-        if (msg.sender != _timelock().data) revert AVV_NotTimelock();
-
-        _;
     }
 
     // ============ Manager Functions ============
@@ -308,28 +279,6 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
         emit VoteChange(to, msg.sender, int256(newVotingPower));
     }
 
-    // ============ Timelock Functions ============
-
-    /**
-     * @notice Function where the timelock can update itself. Can be used in case of
-     *         a governance migration.
-     *
-     * @param timelock_            The new timelock address.
-     */
-    function setTimelock(address timelock_) public onlyTimelock {
-        Storage.set(Storage.addressPtr("timelock"), timelock_);
-    }
-
-    /**
-     * @notice Function where the timelock can update the manager. Can be used in case the
-     *         manager's wallet is compromised.
-     *
-     * @param manager_            The new manager address.
-     */
-    function setManager(address manager_) public onlyTimelock {
-        Storage.set(Storage.addressPtr("manager"), manager_);
-    }
-
     // ============ Helper Functions ============
 
     /**
@@ -357,16 +306,6 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
 
             return unlocked - grant.withdrawn;
         }
-    }
-
-    /**
-     * @notice Returns the historical voting power tracker. This is a struct which
-     *         functions can push to and find items in block indexed storage.
-     */
-    function _votingPower() internal pure returns (History.HistoricalBalances memory) {
-        // This call returns a storage mapping with a unique non overwrite-able storage location
-        // which can be persisted through upgrades, even if they change storage layout.
-        return (History.load("votingPower"));
     }
 
     /**
@@ -405,42 +344,6 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
     }
 
     /**
-     * @notice Loads and returns the voting power of a user. Extra calldata is unused
-     *         in this contract.
-     *
-     * @param user                  The address we want to query.
-     * @param blockNumber           The block number to query user's voting power at.
-     * @param extraData             Unused.
-     *
-     * @return The voting power of the user at the given block number.
-     */
-    function queryVotePower(
-        address user,
-        uint256 blockNumber,
-        bytes calldata extraData
-    ) external override returns (uint256) {
-        // Get our reference to historical data
-        History.HistoricalBalances memory votingPower = _votingPower();
-        // Find the historical data and clear everything more than 'staleBlockLag' into the past
-        return votingPower.findAndClear(user, blockNumber, block.number - staleBlockLag);
-    }
-
-    /**
-     * @notice Loads and returns the voting power of a user without changing state.
-     *
-     * @param user                  The address we want to query.
-     * @param blockNumber           The block number to query user's voting power at.
-     *
-     * @return The voting power of the user at the given block number.
-     */
-    function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256) {
-        // Get our reference to historical data
-        History.HistoricalBalances memory votingPower = _votingPower();
-        // Find the historical data
-        return votingPower.find(user, blockNumber);
-    }
-
-    /**
      * @notice Getter function for the grants mapping.
      *
      * @param who            The owner of the grant to query
@@ -471,37 +374,5 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
      */
     function _unassigned() internal pure returns (Storage.Uint256 storage) {
         return Storage.uint256Ptr("unassigned");
-    }
-
-    /**
-     * @notice A function to access the storage of the manager address.
-     *
-     * @return Pointer to the manager address.
-     */
-    function _manager() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("manager");
-    }
-
-    /**
-     * @notice A function to access the storage of the timelock address.
-     *
-     * @return Pointer to the timelock address.
-     */
-    function _timelock() internal pure returns (Storage.Address memory) {
-        return Storage.addressPtr("timelock");
-    }
-
-    /**
-     * @notice Function that returns the current timelock address.
-     */
-    function timelock() public pure returns (address) {
-        return _timelock().data;
-    }
-
-    /**
-     * @notice Function that returns the current manager address.
-     */
-    function manager() public pure returns (address) {
-        return _manager().data;
     }
 }

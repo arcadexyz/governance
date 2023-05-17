@@ -1254,7 +1254,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // other account tries to unlock ERC20 withdrawals
             const tx = nftBoostVault.connect(signers[1]).unlock();
-            await expect(tx).to.be.revertedWith("!timelock");
+            await expect(tx).to.be.revertedWith("BVV_NotTimelock()");
         });
     });
 
@@ -1312,7 +1312,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = nftBoostVault
                 .connect(signers[2])
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
-            await expect(tx).to.be.revertedWith("!manager");
+            await expect(tx).to.be.revertedWith("BVV_NotManager()");
         });
 
         it("Only timelock can set a new manager", async () => {
@@ -1523,7 +1523,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // other account tries to set a new timelock address
             const tx = nftBoostVault.connect(signers[4]).setTimelock(signers[5].address);
-            await expect(tx).to.be.revertedWith("!timelock");
+            await expect(tx).to.be.revertedWith("BVV_NotTimelock()");
         });
 
         it("successfully sets the address of the timelock with setTimelock()", async () => {
@@ -1542,7 +1542,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // other account tries to set a new manager
             const tx = nftBoostVault.connect(signers[4]).setManager(signers[5].address);
-            await expect(tx).to.be.revertedWith("!timelock");
+            await expect(tx).to.be.revertedWith("BVV_NotTimelock()");
         });
 
         it("successfully sets a new manager with setManager()", async () => {

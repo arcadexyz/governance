@@ -37,7 +37,7 @@ describe("Vesting voting vault", function () {
             const MANAGER = signers[1];
 
             await expect(vestingVotingVault.connect(MANAGER).setManager(OTHER_ADDRESS)).to.be.revertedWith(
-                "AVV_NotTimelock()",
+                "BVV_NotTimelock()",
             );
         });
 
@@ -47,7 +47,7 @@ describe("Vesting voting vault", function () {
             const MANAGER = signers[1];
 
             await expect(vestingVotingVault.connect(MANAGER).setTimelock(OTHER_ADDRESS)).to.be.revertedWith(
-                "AVV_NotTimelock()",
+                "BVV_NotTimelock()",
             );
         });
 
@@ -78,7 +78,7 @@ describe("Vesting voting vault", function () {
             // non-manager (other) account tries to deposit
             await arcdToken.connect(OTHER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
             await expect(vestingVotingVault.connect(OTHER).deposit(ethers.utils.parseEther("100"))).to.be.revertedWith(
-                "AVV_NotManager()",
+                "BVV_NotManager()",
             );
 
             // real manager deposits tokens into vesting vault
@@ -89,7 +89,7 @@ describe("Vesting voting vault", function () {
             // non-manager (other) account tries to withdraw
             await expect(
                 vestingVotingVault.connect(OTHER).withdraw(ethers.utils.parseEther("100"), OTHER_ADDRESS),
-            ).to.be.revertedWith("AVV_NotManager()");
+            ).to.be.revertedWith("BVV_NotManager()");
 
             // real manager withdraws tokens from vesting vault
             const managerBalanceBefore = await arcdToken.balanceOf(MANAGER_ADDRESS);
@@ -177,7 +177,7 @@ describe("Vesting voting vault", function () {
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
             );
-            await expect(tx).to.be.revertedWith("AVV_NotManager()");
+            await expect(tx).to.be.revertedWith("BVV_NotManager()");
         });
 
         it("manager tries to add grant with out locking funds", async () => {
@@ -567,7 +567,7 @@ describe("Vesting voting vault", function () {
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
             );
-            await expect(tx).to.be.revertedWith("AVV_NotManager()");
+            await expect(tx).to.be.revertedWith("BVV_NotManager()");
         });
 
         it("non-manager tries to revoke grant", async () => {
@@ -603,7 +603,7 @@ describe("Vesting voting vault", function () {
 
             // other account tries to revoke grant
             const tx = vestingVotingVault.connect(OTHER).revokeGrant(OTHER_ADDRESS);
-            await expect(tx).to.be.revertedWith("AVV_NotManager()");
+            await expect(tx).to.be.revertedWith("BVV_NotManager()");
         });
 
         it("manager tries to revoke grant that does not exist", async () => {
