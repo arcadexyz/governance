@@ -113,3 +113,36 @@ A contract which can receive tokens from the distributor, and transfer or
 approve them based on invocations from governance. The GSC may be authorized
 to spend smaller amounts from their own voting contract: all other amounts
 must be authorized by full community votes.
+
+# Privileged Roles & Access
+
+* Vaults derived from the `BaseVotingVault` have two roles:
+    * A `manager` role can access operational functions,
+        such as calling `setMultiplier` in the `NFTBoostVault`,
+        and calling `addGrantAndDelegate` and `revokeGrant`
+        in the `ARCDVestingVault`.
+    * A `timelock` role can change the `manager`, as well as changing
+        its own role to a new timelock. For the `NFTBoostVault`, the
+        timelock can eventually choose to allow token withdrawals.
+* Core voting contracts have an `owner`, which in a governance
+    system should be a timelock that is owned by `CoreVoting` itself:
+    such that all updates to `CoreVoting` require passing votes. This
+    `owner` is able to change parameters around voting, such as the
+    minimum voting power needed to submit a proposal. The same suggested
+    ownership architecture applies to `ArcadeGSCCoreVoting`: it should
+    have ownership power over a separate timelock, which itself owns
+    the voting contract.
+* The `ArcadeToken` contract sets a `minter` role, which can mint new tokens
+    under certain constraints (see `ArcadeToken` above). The `minter`
+    can also transfer the role to another address.
+* The `ArcadeAirdrop` contract as an `owner` that can update the merkle root,
+    as well as reclaim tokens after airdrop expiry. This should be operationally
+    managed by a voting contract.
+* The `ArcadeTokenDistributor` contract is owned by an address which can administer
+    the distribution. This owner may decide which address receives their reserved
+    amount of tokens.
+* The `Treasury` contract grants permissions to addresses who are allowed
+    to spend tokens. There are separate roles for full spends, which should be granted
+    to a community voting contract, and GSC spends, which may be granted to a community
+    voting contract. Ownership may also be granted to timelocks owned by the respective
+    voting contracts.
