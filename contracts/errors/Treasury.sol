@@ -22,11 +22,6 @@ error T_ZeroAddress();
 error T_ZeroAmount();
 
 /**
- * @notice Provided token must have a threshold previously set by the owner.
- */
-error T_ThresholdNotSet();
-
-/**
  * @notice Thresholds must be in ascending order.
  */
 error T_ThresholdsNotAscending();
@@ -55,18 +50,18 @@ error T_BlockSpendLimit();
 error T_InvalidTarget(address target);
 
 /**
- * @notice Caller is either not an authorized address or the owner of the contract.
+ * @notice When setting a new GSC allowance for a token it cannot be more than
+ * that tokens small spend threshold.
  *
- * @param sender               Function caller.
+ * @param newAllowance             New allowance to set.
+ * @param smallSpendThreshold      Maximum amount that can be approved for the GSC.
  */
-error T_Unauthorized(address sender);
-
-/**
- * @notice When setting a new allowance for a token it cannot be more than that tokens small spend threshold.
- */
-error T_InvalidAllowance(uint256 newAllowance, uint256 currentAllowance);
+error T_InvalidAllowance(uint256 newAllowance, uint256 smallSpendThreshold);
 
 /**
  * @notice Must wait 7 days since last allowance was set to set a new one.
+ *
+ * @param currentTime             Current block timestamp.
+ * @param coolDownPeriodEnd       Time when an allowance can be set.
  */
 error T_CoolDownPeriod(uint256 currentTime, uint256 coolDownPeriodEnd);

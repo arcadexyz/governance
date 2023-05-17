@@ -6,16 +6,16 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import "./interfaces/IArcadeTreasury.sol";
+
 import {
     T_ZeroAddress,
     T_ZeroAmount,
-    T_ThresholdNotSet,
     T_ThresholdsNotAscending,
     T_ArrayLengthMismatch,
     T_CallFailed,
     T_BlockSpendLimit,
     T_InvalidTarget,
-    T_Unauthorized,
     T_InvalidAllowance,
     T_CoolDownPeriod
 } from "./errors/Treasury.sol";
@@ -30,7 +30,7 @@ import {
  * timelock which holds the ADMIN role.
  *
  * For each spend threshold, there is a corresponding spend function which can be called by
- * only the CORE_VOTING_ROLE role. In the Core Voting contract, a custom quorum for each
+ * only the CORE_VOTING_ROLE. In the Core Voting contract, a custom quorum for each
  * spend function shall be set to the appropriate threshold.
  *
  * In order to enable the GSC to execute smaller spends from the Treasury without going
@@ -41,7 +41,7 @@ import {
  * force spends larger than the small threshold to always be voted on by governance.
  * Additionally, there is a cool down period between each GSC allowance update of 7 days.
  */
-contract ArcadeTreasury is AccessControl, ReentrancyGuard {
+contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     /// @notice access control roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant GSC_CORE_VOTING_ROLE = keccak256("GSC_CORE_VOTING");
@@ -55,13 +55,6 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
 
     /// @notice the last timestamp when the allowance was set for a token
     mapping(address => uint48) public lastAllowanceSet;
-
-    /// @notice struct of spend thresholds
-    struct SpendThreshold {
-        uint256 small;
-        uint256 medium;
-        uint256 large;
-    }
 
     /// @notice mapping of token address to spend thresholds
     mapping(address => SpendThreshold) public spendThresholds;
@@ -78,7 +71,7 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
     /// @notice event emitted when a token is spent
     event TreasuryTransfer(address indexed token, address indexed destination, uint256 amount);
 
-    /// @notice event emitted when a token is approved
+    /// @notice event emitted when a token amount is approved for spending
     event TreasuryApproval(address indexed token, address indexed spender, uint256 amount);
 
     /// @notice event emitted when the GSC allowance is updated for a token
@@ -188,7 +181,7 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * amount to be approved must be less than or equal to the GSC's allowance for that specific token.
      *
      * @param token             address of the token to approve
-     * @param spender           address to approve
+     * @param spender           address which can take the tokens
      * @param amount            amount of tokens to approve
      */
     function gscApprove(
@@ -210,7 +203,7 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * should have the lowest quorum of the three approve functions.
      *
      * @param token             address of the token to approve
-     * @param spender           address to approve
+     * @param spender           address which can take the tokens
      * @param amount            amount of tokens to approve
      */
     function approveSmallSpend(
@@ -229,7 +222,7 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * should have the middle quorum of the three approve functions.
      *
      * @param token             address of the token to approve
-     * @param spender           address to approve
+     * @param spender           address which can take the tokens
      * @param amount            amount of tokens to approve
      */
     function approveMediumSpend(
@@ -248,7 +241,7 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * should have the highest quorum of the three approve functions.
      *
      * @param token             address of the token to approve
-     * @param spender           address to approve
+     * @param spender           address which can take the tokens
      * @param amount            amount of tokens to approve
      */
     function approveLargeSpend(
@@ -295,13 +288,13 @@ contract ArcadeTreasury is AccessControl, ReentrancyGuard {
      * period is over the allowance can be updated by the admin again.
      *
      * @param token             address of the token to set the allowance for
-     * @param newAllowance      new allowance to set
+     * @param newAllowance      new allowance amount to set
      */
     function setGSCAllowance(address token, uint256 newAllowance) external onlyRole(ADMIN_ROLE) {
         if (token == address(0)) revert T_ZeroAddress();
         if (newAllowance == 0) revert T_ZeroAmount();
 
-        // enfore cool down period
+        // enforce cool down period
         if (uint48(block.timestamp) < lastAllowanceSet[token] + SET_ALLOWANCE_COOL_DOWN) {
             revert T_CoolDownPeriod(block.timestamp, lastAllowanceSet[token] + SET_ALLOWANCE_COOL_DOWN);
         }
