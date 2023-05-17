@@ -14,21 +14,21 @@ interface IArcadeTreasury {
 
     // ====== Treasury Operations ======
 
-    function gscSpend(address token, uint256 amount,address destination) external;
+    function gscSpend(address token, uint256 amount, address destination) external;
 
-     function smallSpend(address token, uint256 amount,address destination) external;
+    function smallSpend(address token, uint256 amount, address destination) external;
 
-    function mediumSpend(address token, uint256 amount,address destination) external;
+    function mediumSpend(address token, uint256 amount, address destination) external;
 
-    function largeSpend(address token, uint256 amount,address destination) external;
+    function largeSpend(address token, uint256 amount, address destination) external;
 
-    function gscApprove(address token, address spender,uint256 amount) external;
+    function gscApprove(address token, address spender, uint256 amount) external;
 
-    function approveSmallSpend(address token, address spender,uint256 amount) external;
+    function approveSmallSpend(address token, address spender, uint256 amount) external;
 
-    function approveMediumSpend(address token, address spender,uint256 amount) external;
+    function approveMediumSpend(address token, address spender, uint256 amount) external;
 
-    function approveLargeSpend(address token, address spender,uint256 amount) external;
+    function approveLargeSpend(address token, address spender, uint256 amount) external;
 
     function setThreshold(address token, SpendThreshold memory thresholds) external;
 
