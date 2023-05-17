@@ -8,11 +8,6 @@
 - 💬 [Discord](https://discord.gg/arcadexyz) - Join the Arcade.xyz community! Great for further technical discussion and real-time support.
 - 🔔 [Twitter](https://twitter.com/arcade_xyz) - Follow us on Twitter for alerts, announcements, and alpha.
 
-# Governance Features
-
-- Talk about frozen airdrop vault
-- Talk about NFT multipliers
-
 # Overview of Contracts
 
 ### ___See natspec for technical detail.___
