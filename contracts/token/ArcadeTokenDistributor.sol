@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -56,10 +56,12 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice A flag to indicate if the Arcade team has already been transferred to
     bool public vestingPartnerSent;
 
+    // ============================================ EVENTS ==============================================
+
     /// @notice Emitted when Arcade Tokens are distributed to any recipient address
     event Distribute(address token, address recipient, uint256 amount);
 
-    // ============================================= OWNER OPS =============================================
+    // ======================================== DISTRIBUTION OPS ========================================
 
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to the treasury.
@@ -158,6 +160,8 @@ contract ArcadeTokenDistributor is Ownable {
 
         emit Distribute(address(arcadeToken), _vestingPartner, vestingPartnerAmount);
     }
+
+    // ============================================ ADMIN OPS ===========================================
 
     /**
      * @notice Sets the Arcade Token contract address, to be used in token distribution.

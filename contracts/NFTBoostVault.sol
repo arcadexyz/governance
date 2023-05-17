@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.18;
+pragma solidity 0.8.18;
 
-/* solhint-disable no-global-import */
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 import "./external/council/libraries/History.sol";
@@ -56,16 +55,20 @@ contract NFTBoostVault is BaseVotingVault {
     // Bring History library into scope
     using History for History.HistoricalBalances;
 
-    // A constant which determines the maximum multiplier
-    /* solhint-disable var-name-mixedcase */
-    uint128 public immutable MAX_MULTIPLIER = 1.5e18;
+    // ======================================== STATE ==================================================
 
-    uint128 public immutable MULTIPLIER_DENOMINATOR = 1e18;
+    /// @dev Determines the maximum multiplier for any given NFT.
+    /* solhint-disable var-name-mixedcase */
+    uint128 public constant MAX_MULTIPLIER = 1.5e18;
+
+    /// @dev Precision of the multiplier.
+    uint128 public constant MULTIPLIER_DENOMINATOR = 1e18;
 
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
-     * @notice Constructs the contract by setting immutables.
+     * @notice Deploys a voting vault, setting immutable values for the token
+     *         and staleBlockLag.
      *
      * @param token                     The external erc20 token contract.
      * @param staleBlockLag             The number of blocks before which the delegation history is forgotten.
@@ -93,7 +96,7 @@ contract NFTBoostVault is BaseVotingVault {
     // Event for withdrawal unlock
     event WithdrawalsUnlocked();
 
-    // =================================== NFT BOOST VAULT FUNCTIONALITY =====================================
+    // ===================================== USER FUNCTIONALITY =========================================
 
     /**
      * @notice Performs ERC1155 registration and delegation for a caller.
@@ -160,17 +163,6 @@ contract NFTBoostVault is BaseVotingVault {
         _lockTokens(msg.sender, amount, tokenAddress, tokenId, 1);
 
         emit VoteChange(msg.sender, registration.delegatee, int256(uint256(newVotingPower)));
-    }
-
-    /**
-     * @notice Getter for the registrations mapping.
-     *
-     * @param who                       The owner of the registration to query.
-     *
-     * @return Registration             Registration of the provided address.
-     */
-    function getRegistration(address who) external view returns (VotingVaultStorage.Registration memory) {
-        return _getRegistrations()[who];
     }
 
     /**
@@ -259,7 +251,7 @@ contract NFTBoostVault is BaseVotingVault {
      *         Consequently, the user's delegatee gains voting power associated
      *         with the newly added tokens.
      *
-     * @param amount                      The amount of token to add.
+     * @param amount                      The amount of tokens to add.
      */
     function addTokens(uint128 amount) external virtual nonReentrant {
         if (amount == 0) revert NBV_ZeroAmount();
@@ -281,9 +273,8 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice A function that allows a user's to withdraw the ERC1155 nft they are using for
+     * @notice Allows a users to withdraw the ERC1155 NFT they are using for
      *         accessing a voting power multiplier.
-     *
      */
     function withdrawNft() public nonReentrant {
         // load the registration
@@ -337,6 +328,27 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
+     * @notice Update users' registration voting power.
+     *
+     * @dev Voting power is only updated for this block onward. See Council contract History.sol
+     *      for more on how voting power is tracked and queried.
+     *      Anybody can update up to 50 users' registration voting power.
+     *
+     * @param userAddresses             Array of addresses whose registration voting power this
+     *                                  function updates.
+     */
+    function updateVotingPower(address[] memory userAddresses) public {
+        if (userAddresses.length > 50) revert UMVV_ArrayTooManyElements();
+
+        for (uint256 i = 0; i < userAddresses.length; ++i) {
+            VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
+            _syncVotingPower(userAddresses[i], registration);
+        }
+    }
+
+    // ===================================== ADMIN FUNCTIONALITY ========================================
+
+    /**
      * @notice An onlyManager function for setting the multiplier value associated with an ERC1155
      *         contract address.
      *
@@ -354,6 +366,29 @@ contract NFTBoostVault is BaseVotingVault {
         multiplierData.multiplier = multiplierValue;
 
         emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
+    }
+
+    /**
+     * @notice An Timelock only function for ERC20 allowing withdrawals.
+     *
+     * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
+     */
+    function unlock() external onlyTimelock {
+        if (getIsLocked() != 1) revert UMVV_AlreadyUnlocked();
+        Storage.set(Storage.uint256Ptr("locked"), 2);
+
+        emit WithdrawalsUnlocked();
+    }
+
+    // ======================================= VIEW FUNCTIONS ===========================================
+
+    /**
+     * @notice Returns whether tokens can be withdrawn from the vault.
+     *
+     * @return locked                           Whether withdrawals are locked.
+     */
+    function getIsLocked() public view returns (uint256) {
+        return Storage.uint256Ptr("locked").data;
     }
 
     /**
@@ -377,53 +412,25 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice Update users' registration voting power.
+     * @notice Getter for the registrations mapping.
      *
-     * @dev Voting power is only updated for this block onward. See Council contract History.sol
-     *      for more on how voting power is tracked and queried.
-     *      Anybody can update up to 50 users' registration voting power.
+     * @param who                               The owner of the registration to query.
      *
-     * @param userAddresses             Array of addresses whose registration voting power this
-     *                                  function updates.
+     * @return registration                     Registration of the provided address.
      */
-    function updateVotingPower(address[] memory userAddresses) public {
-        if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
-
-        for (uint256 i = 0; i < userAddresses.length; ++i) {
-            VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
-            _syncVotingPower(userAddresses[i], registration);
-        }
+    function getRegistration(address who) external view returns (VotingVaultStorage.Registration memory) {
+        return _getRegistrations()[who];
     }
 
-    /** @notice A function to access the value of "locked".
-     *
-     * @return                          The value of "locked".
-     */
-    function getIsLocked() public view returns (uint256) {
-        return Storage.uint256Ptr("locked").data;
-    }
+    // =========================================== HELPERS ==============================================
 
     /**
-     * @notice An Timelock only function for ERC20 allowing withdrawals.
+     * @dev Grants the chosen delegate address voting power when a new user registers.
      *
-     * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
-     */
-    function unlock() external onlyTimelock {
-        if (getIsLocked() != 1) revert NBV_AlreadyUnlocked();
-        Storage.set(Storage.uint256Ptr("locked"), 2);
-
-        emit WithdrawalsUnlocked();
-    }
-
-    // ================================ HELPER FUNCTIONS ===================================
-
-    /**
-     * @notice Grants the chosen delegate address voting power when a new user registers.
-     *
-     * @param delegatee                    The address to delegate the voting power associated
-     *                                     with the Registration to.
-     * @param newVotingPower               Amount of votingPower associated with this Registration to
-     *                                     be added to delegates existing votingPower.
+     * @param delegatee                         The address to delegate the voting power associated
+     *                                          with the Registration to.
+     * @param newVotingPower                    Amount of votingPower associated with this Registration to
+     *                                          be added to delegates existing votingPower.
      *
      */
     function _grantVotingPower(address delegatee, uint128 newVotingPower) internal {
@@ -438,7 +445,7 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice A single function endpoint for loading Registration storage
+     * @dev A single function endpoint for loading Registration storage
      *
      * @dev Only one Registration is allowed per user.
      *
@@ -450,7 +457,7 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice Helper to update a delegatee's voting power.
+     * @dev Helper to update a delegatee's voting power.
      *
      * @param who                        The address who's voting power we need to sync.
      *
@@ -479,7 +486,7 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice Calculates how much a user can withdraw.
+     * @dev Calculates how much a user can withdraw.
      *
      * @param registration                The the memory location of the loaded registration.
      *
@@ -498,7 +505,7 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice Helper that returns the current voting power of a registration.
+     * @dev Helper that returns the current voting power of a registration.
      *
      * @dev This is not always the recorded voting power since it uses the latest multiplier.
      *
@@ -519,7 +526,7 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice A internal function for locking a user's ERC20 tokens in this contract
+     * @dev A internal function for locking a user's ERC20 tokens in this contract
      *         for participation in governance. Calls the _lockNft function if a user
      *         has entered an ERC1155 token address and token id.
      *
@@ -544,7 +551,7 @@ contract NFTBoostVault is BaseVotingVault {
     }
 
     /**
-     * @notice A internal function for locking a user's ERC1155 token in this contract
+     * @dev A internal function for locking a user's ERC1155 token in this contract
      *         for participation in governance.
      *
      * @param from                      Address of owner token is transferred from.
@@ -556,7 +563,7 @@ contract NFTBoostVault is BaseVotingVault {
         IERC1155(tokenAddress).safeTransferFrom(from, address(this), tokenId, nftAmount, bytes(""));
     }
 
-    /** @notice A single function endpoint for loading storage for multipliers.
+    /** @dev A single function endpoint for loading storage for multipliers.
      *
      * @return                          A storage mapping which can be used to lookup a
      *                                  token's multiplier data and token id data.
@@ -570,9 +577,9 @@ contract NFTBoostVault is BaseVotingVault {
         return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
     }
 
-    /** @notice A function to handles the receipt of a single ERC1155 token. This function is called
-     * at the end of a safeTransferFrom after the balance has been updated. To accept the transfer,
-     * this must return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
+    /** @dev A function to handles the receipt of a single ERC1155 token. This function is called
+     *       at the end of a safeTransferFrom after the balance has been updated. To accept the transfer,
+     *       this must return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
      *
      * @param operator                  The address which initiated the transfer.
      * @param from                      The address which previously owned the token.

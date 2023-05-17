@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "./external/council/interfaces/IERC20.sol";
 import "./external/council/libraries/History.sol";
@@ -42,15 +42,31 @@ import {
  *      by this version of the VestingVault. When grants are added the contracts will not transfer
  *      in tokens on each add but rather check for solvency via state variables.
  */
-contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, BaseVotingVault {
-    // Bring our libraries into scope
+contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
     using History for History.HistoricalBalances;
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
     using Storage for Storage.Uint256;
 
+    // ============================================ STATE ==============================================
+
+    // =================== Immutable references =====================
+
+    /// @notice The token used for voting in this vault.
+    IERC20 public immutable token;
+
+    /// @notice Number of blocks after which history can be pruned.
+    uint256 public immutable staleBlockLag;
+
+    // ============================================ EVENTS ==============================================
+
+    event VoteChange(address indexed to, address indexed from, int256 amount);
+
+    // ========================================= CONSTRUCTOR ============================================
+
     /**
-     * @notice Constructs the contract.
+     * @notice Deploys a new vesting vault, setting relevant immutable variables
+     *         and granting management power to a defined address.
      *
      * @param _token              The ERC20 token to grant.
      * @param _stale              Stale block used for voting power calculations
@@ -63,7 +79,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
         Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 
-    // ============ Manager Functions ============
+    // ==================================== MANAGER FUNCTIONALITY =======================================
 
     /**
      * @notice Adds a new grant. The manager sets who the voting power will be delegated to initially.
@@ -202,18 +218,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
         token.transfer(recipient, amount);
     }
 
-    // ============ Public Functions ============
-
-    /**
-     * @notice Returns the claimable amount for a given grant.
-     *
-     * @param who                    Address to query.
-     *
-     * @return Token amount that can be claimed.
-     */
-    function claimable(address who) public view returns (uint256) {
-        return _getWithdrawableAmount(_grants()[who]);
-    }
+    // ========================================= USER OPERATIONS ========================================
 
     /**
      * @notice Grant owners use to claim all withdrawable value from a grant. Voting power
@@ -279,14 +284,38 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
         emit VoteChange(to, msg.sender, int256(newVotingPower));
     }
 
-    // ============ Helper Functions ============
+    // ========================================= VIEW FUNCTIONS =========================================
+
+    /**
+     * @notice Returns the claimable amount for a given grant.
+     *
+     * @param who                    Address to query.
+     *
+     * @return Token amount that can be claimed.
+     */
+    function claimable(address who) public view returns (uint256) {
+        return _getWithdrawableAmount(_grants()[who]);
+    }
+
+    /**
+     * @notice Getter function for the grants mapping.
+     *
+     * @param who            The owner of the grant to query
+     *
+     * @return               The user's grant object.
+     */
+    function getGrant(address who) external view returns (ARCDVestingVaultStorage.Grant memory) {
+        return _grants()[who];
+    }
+
+    // =========================================== HELPERS ==============================================
 
     /**
      * @notice Calculates and returns how many tokens a grant owner can withdraw.
      *
      * @param grant                    The memory location of the loaded grant.
      *
-     * @return Amount of tokens the grant owner can withdraw.
+     * @return amount                  Number of tokens the grant owner can withdraw.
      */
     function _getWithdrawableAmount(ARCDVestingVaultStorage.Grant memory grant) internal view returns (uint256) {
         // if before cliff or created date, no tokens have unlocked
@@ -311,9 +340,9 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
     /**
      * @notice Helper that returns the current voting power of a grant.
      *
-     * @param grant                The grant to check for voting power.
+     * @param grant                     The grant to check for voting power.
      *
-     * @return                     The current voting power of the grant.
+     * @return votingPower              The current voting power of the grant.
      */
     function _currentVotingPower(ARCDVestingVaultStorage.Grant memory grant) internal pure returns (uint256) {
         return (grant.allocation - grant.withdrawn);
@@ -322,8 +351,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
     /**
      * @notice Helper to update a delegatee's voting power.
      *
-     * @param who             The address who's voting power we need to sync.
-     * @param grant           The storage pointer to the grant of that user.
+     * @param who                       The address who's voting power we need to sync.
+     * @param grant                     The storage pointer to the grant of that user.
      */
     function _syncVotingPower(address who, ARCDVestingVaultStorage.Grant storage grant) internal {
         History.HistoricalBalances memory votingPower = _votingPower();
@@ -344,22 +373,13 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
     }
 
     /**
-     * @notice Getter function for the grants mapping.
-     *
-     * @param who            The owner of the grant to query
-     *
-     * @return               The user's grant object.
-     */
-    function getGrant(address who) external view returns (ARCDVestingVaultStorage.Grant memory) {
-        return _grants()[who];
-    }
-
-    /**
      * @notice A single function endpoint for loading grant storage. Returns a
      *         storage mapping which can be used to look up grant data.
      *
      * @dev Only one Grant is allowed per address. Grants SHOULD NOT
      *      be modified.
+     *
+     * @return grants                   Pointer to the grant storage mapping.
      */
     function _grants() internal pure returns (mapping(address => ARCDVestingVaultStorage.Grant) storage) {
         // This call returns a storage mapping with a unique non overwrite-able storage location
@@ -371,6 +391,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      * @notice A function to access the storage of the unassigned token value.
      *         The unassigned tokens are not part of any grant and can be used for a future
      *         grant or withdrawn by the manager.
+     *
+     * @return unassigned               Pointer to the unassigned token value.
      */
     function _unassigned() internal pure returns (Storage.Uint256 storage) {
         return Storage.uint256Ptr("unassigned");

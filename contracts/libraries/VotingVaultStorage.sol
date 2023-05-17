@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.18;
+pragma solidity 0.8.18;
 
 /**
  * Copy of `VestingVaultStorage` with modified scope to match the NFTBoostVault
@@ -23,7 +23,7 @@ library VotingVaultStorage {
     * upgrades and overrides the default solidity storage slot system.
     */
 
-    // A struct which represents 1 packed storage location (Registration)
+    /// @dev struct which represents 1 packed storage location (Registration)
     struct Registration {
         uint128 amount; // token amount
         uint128 latestVotingPower;
@@ -33,8 +33,7 @@ library VotingVaultStorage {
         address delegatee;
     }
 
-    // A struct which represents 1 packed storage location with a compressed
-    // uint128 pair
+    /// @dev represents 1 packed storage location with a compressed uint128 pair
     struct AddressUintUint {
         uint128 tokenId;
         uint128 multiplier;

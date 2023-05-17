@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.18;
+pragma solidity 0.8.18;
 
 import "./external/council/CoreVoting.sol";
 
@@ -14,7 +14,6 @@ import "./external/council/CoreVoting.sol";
  * governance power to execute proposals via the GSC vault.
  *
  */
-
 contract ArcadeGSCCoreVoting is CoreVoting {
     // ==================================== CONSTRUCTOR ================================================
 

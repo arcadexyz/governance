@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
-pragma solidity >=0.8.18;
+pragma solidity 0.8.18;
 
-/* solhint-disable no-global-import */
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
