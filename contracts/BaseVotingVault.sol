@@ -6,9 +6,10 @@ pragma solidity >=0.8.18;
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
-import "./external/council/interfaces/IVotingVault.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
+
+import "./interfaces/IBaseVotingVault.sol";
 
 import { BVV_NotManager, BVV_NotTimelock } from "./errors/Governance.sol";
 
@@ -25,7 +26,7 @@ import { BVV_NotManager, BVV_NotTimelock } from "./errors/Governance.sol";
  *      storage and return the following as methods to isolate that call.
  */
 
-abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault {
+abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring libraries into scope
