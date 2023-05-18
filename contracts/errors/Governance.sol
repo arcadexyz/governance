@@ -93,16 +93,6 @@ error FLV_WithdrawsFrozen();
 /// @notice All errors prefixed with AVV_, to separate from other contracts in governance.
 
 /**
- * @notice Caller is not the manager.
- */
-error AVV_NotManager();
-
-/**
- * @notice Caller is not the timelock.
- */
-error AVV_NotTimelock();
-
-/**
  * @notice Block number parameters used to create a grant are invalid. Check that the start time is
  *         before the cliff, and the cliff is before the expiration.
  */
@@ -153,3 +143,15 @@ error AVV_InvalidAmount();
  * @notice Grants cannot be revoked from the immutable vesting vault.
  */
 error IVV_ImmutableGrants();
+
+// ====================================== BASE VOTING VAULT ======================================
+
+/**
+ * @notice Caller is not the manager.
+ */
+error BVV_NotManager();
+
+/**
+ * @notice Caller is not the timelock.
+ */
+error BVV_NotTimelock();

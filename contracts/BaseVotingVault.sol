@@ -6,9 +6,12 @@ pragma solidity >=0.8.18;
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
-import "./external/council/interfaces/IVotingVault.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
+
+import "./interfaces/IBaseVotingVault.sol";
+
+import { BVV_NotManager, BVV_NotTimelock } from "./errors/Governance.sol";
 
 /**
  *
@@ -23,7 +26,7 @@ import "./libraries/HashedStorageReentrancyBlock.sol";
  *      storage and return the following as methods to isolate that call.
  */
 
-abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault {
+abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring libraries into scope
@@ -56,12 +59,12 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IVotingVault 
     // ========================================== MODIFIER ==============================================
 
     modifier onlyTimelock() {
-        require(msg.sender == _timelock().data, "!timelock");
+        if (msg.sender != _timelock().data) revert BVV_NotTimelock();
         _;
     }
 
     modifier onlyManager() {
-        require(msg.sender == _manager().data, "!manager");
+        if (msg.sender != _manager().data) revert BVV_NotManager();
         _;
     }
 
