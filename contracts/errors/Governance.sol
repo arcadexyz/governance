@@ -7,16 +7,16 @@ pragma solidity >=0.8.18;
  * @author Non-Fungible Technologies, Inc.
  *
  * This file contains custom errors for the Arcade governance vault contracts. All errors
- * are prefixed by the contract that throws them (e.g., "NBV_" for NFTBoostVotingVault).
+ * are prefixed by the contract that throws them (e.g., "NBV_" for NFTBoostVault).
  * Errors located in one place to make it possible to holistically look at all
  * governance failure cases.
  */
 
-// ==================================== NFT BOOST VOTING VAULT ======================================
+// ======================================== NFT BOOST VAULT ==========================================
 /// @notice All errors prefixed with NBV_, to separate from other contracts in governance.
 
 /**
- * @notice Ensure caller ERC1155 token ownership for NFTBoostVotingVault operations.
+ * @notice Ensure caller ERC1155 token ownership for NFTBoostVault operations.
  *
  */
 error NBV_DoesNotOwn();

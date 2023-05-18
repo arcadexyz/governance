@@ -10,10 +10,10 @@ import "./external/council/vaults/GSCVault.sol";
  * @author Non-Fungible Technologies, Inc.
  *
  *
- * The Arcade GSC voting vault contract enables the council members to vote on proposals and execute them only
+ * The Arcade GSC vault contract enables the council members to vote on proposals and execute them only
  * with agreement from the council.
  *
- * The GSC voting vault gives one vote to each member of the GSC council. Members can propose on-chain votes directly
+ * The GSC vault gives one vote to each member of the GSC council. Members can propose on-chain votes directly
  * without meeting the minimum requirement of voting power for proposal creation (aka spam threshold), and it can
  * move directly to on-chain voting. This is in contrast to the rest of the governance community’s proposal creation
  * process, an off-chain poll and lastly an on-chain vote.
@@ -33,7 +33,7 @@ import "./external/council/vaults/GSCVault.sol";
  * source: //docs.element.fi/governance-council/council-protocol-overview/governance-steering-council
  */
 
-contract ArcadeGSCVotingVault is GSCVault {
+contract ArcadeGSCVault is GSCVault {
     // ==================================== CONSTRUCTOR ================================================
 
     /**

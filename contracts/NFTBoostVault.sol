@@ -29,10 +29,10 @@ import {
 
 /**
  *
- * @title NFTBoostVotingVault
+ * @title NFTBoostVault
  * @author Non-Fungible Technologies, Inc.
  *
- * The voting power for participants in this voting vault holding reputation ERC1155 nfts
+ * The voting power for participants in this vault holding reputation ERC1155 nfts
  * is enhanced by a multiplier. This contract enables holders of specific ERC1155 nfts
  * to gain an advantage wrt voting power for participation in governance. Participants
  * send their ERC20 tokens to the contract and provide their ERC1155 nfts as calldata.
@@ -44,13 +44,13 @@ import {
  * vaults in Council.
  *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
- *      addNftAndDelegate() are unrecoverable by this version of the NFTBoostVotingVault.
+ *      addNftAndDelegate() are unrecoverable by this version of the NFTBoostVault.
  *
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
 
-contract NFTBoostVotingVault is BaseVotingVault {
+contract NFTBoostVault is BaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring History library into scope
@@ -93,7 +93,7 @@ contract NFTBoostVotingVault is BaseVotingVault {
     // Event for withdrawal unlock
     event WithdrawalsUnlocked();
 
-    // ========================== NFT BOOST VOTING VAULT FUNCTIONALITY ============================
+    // =================================== NFT BOOST VAULT FUNCTIONALITY =====================================
 
     /**
      * @notice Performs ERC1155 registration and delegation for a caller.
