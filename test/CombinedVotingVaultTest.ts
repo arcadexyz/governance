@@ -6,7 +6,7 @@ import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
 const { provider, loadFixture } = waffle;
 
-describe("Governance Operations with Locking and Unique Multiplier Voting Vaults", async () => {
+describe("Governance Operations with Locking and NFT Boost Voting Vaults", async () => {
     let ctxToken: TestContextToken;
     let ctxGovernance: TestContextGovernance;
     let fixtureToken: () => Promise<TestContextToken>;
@@ -48,7 +48,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers,
                 coreVoting,
                 increaseBlockNumber,
-                uniqueMultiplierVotingVault,
+                nftBoostVotingVault,
                 lockingVotingVault,
                 reputationNft,
                 reputationNft2,
@@ -83,67 +83,50 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             const votingPower3 = await lockingVotingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
-            // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE);
-            await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[0] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.approve(nftBoostVotingVault.address, ONE);
+            await reputationNft.setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
-            const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
-                ONE,
-                1,
-                reputationNft.address,
-                signers[1].address,
-            );
+            const tx4 = await nftBoostVotingVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
             // view query voting power of signers[1]
-            const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[1].address,
-                tx4.blockNumber,
-            );
+            const votingPower4 = await nftBoostVotingVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
             expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
-            // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[2] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.connect(signers[2]).approve(nftBoostVotingVault.address, ONE.mul(5));
+            await reputationNft.connect(signers[2]).setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
-                await uniqueMultiplierVotingVault
+                await nftBoostVotingVault
                     .connect(signers[2])
                     .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
             ).wait();
             // view query voting power of signers[1]
-            const votingPower5 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[1].address,
-                tx5.blockNumber,
-            );
+            const votingPower5 = await nftBoostVotingVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
-            // approve signers[3] tokens to unique multiplier voting vault and approves repuation nft
-            await arcdToken.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
-            await reputationNft2.connect(signers[3]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[3] tokens to NFT boost voting vault and approves repuation nft
+            await arcdToken.connect(signers[3]).approve(nftBoostVotingVault.address, ONE);
+            await reputationNft2.connect(signers[3]).setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
-            const tx6 = await uniqueMultiplierVotingVault
+            const tx6 = await nftBoostVotingVault
                 .connect(signers[3])
                 .addNftAndDelegate(ONE, 1, reputationNft2.address, signers[0].address);
 
             // view query voting power of signers[0]
-            const votingPower6 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[0].address,
-                tx6.blockNumber,
-            );
+            const votingPower6 = await nftBoostVotingVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
             expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_B).div(ONE));
 
-            // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
-            await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[1] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.connect(signers[1]).approve(nftBoostVotingVault.address, ONE.mul(8));
+            await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
-            const tx7 = await uniqueMultiplierVotingVault
+            const tx7 = await nftBoostVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
 
             // view query voting power of signers[2]
-            const votingPower7 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[2].address,
-                tx7.blockNumber,
-            );
+            const votingPower7 = await nftBoostVotingVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
             expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
 
             // create proposal to update V2 originationFee
@@ -179,7 +162,7 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
                 signers,
                 coreVoting,
                 increaseBlockNumber,
-                uniqueMultiplierVotingVault,
+                nftBoostVotingVault,
                 lockingVotingVault,
                 reputationNft,
                 mintNfts,
@@ -213,70 +196,53 @@ describe("Governance Operations with Locking and Unique Multiplier Voting Vaults
             const votingPower3 = await lockingVotingVault.queryVotePowerView(signers[1].address, tx3.blockNumber);
             expect(votingPower3).to.be.eq(ONE);
 
-            // Unique multiplier voting vault users: Badge registration and delegation
-            // approve signers[0] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.approve(uniqueMultiplierVotingVault.address, ONE);
-            await reputationNft.setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // NFT boost voting vault users: Badge registration and delegation
+            // approve signers[0] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.approve(nftBoostVotingVault.address, ONE);
+            await reputationNft.setApprovalForAll(nftBoostVotingVault.address, true);
 
             // signers[0] registers reputation NFT, deposits ONE tokens and delegates to signers[1]
-            const tx4 = await uniqueMultiplierVotingVault.addNftAndDelegate(
-                ONE,
-                1,
-                reputationNft.address,
-                signers[1].address,
-            );
+            const tx4 = await nftBoostVotingVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
-            const votingPower4 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[1].address,
-                tx4.blockNumber,
-            );
+            const votingPower4 = await nftBoostVotingVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
             expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
-            // approve signers[2] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.connect(signers[2]).approve(uniqueMultiplierVotingVault.address, ONE.mul(5));
-            await reputationNft.connect(signers[2]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[2] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.connect(signers[2]).approve(nftBoostVotingVault.address, ONE.mul(5));
+            await reputationNft.connect(signers[2]).setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx5 = await (
-                await uniqueMultiplierVotingVault
+                await nftBoostVotingVault
                     .connect(signers[2])
                     .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
             ).wait();
 
             // view query voting power of signer[1]
-            const votingPower5 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[1].address,
-                tx5.blockNumber,
-            );
+            const votingPower5 = await nftBoostVotingVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
             expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
 
-            // approve signers[3] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.connect(signers[3]).approve(uniqueMultiplierVotingVault.address, ONE);
-            await reputationNft.connect(signers[3]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[3] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.connect(signers[3]).approve(nftBoostVotingVault.address, ONE);
+            await reputationNft.connect(signers[3]).setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
-            const tx6 = await uniqueMultiplierVotingVault
+            const tx6 = await nftBoostVotingVault
                 .connect(signers[3])
                 .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
 
             // view query voting power of signers[0]
-            const votingPower6 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[0].address,
-                tx6.blockNumber,
-            );
+            const votingPower6 = await nftBoostVotingVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
             expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
 
-            // approve signers[1] tokens to unique multiplier voting vault and approves reputation nft
-            await arcdToken.connect(signers[1]).approve(uniqueMultiplierVotingVault.address, ONE.mul(8));
-            await reputationNft.connect(signers[1]).setApprovalForAll(uniqueMultiplierVotingVault.address, true);
+            // approve signers[1] tokens to NFT boost voting vault and approves reputation nft
+            await arcdToken.connect(signers[1]).approve(nftBoostVotingVault.address, ONE.mul(8));
+            await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVotingVault.address, true);
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
-            const tx7 = await uniqueMultiplierVotingVault
+            const tx7 = await nftBoostVotingVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
 
             // view query voting power of signers[2]
-            const votingPower7 = await uniqueMultiplierVotingVault.queryVotePowerView(
-                signers[2].address,
-                tx7.blockNumber,
-            );
+            const votingPower7 = await nftBoostVotingVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
             expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
 
             // prepare proposal data

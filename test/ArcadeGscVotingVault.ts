@@ -32,7 +32,7 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
                 signers,
                 arcadeGSCCoreVoting,
                 arcadeGSCVotingVault,
-                uniqueMultiplierVotingVault,
+                nftBoostVotingVault,
                 increaseBlockNumber,
                 promissoryNote,
                 timelock,
@@ -55,44 +55,44 @@ describe("Vote Execution with Arcade GSC Voting Vault", async () => {
             }
 
             // using signers[0, 1, 2, 3] as GSC members
-            // UniqueMultiplierVotingVault users delegate to members who will become GSC:
+            // NFTBoostVotingVault users delegate to members who will become GSC:
             // signers[5] deposits tokens and delegates to signers[1]
-            await arcdToken.connect(signers[5]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
-            await uniqueMultiplierVotingVault
+            await arcdToken.connect(signers[5]).approve(nftBoostVotingVault.address, ONE.mul(50));
+            await nftBoostVotingVault
                 .connect(signers[5])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[1].address);
 
             // signers[6] deposits tokens and delegates to signers[2]
-            await arcdToken.connect(signers[6]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
-            await uniqueMultiplierVotingVault
+            await arcdToken.connect(signers[6]).approve(nftBoostVotingVault.address, ONE.mul(50));
+            await nftBoostVotingVault
                 .connect(signers[6])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[2].address);
 
             // signers[7] deposits tokens and delegates to signers[3]
-            await arcdToken.connect(signers[7]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
-            await uniqueMultiplierVotingVault
+            await arcdToken.connect(signers[7]).approve(nftBoostVotingVault.address, ONE.mul(50));
+            await nftBoostVotingVault
                 .connect(signers[7])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[3].address);
 
             // signers[8] deposits tokens and delegates to signers[0]
-            await arcdToken.connect(signers[8]).approve(uniqueMultiplierVotingVault.address, ONE.mul(50));
-            await uniqueMultiplierVotingVault
+            await arcdToken.connect(signers[8]).approve(nftBoostVotingVault.address, ONE.mul(50));
+            await nftBoostVotingVault
                 .connect(signers[8])
                 .addNftAndDelegate(ONE.mul(50), 0, constants.AddressZero, signers[0].address);
 
             // check that each of signers[0, 1, 2, 3] meets the GSC membership requirements
             await arcadeGSCVotingVault
                 .connect(signers[0])
-                .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
+                .proveMembership([nftBoostVotingVault.address], zeroExtraData);
             await arcadeGSCVotingVault
                 .connect(signers[1])
-                .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
+                .proveMembership([nftBoostVotingVault.address], zeroExtraData);
             await arcadeGSCVotingVault
                 .connect(signers[2])
-                .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
+                .proveMembership([nftBoostVotingVault.address], zeroExtraData);
             await arcadeGSCVotingVault
                 .connect(signers[3])
-                .proveMembership([uniqueMultiplierVotingVault.address], zeroExtraData);
+                .proveMembership([nftBoostVotingVault.address], zeroExtraData);
 
             // fast forward 4 days to complete new member idle wait time
             await blockchainTime.increaseTime(3600 * 24 * 4);

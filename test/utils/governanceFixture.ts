@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 
 import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
 import { Timelock } from "../../src/types";
-import { ArcadeToken, CoreVoting, LockingVault, UniqueMultiplierVotingVault, VestingVault } from "../../src/types";
+import { ArcadeToken, CoreVoting, LockingVault, NFTBoostVotingVault, VestingVault } from "../../src/types";
 import { deploy } from "./contracts";
 import { BlockchainTime } from "./time";
 
@@ -14,7 +14,7 @@ export interface TestContextGovernance {
     signers: Signer[];
     lockingVotingVault: LockingVault;
     vestingVotingVault: VestingVault;
-    uniqueMultiplierVotingVault: UniqueMultiplierVotingVault;
+    nftBoostVotingVault: NFTBoostVotingVault;
     arcadeGSCVotingVault: ArcadeGSCVotingVault;
     coreVoting: CoreVoting;
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
@@ -37,7 +37,7 @@ interface Multipliers {
 
 /**
  * This fixture creates a complete governance deployment. It deploys the following voting vaults: locking vault,
- * vesting vault, unique multiplier voting vault for use with the base core voting and timelock contracts.
+ * vesting vault, NFT boost voting vault for use with the base core voting and timelock contracts.
  * In addition, this fixture sets up a GSC committee which has its own core voting contract and own voting vault.
  */
 export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestContextGovernance>) => {
@@ -69,18 +69,17 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         );
         await vestingVotingVault.deployed();
 
-        // deploy and initialize unique multiplier voting vault
-        const uniqueMultiplierVotingVault = <UniqueMultiplierVotingVault>(
-            await deploy("UniqueMultiplierVotingVault", signers[0], [arcdToken.address, staleBlockNum])
-        );
-        await uniqueMultiplierVotingVault.deployed();
-        await uniqueMultiplierVotingVault.initialize(
+        // deploy and initialize NFT boost voting vault
+        const nftBoostVotingVault = <NFTBoostVotingVault>await deploy("NFTBoostVotingVault", signers[0], [
+            arcdToken.address,
+            staleBlockNum,
             signers[0].address, // timelock address who can update the manager
-            signers[0].address, // manager address who can update unique multiplier values
-        );
+            signers[0].address, // manager address who can update multiplier values
+        ]);
+        await nftBoostVotingVault.deployed();
 
         // voting vault array
-        votingVaults = [uniqueMultiplierVotingVault.address, lockingVotingVault.address, vestingVotingVault.address];
+        votingVaults = [nftBoostVotingVault.address, lockingVotingVault.address, vestingVotingVault.address];
 
         // ==================================== BASE CORE VOTING ==================================
 
@@ -103,7 +102,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         await coreVoting.deployed();
 
         // approve the voting vaults for the votingVaults array
-        await coreVoting.changeVaultStatus(uniqueMultiplierVotingVault.address, true);
+        await coreVoting.changeVaultStatus(nftBoostVotingVault.address, true);
 
         // deploy timelock
         const timelock = <Timelock>await deploy("Timelock", signers[0], [
@@ -182,7 +181,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         const setMultipliers = async (): Promise<Multipliers> => {
             // manager sets the value of the reputation NFT multiplier
-            const txA = await uniqueMultiplierVotingVault
+            const txA = await nftBoostVotingVault
                 .connect(signers[0])
                 .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
             const receiptA = await txA.wait();
@@ -200,7 +199,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             }
 
             // manager sets the value of the reputation NFT 2's multiplier
-            const txB = await uniqueMultiplierVotingVault
+            const txB = await nftBoostVotingVault
                 .connect(signers[0])
                 .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
             const receiptB = await txB.wait();
@@ -227,7 +226,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             signers,
             lockingVotingVault,
             vestingVotingVault,
-            uniqueMultiplierVotingVault,
+            nftBoostVotingVault,
             arcadeGSCVotingVault,
             coreVoting,
             arcadeGSCCoreVoting,

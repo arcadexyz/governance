@@ -7,34 +7,34 @@ pragma solidity >=0.8.18;
  * @author Non-Fungible Technologies, Inc.
  *
  * This file contains custom errors for the Arcade governance vault contracts. All errors
- * are prefixed by the contract that throws them (e.g., "UMVV_" for UniqueMultiplierVotingVault).
+ * are prefixed by the contract that throws them (e.g., "NBV_" for NFTBoostVotingVault).
  * Errors located in one place to make it possible to holistically look at all
  * governance failure cases.
  */
 
-// ==================================== UNIQUE MULTIPLIER VOTING VAULT ======================================
-/// @notice All errors prefixed with UMVV_, to separate from other contracts in governance.
+// ==================================== NFT BOOST VOTING VAULT ======================================
+/// @notice All errors prefixed with NBV_, to separate from other contracts in governance.
 
 /**
- * @notice Ensure caller ERC1155 token ownership for UniqueMultiplierVotingVault operations.
+ * @notice Ensure caller ERC1155 token ownership for NFTBoostVotingVault operations.
  *
  */
-error UMVV_DoesNotOwn();
+error NBV_DoesNotOwn();
 
 /**
  * @notice Ensure caller has not already registered.
  */
-error UMVV_HasRegistration();
+error NBV_HasRegistration();
 
 /**
  * @notice Ensure delegatee is not already registered as the delegate in user's Registration.
  */
-error UMVV_AlreadyDelegated();
+error NBV_AlreadyDelegated();
 
 /**
  * @notice Contract balance has to be bigger than amount being withdrawn.
  */
-error UMVV_InsufficientBalance();
+error NBV_InsufficientBalance();
 
 /**
  * @notice Withdrawable tokens less than withdraw request amount.
@@ -42,17 +42,17 @@ error UMVV_InsufficientBalance();
  * @param withdrawable              The returned withrawable amount from
  *                                  a user's registration.
  */
-error UMVV_InsufficientWithdrawableBalance(uint256 withdrawable);
+error NBV_InsufficientWithdrawableBalance(uint256 withdrawable);
 
 /**
  * @notice Multiplier limit exceeded.
  */
-error UMVV_MultiplierLimit();
+error NBV_MultiplierLimit();
 
 /**
  * @notice No multiplier has been set for token.
  */
-error UMVV_NoMultiplierSet();
+error NBV_NoMultiplierSet();
 
 /**
  * @notice The provided token address and token id are invalid.
@@ -60,31 +60,26 @@ error UMVV_NoMultiplierSet();
  * @param tokenAddress              The token address provided.
  * @param tokenId                   The token id provided.
  */
-error UMVV_InvalidNft(address tokenAddress, uint256 tokenId);
+error NBV_InvalidNft(address tokenAddress, uint256 tokenId);
 
 /**
  * @notice User is calling withdraw() with zero amount.
  */
-error UMVV_ZeroAmount();
-
-/**
- * @notice Unique Multiplier Voting Vault already initialized.
- */
-error UMVV_AlreadyInitialized();
+error NBV_ZeroAmount();
 
 /**
  * @notice Provided addresses array holds more than 50 addresses.
  */
-error UMVV_ArrayTooManyElements();
+error NBV_ArrayTooManyElements();
 
-/** @notice Unique Multiplier Voting Vault has already been unlocked.
+/** @notice NFT Boost Voting Vault has already been unlocked.
  */
-error UMVV_AlreadyUnlocked();
+error NBV_AlreadyUnlocked();
 
 /**
- * @notice ERC20 withdrawals from Unique Multiplier Voting Vault are frozen.
+ * @notice ERC20 withdrawals from NFT Boost Voting Vault are frozen.
  */
-error UMVV_Locked();
+error NBV_Locked();
 
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
