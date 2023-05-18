@@ -4,14 +4,7 @@ import { ethers } from "hardhat";
 
 import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
 import { Timelock } from "../../src/types";
-import {
-    ArcadeToken,
-    ArcadeTreasury,
-    CoreVoting,
-    LockingVault,
-    NFTBoostVault,
-    VestingVault,
-} from "../../src/types";
+import { ArcadeToken, ArcadeTreasury, CoreVoting, LockingVault, NFTBoostVault, VestingVault } from "../../src/types";
 import { CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./constants";
 import { deploy } from "./contracts";
 import { BlockchainTime } from "./time";
