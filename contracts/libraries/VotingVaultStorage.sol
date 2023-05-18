@@ -3,7 +3,7 @@
 pragma solidity >=0.8.18;
 
 /**
- * Copy of `VestingVaultStorage` with modified scope to match the UniqueMultiplierVotingVault
+ * Copy of `VestingVaultStorage` with modified scope to match the NFTBoostVault
  * requirements. These libraries allow for secure storage pointers across proxy
  * implementations and will return storage pointers based on a hashed name and type string.
  */

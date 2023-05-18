@@ -13,27 +13,26 @@ import "./libraries/VotingVaultStorage.sol";
 import "./BaseVotingVault.sol";
 
 import {
-    UMVV_DoesNotOwn,
-    UMVV_HasRegistration,
-    UMVV_AlreadyDelegated,
-    UMVV_InsufficientBalance,
-    UMVV_InsufficientWithdrawableBalance,
-    UMVV_MultiplierLimit,
-    UMVV_NoMultiplierSet,
-    UMVV_InvalidNft,
-    UMVV_ZeroAmount,
-    UMVV_AlreadyInitialized,
-    UMVV_ArrayTooManyElements,
-    UMVV_Locked,
-    UMVV_AlreadyUnlocked
+    NBV_DoesNotOwn,
+    NBV_HasRegistration,
+    NBV_AlreadyDelegated,
+    NBV_InsufficientBalance,
+    NBV_InsufficientWithdrawableBalance,
+    NBV_MultiplierLimit,
+    NBV_NoMultiplierSet,
+    NBV_InvalidNft,
+    NBV_ZeroAmount,
+    NBV_ArrayTooManyElements,
+    NBV_Locked,
+    NBV_AlreadyUnlocked
 } from "./errors/Governance.sol";
 
 /**
  *
- * @title UniqueMultiplierVotingVault
+ * @title NFTBoostVault
  * @author Non-Fungible Technologies, Inc.
  *
- * The voting power for participants in this voting vault holding reputation ERC1155 nfts
+ * The voting power for participants in this vault holding reputation ERC1155 nfts
  * is enhanced by a multiplier. This contract enables holders of specific ERC1155 nfts
  * to gain an advantage wrt voting power for participation in governance. Participants
  * send their ERC20 tokens to the contract and provide their ERC1155 nfts as calldata.
@@ -45,13 +44,13 @@ import {
  * vaults in Council.
  *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
- *      addNftAndDelegate() are unrecoverable by this version of the UniqueMultiplierVotingVault.
+ *      addNftAndDelegate() are unrecoverable by this version of the NFTBoostVault.
  *
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
 
-contract UniqueMultiplierVotingVault is BaseVotingVault {
+contract NFTBoostVault is BaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring History library into scope
@@ -70,8 +69,21 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      * @param token                     The external erc20 token contract.
      * @param staleBlockLag             The number of blocks before which the delegation history is forgotten.
+     * @param timelock                  The address of the timelock who can update the manager address.
+     * @param manager                   The address of the manager who can update the multiplier values.
      */
-    constructor(IERC20 token, uint256 staleBlockLag) BaseVotingVault(token, staleBlockLag) {}
+    constructor(
+        IERC20 token,
+        uint256 staleBlockLag,
+        address timelock,
+        address manager
+    ) BaseVotingVault(token, staleBlockLag) {
+        Storage.set(Storage.uint256Ptr("initialized"), 1);
+        Storage.set(Storage.addressPtr("timelock"), timelock);
+        Storage.set(Storage.addressPtr("manager"), manager);
+        Storage.set(Storage.uint256Ptr("entered"), 1);
+        Storage.set(Storage.uint256Ptr("locked"), 1);
+    }
 
     // ============================================ EVENTS ===============================================
 
@@ -81,23 +93,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
     // Event for withdrawal unlock
     event WithdrawalsUnlocked();
 
-    // ========================== UNIQUE MULTIPLIER VOTING VAULT FUNCTIONALITY ============================
-
-    /**
-     * @notice initialization function to set initial variables. Can only be called once after deployment.
-     *
-     * @param timelock                 The address of the timelock who can update the manager address.
-     * @param manager                  The address of the manager who can update the unique multiplier values.
-     *
-     */
-    function initialize(address timelock, address manager) public {
-        require(Storage.uint256Ptr("initialized").data == 0, "UMVV_AlreadyInitialized");
-        Storage.set(Storage.uint256Ptr("initialized"), 1);
-        Storage.set(Storage.addressPtr("timelock"), timelock);
-        Storage.set(Storage.addressPtr("manager"), manager);
-        Storage.set(Storage.uint256Ptr("entered"), 1);
-        Storage.set(Storage.uint256Ptr("locked"), 1);
-    }
+    // =================================== NFT BOOST VAULT FUNCTIONALITY =====================================
 
     /**
      * @notice Performs ERC1155 registration and delegation for a caller.
@@ -118,40 +114,38 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         address tokenAddress,
         address delegatee
     ) external virtual nonReentrant {
-        address who = msg.sender;
-        uint128 withdrawn = 0;
         uint256 multiplier = 1e18;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
         if (tokenAddress != address(0) && tokenId != 0) {
-            if (IERC1155(tokenAddress).balanceOf(who, tokenId) == 0) revert UMVV_DoesNotOwn();
+            if (IERC1155(tokenAddress).balanceOf(msg.sender, tokenId) == 0) revert NBV_DoesNotOwn();
 
             multiplier = getMultiplier(tokenAddress, tokenId);
 
-            if (multiplier == 0) revert UMVV_NoMultiplierSet();
+            if (multiplier == 0) revert NBV_NoMultiplierSet();
         }
 
         // load this contract's balance storage
         Storage.Uint256 storage balance = _balance();
 
         // load the registration
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[who];
+        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // If the token id and token address is not zero, revert because the Registration
         // is already initialized. Only one Registration per msg.sender
-        if (registration.tokenId != 0 && registration.tokenAddress != address(0)) revert UMVV_HasRegistration();
+        if (registration.tokenId != 0 && registration.tokenAddress != address(0)) revert NBV_HasRegistration();
 
         // load the delegate. Defaults to the registration owner
-        delegatee = delegatee == address(0) ? who : delegatee;
+        delegatee = delegatee == address(0) ? msg.sender : delegatee;
 
         // calculate the voting power provided by this registration
         uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
-        _getRegistrations()[who] = VotingVaultStorage.Registration(
+        _getRegistrations()[msg.sender] = VotingVaultStorage.Registration(
             amount,
             newVotingPower,
-            withdrawn,
+            0,
             tokenId,
             tokenAddress,
             delegatee
@@ -163,9 +157,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         _grantVotingPower(delegatee, newVotingPower);
 
         // transfer user ERC20 amount and ERC1155 nft into this contract
-        _lockTokens(who, amount, tokenAddress, tokenId, 1);
+        _lockTokens(msg.sender, amount, tokenAddress, tokenId, 1);
 
-        emit VoteChange(who, registration.delegatee, int256(uint256(newVotingPower)));
+        emit VoteChange(msg.sender, registration.delegatee, int256(uint256(newVotingPower)));
     }
 
     /**
@@ -191,7 +185,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // If to address is already the delegate, don't send the tx
-        if (to == registration.delegatee) revert UMVV_AlreadyDelegated();
+        if (to == registration.delegatee) revert NBV_AlreadyDelegated();
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
@@ -227,19 +221,19 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param amount                      The amount of token to withdraw.
      */
     function withdraw(uint128 amount) external virtual nonReentrant {
-        if (getIsLocked() == 1) revert UMVV_Locked();
-        if (amount == 0) revert UMVV_ZeroAmount();
+        if (getIsLocked() == 1) revert NBV_Locked();
+        if (amount == 0) revert NBV_ZeroAmount();
 
         // load the registration
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
-        if (balance.data < amount) revert UMVV_InsufficientBalance();
+        if (balance.data < amount) revert NBV_InsufficientBalance();
 
         // get the withdrawable amount
         uint256 withdrawable = _getWithdrawableAmount(registration);
-        if (withdrawable < amount) revert UMVV_InsufficientWithdrawableBalance(withdrawable);
+        if (withdrawable < amount) revert NBV_InsufficientWithdrawableBalance(withdrawable);
 
         // update contract balance
         balance.data -= amount;
@@ -268,7 +262,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param amount                      The amount of token to add.
      */
     function addTokens(uint128 amount) external virtual nonReentrant {
-        if (amount == 0) revert UMVV_ZeroAmount();
+        if (amount == 0) revert NBV_ZeroAmount();
         // load the registration
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -296,7 +290,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         if (registration.tokenAddress == address(0) || registration.tokenId == 0)
-            revert UMVV_InvalidNft(registration.tokenAddress, registration.tokenId);
+            revert NBV_InvalidNft(registration.tokenAddress, registration.tokenId);
 
         // transfer ERC1155 back to the user
         IERC1155(registration.tokenAddress).safeTransferFrom(
@@ -323,9 +317,9 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
      */
     function updateNft(uint128 newTokenId, address newTokenAddress) external nonReentrant {
-        if (newTokenAddress == address(0) || newTokenId == 0) revert UMVV_InvalidNft(newTokenAddress, newTokenId);
+        if (newTokenAddress == address(0) || newTokenId == 0) revert NBV_InvalidNft(newTokenAddress, newTokenId);
 
-        if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert UMVV_DoesNotOwn();
+        if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert NBV_DoesNotOwn();
 
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -353,7 +347,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *
      */
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public virtual onlyManager {
-        if (multiplierValue >= MAX_MULTIPLIER) revert UMVV_MultiplierLimit();
+        if (multiplierValue >= MAX_MULTIPLIER) revert NBV_MultiplierLimit();
 
         VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
@@ -393,7 +387,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      *                                  function updates.
      */
     function updateVotingPower(address[] memory userAddresses) public {
-        if (userAddresses.length > 50) revert UMVV_ArrayTooManyElements();
+        if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
 
         for (uint256 i = 0; i < userAddresses.length; ++i) {
             VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
@@ -415,7 +409,7 @@ contract UniqueMultiplierVotingVault is BaseVotingVault {
      * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
      */
     function unlock() external onlyTimelock {
-        if (getIsLocked() != 1) revert UMVV_AlreadyUnlocked();
+        if (getIsLocked() != 1) revert NBV_AlreadyUnlocked();
         Storage.set(Storage.uint256Ptr("locked"), 2);
 
         emit WithdrawalsUnlocked();
