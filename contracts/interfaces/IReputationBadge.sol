@@ -24,13 +24,13 @@ interface IReputationBadge is IERC1155 {
         bytes32[] calldata merkleProof
     ) external payable;
 
+    function uri(uint256 tokenId) external view returns (string memory);
+
     function publishRoots(ClaimData[] calldata) external;
 
     function withdrawFees() external;
 
-    function setBaseURI(string memory) external;
-
-    function baseURI() external view returns (string memory);
+    function setDescriptor(address) external;
 
     function amountClaimed(address, uint256) external view returns (uint256);
 

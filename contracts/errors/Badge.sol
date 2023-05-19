@@ -54,3 +54,11 @@ error RB_NoClaimData();
  * @notice Thrown when the array is larger than 50 elements.
  */
 error RB_ArrayTooLarge();
+
+/**
+ * @notice Thrown when the claim expiration is invalid when publishing data.
+ *
+ * @param claimRoot              The merkle root for the claim.
+ * @param tokenId                The tokenId for the claim.
+ */
+error RB_InvalidExpiration(bytes32 claimRoot, uint256 tokenId);

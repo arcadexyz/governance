@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { IReputationBadge } from "../src/types";
+import { IBadgeDescriptor, IReputationBadge } from "../src/types";
 import { BlockchainTime } from "./utils/Time";
 import { ADMIN_ROLE, MANAGER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
 import { deploy } from "./utils/deploy";
@@ -46,6 +46,7 @@ describe("Reputation Badge", async () => {
     const blockchainTime = new BlockchainTime();
 
     let reputationBadge: IReputationBadge;
+    let descriptor: IBadgeDescriptor;
 
     let admin: Signer;
     let manager: Signer;
@@ -137,8 +138,12 @@ describe("Reputation Badge", async () => {
             ),
         );
 
-        // deploy contract
-        reputationBadge = <IReputationBadge>await deploy("ReputationBadge", admin, [admin.address]);
+        // deploy descriptor contract
+        descriptor = <IBadgeDescriptor>await deploy("BadgeDescriptor", admin, ["https://www.domain.com/"]);
+        await descriptor.deployed();
+
+        // deploy badge contract
+        reputationBadge = <IReputationBadge>await deploy("ReputationBadge", admin, [admin.address, descriptor.address]);
         await reputationBadge.deployed();
 
         // setup access roles
@@ -164,10 +169,15 @@ describe("Reputation Badge", async () => {
     });
 
     it("Invalid constructor", async () => {
-        // invalid manager
-        await expect(deploy("ReputationBadge", admin, [ethers.constants.AddressZero])).to.be.revertedWith(
-            "RB_ZeroAddress()",
-        );
+        // invalid admin
+        await expect(
+            deploy("ReputationBadge", admin, [ethers.constants.AddressZero, descriptor.address]),
+        ).to.be.revertedWith("RB_ZeroAddress()");
+
+        // invalid descriptor
+        await expect(
+            deploy("ReputationBadge", admin, [admin.address, ethers.constants.AddressZero]),
+        ).to.be.revertedWith("RB_ZeroAddress()");
     });
 
     it("Validate published roots", async () => {
@@ -176,6 +186,47 @@ describe("Reputation Badge", async () => {
 
         const root1 = await reputationBadge.claimRoots(1);
         expect(root1).to.equal(rootTokenId1);
+    });
+
+    it("Invalid ClaimData", async () => {
+        // empty claim data
+        await expect(reputationBadge.connect(manager).publishRoots([])).to.be.revertedWith("RB_NoClaimData()");
+
+        // array with length greater than 50 elements
+        const claimData: ClaimData[] = [];
+        for (let i = 0; i < 51; i++) {
+            claimData.push({
+                tokenId: i,
+                claimRoot: rootTokenId0,
+                claimExpiration: expiration,
+                mintPrice: 0,
+            });
+        }
+        await expect(reputationBadge.connect(manager).publishRoots(claimData)).to.be.revertedWith("RB_ArrayTooLarge()");
+
+        // invalid claim expiration
+        const currentTime = await blockchainTime.secondsFromNow(0);
+        const claimDataInvalidExpiration: ClaimData = {
+            tokenId: 2,
+            claimRoot: rootTokenId0,
+            claimExpiration: currentTime + 1,
+            mintPrice: 0,
+        };
+
+        await expect(reputationBadge.connect(manager).publishRoots([claimDataInvalidExpiration])).to.be.revertedWith(
+            `RB_InvalidExpiration("${claimDataInvalidExpiration.claimRoot}", ${claimDataInvalidExpiration.tokenId})`,
+        );
+
+        const claimDataInvalidExpiration2: ClaimData = {
+            tokenId: 2,
+            claimRoot: rootTokenId0,
+            claimExpiration: currentTime,
+            mintPrice: 0,
+        };
+
+        await expect(reputationBadge.connect(manager).publishRoots([claimDataInvalidExpiration2])).to.be.revertedWith(
+            `RB_InvalidExpiration("${claimDataInvalidExpiration2.claimRoot}", ${claimDataInvalidExpiration2.tokenId})`,
+        );
     });
 
     describe("Mint", async () => {
@@ -261,11 +312,8 @@ describe("Reputation Badge", async () => {
         });
     });
 
-    describe("Token URI", async () => {
+    describe("URI Descriptor", async () => {
         it("Gets tokenURI for specific value", async () => {
-            // set tokenURI
-            await reputationBadge.connect(resourceManager).setBaseURI("https://www.domain.com/");
-
             // mint
             await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
 
@@ -273,15 +321,43 @@ describe("Reputation Badge", async () => {
             expect(await reputationBadge.uri(0)).to.equal("https://www.domain.com/0");
         });
 
+        it("Set new base URI", async () => {
+            await descriptor.connect(admin).setBaseURI("https://www.arcade.xyz/");
+
+            expect(await reputationBadge.connect(user1).uri(1)).to.equal("https://www.arcade.xyz/1");
+        });
+
         it("No base URI", async () => {
+            await descriptor.connect(admin).setBaseURI("");
+
             // mint
             await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
 
             // rug token URI
-            await reputationBadge.connect(resourceManager).setBaseURI("");
+            await descriptor.connect(admin).setBaseURI("");
 
             // check tokenURI
             expect(await reputationBadge.uri(0)).to.equal("");
+        });
+
+        it("Set new descriptor contract", async () => {
+            // deploy new descriptor
+            const descriptor2 = <IBadgeDescriptor>await deploy("BadgeDescriptor", admin, ["https://www.google.com/"]);
+            await descriptor.deployed();
+
+            // set new descriptor
+            await reputationBadge.connect(resourceManager).setDescriptor(descriptor2.address);
+
+            // mint
+            await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
+
+            // check tokenURI
+            expect(await reputationBadge.uri(0)).to.equal("https://www.google.com/0");
+
+            // try to set descriptor to zero address
+            await expect(
+                reputationBadge.connect(resourceManager).setDescriptor(ethers.constants.AddressZero),
+            ).to.be.revertedWith("RB_ZeroAddress()");
         });
     });
 
@@ -304,9 +380,22 @@ describe("Reputation Badge", async () => {
             );
 
             // try to set baseURI
-            await expect(reputationBadge.connect(user1).setBaseURI("https://www.domain.com/")).to.be.revertedWith(
+            await expect(descriptor.connect(user1).setBaseURI("https://www.domain.com/")).to.be.revertedWith(
+                `Ownable: caller is not the owner`,
+            );
+
+            // try to set descriptor
+            await expect(reputationBadge.connect(user1).setDescriptor(descriptor.address)).to.be.revertedWith(
                 `AccessControl: account ${user1.address.toLowerCase()} is missing role ${RESOURCE_MANAGER_ROLE}`,
             );
+        });
+    });
+
+    describe("Introspection", function () {
+        it("Return true for declaring support for eip165 interface contract", async () => {
+            // https://eips.ethereum.org/EIPS/eip-165#test-cases
+            expect(await reputationBadge.supportsInterface("0x01ffc9a7")).to.be.true;
+            expect(await reputationBadge.supportsInterface("0xfafafafa")).to.be.false;
         });
     });
 });

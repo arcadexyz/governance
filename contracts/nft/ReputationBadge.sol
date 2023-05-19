@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../interfaces/IReputationBadge.sol";
+import "../interfaces/IBadgeDescriptor.sol";
 
 import {
     RB_InvalidMerkleProof,
@@ -17,7 +18,8 @@ import {
     RB_ZeroAddress,
     RB_ClaimingExpired,
     RB_NoClaimData,
-    RB_ArrayTooLarge
+    RB_ArrayTooLarge,
+    RB_InvalidExpiration
 } from "../errors/Badge.sol";
 
 /**
@@ -37,13 +39,13 @@ import {
 contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputationBadge {
     using Strings for uint256;
 
+    /// @dev Contract for returning tokenURI resources.
+    IBadgeDescriptor public descriptor;
+
     /// @notice access control roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER");
     bytes32 public constant RESOURCE_MANAGER_ROLE = keccak256("RESOURCE_MANAGER");
-
-    /// @notice The base URI for the badge NFTs
-    string public baseURI;
 
     /// @notice recipient address to tokenId to amount claimed mapping
     mapping(address => mapping(uint256 => uint256)) public amountClaimed;
@@ -57,18 +59,27 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     /// @notice Mint price for each tokenId
     mapping(uint256 => uint256) public mintPrices;
 
+    /// @notice Event emitted when a new URI descriptor is set.
+    event SetDescriptor(address indexed caller, address indexed descriptor);
+
+    /// @notice Event emitted when a claim data is set for specific tokenId.
+    event RootsPublished(ClaimData[] claimData);
+
     /**
      * @notice Constructor for the contract. Sets owner and manager addresses.
      *
      * @param _owner         The owner of the contract.
      */
-    constructor(address _owner) ERC1155("") {
+    constructor(address _owner, address _descriptor) ERC1155("") {
         if (_owner == address(0)) revert RB_ZeroAddress();
+        if (_descriptor == address(0)) revert RB_ZeroAddress();
 
         _setupRole(ADMIN_ROLE, _owner);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(MANAGER_ROLE, ADMIN_ROLE);
         _setRoleAdmin(RESOURCE_MANAGER_ROLE, ADMIN_ROLE);
+
+        descriptor = IBadgeDescriptor(_descriptor);
     }
 
     // =============================== BADGE FUNCTIONS ==============================
@@ -113,8 +124,8 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      *
      * @return uri                  The token ID's URI.
      */
-    function uri(uint256 tokenId) public view override returns (string memory) {
-        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
+    function uri(uint256 tokenId) public view override(ERC1155, IReputationBadge) returns (string memory) {
+        return descriptor.tokenURI(tokenId);
     }
 
     // =========================== MANAGER FUNCTIONS ===========================
@@ -131,13 +142,15 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         for (uint256 i = 0; i < _claimData.length; i++) {
             // expiration check
             if (_claimData[i].claimExpiration <= block.timestamp) {
-                revert RB_ClaimingExpired(_claimData[i].claimExpiration, uint48(block.timestamp));
+                revert RB_InvalidExpiration(_claimData[i].claimRoot, _claimData[i].tokenId);
             }
 
             claimRoots[_claimData[i].tokenId] = _claimData[i].claimRoot;
             claimExpirations[_claimData[i].tokenId] = _claimData[i].claimExpiration;
             mintPrices[_claimData[i].tokenId] = _claimData[i].mintPrice;
         }
+
+        emit RootsPublished(_claimData);
     }
 
     /**
@@ -147,18 +160,23 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         payable(msg.sender).transfer(address(this).balance);
     }
 
-    // ======================== RESOURCE MANAGER FUNCTIONS ========================
+    // ===================== RESOURCE MANAGER FUNCTIONS ========================
 
     /**
-     * @notice Set the base URI for the contract.
+     * @notice Changes the descriptor contract for reporting tokenURI
+     *         resources. Can only be called by a resource manager.
      *
-     * @param _newBaseURI   The new base URI to use for the contract.
+     * @param _descriptor           The new descriptor contract.
      */
-    function setBaseURI(string memory _newBaseURI) public onlyRole(RESOURCE_MANAGER_ROLE) {
-        baseURI = _newBaseURI;
+    function setDescriptor(address _descriptor) external onlyRole(RESOURCE_MANAGER_ROLE) {
+        if (_descriptor == address(0)) revert RB_ZeroAddress();
+
+        descriptor = IBadgeDescriptor(_descriptor);
+
+        emit SetDescriptor(msg.sender, _descriptor);
     }
 
-    // ================================= HELPERS ==================================
+    // ================================ HELPERS ================================
 
     /**
      * @notice Verify a claim for a user using merkle proof.
