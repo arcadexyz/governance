@@ -42,25 +42,11 @@ import {
  *      by this version of the VestingVault. When grants are added the contracts will not transfer
  *      in tokens on each add but rather check for solvency via state variables.
  */
-contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault {
+contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, BaseVotingVault {
     using History for History.HistoricalBalances;
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
     using Storage for Storage.Uint256;
-
-    // ============================================ STATE ==============================================
-
-    // =================== Immutable references =====================
-
-    /// @notice The token used for voting in this vault.
-    IERC20 public immutable token;
-
-    /// @notice Number of blocks after which history can be pruned.
-    uint256 public immutable staleBlockLag;
-
-    // ============================================ EVENTS ==============================================
-
-    event VoteChange(address indexed to, address indexed from, int256 amount);
 
     // ========================================= CONSTRUCTOR ============================================
 

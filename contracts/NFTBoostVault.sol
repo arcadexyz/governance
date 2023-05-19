@@ -338,7 +338,7 @@ contract NFTBoostVault is BaseVotingVault {
      *                                  function updates.
      */
     function updateVotingPower(address[] memory userAddresses) public {
-        if (userAddresses.length > 50) revert UMVV_ArrayTooManyElements();
+        if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
 
         for (uint256 i = 0; i < userAddresses.length; ++i) {
             VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
@@ -374,7 +374,7 @@ contract NFTBoostVault is BaseVotingVault {
      * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
      */
     function unlock() external onlyTimelock {
-        if (getIsLocked() != 1) revert UMVV_AlreadyUnlocked();
+        if (getIsLocked() != 1) revert NBV_AlreadyUnlocked();
         Storage.set(Storage.uint256Ptr("locked"), 2);
 
         emit WithdrawalsUnlocked();
