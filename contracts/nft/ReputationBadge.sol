@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import "../interfaces/IReputationBadge.sol";
+
 import { RB_InvalidMerkleProof, RB_InvalidMintFee, RB_AlreadyClaimed, RB_ZeroAddress } from "../errors/Badge.sol";
 
 /**
@@ -24,7 +26,7 @@ import { RB_InvalidMerkleProof, RB_InvalidMintFee, RB_AlreadyClaimed, RB_ZeroAdd
  * Only the manager of the contract can update the merkle trie. Additionally, there is an
  * optional mint price which can be set and claimed by the manager.
  */
-contract ReputationBadge is ERC1155, AccessControl {
+contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputationBadge {
     using Strings for uint256;
 
     /// @notice access control roles
@@ -160,7 +162,9 @@ contract ReputationBadge is ERC1155, AccessControl {
     }
 
     /// @notice function override to support AccessControl
-    function supportsInterface(bytes4 interfaceId) public view override(ERC1155, AccessControl) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC1155, AccessControl, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
