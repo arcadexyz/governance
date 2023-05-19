@@ -23,7 +23,8 @@ The Arcade governance system's smart contracts can be grouped into the following
 ### BaseVotingVault
 
 A basic `VotingVault` implementation, with little extension from Council. Defines common query
-and management interfaces for all voting vaults.
+and management interfaces for all voting vaults. Unlike Council, Arcade governance voting vaults
+are not upgradeable.
 ### NFTBoostVault
 
 The core community voting vault for governance: it enables token-weighted vote counting with
