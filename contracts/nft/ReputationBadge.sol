@@ -28,7 +28,7 @@ import {
  *
  * Reputation badges are ERC1155 tokens that can be minted by a user who meets certain criteria.
  * For example, a user who has completed a certain number of tasks can be awarded a badge.
- * The badge can be used in governance to give a mulitplier to a users voting power. Voting
+ * The badge can be used in governance to give a mulitplier to a user's voting power. Voting
  * power multipliers associated with each tokenId are stored in the governance vault contracts
  * not the badge contract.
  *
@@ -44,7 +44,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
 
     /// @notice access control roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
-    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER");
+    bytes32 public constant BADGE_MANAGER_ROLE = keccak256("BADGE_MANAGER");
     bytes32 public constant RESOURCE_MANAGER_ROLE = keccak256("RESOURCE_MANAGER");
 
     /// @notice recipient address to tokenId to amount claimed mapping
@@ -76,7 +76,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
 
         _setupRole(ADMIN_ROLE, _owner);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
-        _setRoleAdmin(MANAGER_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(BADGE_MANAGER_ROLE, ADMIN_ROLE);
         _setRoleAdmin(RESOURCE_MANAGER_ROLE, ADMIN_ROLE);
 
         descriptor = IBadgeDescriptor(_descriptor);
@@ -135,7 +135,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      *
      * @param _claimData        The claim data to update.
      */
-    function publishRoots(ClaimData[] calldata _claimData) external onlyRole(MANAGER_ROLE) {
+    function publishRoots(ClaimData[] calldata _claimData) external onlyRole(BADGE_MANAGER_ROLE) {
         if (_claimData.length == 0) revert RB_NoClaimData();
         if (_claimData.length > 50) revert RB_ArrayTooLarge();
 
@@ -156,7 +156,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     /**
      * @notice Withdraw any ETH fees from the contract.
      */
-    function withdrawFees() external onlyRole(MANAGER_ROLE) {
+    function withdrawFees() external onlyRole(BADGE_MANAGER_ROLE) {
         payable(msg.sender).transfer(address(this).balance);
     }
 

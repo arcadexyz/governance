@@ -3,9 +3,9 @@ import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
 import { IBadgeDescriptor, IReputationBadge } from "../src/types";
-import { BlockchainTime } from "./utils/Time";
-import { ADMIN_ROLE, MANAGER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
+import { ADMIN_ROLE, BADGE_MANAGER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
 import { deploy } from "./utils/deploy";
+import { BlockchainTime } from "./utils/time";
 
 type Signer = SignerWithAddress;
 
@@ -147,7 +147,7 @@ describe("Reputation Badge", async () => {
         await reputationBadge.deployed();
 
         // setup access roles
-        await reputationBadge.connect(admin).grantRole(MANAGER_ROLE, manager.address);
+        await reputationBadge.connect(admin).grantRole(BADGE_MANAGER_ROLE, manager.address);
         await reputationBadge.connect(admin).grantRole(RESOURCE_MANAGER_ROLE, resourceManager.address);
 
         // manager publishes claim data to initiate minting
@@ -371,12 +371,12 @@ describe("Reputation Badge", async () => {
                 mintPrice: 0,
             };
             await expect(reputationBadge.connect(user1).publishRoots([claimDataTokenId0])).to.be.revertedWith(
-                `AccessControl: account ${user1.address.toLowerCase()} is missing role ${MANAGER_ROLE}`,
+                `AccessControl: account ${user1.address.toLowerCase()} is missing role ${BADGE_MANAGER_ROLE}`,
             );
 
             // try to withdraw fees
             await expect(reputationBadge.connect(user1).withdrawFees()).to.be.revertedWith(
-                `AccessControl: account ${user1.address.toLowerCase()} is missing role ${MANAGER_ROLE}`,
+                `AccessControl: account ${user1.address.toLowerCase()} is missing role ${BADGE_MANAGER_ROLE}`,
             );
 
             // try to set baseURI

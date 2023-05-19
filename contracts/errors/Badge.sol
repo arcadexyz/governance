@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 /**
  * @title ReputationBadgeErrors
@@ -12,7 +12,7 @@ pragma solidity ^0.8.18;
  */
 
 /**
- * @notice Thrown when the merkle proof provided does not validate the users claim.
+ * @notice Thrown when the merkle proof provided does not validate the user's claim.
  */
 error RB_InvalidMerkleProof();
 
@@ -33,7 +33,7 @@ error RB_InvalidMintFee(uint256 mintPrice, uint256 amountSent);
 error RB_InvalidClaimAmount(uint256 amountToClaim, uint256 totalClaimableAmount);
 
 /**
- * @notice Thrown zero address is provided as input.
+ * @notice Thrown if zero address is provided as input.
  */
 error RB_ZeroAddress();
 
