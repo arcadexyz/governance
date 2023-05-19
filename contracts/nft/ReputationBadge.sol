@@ -10,7 +10,15 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../interfaces/IReputationBadge.sol";
 
-import { RB_InvalidMerkleProof, RB_InvalidMintFee, RB_AlreadyClaimed, RB_ZeroAddress } from "../errors/Badge.sol";
+import {
+    RB_InvalidMerkleProof,
+    RB_InvalidMintFee,
+    RB_InvalidClaimAmount,
+    RB_ZeroAddress,
+    RB_ClaimingExpired,
+    RB_NoClaimData,
+    RB_ArrayTooLarge
+} from "../errors/Badge.sol";
 
 /**
  * @title ReputationBadge
@@ -23,8 +31,8 @@ import { RB_InvalidMerkleProof, RB_InvalidMintFee, RB_AlreadyClaimed, RB_ZeroAdd
  * not the badge contract.
  *
  * This contract uses a merkle trie to determine which users are eligible to mint a badge.
- * Only the manager of the contract can update the merkle trie. Additionally, there is an
- * optional mint price which can be set and claimed by the manager.
+ * Only the manager of the contract can update the merkle roots and claim expirations. Additionally,
+ * there is an optional mint price which can be set and claimed by the manager.
  */
 contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputationBadge {
     using Strings for uint256;
@@ -32,63 +40,70 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     /// @notice access control roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER");
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER");
     bytes32 public constant RESOURCE_MANAGER_ROLE = keccak256("RESOURCE_MANAGER");
-
-    /// @notice The merkle root with tokenId encoded into it as hash [address, tokenId]
-    bytes32 public rewardsRoot;
-
-    /// @notice The mint price for a badge
-    uint256 public mintPrice;
 
     /// @notice The base URI for the badge NFTs
     string public baseURI;
 
-    /// @notice user to tokenId claim mapping to prevent double claiming
-    mapping(address => mapping(uint256 => bool)) public claimed;
+    /// @notice recipient address to tokenId to amount claimed mapping
+    mapping(address => mapping(uint256 => uint256)) public amountClaimed;
+
+    /// @notice Claim tree for each tokenId, with the leaf encoding [address, tokenId, totalClaimableAmount]
+    mapping(uint256 => bytes32) public claimRoots;
+
+    /// @notice Expiry date for each tokenId claim
+    mapping(uint256 => uint48) public claimExpirations;
+
+    /// @notice Mint price for each tokenId
+    mapping(uint256 => uint256) public mintPrices;
 
     /**
-     * @notice Constructor for the contract. Sets the merkle root and specifies owner and
-     *         manager addresses.
+     * @notice Constructor for the contract. Sets owner and manager addresses.
      *
-     * @param _root          Initial merkle root to use claims.
-     * @param _mintPrice     The mint price for a badge.
      * @param _owner         The owner of the contract.
      */
-    constructor(bytes32 _root, uint256 _mintPrice, address _owner) ERC1155("") {
+    constructor(address _owner) ERC1155("") {
         if (_owner == address(0)) revert RB_ZeroAddress();
 
         _setupRole(ADMIN_ROLE, _owner);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(MANAGER_ROLE, ADMIN_ROLE);
-        _setRoleAdmin(MINTER_ROLE, ADMIN_ROLE);
         _setRoleAdmin(RESOURCE_MANAGER_ROLE, ADMIN_ROLE);
-
-        rewardsRoot = _root;
-        mintPrice = _mintPrice;
     }
 
     // =============================== BADGE FUNCTIONS ==============================
 
     /**
-     * @notice Mint a badge to a user who has a valid claim.
+     * @notice Mint a specified number of badges to a user who has a valid claim.
      *
      * @param recipient         The address of the user to mint the badge to.
      * @param tokenId           The ID of the badge to mint.
+     * @param amount            The amount of a specific badge to claim.
+     * @param totalClaimable    The total amount of a specific badge that can be claimed.
      * @param merkleProof       The merkle proof to verify the claim.
      */
     function mint(
         address recipient,
         uint256 tokenId,
+        uint256 amount,
+        uint256 totalClaimable,
         bytes32[] calldata merkleProof
-    ) public payable onlyRole(MINTER_ROLE) {
+    ) public payable {
+        uint256 mintPrice = mintPrices[tokenId];
+        uint48 claimExpiration = claimExpirations[tokenId];
+
+        if (block.timestamp > claimExpiration) revert RB_ClaimingExpired(claimExpiration, uint48(block.timestamp));
         if (msg.value < mintPrice) revert RB_InvalidMintFee(mintPrice, msg.value);
-        if (claimed[recipient][tokenId]) revert RB_AlreadyClaimed();
-        if (!_verifyClaim(recipient, tokenId, merkleProof)) revert RB_InvalidMerkleProof();
+        if (!_verifyClaim(recipient, tokenId, totalClaimable, merkleProof)) revert RB_InvalidMerkleProof();
+        if (amountClaimed[recipient][tokenId] + amount > totalClaimable) {
+            revert RB_InvalidClaimAmount(amount, totalClaimable);
+        }
 
-        claimed[recipient][tokenId] = true;
+        // increment amount claimed
+        amountClaimed[recipient][tokenId] += amount;
 
-        _mint(recipient, tokenId, 1, "");
+        // mint to recipient
+        _mint(recipient, tokenId, amount, "");
     }
 
     /**
@@ -105,21 +120,24 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     // =========================== MANAGER FUNCTIONS ===========================
 
     /**
-     * @notice Set the merkle root for the contract.
+     * @notice Update the claim data that is used to validate user claims.
      *
-     * @param _root         The new merkle root to use for claims.
+     * @param _claimData        The claim data to update.
      */
-    function setMerkleRoot(bytes32 _root) external onlyRole(MANAGER_ROLE) {
-        rewardsRoot = _root;
-    }
+    function publishRoots(ClaimData[] calldata _claimData) external onlyRole(MANAGER_ROLE) {
+        if (_claimData.length == 0) revert RB_NoClaimData();
+        if (_claimData.length > 50) revert RB_ArrayTooLarge();
 
-    /**
-     * @notice Set the mint price for the contract.
-     *
-     * @param _mintPrice    The new mint price to use for claims.
-     */
-    function setMintPrice(uint256 _mintPrice) external onlyRole(MANAGER_ROLE) {
-        mintPrice = _mintPrice;
+        for (uint256 i = 0; i < _claimData.length; i++) {
+            // expiration check
+            if (_claimData[i].claimExpiration <= block.timestamp) {
+                revert RB_ClaimingExpired(_claimData[i].claimExpiration, uint48(block.timestamp));
+            }
+
+            claimRoots[_claimData[i].tokenId] = _claimData[i].claimRoot;
+            claimExpirations[_claimData[i].tokenId] = _claimData[i].claimExpiration;
+            mintPrices[_claimData[i].tokenId] = _claimData[i].mintPrice;
+        }
     }
 
     /**
@@ -147,6 +165,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      *
      * @param recipient         The address of the user to verify the claim for.
      * @param tokenId           The ID of the badge to verify.
+     * @param totalClaimable    Total amount of badges a recipient can claim.
      * @param merkleProof       The merkle proof to verify the claim.
      *
      * @return bool             Whether or not the claim is valid.
@@ -154,14 +173,16 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     function _verifyClaim(
         address recipient,
         uint256 tokenId,
+        uint256 totalClaimable,
         bytes32[] calldata merkleProof
     ) internal view returns (bool) {
-        bytes32 leafHash = keccak256(abi.encodePacked(recipient, tokenId));
+        bytes32 rewardsRoot = claimRoots[tokenId];
+        bytes32 leafHash = keccak256(abi.encodePacked(recipient, tokenId, totalClaimable));
 
         return MerkleProof.verify(merkleProof, rewardsRoot, leafHash);
     }
 
-    /// @notice function override to support AccessControl
+    /// @notice function override
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(ERC1155, AccessControl, IERC165) returns (bool) {

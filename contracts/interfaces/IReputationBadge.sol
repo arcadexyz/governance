@@ -5,21 +5,38 @@ pragma solidity ^0.8.18;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 interface IReputationBadge is IERC1155 {
-    function mint(address recipient, uint256 tokenId, bytes32[] calldata merkleProof) external payable;
+    // ========= Structs =========
 
-    function setMerkleRoot(bytes32 _root) external;
+    struct ClaimData {
+        uint256 tokenId;
+        bytes32 claimRoot;
+        uint48 claimExpiration;
+        uint256 mintPrice;
+    }
 
-    function setMintPrice(uint256 _mintPrice) external;
+    // ========= Badge Operations =========
 
-    function mintPrice() external view returns (uint256);
+    function mint(
+        address recipient,
+        uint256 tokenId,
+        uint256 amount,
+        uint256 totalClaimable,
+        bytes32[] calldata merkleProof
+    ) external payable;
 
-    function rewardsRoot() external view returns (bytes32);
+    function publishRoots(ClaimData[] calldata) external;
 
-    function claimed(address, uint256) external view returns (bool);
-
-    function baseURI() external view returns (string memory);
+    function withdrawFees() external;
 
     function setBaseURI(string memory) external;
 
-    function withdrawFees() external;
+    function baseURI() external view returns (string memory);
+
+    function amountClaimed(address, uint256) external view returns (uint256);
+
+    function claimRoots(uint256) external view returns (bytes32);
+
+    function claimExpirations(uint256) external view returns (uint48);
+
+    function mintPrices(uint256) external view returns (uint256);
 }
