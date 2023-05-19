@@ -4,7 +4,7 @@
 
 - 🌐 [Website](https://www.arcade.xyz) - UI to the Arcade Lending Protocol, hosted by Arcade.xyz.
 - 📝 [Usage Documentation](https://docs.arcade.xyz) - User-facing documentation for the Arcade Lending Protocol.
-- 🐛 [Bug Bounty](https://immunefi.com/bounty/arcade/) - Security discloure and bounty program for the Arcade Lending Protocol.
+- 🐛 [Bug Bounty](https://immunefi.com/bounty/arcade/) - Security disclosure and bounty program for the Arcade Lending Protocol.
 - 💬 [Discord](https://discord.gg/arcadexyz) - Join the Arcade.xyz community! Great for further technical discussion and real-time support.
 - 🔔 [Twitter](https://twitter.com/arcade_xyz) - Follow us on Twitter for alerts, announcements, and alpha.
 
@@ -15,7 +15,7 @@
 The Arcade governance system's smart contracts can be grouped into the following categories:
 
 - __Voting Vaults__: Depositories for voting tokens in the governance system - see [Council's documentation](https://docs.element.fi/governance-council/council-protocol-overview/voting-vaults) for more general information. Each voting vault contract is a separate deployment, which handles its own deposits and vote-counting mechanisms for those deposits. As described below, the Arcade.xyz uses novel vote-counting mechanisms. Voting vaults also support vote delegation: a critical component of the Council governance system.
-- __Core Voting Contracts__: These contracts can be used to submit and vote on governance transactions. When governing a protocol, core voting contracts may either administrate the protocol directly, or may be intermediated by a Timelock contract.
+- __Core Voting Contracts__: These contracts can be used to submit and vote on proposed governance transactions. When governing a protocol, core voting contracts may either administrate the protocol directly, or may be intermediated by a Timelock contract.
 - __Token Distribution__: The ERC20 governance token, along with contracts required for initial deployment and distribution of the token (airdrop contract, initial distributor contract).
 
 ## Voting Vaults
@@ -27,7 +27,7 @@ and management interfaces for all voting vaults.
 ### NFTBoostVault
 
 The core community voting vault for governance: it enables token-weighted vote counting with
-delegation and an NFT "boost". Tokenholders can deposit or withdraw into the vault to
+delegation and an NFT "boost". Token holders can deposit or withdraw into the vault to
 register voting power, with no liquidity restrictions. Each token deposited represents a
 unit of voting power. In addition, the NFT boost allows certain ERC1155 assets to receive
 "multipliers": when users deposit those NFTs, the voting power of their deposited ERC20
@@ -53,8 +53,7 @@ See Council documentation for more information.
 A voting vault, designed for early Arcade community members, contributors, and launch
 partners, that holds tokens in escrow subject to a vesting timeline. Both locked and
 unlocked tokens held by the vault contribute governance voting power. Since locked
-tokens are held by the `ARCDVestingVault`, they are not eligible for NFT boosts. Based
-heavily on Council's `AbstractVestingVault`.
+tokens are held by the `ARCDVestingVault`, they are not eligible for NFT boosts.
 
 ### ImmutableVestingVault
 
@@ -65,9 +64,9 @@ and liquidity constraints as ones held by `ARCDVestingVault`.
 ## Core Voting Contracts
 ### CoreVoting
 
-An instance of Council's `GSCVault`, a voting vault contract for a
-[Governance Steering Council](https://docs.element.fi/governance-council/council-protocol-overview/governance-steering-council).
-See Council documentation for more information.
+A contract which allows proposed function calls to be proposed,
+voted on, and executed by users after passing votes. Arcade
+governance uses Council's `CoreVoting` directly.
 
 ### ArcadeGscCoreVoting
 
@@ -75,7 +74,7 @@ An instance of Council's `CoreVoting`, set up for use by a GSC.
 
 ### Timelock
 
-A contract which allows generic function call to be submitted by users,
+A contract which allows generic function calls to be submitted by users,
 where the calls can only be executed after a waiting period. Arcade
 governance uses Council's `Timelock` directly.
 
@@ -107,7 +106,7 @@ a merkle root, and users can claim tokens by proving ownership in the tree.
 
 Unclaimed tokens after a set `expiration` time may be reclaimed by governance.
 
-### Treasury
+### ArcadeTreasury
 
 A contract which can receive tokens from the distributor, and transfer or
 approve them based on invocations from governance. The GSC may be authorized
