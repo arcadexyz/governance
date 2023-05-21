@@ -266,8 +266,13 @@ describe("Reputation Badge", async () => {
             expect(await reputationBadge.balanceOf(user4.address, 1)).to.equal(2);
             expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(ethers.utils.parseEther("0.2"));
 
+            // tries to withdraw ETH with recipient address zero
+            await expect(
+                reputationBadge.connect(manager).withdrawFees(ethers.constants.AddressZero),
+            ).to.be.revertedWith("RB_ZeroAddress()");
+
             // manager withdraws ETH
-            const res = await reputationBadge.connect(manager).withdrawFees();
+            const res = await reputationBadge.connect(manager).withdrawFees(manager.address);
             const gas = (await res.wait()).gasUsed.mul(res.gasPrice);
 
             // check balance
@@ -375,7 +380,7 @@ describe("Reputation Badge", async () => {
             );
 
             // try to withdraw fees
-            await expect(reputationBadge.connect(user1).withdrawFees()).to.be.revertedWith(
+            await expect(reputationBadge.connect(user1).withdrawFees(user1.address)).to.be.revertedWith(
                 `AccessControl: account ${user1.address.toLowerCase()} is missing role ${BADGE_MANAGER_ROLE}`,
             );
 

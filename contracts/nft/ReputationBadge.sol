@@ -26,7 +26,7 @@ import {
  * @title ReputationBadge
  * @author Non-Fungible Technologies, Inc.
  *
- * Reputation badges are ERC1155 tokens that can be minted by a user who meets certain criteria.
+ * Reputation badges are ERC1155 tokens that can be minted by users who meets certain criteria.
  * For example, a user who has completed a certain number of tasks can be awarded a badge.
  * The badge can be used in governance to give a mulitplier to a user's voting power. Voting
  * power multipliers associated with each tokenId are stored in the governance vault contracts
@@ -37,8 +37,6 @@ import {
  * there is an optional mint price which can be set and claimed by the manager.
  */
 contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputationBadge {
-    using Strings for uint256;
-
     /// @dev Contract for returning tokenURI resources.
     IBadgeDescriptor public descriptor;
 
@@ -65,10 +63,14 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     /// @notice Event emitted when a claim data is set for specific tokenId.
     event RootsPublished(ClaimData[] claimData);
 
+    /// @notice Event emitted when ETH fees are withdrawn from this contract.
+    event FeesWithdrawn(address indexed recipient, uint256 amount);
+
     /**
      * @notice Constructor for the contract. Sets owner and manager addresses.
      *
      * @param _owner         The owner of the contract.
+     * @param _descriptor    The address of the descriptor contract.
      */
     constructor(address _owner, address _descriptor) ERC1155("") {
         if (_owner == address(0)) revert RB_ZeroAddress();
@@ -154,19 +156,29 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     }
 
     /**
-     * @notice Withdraw any ETH fees from the contract.
+     * @notice Withdraw all ETH fees from the contract.
+     *
+     * @param recipient        The address to withdraw the fees to.
      */
-    function withdrawFees() external onlyRole(BADGE_MANAGER_ROLE) {
-        payable(msg.sender).transfer(address(this).balance);
+    function withdrawFees(address recipient) external onlyRole(BADGE_MANAGER_ROLE) {
+        if (recipient == address(0)) revert RB_ZeroAddress();
+
+        // get contract balance
+        uint256 balance = address(this).balance;
+
+        // transfer balance to recipient
+        payable(recipient).transfer(balance);
+
+        emit FeesWithdrawn(recipient, balance);
     }
 
     // ===================== RESOURCE MANAGER FUNCTIONS ========================
 
     /**
-     * @notice Changes the descriptor contract for reporting tokenURI
-     *         resources. Can only be called by a resource manager.
+     * @notice Changes the descriptor contract for reporting tokenURI resources.
+     *         Can only be called by a resource manager.
      *
-     * @param _descriptor           The new descriptor contract.
+     * @param _descriptor           The new descriptor contract address.
      */
     function setDescriptor(address _descriptor) external onlyRole(RESOURCE_MANAGER_ROLE) {
         if (_descriptor == address(0)) revert RB_ZeroAddress();
