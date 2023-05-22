@@ -89,7 +89,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         Storage.set(Storage.uint256Ptr("locked"), 1);
     }
 
-    // =================================== NFT BOOST VAULT FUNCTIONALITY =====================================
+    // ===================================== USER FUNCTIONALITY =========================================
 
     /**
      * @notice Performs ERC1155 registration and delegation for a caller.
@@ -330,7 +330,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param userAddresses             Array of addresses whose registration voting power this
      *                                  function updates.
      */
-    function updateVotingPower(address[] memory userAddresses) public {
+    function updateVotingPower(address[] memory userAddresses) public override {
         if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
 
         for (uint256 i = 0; i < userAddresses.length; ++i) {
@@ -366,7 +366,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
      */
-    function unlock() external onlyTimelock {
+    function unlock() external override onlyTimelock {
         if (getIsLocked() != 1) revert NBV_AlreadyUnlocked();
         Storage.set(Storage.uint256Ptr("locked"), 2);
 
@@ -380,7 +380,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @return locked                           Whether withdrawals are locked.
      */
-    function getIsLocked() public view returns (uint256) {
+    function getIsLocked() public view override returns (uint256) {
         return Storage.uint256Ptr("locked").data;
     }
 
@@ -416,34 +416,6 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     // =========================================== HELPERS ==============================================
-    function updateVotingPower(address[] memory userAddresses) public override {
-        if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
-
-        for (uint256 i = 0; i < userAddresses.length; ++i) {
-            VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
-            _syncVotingPower(userAddresses[i], registration);
-        }
-    }
-
-    /** @notice A function to access the value of "locked".
-     *
-     * @return                          The value of "locked".
-     */
-    function getIsLocked() public view override returns (uint256) {
-        return Storage.uint256Ptr("locked").data;
-    }
-
-    /**
-     * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
-     */
-    function unlock() external override onlyTimelock {
-        if (getIsLocked() != 1) revert NBV_AlreadyUnlocked();
-        Storage.set(Storage.uint256Ptr("locked"), 2);
-
-        emit WithdrawalsUnlocked();
-    }
-
-    // ================================ HELPER FUNCTIONS ===================================
 
     /**
      * @notice Grants the chosen delegate address voting power when a new user registers.
