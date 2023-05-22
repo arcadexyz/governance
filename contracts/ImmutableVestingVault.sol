@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "./ARCDVestingVault.sol";
 
@@ -17,7 +17,8 @@ import { IVV_ImmutableGrants } from "./errors/Governance.sol";
  */
 contract ImmutableVestingVault is ARCDVestingVault {
     /**
-     * @notice Constructs the contract.
+     * @notice Deploys a new vesting vault, setting relevant immutable variables
+     *         and granting management power to a defined address.
      *
      * @param _token              The ERC20 token to grant.
      * @param _stale              Stale block used for voting power calculations

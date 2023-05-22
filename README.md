@@ -1,177 +1,148 @@
-# Hardhat Template [![Open in Gitpod][gitpod-badge]][gitpod] [![Github Actions][gha-badge]][gha] [![Hardhat][hardhat-badge]][hardhat] [![License: MIT][license-badge]][license]
+[Arcade.xyz](https://docs.arcade.xyz/docs/faq) is a platform for autonomous borrowing, lending, and escrow of NFT collateral on EVM blockchains. This repository contains the contracts for a token-based governance system, which can be granted ownership and management authority over the core lending protocol. This governance system is built on the [Council Framework](https://docs.element.fi/governance-council/council-protocol-overview).
 
-[gitpod]: https://gitpod.io/#https://github.com/arcadexyz/arcade-governance
-[gitpod-badge]: https://img.shields.io/badge/Gitpod-Open%20in%20Gitpod-FFB45B?logo=gitpod
-[gha]: https://github.com/arcadexyz/arcade-governance/actions
-[gha-badge]: https://github.com/arcadexyz/arcade-governance/actions/workflows/ci.yml/badge.svg
-[hardhat]: https://hardhat.org/
-[hardhat-badge]: https://img.shields.io/badge/Built%20with-Hardhat-FFDB1C.svg
-[license]: https://opensource.org/licenses/MIT
-[license-badge]: https://img.shields.io/badge/License-MIT-blue.svg
+# Relevant Links
 
-A Hardhat-based template for developing Solidity smart contracts, with sensible defaults.
+- 🌐 [Website](https://www.arcade.xyz) - UI to the Arcade Lending Protocol, hosted by Arcade.xyz.
+- 📝 [Usage Documentation](https://docs.arcade.xyz) - User-facing documentation for the Arcade Lending Protocol.
+- 🐛 [Bug Bounty](https://immunefi.com/bounty/arcade/) - Security disclosure and bounty program for the Arcade Lending Protocol.
+- 💬 [Discord](https://discord.gg/arcadexyz) - Join the Arcade.xyz community! Great for further technical discussion and real-time support.
+- 🔔 [Twitter](https://twitter.com/arcade_xyz) - Follow us on Twitter for alerts, announcements, and alpha.
 
-- [Hardhat](https://github.com/nomiclabs/hardhat): compile, run and test smart contracts
-- [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript bindings for smart contracts
-- [Ethers](https://github.com/ethers-io/ethers.js/): renowned Ethereum library and wallet implementation
-- [Solhint](https://github.com/protofire/solhint): code linter
-- [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
-- [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
+# Overview of Contracts
 
-## Getting Started
+### ___See natspec for technical detail.___
 
-Click the [`Use this template`](https://github.com/paulrberg/hardhat-template/generate) button at the top of the page to
-create a new repository with this repo as the initial state.
+The Arcade governance system's smart contracts can be grouped into the following categories:
 
-## Features
+- __Voting Vaults__: Depositories for voting tokens in the governance system - see [Council's documentation](https://docs.element.fi/governance-council/council-protocol-overview/voting-vaults) for more general information. Each voting vault contract is a separate deployment, which handles its own deposits and vote-counting mechanisms for those deposits. As described below, the Arcade.xyz uses novel vote-counting mechanisms. Voting vaults also support vote delegation: a critical component of the Council governance system.
+- __Core Voting Contracts__: These contracts can be used to submit and vote on proposed governance transactions. When governing a protocol, core voting contracts may either administrate the protocol directly, or may be intermediated by a Timelock contract.
+- __Token Distribution__: The ERC20 governance token, along with contracts required for initial deployment and distribution of the token (airdrop contract, initial distributor contract).
 
-This template builds upon the frameworks and libraries mentioned above, so for details about their specific features,
-please consult their respective documentations.
+## Voting Vaults
 
-For example, for Hardhat, you can refer to the [Hardhat Tutorial](https://hardhat.org/tutorial) and the
-[Hardhat Docs](https://hardhat.org/docs). You might be in particular interested in reading the
-[Testing Contracts](https://hardhat.org/tutorial/testing-contracts) section.
+### BaseVotingVault
 
-### Sensible Defaults
+A basic `VotingVault` implementation, with little extension from Council. Defines common query
+and management interfaces for all voting vaults. Unlike Council, Arcade governance voting vaults
+are not upgradeable.
+### NFTBoostVault
 
-This template comes with sensible default configurations in the following files:
+The core community voting vault for governance: it enables token-weighted vote counting with
+delegation and an NFT "boost". Token holders can deposit or withdraw into the vault to
+register voting power, with no liquidity restrictions. Each token deposited represents a
+unit of voting power. In addition, the NFT boost allows certain ERC1155 assets to receive
+"multipliers": when users deposit those NFTs, the voting power of their deposited ERC20
+tokens are boosted by multiplier. In addition to adding tokens and an NFT at deposit time,
+both components of the deposit can be managed separately: NFTs can be added, updated, or
+withdrawn separately, and a user can add or remove tokens from an NFT boosted position.
 
-```text
-├── .commitlintrc.yml
-├── .editorconfig
-├── .eslintignore
-├── .eslintrc.yml
-├── .gitignore
-├── .prettierignore
-├── .prettierrc.yml
-├── .solcover.js
-├── .solhintignore
-├── .solhint.json
-├── .yarnrc.yml
-└── hardhat.config.ts
-```
+At any time, governance may update the multiplier value associated with a given NFT. Due
+to gas constraints, this will not immediately update the voting power of users who are
+using this NFT for a boost. However, any user's voting power can be updated by any other
+user via the `updateVotingPower` function - this value will look up the current multiplier
+of the user's registered NFT and recalculate the boosted voting power. This can be used
+in cases where obselete boosts may be influencing the outcome of a vote.
 
-### GitHub Actions
+### ArcadeGSCVotingVault
 
-This template comes with GitHub Actions pre-configured. Your contracts will be linted and tested on every push and pull
-request made to the `main` branch.
+An instance of Council's `GSCVault`, a voting vault contract for a
+[Governance Steering Council](https://docs.element.fi/governance-council/council-protocol-overview/governance-steering-council).
+See Council documentation for more information.
 
-Note though that to make this work, you must use your `INFURA_API_KEY` and your `MNEMONIC` as GitHub secrets.
+### ARCDVestingVault
 
-You can edit the CI script in [.github/workflows/ci.yml](./.github/workflows/ci.yml).
+A voting vault, designed for early Arcade community members, contributors, and launch
+partners, that holds tokens in escrow subject to a vesting timeline. Both locked and
+unlocked tokens held by the vault contribute governance voting power. Since locked
+tokens are held by the `ARCDVestingVault`, they are not eligible for NFT boosts.
 
-### Conventional Commits
+### ImmutableVestingVault
 
-This template enforces the [Conventional Commits](https://www.conventionalcommits.org/) standard for git commit
-messages. This is a lightweight convention that creates an explicit commit history, which makes it easier to write
-automated tools on top of.
+An instance of the `ARCDVestingVault`, with functionality extended such that `revokeGrant`
+can not be used. Tokens held in this vault otherwise have the same voting power
+and liquidity constraints as ones held by `ARCDVestingVault`.
 
-### Git Hooks
+## Core Voting Contracts
+### CoreVoting
 
-This template uses [Husky](https://github.com/typicode/husky) to run automated checks on commit messages, and
-[Lint Staged](https://github.com/okonet/lint-staged) to automatically format the code with Prettier when making a git
-commit.
+A contract which allows proposed function calls to be proposed,
+voted on, and executed by users after passing votes. Arcade
+governance uses Council's `CoreVoting` directly.
 
-## Usage
+### ArcadeGscCoreVoting
 
-### Pre Requisites
+An instance of Council's `CoreVoting`, set up for use by a GSC.
 
-Before being able to run any command, you need to create a `.env` file and set a BIP-39 compatible mnemonic as an
-environment variable. You can follow the example in `.env.example`. If you don't already have a mnemonic, you can use
-this [website](https://iancoleman.io/bip39/) to generate one.
+### Timelock
 
-Then, proceed with installing dependencies:
+A contract which allows generic function calls to be submitted by users,
+where the calls can only be executed after a waiting period. Arcade
+governance uses Council's `Timelock` directly.
 
-```sh
-$ yarn install
-```
+## Token Distribution
 
-### Compile
+### ArcadeToken
 
-Compile the smart contracts with Hardhat:
+A standard OpenZeppelin based `ERC20` token, with minting capability.
+At deploy time, an initial amount of circulating tokens are minted
+to a distributor contract (see `ArcadeTokenDistributor`).
 
-```sh
-$ yarn compile
-```
+Governance is given ownership of the token on deployment, and every 365 days,
+governance may decide to call the `mint` function to mint new tokens. The
+ability to call `mint` is granted by governance to a single address. When
+calling `mint`, governance may mint up to 2% of the total supply. After calling,
+`mint`, it may not be called again for 365 days.
 
-### TypeChain
+### ArcadeTokenDistributor
 
-Compile the smart contracts and generate TypeChain bindings:
+A contract which receives the initial circulating supply of token, and will
+send tokens to destinations representing distribution according to tokenomics.
+This may include airdrop contracts or vesting vaults.
 
-```sh
-$ yarn typechain
-```
+### ArcadeAirdrop
 
-### Test
+A contract which can receive tokens from the distributor, and release them
+for a second distribution according to a merkle tree. Governance may set
+a merkle root, and users can claim tokens by proving ownership in the tree.
 
-Run the tests with Hardhat:
+Unclaimed tokens after a set `expiration` time may be reclaimed by governance.
 
-```sh
-$ yarn test
-```
+### ArcadeTreasury
 
-### Lint Solidity
+A contract which can receive tokens from the distributor, and transfer or
+approve them based on invocations from governance. The GSC may be authorized
+to spend smaller amounts from their own voting contract: all other amounts
+must be authorized by full community votes.
 
-Lint the Solidity code:
+# Privileged Roles & Access
 
-```sh
-$ yarn lint:sol
-```
-
-### Lint TypeScript
-
-Lint the TypeScript code:
-
-```sh
-$ yarn lint:ts
-```
-
-### Coverage
-
-Generate the code coverage report:
-
-```sh
-$ yarn coverage
-```
-
-### Report Gas
-
-See the gas usage per unit test and average gas per method call:
-
-```sh
-$ REPORT_GAS=true yarn test
-```
-
-### Clean
-
-Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
-
-```sh
-$ yarn clean
-```
-
-### Deploy
-
-Deploy the contracts to Hardhat Network:
-
-```sh
-$ yarn deploy --greeting "Bonjour, le monde!"
-```
-
-## Tips
-
-### Syntax Highlighting
-
-If you use VSCode, you can get Solidity syntax highlighting with the
-[hardhat-solidity](https://marketplace.visualstudio.com/items?itemName=NomicFoundation.hardhat-solidity) extension.
-
-## Using GitPod
-
-[GitPod](https://www.gitpod.io/) is an open-source developer platform for remote development.
-
-To view the coverage report generated by `yarn coverage`, just click `Go Live` from the status bar to turn the server
-on/off.
-
-## License
-
-[MIT](./LICENSE.md) © Paul Razvan Berg
+* Vaults derived from the `BaseVotingVault` have two roles:
+    * A `manager` role can access operational functions,
+        such as calling `setMultiplier` in the `NFTBoostVault`,
+        and calling `addGrantAndDelegate` and `revokeGrant`
+        in the `ARCDVestingVault`.
+    * A `timelock` role can change the `manager`, as well as changing
+        its own role to a new timelock. For the `NFTBoostVault`, the
+        timelock can eventually choose to allow token withdrawals.
+* Core voting contracts have an `owner`, which in a governance
+    system should be a timelock that is owned by `CoreVoting` itself:
+    such that all updates to `CoreVoting` require passing votes. This
+    `owner` is able to change parameters around voting, such as the
+    minimum voting power needed to submit a proposal. The same suggested
+    ownership architecture applies to `ArcadeGSCCoreVoting`: it should
+    have ownership power over a separate timelock, which itself owns
+    the voting contract.
+* The `ArcadeToken` contract sets a `minter` role, which can mint new tokens
+    under certain constraints (see `ArcadeToken` above). The `minter`
+    can also transfer the role to another address.
+* The `ArcadeAirdrop` contract as an `owner` that can update the merkle root,
+    as well as reclaim tokens after airdrop expiry. This should be operationally
+    managed by a voting contract.
+* The `ArcadeTokenDistributor` contract is owned by an address which can administer
+    the distribution. This owner may decide which address receives their reserved
+    amount of tokens.
+* The `Treasury` contract grants permissions to addresses who are allowed
+    to spend tokens. There are separate roles for full spends, which should be granted
+    to a community voting contract, and GSC spends, which may be granted to a community
+    voting contract. Ownership may also be granted to timelocks owned by the respective
+    voting contracts.

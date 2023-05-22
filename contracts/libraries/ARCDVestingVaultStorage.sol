@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 /**
  * @title ARCDVestingVaultStorage
@@ -11,6 +11,8 @@ pragma solidity ^0.8.18;
  * It will return storage pointers based on a hashed name and type string.
  */
 library ARCDVestingVaultStorage {
+    // ========================================== DATA TYPES ============================================
+
     // This library follows a pattern which if solidity had higher level
     // type or macro support would condense quite a bit.
 
@@ -34,6 +36,8 @@ library ARCDVestingVaultStorage {
         uint128 latestVotingPower;
         address delegatee;
     }
+
+    // =========================================== HELPERS ==============================================
 
     /**
      * @notice Returns the storage pointer for a named mapping of address to uint256[].

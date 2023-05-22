@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "./external/council/vaults/LockingVault.sol";
 
 import { FLV_WithdrawsFrozen } from "./errors/Governance.sol";
 
+/**
+ * @title FrozenLockingVault
+ * @author Non-Fungible Technologies, Inc.
+ *
+ * Voting vault with does not allow withdrawals.
+ */
 contract FrozenLockingVault is AbstractLockingVault {
     /// @notice Constructs the contract by setting immutables
     /// @param _token The external erc20 token contract

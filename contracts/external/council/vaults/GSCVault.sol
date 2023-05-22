@@ -159,7 +159,7 @@ contract GSCVault is Authorizable, IVotingVault {
         if (
             members[who].joined > 0 &&
             (members[who].joined + idleDuration) <= block.timestamp
-        ) {
+    ) {
             return 1;
         } else {
             return 0;

@@ -1,12 +1,27 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.18;
+pragma solidity 0.8.18;
 
 import "../external/council/libraries/History.sol";
 import "../external/council/libraries/Storage.sol";
 
-contract HashedStorageReentrancyBlock {
-    // Will use a state flag to prevent this function from being called back into
+abstract contract HashedStorageReentrancyBlock {
+    // =========================================== HELPERS ==============================================
+
+    /**
+     * @dev Returns the storage pointer to the entered state variable.
+     *
+     * @return Storage              pointer to the entered state variable.
+     */
+    function _entered() internal pure returns (Storage.Uint256 memory) {
+        return Storage.uint256Ptr("entered");
+    }
+
+    // ========================================= MODIFIERS =============================================
+
+    /**
+     * @dev Re-entrancy guard modifier using hashed storage.
+     */
     modifier nonReentrant() {
         Storage.Uint256 memory _entered = _entered();
         // Check the state variable before the call is entered
@@ -19,9 +34,5 @@ contract HashedStorageReentrancyBlock {
 
         // Clear the state
         _entered.data = 1;
-    }
-
-    function _entered() internal pure returns (Storage.Uint256 memory) {
-        return Storage.uint256Ptr("entered");
     }
 }

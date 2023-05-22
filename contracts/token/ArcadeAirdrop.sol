@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "../external/council/libraries/Authorizable.sol";
 import "../libraries/ArcadeMerkleRewards.sol";
@@ -16,6 +16,20 @@ import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
  * over and also change the merkle root at their discretion.
  */
 contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
+    // ========================================== CONSTRUCTOR ===========================================
+
+    /**
+     * @notice Instanatiate the contract with a merkle tree root, a token for distribution,
+     *         an expiration time for claims, and the voting vault that tokens will be
+     *         airdropped into. In addition, set a governance parameter for the address that
+     *         can reclaim tokens after expiry.
+     *
+     * @param _governance           The address that can reclaim tokens after expiry
+     * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]
+     * @param _token                The token to airdrop
+     * @param _expiration           The expiration of the airdrop
+     * @param _lockingVault         The locking vault to deposit tokens to
+     */
     constructor(
         address _governance,
         bytes32 _merkleRoot,
@@ -27,6 +41,8 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
 
         setOwner(_governance);
     }
+
+    // ===================================== ADMIN FUNCTIONALITY ========================================
 
     /**
      * @notice Allows governance to remove the funds in this contract once the airdrop is over.

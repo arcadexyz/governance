@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
@@ -22,25 +22,49 @@ import { AA_ClaimingExpired, AA_AlreadyClaimed, AA_NonParticipant, AA_ZeroAddres
  * another account.
  */
 contract ArcadeMerkleRewards {
-    // the merkle root with deposits encoded into it as hash [address, amount]
-    bytes32 public rewardsRoot;
-    // the token to airdrop
+    // ============================================ STATE ==============================================
+
+    // =================== Immutable references =====================
+
+    /// @notice the token to airdrop
     IERC20 public immutable token;
-    // the expiration of the airdrop
+    /// @notice the expiration of the airdrop
     uint256 public immutable expiration;
-    // the historic user claims
+
+    // ==================== Reward Claim State ======================
+
+    /// @notice the merkle root with deposits encoded into it as hash [address, amount]
+    bytes32 public rewardsRoot;
+
+    /// @notice past user claims
     mapping(address => uint256) public claimed;
-    // the locking vault to deposit tokens to
+
+    /// @notice the locking vault to deposit tokens to
     ILockingVault public lockingVault;
 
+    // ========================================== CONSTRUCTOR ===========================================
+
+    /**
+     * @notice Instanatiate the contract with a merkle tree root, a token for distribution,
+     *         an expiration time for claims, and the voting vault that tokens will be
+     *         airdropped into.
+     *
+     * @param _rewardsRoot           The merkle root with deposits encoded into it as hash [address, amount]
+     * @param _token                 The token to airdrop
+     * @param _expiration            The expiration of the airdrop
+     * @param _lockingVault          The locking vault to deposit tokens to
+     */
     constructor(bytes32 _rewardsRoot, IERC20 _token, uint256 _expiration, ILockingVault _lockingVault) {
         rewardsRoot = _rewardsRoot;
         token = _token;
         expiration = _expiration;
         lockingVault = _lockingVault;
-        // we approve the locking vault so that it we can deposit on behalf of users
+
+        // we approve the locking vault so that it can deposit on behalf of users
         _token.approve(address(lockingVault), type(uint256).max);
     }
+
+    // ===================================== CLAIM FUNCTIONALITY ========================================
 
     /**
      * @notice Claims an amount of tokens in the tree and delegates to governance.
@@ -59,6 +83,8 @@ contract ArcadeMerkleRewards {
         // deposit for this sender into locking vault and delegate
         lockingVault.deposit(msg.sender, totalGrant, delegate);
     }
+
+    // =========================================== HELPERS ==============================================
 
     /**
      * @notice Validate a withdraw attempt by checking merkle proof and ensuring the user has not

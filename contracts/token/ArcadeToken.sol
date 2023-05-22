@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
@@ -72,13 +72,9 @@ import {
  * is called, the minter must wait at least 1 year before calling it again.
  */
 contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
-    // ======================================== STATE ========================================
+    // ============================================ STATE ===============================================
 
-    /// @notice Minter contract address
-    address public minter;
-
-    /// @notice The timestamp after which minting may occur
-    uint256 public mintingAllowedAfter;
+    // ===================== Constants =======================
 
     /// @notice The minimum time to wait between mints
     uint48 public constant MIN_TIME_BETWEEN_MINTS = 365 days;
@@ -92,13 +88,28 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
     /// @notice the initial token mint amount for distribution.
     uint256 public constant INITIAL_MINT_AMOUNT = 100_000_000 ether;
 
-    // ======================================= EVENTS ========================================
+    // ======================== State =========================
+
+    /// @notice Minter contract address
+    address public minter;
+
+    /// @notice The timestamp after which minting may occur
+    uint256 public mintingAllowedAfter;
+
+    // ============================================ EVENTS ==============================================
 
     /// @dev An event thats emitted when the minter address is changed
     event MinterUpdated(address newMinter);
 
-    // ===================================== CONSTRUCTOR =====================================
+    // ========================================= CONSTRUCTOR ============================================
 
+    /**
+     * @notice Deploy the token contract with a set minter (for future minting) and a
+     *         distribution address for the initial circulating amount.
+     *
+     * @param _minter               The address responsible for minting future tokens.
+     * @param _initialDistribution  The address to receive the initial distribution of tokens.
+     */
     constructor(address _minter, address _initialDistribution) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
         // address responsible for minting future ARC tokens
         minter = _minter;
@@ -109,7 +120,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
         _mint(_initialDistribution, INITIAL_MINT_AMOUNT);
     }
 
-    // ====================================== MINTER OPS =====================================
+    // =========================================== MINTER OPS ===========================================
 
     /**
      * @notice Function to change the minter address. Can only be called by the minter.
@@ -145,6 +156,8 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
 
         _mint(_to, _amount);
     }
+
+    // =========================================== HELPERS ==============================================
 
     /**
      * @notice Modifier to check that the caller is the minter.
