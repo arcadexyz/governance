@@ -418,12 +418,12 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     // =========================================== HELPERS ==============================================
 
     /**
-     * @notice Grants the chosen delegate address voting power when a new user registers.
+     * @dev Grants the chosen delegate address voting power when a new user registers.
      *
-     * @param delegatee                    The address to delegate the voting power associated
-     *                                     with the Registration to.
-     * @param newVotingPower               Amount of votingPower associated with this Registration to
-     *                                     be added to delegates existing votingPower.
+     * @param delegatee                         The address to delegate the voting power associated
+     *                                          with the Registration to.
+     * @param newVotingPower                    Amount of votingPower associated with this Registration to
+     *                                          be added to delegates existing votingPower.
      *
      */
     function _grantVotingPower(address delegatee, uint128 newVotingPower) internal {
