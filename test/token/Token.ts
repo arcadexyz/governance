@@ -351,7 +351,7 @@ describe("ArcadeToken", function () {
 
     describe("ArcadeToken Airdrop", () => {
         it("all recipients claim airdrop and delegate to themselves", async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, mockLockingVault } =
                 ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -376,7 +376,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -386,9 +386,9 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
 
-            expect(await arcdToken.balanceOf(frozenLockingVault.address)).to.equal(
+            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
@@ -420,7 +420,7 @@ describe("ArcadeToken", function () {
         });
 
         it("user tries to claim airdrop twice", async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, frozenLockingVault } = ctxToken;
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockLockingVault } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
@@ -441,7 +441,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
 
             // try to claim again
             await expect(
@@ -494,7 +494,7 @@ describe("ArcadeToken", function () {
                 recipients,
                 merkleTrie,
                 blockchainTime,
-                frozenLockingVault,
+                mockLockingVault,
             } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -520,7 +520,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -530,11 +530,11 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
 
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(0);
             expect(await arcdToken.balanceOf(other.address)).to.equal(0);
-            expect(await arcdToken.balanceOf(frozenLockingVault.address)).to.equal(
+            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
@@ -613,9 +613,9 @@ describe("ArcadeToken", function () {
         });
     });
 
-    describe("Claiming from UPGRADED locking vault", function () {
+    describe("Claiming from locking vault", function () {
         beforeEach(async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, frozenLockingVault } =
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, mockLockingVault } =
                 ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -637,46 +637,16 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
 
-            await expect(await arcdToken.balanceOf(frozenLockingVault.address)).to.equal(recipients[1].value);
+            await expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(recipients[1].value);
             await expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
                 ethers.utils.parseEther("10000000").sub(recipients[1].value),
             );
         });
 
-        it("user tries to withdraw from frozen vault", async function () {
-            const { other, recipients, frozenLockingVault } = ctxToken;
-
-            // user tries to claim before vault is upgraded
-            await expect(frozenLockingVault.connect(other).withdraw(recipients[1].value)).to.be.revertedWith(
-                "FLV_WithdrawsFrozen()",
-            );
-        });
-
-        it("owner upgrades vault", async function () {
-            const { arcdToken, deployer, simpleProxy, staleBlockNum } = ctxToken;
-
-            // owner upgrades vault
-            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
-            const lockingVault = await lockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
-
-            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            await expect(await simpleProxy.proxyImplementation()).to.equal(lockingVault.address);
-        });
-
-        it("multiple users withdraw after vault upgrade", async function () {
-            const {
-                arcdToken,
-                arcdAirdrop,
-                deployer,
-                other,
-                recipients,
-                frozenLockingVault,
-                simpleProxy,
-                staleBlockNum,
-                merkleTrie,
-            } = ctxToken;
+        it("multiple users withdraw from locking vault", async function () {
+            const { arcdToken, arcdAirdrop, deployer, other, recipients, mockLockingVault, merkleTrie } = ctxToken;
 
             // create proof for other
             const proofDeployer = merkleTrie.getHexProof(
@@ -692,72 +662,48 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
 
-            await expect(await arcdToken.balanceOf(frozenLockingVault.address)).to.equal(
+            await expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             await expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
                 ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
             );
 
-            // deploy new implementation, use same stale block as the frozen vault
-            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
-            let lockingVault = await lockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
-
-            // owner upgrades vault
-            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            lockingVault = await lockingVault.attach(simpleProxy.address);
-
             // other claims
-            await expect(await lockingVault.connect(other).withdraw(recipients[1].value))
+            await expect(await mockLockingVault.connect(other).withdraw(recipients[1].value))
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(lockingVault.address, other.address, recipients[1].value);
+                .withArgs(mockLockingVault.address, other.address, recipients[1].value);
 
             // deployer claims
-            await expect(await lockingVault.connect(deployer).withdraw(recipients[0].value))
+            await expect(await mockLockingVault.connect(deployer).withdraw(recipients[0].value))
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(lockingVault.address, deployer.address, recipients[0].value);
+                .withArgs(mockLockingVault.address, deployer.address, recipients[0].value);
 
             await expect(await arcdToken.balanceOf(deployer.address)).to.equal(recipients[0].value);
             await expect(await arcdToken.balanceOf(other.address)).to.equal(recipients[1].value);
-            await expect(await arcdToken.balanceOf(lockingVault.address)).to.equal(0);
+            await expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(0);
         });
 
         it("user tries to withdraw more than allotted amount", async function () {
-            const { arcdToken, deployer, other, recipients, simpleProxy, staleBlockNum } = ctxToken;
-
-            // deploy new implementation, use same stale block as the frozen vault
-            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
-            let lockingVault = await lockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
-
-            // owner upgrades vault
-            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            lockingVault = await lockingVault.attach(simpleProxy.address);
+            const { arcdToken, other, recipients, mockLockingVault } = ctxToken;
 
             // user tries to claim more than allotted amount
-            await expect(lockingVault.connect(other).withdraw(recipients[1].value.add(1))).to.be.reverted;
+            await expect(mockLockingVault.connect(other).withdraw(recipients[1].value.add(1))).to.be.reverted;
 
             await expect(await arcdToken.balanceOf(other.address)).to.equal(0);
         });
 
         it("user tries to withdraw twice", async function () {
-            const { arcdToken, deployer, other, recipients, frozenLockingVault, simpleProxy, staleBlockNum } = ctxToken;
-
-            // deploy new implementation, use same stale block as the frozen vault
-            const lockingVaultFactory = await ethers.getContractFactory("LockingVault");
-            let lockingVault = await lockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
-
-            // owner upgrades vault
-            await simpleProxy.connect(deployer).upgradeProxy(lockingVault.address);
-            lockingVault = await lockingVault.attach(simpleProxy.address);
+            const { arcdToken, other, recipients, mockLockingVault } = ctxToken;
 
             // user claims
-            await expect(await lockingVault.connect(other).withdraw(recipients[1].value))
+            await expect(await mockLockingVault.connect(other).withdraw(recipients[1].value))
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(lockingVault.address, other.address, recipients[1].value);
+                .withArgs(mockLockingVault.address, other.address, recipients[1].value);
             // user claims again
-            await expect(frozenLockingVault.connect(other).withdraw(recipients[1].value)).to.be.reverted;
+            await expect(mockLockingVault.connect(other).withdraw(recipients[1].value)).to.be.reverted;
         });
     });
 });
