@@ -19,7 +19,8 @@ import {
     AVV_NoGrantSet,
     AVV_CliffNotReached,
     AVV_AlreadyDelegated,
-    AVV_InvalidAmount
+    AVV_InvalidAmount,
+    AVV_ZeroAddress
 } from "./errors/Governance.sol";
 
 /**
@@ -60,6 +61,9 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      * @param timelock_           The address of the timelock.
      */
     constructor(IERC20 _token, uint256 _stale, address manager_, address timelock_) BaseVotingVault(_token, _stale) {
+        if (manager_ == address(0)) revert AVV_ZeroAddress();
+        if (timelock_ == address(0)) revert AVV_ZeroAddress();
+
         Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);
         Storage.set(Storage.uint256Ptr("entered"), 1);
@@ -348,7 +352,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
         uint256 newVotingPower = _currentVotingPower(grant);
         // get the change in voting power. Negative if the voting power is reduced
         int256 change = int256(newVotingPower) - int256(uint256(grant.latestVotingPower));
-        // do nothing if there is no change
+        // voting power can only go down since only called when tokens are claimed or grant revoked
         if (change < 0) {
             // if the change is negative, we multiply by -1 to avoid underflow when casting
             votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));

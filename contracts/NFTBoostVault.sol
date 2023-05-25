@@ -22,6 +22,7 @@ import {
     NBV_NoMultiplierSet,
     NBV_InvalidNft,
     NBV_ZeroAmount,
+    NBV_ZeroAddress,
     NBV_ArrayTooManyElements,
     NBV_Locked,
     NBV_AlreadyUnlocked
@@ -82,6 +83,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address timelock,
         address manager
     ) BaseVotingVault(token, staleBlockLag) {
+        if (timelock == address(0)) revert NBV_ZeroAddress();
+        if (manager == address(0)) revert NBV_ZeroAddress();
+
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);

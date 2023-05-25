@@ -10,7 +10,7 @@ import "./libraries/HashedStorageReentrancyBlock.sol";
 
 import "./interfaces/IBaseVotingVault.sol";
 
-import { BVV_NotManager, BVV_NotTimelock } from "./errors/Governance.sol";
+import { BVV_NotManager, BVV_NotTimelock, BVV_ZeroAddress } from "./errors/Governance.sol";
 
 /**
  * @title BaseVotingVault
@@ -50,6 +50,8 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      * @param _staleBlockLag             The number of blocks before which the delegation history is forgotten.
      */
     constructor(IERC20 _token, uint256 _staleBlockLag) {
+        if (address(_token) == address(0)) revert BVV_ZeroAddress();
+
         token = _token;
         staleBlockLag = _staleBlockLag;
     }

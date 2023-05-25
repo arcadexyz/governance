@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
+import { deploy } from "./utils/deploy";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
@@ -21,6 +22,40 @@ describe("Vesting voting vault", function () {
 
         fixtureGov = await governanceFixture(ctxToken.arcdToken);
         ctxGovernance = await loadFixture(fixtureGov);
+    });
+
+    it("invalid deployment parameters", async () => {
+        const { signers } = ctxGovernance;
+
+        // get the current block number
+        const currentBlockNum = 10;
+
+        await expect(
+            deploy("ARCDVestingVault", signers[0], [
+                ethers.constants.AddressZero,
+                currentBlockNum,
+                signers[1].address,
+                signers[2].address,
+            ]),
+        ).to.be.revertedWith("BVV_ZeroAddress()");
+
+        await expect(
+            deploy("ARCDVestingVault", signers[0], [
+                signers[1].address,
+                currentBlockNum,
+                ethers.constants.AddressZero,
+                signers[2].address,
+            ]),
+        ).to.be.revertedWith("AVV_ZeroAddress()");
+
+        await expect(
+            deploy("ARCDVestingVault", signers[0], [
+                signers[1].address,
+                currentBlockNum,
+                signers[2].address,
+                ethers.constants.AddressZero,
+            ]),
+        ).to.be.revertedWith("AVV_ZeroAddress()");
     });
 
     describe("Manager only functions", function () {
@@ -821,12 +856,13 @@ describe("Vesting voting vault", function () {
             expect(grant.delegatee).to.equal(OTHER_ADDRESS);
 
             // increase blocks past cliff
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 101; i++) {
                 await ethers.provider.send("evm_mine", []);
             }
 
             // user claims after cliff
             const claimable = await vestingVotingVault.connect(OTHER).claimable(OTHER_ADDRESS);
+            expect(claimable).to.equal(ethers.utils.parseEther("50.5"));
             await vestingVotingVault.connect(OTHER).claim(claimable);
             expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(claimable);
 

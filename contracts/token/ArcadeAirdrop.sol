@@ -37,8 +37,6 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
         uint256 _expiration,
         ILockingVault _lockingVault
     ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _lockingVault) {
-        if (address(_lockingVault) == address(0)) revert AA_ZeroAddress();
-
         setOwner(_governance);
     }
 
