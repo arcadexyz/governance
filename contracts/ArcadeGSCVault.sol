@@ -5,34 +5,17 @@ pragma solidity 0.8.18;
 import "./external/council/vaults/GSCVault.sol";
 
 /**
- *
- * @title ArcadeGSCCoreVoting
+ * @title ArcadeGSCVault
  * @author Non-Fungible Technologies, Inc.
  *
+ * The Arcade GSC Voting Vault contract enables a 'council' of delegates who act as a steering committee
+ * for the Arcade DAO.
  *
- * The Arcade GSC vault contract enables the council members to vote on proposals and execute them only
- * with agreement from the council.
- *
- * The GSC vault gives one vote to each member of the GSC council. Members can propose on-chain votes directly
- * without meeting the minimum requirement of voting power for proposal creation (aka spam threshold), and it can
- * move directly to on-chain voting. This is in contrast to the rest of the governance community’s proposal creation
- * process, an off-chain poll and lastly an on-chain vote.
- *
- * The GSC can make calls that have any custom GSC consensus requirement, ranging from one GSC member vote to a
- * supermajority. This means a wide variety of committee-based vote systems can run in parallel to the main voting
- * system! This is accomplished by using a copy of the core voting contract.
- *
- * The GSC is a group of delegates, each of whom has reached a pre-established threshold of delegated voting power,
- * giving them additional governance powers within the system, and as a result, additional responsibilities.
- * GSC members can have different special functions (propose votes directly on chain, spend a portion of treasury
- * funds at their discretion, etc.), different responsibilities (DAO2DAO relationships, collaborations, treasury
- * management, community engagement, etc.), and might (depending upon a vote) be compensated for the time and effort
- * that they dedicate to improving the protocol. All of these functions and responsibilities must be defined and
- * ratified through the governance process.
- *
- * source: //docs.element.fi/governance-council/council-protocol-overview/governance-steering-council
+ * This GSC voting vault gives one vote to each member of the GSC council. To become a member of the GSC council,
+ * a user must meet a minimum voting power threshold and prove their memebership on chain. Members can be kicked
+ * off the council if their voting power falls below the minimum threshold. The voting parameters in this contract
+ * can only be set by the Arcade DAO not the GSC committee.
  */
-
 contract ArcadeGSCVault is GSCVault {
     // ==================================== CONSTRUCTOR ================================================
 

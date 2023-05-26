@@ -93,7 +93,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
         uint128 expiration,
         uint128 cliff,
         address delegatee
-    ) public onlyManager {
+    ) external onlyManager {
         // if no custom start time is needed we use this block.
         if (startTime == 0) {
             startTime = uint128(block.number);
@@ -150,7 +150,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      *
      * @param who             The grant owner.
      */
-    function revokeGrant(address who) public virtual onlyManager {
+    function revokeGrant(address who) external virtual onlyManager {
         // load the grant
         ARCDVestingVaultStorage.Grant storage grant = _grants()[who];
 
@@ -186,7 +186,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      *
      * @param amount           The amount of tokens to deposit.
      */
-    function deposit(uint256 amount) public onlyManager {
+    function deposit(uint256 amount) external onlyManager {
         Storage.Uint256 storage unassigned = _unassigned();
         // update unassigned value
         unassigned.data += amount;
@@ -200,7 +200,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      * @param amount           The amount to withdraw.
      * @param recipient        The address to withdraw to.
      */
-    function withdraw(uint256 amount, address recipient) public virtual onlyManager {
+    function withdraw(uint256 amount, address recipient) external virtual onlyManager {
         Storage.Uint256 storage unassigned = _unassigned();
         if (unassigned.data < amount) revert AVV_InsufficientBalance(unassigned.data);
         // update unassigned value
@@ -216,7 +216,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      *
      * @param amount                 The amount to withdraw.
      */
-    function claim(uint256 amount) public virtual nonReentrant {
+    function claim(uint256 amount) external virtual nonReentrant {
         if (amount == 0) revert AVV_InvalidAmount();
 
         // load the grant
@@ -248,7 +248,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      *
      * @param to              The address to delegate to.
      */
-    function delegate(address to) public {
+    function delegate(address to) external {
         ARCDVestingVaultStorage.Grant storage grant = _grants()[msg.sender];
         if (to == grant.delegatee) revert AVV_AlreadyDelegated();
 
@@ -283,7 +283,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      *
      * @return Token amount that can be claimed.
      */
-    function claimable(address who) public view returns (uint256) {
+    function claimable(address who) external view returns (uint256) {
         return _getWithdrawableAmount(_grants()[who]);
     }
 

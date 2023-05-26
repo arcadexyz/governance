@@ -5,14 +5,15 @@ pragma solidity 0.8.18;
 import "./external/council/CoreVoting.sol";
 
 /**
- *
  * @title ArcadeGSCCoreVoting
  * @author Non-Fungible Technologies, Inc.
  *
+ * The Arcade GSC Core Voting contract allows members of the GSV vault to vote on and execute proposals
+ * in a separate instance of governance separate for all general governance votes.
  *
- * The Arcade core voting contract allows a voting process for GSC members who have been allocated
- * governance power to execute proposals via the GSC vault.
- *
+ * The GSC Core Voting contract cannot add proposals to the timelock. It can only extend the waiting
+ * period of queued proposals in the timelock. In addition, the GSC Core Voting contract can submit
+ * proposals to the General Core Voting contract without meeting the quorum threshold.
  */
 contract ArcadeGSCCoreVoting is CoreVoting {
     // ==================================== CONSTRUCTOR ================================================

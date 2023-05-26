@@ -16,11 +16,10 @@ import { BVV_NotManager, BVV_NotTimelock, BVV_ZeroAddress } from "./errors/Gover
  * @title BaseVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
- * This contract is a base voting vault contract for Arcade voting vaults.
- * It includes the basic structure of a voting vault as well as query, and
- * setter / getter voting vault operations.
+ * This contract is a base voting vault contract for use with Arcade voting vaults.
+ * It includes basic voting vault functions like querying vote power, setting
+ * the timelock and manager addresses, and getting the contracts token balance.
  */
-
 abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVault {
     // ======================================== STATE ==================================================
 
@@ -64,7 +63,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @param timelock_                  The new timelock.
      */
-    function setTimelock(address timelock_) public onlyTimelock {
+    function setTimelock(address timelock_) external onlyTimelock {
         Storage.set(Storage.addressPtr("timelock"), timelock_);
     }
 
@@ -74,7 +73,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @param manager_                   The new manager address.
      */
-    function setManager(address manager_) public onlyTimelock {
+    function setManager(address manager_) external onlyTimelock {
         Storage.set(Storage.addressPtr("manager"), manager_);
     }
 
