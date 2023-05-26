@@ -324,6 +324,8 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
             uint256 unlocked = grant.cliffAmount + (postCliffAmount * blocksElapsedSinceCliff) / totalBlocksPostCliff;
 
             return unlocked - grant.withdrawn;
+        } else {
+            return 0;
         }
     }
 

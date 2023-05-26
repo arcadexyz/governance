@@ -85,15 +85,10 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @param user                       The address we want to load the voting power of.
      * @param blockNumber                Block number to query the user's voting power at.
-     * @param extraData                  The calldata is unused in this contract.
      *
      * @return votes                     The number of votes.
      */
-    function queryVotePower(
-        address user,
-        uint256 blockNumber,
-        bytes calldata extraData
-    ) external override returns (uint256) {
+    function queryVotePower(address user, uint256 blockNumber, bytes calldata) external override returns (uint256) {
         // Get our reference to historical data
         History.HistoricalBalances memory votingPower = _votingPower();
 

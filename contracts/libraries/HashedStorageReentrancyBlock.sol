@@ -23,16 +23,17 @@ abstract contract HashedStorageReentrancyBlock {
      * @dev Re-entrancy guard modifier using hashed storage.
      */
     modifier nonReentrant() {
-        Storage.Uint256 memory _entered = _entered();
+        Storage.Uint256 memory entered = _entered();
         // Check the state variable before the call is entered
-        require(_entered.data == 1, "REENTRANCY");
+        require(entered.data == 1, "REENTRANCY");
 
         // Store that the function has been entered
-        _entered.data = 2;
+        entered.data = 2;
+
         // Run the function code
         _;
 
         // Clear the state
-        _entered.data = 1;
+        entered.data = 1;
     }
 }
