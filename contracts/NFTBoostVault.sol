@@ -8,6 +8,7 @@ import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
 import "./libraries/VotingVaultStorage.sol";
+import "./interfaces/INFTBoostVault.sol";
 
 import "./BaseVotingVault.sol";
 
@@ -49,7 +50,7 @@ import {
  *      storage and return the following as methods to isolate that call.
  */
 
-contract NFTBoostVault is BaseVotingVault {
+contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring History library into scope
@@ -88,14 +89,6 @@ contract NFTBoostVault is BaseVotingVault {
         Storage.set(Storage.uint256Ptr("locked"), 1);
     }
 
-    // ============================================ EVENTS ===============================================
-
-    // Event to track multipliers
-    event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
-
-    // Event for withdrawal unlock
-    event WithdrawalsUnlocked();
-
     // ===================================== USER FUNCTIONALITY =========================================
 
     /**
@@ -116,7 +109,7 @@ contract NFTBoostVault is BaseVotingVault {
         uint128 tokenId,
         address tokenAddress,
         address delegatee
-    ) external virtual nonReentrant {
+    ) external override nonReentrant {
         uint256 multiplier = 1e18;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
@@ -173,7 +166,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @param to                        The address to delegate to.
      */
-    function delegate(address to) external virtual {
+    function delegate(address to) external override {
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // If to address is already the delegate, don't send the tx
@@ -212,7 +205,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @param amount                      The amount of token to withdraw.
      */
-    function withdraw(uint128 amount) external virtual nonReentrant {
+    function withdraw(uint128 amount) external override nonReentrant {
         if (getIsLocked() == 1) revert NBV_Locked();
         if (amount == 0) revert NBV_ZeroAmount();
 
@@ -253,7 +246,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @param amount                      The amount of tokens to add.
      */
-    function addTokens(uint128 amount) external virtual nonReentrant {
+    function addTokens(uint128 amount) external override nonReentrant {
         if (amount == 0) revert NBV_ZeroAmount();
         // load the registration
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
@@ -276,7 +269,7 @@ contract NFTBoostVault is BaseVotingVault {
      * @notice Allows a users to withdraw the ERC1155 NFT they are using for
      *         accessing a voting power multiplier.
      */
-    function withdrawNft() public nonReentrant {
+    function withdrawNft() public override nonReentrant {
         // load the registration
         VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -307,7 +300,7 @@ contract NFTBoostVault is BaseVotingVault {
      * @param newTokenAddress            Address of the new ERC1155 token the user wants to use.
      * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
      */
-    function updateNft(uint128 newTokenId, address newTokenAddress) external nonReentrant {
+    function updateNft(uint128 newTokenId, address newTokenAddress) external override nonReentrant {
         if (newTokenAddress == address(0) || newTokenId == 0) revert NBV_InvalidNft(newTokenAddress, newTokenId);
 
         if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert NBV_DoesNotOwn();
@@ -337,7 +330,7 @@ contract NFTBoostVault is BaseVotingVault {
      * @param userAddresses             Array of addresses whose registration voting power this
      *                                  function updates.
      */
-    function updateVotingPower(address[] memory userAddresses) public {
+    function updateVotingPower(address[] memory userAddresses) public override {
         if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
 
         for (uint256 i = 0; i < userAddresses.length; ++i) {
@@ -358,7 +351,7 @@ contract NFTBoostVault is BaseVotingVault {
      * @param multiplierValue           The multiplier value corresponding to the token address and id.
      *
      */
-    function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public virtual onlyManager {
+    function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
         if (multiplierValue >= MAX_MULTIPLIER) revert NBV_MultiplierLimit();
 
         VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
@@ -373,7 +366,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @dev Allows the timelock to unlock withdrawals. Cannot be reversed.
      */
-    function unlock() external onlyTimelock {
+    function unlock() external override onlyTimelock {
         if (getIsLocked() != 1) revert NBV_AlreadyUnlocked();
         Storage.set(Storage.uint256Ptr("locked"), 2);
 
@@ -387,7 +380,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @return locked                           Whether withdrawals are locked.
      */
-    function getIsLocked() public view returns (uint256) {
+    function getIsLocked() public view override returns (uint256) {
         return Storage.uint256Ptr("locked").data;
     }
 
@@ -400,7 +393,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @return                          The token multiplier.
      */
-    function getMultiplier(address tokenAddress, uint128 tokenId) public view returns (uint256) {
+    function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint256) {
         VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         // if a user does not specify a ERC1155 nft, their multiplier is set to 1
@@ -418,7 +411,7 @@ contract NFTBoostVault is BaseVotingVault {
      *
      * @return registration                     Registration of the provided address.
      */
-    function getRegistration(address who) external view returns (VotingVaultStorage.Registration memory) {
+    function getRegistration(address who) external view override returns (VotingVaultStorage.Registration memory) {
         return _getRegistrations()[who];
     }
 
