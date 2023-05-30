@@ -32,10 +32,9 @@ export interface TestContextToken {
 }
 
 /**
- * This fixture  test context for the Arcade token, deploying the Arcade token, distribution and airdrop contracts
+ * This fixture is test context for the Arcade token, deploying the Arcade token, distribution and airdrop contracts
  * and returning them for use in unit testing.
  */
-// export const tokenFixture = async (): Promise<TestContextToken> => {
 export const tokenFixture = (): (() => Promise<TestContextToken>) => {
     return async (): Promise<TestContextToken> => {
         const blockchainTime = new BlockchainTime();
@@ -66,7 +65,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         await arcdDst.connect(deployer).setToken(arcdToken.address);
         expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
-        // ========================== UPGRADEABLE AIRDROP VAULT DEPLOYMENT =========================
+        // ========================== MOCK AIRDROP VAULT DEPLOYMENT =========================
 
         const staleBlock = await ethers.provider.getBlock("latest");
         const staleBlockNum = staleBlock.number;
