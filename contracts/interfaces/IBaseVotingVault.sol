@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.18;
 
 interface IBaseVotingVault {
     function queryVotePower(address user, uint256 blockNumber, bytes calldata extraData) external returns (uint256);
