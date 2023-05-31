@@ -55,10 +55,10 @@ describe("ArcadeToken", function () {
                     ethers.constants.AddressZero,
                     merkleTrie.getHexRoot(),
                     arcdToken.address,
-                    currentBlock + 100,
+                    expiration,
                     deployer.address,
                 ]),
-            ).to.be.revertedWith(`AA_ClaimingExpired()`);
+            ).to.be.revertedWith(`AA_ZeroAddress()`);
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
@@ -661,7 +661,7 @@ describe("ArcadeToken", function () {
                 recipients,
                 merkleTrie,
                 blockchainTime,
-                frozenLockingVault,
+                mockLockingVault,
             } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -687,7 +687,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -697,11 +697,11 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, frozenLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
 
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(0);
             expect(await arcdToken.balanceOf(other.address)).to.equal(0);
-            expect(await arcdToken.balanceOf(frozenLockingVault.address)).to.equal(
+            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(

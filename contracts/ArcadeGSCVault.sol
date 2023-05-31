@@ -17,9 +17,10 @@ import "./external/council/vaults/GSCVault.sol";
  * can only be set by the Arcade DAO not the GSC committee.
  *
  * Members of the GSC council in the Arcade DAO have a few unique abilities in the context of governance. They
- * can propose a vote to the Arcade DAO through general governance. They can extend the locking period of a
- * proposal in the timelock, and also execute small spends from the Treasury without votes from the general
- * governance participants.
+ * can propose on-chain DAO votes directly, without meeting voting power requirements for proposal creation. They
+ * can extend the locking period of a proposal in the timelock, as well as execute small spends from the Treasury
+ * without votes from DAO participants. Additionally, GSC votes only need to be approved by GSC members and not by
+ * the entire DAO.
  */
 contract ArcadeGSCVault is GSCVault {
     // ==================================== CONSTRUCTOR ================================================
