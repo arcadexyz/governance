@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
+import { deploy } from "../utils/deploy";
 import { TestContextToken, tokenFixture } from "../utils/tokenFixture";
 
 const { loadFixture } = waffle;
@@ -41,6 +42,75 @@ describe("ArcadeToken", function () {
             expect(await arcdToken.balanceOf(arcdDst.address)).to.equal(ethers.utils.parseEther("100000000"));
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(0);
             expect(await arcdToken.minter()).to.equal(deployer.address);
+        });
+
+        it("Invalid ArcadeAirdrop deployment parameters", async () => {
+            const { arcdToken, deployer, merkleTrie, expiration } = ctxToken;
+
+            // get current block number
+            const currentBlock = 10;
+
+            await expect(
+                deploy("ArcadeAirdrop", deployer, [
+                    ethers.constants.AddressZero,
+                    merkleTrie.getHexRoot(),
+                    arcdToken.address,
+                    expiration,
+                    deployer.address,
+                ]),
+            ).to.be.revertedWith(`AA_ZeroAddress()`);
+
+            await expect(
+                deploy("ArcadeAirdrop", deployer, [
+                    deployer.address,
+                    merkleTrie.getHexRoot(),
+                    arcdToken.address,
+                    expiration,
+                    ethers.constants.AddressZero,
+                ]),
+            ).to.be.revertedWith(`AA_ZeroAddress()`);
+
+            await expect(
+                deploy("ArcadeAirdrop", deployer, [
+                    deployer.address,
+                    merkleTrie.getHexRoot(),
+                    ethers.constants.AddressZero,
+                    expiration,
+                    deployer.address,
+                ]),
+            ).to.be.revertedWith(`AA_ZeroAddress()`);
+
+            await expect(
+                deploy("ArcadeAirdrop", deployer, [
+                    deployer.address,
+                    merkleTrie.getHexRoot(),
+                    arcdToken.address,
+                    currentBlock,
+                    deployer.address,
+                ]),
+            ).to.be.revertedWith(`AA_ClaimingExpired()`);
+
+            await expect(
+                deploy("ArcadeAirdrop", deployer, [
+                    deployer.address,
+                    merkleTrie.getHexRoot(),
+                    arcdToken.address,
+                    currentBlock - 5,
+                    deployer.address,
+                ]),
+            ).to.be.revertedWith(`AA_ClaimingExpired()`);
+        });
+
+        it("Invalid ArcadeToken deployment parameters", async () => {
+            const { deployer } = ctxToken;
+
+            await expect(
+                deploy("ArcadeToken", deployer, [deployer.address, ethers.constants.AddressZero]),
+            ).to.be.revertedWith(`AT_ZeroAddress()`);
+
+            await expect(
+                deploy("ArcadeToken", deployer, [ethers.constants.AddressZero, deployer.address]),
+            ).to.be.revertedWith(`AT_ZeroAddress()`);
         });
     });
 
@@ -397,6 +467,29 @@ describe("ArcadeToken", function () {
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
         });
 
+        it("user tries to delegate to address zero", async function () {
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie } = ctxToken;
+
+            await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcdDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                arcdAirdrop.connect(deployer).claimAndDelegate(
+                    ethers.constants.AddressZero, // address to delegate voting power to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            ).to.be.revertedWith("AA_ZeroAddress()");
+        });
+
         it("user tries to claim airdrop with invalid proof", async function () {
             const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie } = ctxToken;
 
@@ -555,6 +648,72 @@ describe("ArcadeToken", function () {
 
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(
                 ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+            );
+        });
+
+        it("owner tries to reclaim token to zero address", async function () {
+            const {
+                arcdToken,
+                arcdDst,
+                arcdAirdrop,
+                deployer,
+                other,
+                recipients,
+                merkleTrie,
+                blockchainTime,
+                mockLockingVault,
+            } = ctxToken;
+
+            await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+
+            expect(await arcdDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+            const proofOther = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+            );
+
+            // claims
+            await expect(
+                await arcdAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
+
+            await expect(
+                await arcdAirdrop.connect(other).claimAndDelegate(
+                    recipients[1].address, // address to delegate to
+                    recipients[1].value, // total claimable amount
+                    proofOther, // merkle proof
+                ),
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
+
+            expect(await arcdToken.balanceOf(deployer.address)).to.equal(0);
+            expect(await arcdToken.balanceOf(other.address)).to.equal(0);
+            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
+                recipients[0].value.add(recipients[1].value),
+            );
+            expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+            );
+
+            // advance time past claiming period
+            await blockchainTime.increaseTime(3600);
+
+            // reclaim all tokens
+            await expect(arcdAirdrop.connect(deployer).reclaim(ethers.constants.AddressZero)).to.be.revertedWith(
+                "AA_ZeroAddress()",
             );
         });
 

@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 
+import { deploy } from "./utils/deploy";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";
 
@@ -38,6 +39,39 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
         for (let i = 0; i < signers.length; i++) {
             await arcdToken.connect(signers[0]).transfer(signers[i].address, ONE.mul(100));
         }
+    });
+
+    it("Invalid deployment parameters", async () => {
+        const { signers } = ctxGovernance;
+
+        const staleBlockNum = 10;
+
+        await expect(
+            deploy("NFTBoostVault", signers[0], [
+                ethers.constants.AddressZero,
+                staleBlockNum,
+                signers[0].address,
+                signers[1].address,
+            ]),
+        ).to.be.revertedWith("BVV_ZeroAddress");
+
+        await expect(
+            deploy("NFTBoostVault", signers[0], [
+                signers[0].address,
+                staleBlockNum,
+                ethers.constants.AddressZero,
+                signers[1].address,
+            ]),
+        ).to.be.revertedWith("NBV_ZeroAddress");
+
+        await expect(
+            deploy("NFTBoostVault", signers[0], [
+                signers[0].address,
+                staleBlockNum,
+                signers[1].address,
+                ethers.constants.AddressZero,
+            ]),
+        ).to.be.revertedWith("NBV_ZeroAddress");
     });
 
     describe("Governance flow with NFT boost vault", async () => {

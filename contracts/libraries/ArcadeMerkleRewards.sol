@@ -55,6 +55,10 @@ contract ArcadeMerkleRewards {
      * @param _lockingVault          The locking vault to deposit tokens to
      */
     constructor(bytes32 _rewardsRoot, IERC20 _token, uint256 _expiration, ILockingVault _lockingVault) {
+        if (_expiration <= block.timestamp) revert AA_ClaimingExpired();
+        if (address(_token) == address(0)) revert AA_ZeroAddress();
+        if (address(_lockingVault) == address(0)) revert AA_ZeroAddress();
+
         rewardsRoot = _rewardsRoot;
         token = _token;
         expiration = _expiration;

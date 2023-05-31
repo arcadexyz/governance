@@ -68,6 +68,11 @@ error NBV_InvalidNft(address tokenAddress, uint256 tokenId);
 error NBV_ZeroAmount();
 
 /**
+ * @notice Cannot pass zero address as an address parameter.
+ */
+error NBV_ZeroAddress();
+
+/**
  * @notice Provided addresses array holds more than 50 addresses.
  */
 error NBV_ArrayTooManyElements();
@@ -137,6 +142,11 @@ error AVV_AlreadyDelegated();
  */
 error AVV_InvalidAmount();
 
+/**
+ * @notice Cannot pass zero address as an address parameter.
+ */
+error AVV_ZeroAddress();
+
 // ==================================== IMMUTABLE VESTING VAULT ======================================
 
 /**
@@ -155,3 +165,8 @@ error BVV_NotManager();
  * @notice Caller is not the timelock.
  */
 error BVV_NotTimelock();
+
+/**
+ * @notice Cannot pass zero address as an address parameter.
+ */
+error BVV_ZeroAddress();

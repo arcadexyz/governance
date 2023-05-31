@@ -19,7 +19,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
-     * @notice Instanatiate the contract with a merkle tree root, a token for distribution,
+     * @notice Initiate the contract with a merkle tree root, a token for distribution,
      *         an expiration time for claims, and the voting vault that tokens will be
      *         airdropped into. In addition, set a governance parameter for the address that
      *         can reclaim tokens after expiry.
@@ -37,7 +37,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
         uint256 _expiration,
         ILockingVault _lockingVault
     ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _lockingVault) {
-        if (address(_lockingVault) == address(0)) revert AA_ZeroAddress();
+        if (_governance == address(0)) revert AA_ZeroAddress();
 
         setOwner(_governance);
     }

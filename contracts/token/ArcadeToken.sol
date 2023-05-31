@@ -90,7 +90,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
 
     // ======================== State =========================
 
-    /// @notice Minter contract address
+    /// @notice Minter contract address responsible for minting future tokens
     address public minter;
 
     /// @notice The timestamp after which minting may occur
@@ -111,7 +111,9 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
      * @param _initialDistribution  The address to receive the initial distribution of tokens.
      */
     constructor(address _minter, address _initialDistribution) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
-        // address responsible for minting future ARC tokens
+        if (_minter == address(0)) revert AT_ZeroAddress();
+        if (_initialDistribution == address(0)) revert AT_ZeroAddress();
+
         minter = _minter;
 
         mintingAllowedAfter = block.timestamp + MIN_TIME_BETWEEN_MINTS;

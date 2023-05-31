@@ -5,14 +5,11 @@ pragma solidity 0.8.18;
 import "./external/council/CoreVoting.sol";
 
 /**
- *
  * @title ArcadeGSCCoreVoting
  * @author Non-Fungible Technologies, Inc.
  *
- *
- * The Arcade core voting contract allows a voting process for GSC members who have been allocated
- * governance power to execute proposals via the GSC vault.
- *
+ * The Arcade GSC Core Voting contract allows members of the GSC vault to vote on and execute proposals
+ * in an instance of governance separate from general governance votes.
  */
 contract ArcadeGSCCoreVoting is CoreVoting {
     // ==================================== CONSTRUCTOR ================================================

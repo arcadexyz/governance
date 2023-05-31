@@ -22,6 +22,7 @@ import {
     NBV_NoMultiplierSet,
     NBV_InvalidNft,
     NBV_ZeroAmount,
+    NBV_ZeroAddress,
     NBV_ArrayTooManyElements,
     NBV_Locked,
     NBV_AlreadyUnlocked
@@ -82,6 +83,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address timelock,
         address manager
     ) BaseVotingVault(token, staleBlockLag) {
+        if (timelock == address(0)) revert NBV_ZeroAddress();
+        if (manager == address(0)) revert NBV_ZeroAddress();
+
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
@@ -574,21 +578,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *       at the end of a safeTransferFrom after the balance has been updated. To accept the transfer,
      *       this must return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
      *
-     * @param operator                  The address which initiated the transfer.
-     * @param from                      The address which previously owned the token.
-     * @param id                        The ID of the token being transferred.
-     * @param value                     The amount of tokens being transferred.
-     * @param data                      Additional data with no specified format.
-     *
      * @return                          0xf23a6e61
      */
-    function onERC1155Received(
-        address operator,
-        address from,
-        uint256 id,
-        uint256 value,
-        bytes memory data
-    ) public virtual returns (bytes4) {
+    function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 }

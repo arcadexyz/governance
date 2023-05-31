@@ -10,17 +10,16 @@ import "./libraries/HashedStorageReentrancyBlock.sol";
 
 import "./interfaces/IBaseVotingVault.sol";
 
-import { BVV_NotManager, BVV_NotTimelock } from "./errors/Governance.sol";
+import { BVV_NotManager, BVV_NotTimelock, BVV_ZeroAddress } from "./errors/Governance.sol";
 
 /**
  * @title BaseVotingVault
  * @author Non-Fungible Technologies, Inc.
  *
- * This contract is a base voting vault contract for Arcade voting vaults.
- * It includes the basic structure of a voting vault as well as query, and
- * setter / getter voting vault operations.
+ * This contract is a base voting vault contract for use with Arcade voting vaults.
+ * It includes basic voting vault functions like querying vote power, setting
+ * the timelock and manager addresses, and getting the contracts token balance.
  */
-
 abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVault {
     // ======================================== STATE ==================================================
 
@@ -50,6 +49,8 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      * @param _staleBlockLag             The number of blocks before which the delegation history is forgotten.
      */
     constructor(IERC20 _token, uint256 _staleBlockLag) {
+        if (address(_token) == address(0)) revert BVV_ZeroAddress();
+
         token = _token;
         staleBlockLag = _staleBlockLag;
     }
@@ -62,7 +63,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @param timelock_                  The new timelock.
      */
-    function setTimelock(address timelock_) public onlyTimelock {
+    function setTimelock(address timelock_) external onlyTimelock {
         Storage.set(Storage.addressPtr("timelock"), timelock_);
     }
 
@@ -72,7 +73,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @param manager_                   The new manager address.
      */
-    function setManager(address manager_) public onlyTimelock {
+    function setManager(address manager_) external onlyTimelock {
         Storage.set(Storage.addressPtr("manager"), manager_);
     }
 
@@ -83,15 +84,10 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @param user                       The address we want to load the voting power of.
      * @param blockNumber                Block number to query the user's voting power at.
-     * @param extraData                  The calldata is unused in this contract.
      *
      * @return votes                     The number of votes.
      */
-    function queryVotePower(
-        address user,
-        uint256 blockNumber,
-        bytes calldata extraData
-    ) external override returns (uint256) {
+    function queryVotePower(address user, uint256 blockNumber, bytes calldata) external override returns (uint256) {
         // Get our reference to historical data
         History.HistoricalBalances memory votingPower = _votingPower();
 
