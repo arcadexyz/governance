@@ -47,6 +47,19 @@ describe("ArcadeToken", function () {
         it("Invalid ArcadeAirdrop deployment parameters", async () => {
             const { arcdToken, deployer, merkleTrie, expiration } = ctxToken;
 
+            // get current block number
+            const currentBlock = 10;
+
+            await expect(
+                deploy("ArcadeAirdrop", deployer, [
+                    ethers.constants.AddressZero,
+                    merkleTrie.getHexRoot(),
+                    arcdToken.address,
+                    currentBlock + 100,
+                    deployer.address,
+                ]),
+            ).to.be.revertedWith(`AA_ClaimingExpired()`);
+
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
                     deployer.address,
@@ -66,9 +79,6 @@ describe("ArcadeToken", function () {
                     deployer.address,
                 ]),
             ).to.be.revertedWith(`AA_ZeroAddress()`);
-
-            // get current block number
-            const currentBlock = 10;
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [

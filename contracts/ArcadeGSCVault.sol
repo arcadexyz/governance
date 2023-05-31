@@ -12,9 +12,14 @@ import "./external/council/vaults/GSCVault.sol";
  * for the Arcade DAO.
  *
  * This GSC voting vault gives one vote to each member of the GSC council. To become a member of the GSC council,
- * a user must meet a minimum voting power threshold and prove their memebership on chain. Members can be kicked
- * off the council if their voting power falls below the minimum threshold. The voting parameters in this contract
+ * a user must meet a minimum voting power threshold and prove their membership on chain. Members can be kicked
+ * off the council if their voting power falls below the minimum threshold. The voting parameters in the GSC Vault
  * can only be set by the Arcade DAO not the GSC committee.
+ *
+ * Members of the GSC council in the Arcade DAO have a few unique abilities in the context of governance. They
+ * can propose a vote to the Arcade DAO through general governance. They can extend the locking period of a
+ * proposal in the timelock, and also execute small spends from the Treasury without votes from the general
+ * governance participants.
  */
 contract ArcadeGSCVault is GSCVault {
     // ==================================== CONSTRUCTOR ================================================
