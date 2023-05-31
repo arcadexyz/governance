@@ -4,7 +4,7 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault, SimpleProxy } from "../../src/types";
+import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
@@ -22,8 +22,7 @@ export interface TestContextToken {
     arcdAirdrop: ArcadeAirdrop;
     arcdToken: IArcadeToken;
     arcdDst: ArcadeTokenDistributor;
-    simpleProxy: SimpleProxy;
-    frozenLockingVault: LockingVault;
+    mockLockingVault: LockingVault;
     recipients: Account;
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
@@ -33,10 +32,9 @@ export interface TestContextToken {
 }
 
 /**
- * This fixture  test context for the Arcade token, deploying the Arcade token, distribution and airdrop contracts
+ * This fixture is test context for the Arcade token, deploying the Arcade token, distribution and airdrop contracts
  * and returning them for use in unit testing.
  */
-// export const tokenFixture = async (): Promise<TestContextToken> => {
 export const tokenFixture = (): (() => Promise<TestContextToken>) => {
     return async (): Promise<TestContextToken> => {
         const blockchainTime = new BlockchainTime();
@@ -67,20 +65,16 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         await arcdDst.connect(deployer).setToken(arcdToken.address);
         expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
 
-        // ========================== UPGRADEABLE AIRDROP VAULT DEPLOYMENT =========================
+        // ========================== MOCK AIRDROP VAULT DEPLOYMENT =========================
 
         const staleBlock = await ethers.provider.getBlock("latest");
         const staleBlockNum = staleBlock.number;
 
-        // deploy FrozenLockingVault via proxy
-        const simpleProxyFactory = await ethers.getContractFactory("SimpleProxy");
-        const frozenLockingVaultFactory = await ethers.getContractFactory("FrozenLockingVault");
-        const frozenLockingVaultImp = await frozenLockingVaultFactory.deploy(arcdToken.address, staleBlockNum);
-        const simpleProxy = await simpleProxyFactory.deploy(signers[0].address, frozenLockingVaultImp.address);
-
-        const frozenLockingVault = await frozenLockingVaultImp.attach(simpleProxy.address);
-
-        await expect(await simpleProxy.proxyImplementation()).to.equal(frozenLockingVaultImp.address);
+        // deploy mock locking vault to simulate a voting vault in production
+        const mockLockingVault = <LockingVault>(
+            await deploy("LockingVault", signers[0], [arcdToken.address, staleBlockNum])
+        );
+        await mockLockingVault.deployed();
 
         // ====================================== AIRDROP SETUP =====================================
 
@@ -111,7 +105,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             root,
             arcdToken.address,
             expiration,
-            frozenLockingVault.address,
+            mockLockingVault.address,
         ]);
         await arcdAirdrop.deployed();
 
@@ -146,8 +140,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             arcdAirdrop,
             arcdToken,
             arcdDst,
-            simpleProxy,
-            frozenLockingVault,
+            mockLockingVault,
             recipients,
             blockchainTime,
             merkleTrie,

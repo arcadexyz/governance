@@ -17,9 +17,9 @@ import { AA_ClaimingExpired, AA_AlreadyClaimed, AA_NonParticipant, AA_ZeroAddres
  * be inherited by other contracts. This contract does not have a way to transfer tokens out of it
  * or change the merkle root.
  *
- * As users claim their tokens, this contract will deposit them into a frozen locking vault for
- * use in Arcade Governance. When claiming, the user can delegate voting power to themselves or
- * another account.
+ * As users claim their tokens, this contract will deposit them into a voting vault for use in
+ * Arcade Governance. When claiming, the user can delegate voting power to themselves or another
+ * account.
  */
 contract ArcadeMerkleRewards {
     // ============================================ STATE ==============================================
