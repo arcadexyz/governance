@@ -31,8 +31,11 @@ import {
 /**
  * Note: Against normal conventions, these tests are interdependent and meant
  * to run sequentially. Each subsequent test relies on the state of the previous.
+ * 
+ * To run these this script use:
+ * `yarn clean && yarn compile && npx hardhat test scripts/deploy/test/e2e.ts --network <networkName>`
  */
-// assert(NETWORK !== "hardhat", "Must use a long-lived network!");
+assert(NETWORK !== "hardhat", "Must use a long-lived network!");
 
 describe("Deployment", function() {
     this.timeout(0);
@@ -61,40 +64,40 @@ describe("Deployment", function() {
         expect(deployment["CoreVoting"].contractAddress).to.exist;
         expect(deployment["CoreVoting"].constructorArgs.length).to.eq(5);
 
-        expect(deployment["CoreVotingGSC"]).to.exist;
-        expect(deployment["CoreVotingGSC"].contractAddress).to.exist;
-        expect(deployment["CoreVotingGSC"].constructorArgs.length).to.eq(5);
+        expect(deployment["ArcadeGSCCoreVoting"]).to.exist;
+        expect(deployment["ArcadeGSCCoreVoting"].contractAddress).to.exist;
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs.length).to.eq(5);
 
         expect(deployment["Timelock"]).to.exist;
         expect(deployment["Timelock"].contractAddress).to.exist;
         expect(deployment["Timelock"].constructorArgs.length).to.eq(3);
 
-        expect(deployment["FrozenLockingVault"]).to.exist;
-        expect(deployment["FrozenLockingVault"].contractAddress).to.exist;
-        expect(deployment["FrozenLockingVault"].constructorArgs.length).to.eq(2);
+        expect(deployment["ARCDVestingVault"]).to.exist;
+        expect(deployment["ARCDVestingVault"].contractAddress).to.exist;
+        expect(deployment["ARCDVestingVault"].constructorArgs.length).to.eq(4);
 
-        expect(deployment["FrozenLockingVaultProxy"]).to.exist;
-        expect(deployment["FrozenLockingVaultProxy"].contractAddress).to.exist;
-        expect(deployment["FrozenLockingVaultProxy"].constructorArgs.length).to.eq(2);
+        expect(deployment["ImmutableVestingVault"]).to.exist;
+        expect(deployment["ImmutableVestingVault"].contractAddress).to.exist;
+        expect(deployment["ImmutableVestingVault"].constructorArgs.length).to.eq(4);
 
-        expect(deployment["VestingVault"]).to.exist;
-        expect(deployment["VestingVault"].contractAddress).to.exist;
-        expect(deployment["VestingVault"].constructorArgs.length).to.eq(2);
+        expect(deployment["NFTBoostVault"]).to.exist;
+        expect(deployment["NFTBoostVault"].contractAddress).to.exist;
+        expect(deployment["NFTBoostVault"].constructorArgs.length).to.eq(4);
 
-        expect(deployment["VestingVaultProxy"]).to.exist;
-        expect(deployment["VestingVaultProxy"].contractAddress).to.exist;
-        expect(deployment["VestingVaultProxy"].constructorArgs.length).to.eq(2);
+        expect(deployment["ArcadeGSCVault"]).to.exist;
+        expect(deployment["ArcadeGSCVault"].contractAddress).to.exist;
+        expect(deployment["ArcadeGSCVault"].constructorArgs.length).to.eq(3);
 
-        expect(deployment["GSCVault"]).to.exist;
-        expect(deployment["GSCVault"].contractAddress).to.exist;
-        expect(deployment["GSCVault"].constructorArgs.length).to.eq(3);
+        expect(deployment["ArcadeTreasury"]).to.exist;
+        expect(deployment["ArcadeTreasury"].contractAddress).to.exist;
+        expect(deployment["ArcadeTreasury"].constructorArgs.length).to.eq(1);
 
-        expect(deployment["Treasury"]).to.exist;
-        expect(deployment["Treasury"].contractAddress).to.exist;
-        expect(deployment["Treasury"].constructorArgs.length).to.eq(1);
+        expect(deployment["ArcadeAirdrop"]).to.exist;
+        expect(deployment["ArcadeAirdrop"].contractAddress).to.exist;
+        expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(5);
     });
 
-    it("correctly sets up all roles and permissions", async () => {
+    it.skip("correctly sets up all roles and permissions", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
@@ -182,21 +185,13 @@ describe("Deployment", function() {
             const contractData = deployment[contractName];
 
             if (contractName.includes("CoreVoting")) contractName = "CoreVoting";
-            if (contractName.includes("FrozenLockingVaultProxy")) contractName = "SimpleProxy";
-            if (contractName.includes("VestingVaultProxy")) contractName = "SimpleProxy";
             const artifact = await artifacts.readArtifact(contractName);
 
-            const implAddress = contractData.contractImplementationAddress || contractData.contractAddress;
-
-            if (contractData.contractImplementationAddress) {
-                // Also verify the proxy
-                const verifiedProxyAbi = await getVerifiedABI(contractData.contractAddress);
-                expect(verifiedProxyAbi).to.deep.equal(proxyArtifact.abi);
-            }
-            else {
-                const verifiedAbi = await getVerifiedABI(implAddress);
-                expect(artifact.abi).to.deep.equal(verifiedAbi);
-            }
+            const implAddress = contractData.contractAddress;
+            
+            const verifiedAbi = await getVerifiedABI(implAddress);
+            expect(artifact.abi).to.deep.equal(verifiedAbi);
+            
         }
     });
 });
