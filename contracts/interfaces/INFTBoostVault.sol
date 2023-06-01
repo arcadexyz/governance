@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.18;
 
-import "../libraries/VotingVaultStorage.sol";
+import "../libraries/NFTBoostVaultStorage.sol";
 
 interface INFTBoostVault {
     /**
@@ -16,7 +16,7 @@ interface INFTBoostVault {
      */
     function getIsLocked() external view returns (uint256);
 
-    function getRegistration(address who) external view returns (VotingVaultStorage.Registration memory);
+    function getRegistration(address who) external view returns (NFTBoostVaultStorage.Registration memory);
 
     function getMultiplier(address tokenAddress, uint128 tokenId) external view returns (uint256);
 

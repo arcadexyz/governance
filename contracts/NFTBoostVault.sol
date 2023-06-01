@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 import "./external/council/interfaces/IERC20.sol";
-import "./libraries/VotingVaultStorage.sol";
+import "./libraries/NFTBoostVaultStorage.sol";
 import "./interfaces/INFTBoostVault.sol";
 
 import "./BaseVotingVault.sol";
@@ -29,7 +29,6 @@ import {
 } from "./errors/Governance.sol";
 
 /**
- *
  * @title NFTBoostVault
  * @author Non-Fungible Technologies, Inc.
  *
@@ -50,7 +49,6 @@ import {
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
-
 contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     // ======================================== STATE ==================================================
 
@@ -129,7 +127,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         Storage.Uint256 storage balance = _balance();
 
         // load the registration
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // If the token id and token address is not zero, revert because the Registration
         // is already initialized. Only one Registration per msg.sender
@@ -142,7 +140,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
-        _getRegistrations()[msg.sender] = VotingVaultStorage.Registration(
+        _getRegistrations()[msg.sender] = NFTBoostVaultStorage.Registration(
             amount,
             newVotingPower,
             0,
@@ -171,7 +169,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param to                        The address to delegate to.
      */
     function delegate(address to) external override {
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // If to address is already the delegate, don't send the tx
         if (to == registration.delegatee) revert NBV_AlreadyDelegated();
@@ -214,7 +212,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         if (amount == 0) revert NBV_ZeroAmount();
 
         // load the registration
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
@@ -253,7 +251,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function addTokens(uint128 amount) external override nonReentrant {
         if (amount == 0) revert NBV_ZeroAmount();
         // load the registration
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
@@ -275,7 +273,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      */
     function withdrawNft() public override nonReentrant {
         // load the registration
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         if (registration.tokenAddress == address(0) || registration.tokenId == 0)
             revert NBV_InvalidNft(registration.tokenAddress, registration.tokenId);
@@ -309,7 +307,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert NBV_DoesNotOwn();
 
-        VotingVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // withdraw the current ERC1155 from the registration
         withdrawNft();
@@ -338,7 +336,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
 
         for (uint256 i = 0; i < userAddresses.length; ++i) {
-            VotingVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
+            NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[userAddresses[i]];
             _syncVotingPower(userAddresses[i], registration);
         }
     }
@@ -358,7 +356,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
         if (multiplierValue >= MAX_MULTIPLIER) revert NBV_MultiplierLimit();
 
-        VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
         multiplierData.multiplier = multiplierValue;
 
@@ -398,7 +396,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @return                          The token multiplier.
      */
     function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint256) {
-        VotingVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         // if a user does not specify a ERC1155 nft, their multiplier is set to 1
         if (tokenAddress == address(0) || tokenId == 0) {
@@ -415,7 +413,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @return registration                     Registration of the provided address.
      */
-    function getRegistration(address who) external view override returns (VotingVaultStorage.Registration memory) {
+    function getRegistration(address who) external view override returns (NFTBoostVaultStorage.Registration memory) {
         return _getRegistrations()[who];
     }
 
@@ -448,9 +446,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @return registrations                 A storage mapping to look up registrations data
      */
-    function _getRegistrations() internal pure returns (mapping(address => VotingVaultStorage.Registration) storage) {
+    function _getRegistrations() internal pure returns (mapping(address => NFTBoostVaultStorage.Registration) storage) {
         // This call returns a storage mapping with a unique non overwrite-able storage location.
-        return (VotingVaultStorage.mappingAddressToRegistrationPtr("registrations"));
+        return (NFTBoostVaultStorage.mappingAddressToRegistrationPtr("registrations"));
     }
 
     /**
@@ -460,7 +458,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @param registration               The storage pointer to the registration of that user.
      */
-    function _syncVotingPower(address who, VotingVaultStorage.Registration storage registration) internal {
+    function _syncVotingPower(address who, NFTBoostVaultStorage.Registration storage registration) internal {
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 delegateeVotes = votingPower.loadTop(registration.delegatee);
 
@@ -490,7 +488,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @return withdrawable               Amount which can be withdrawn.
      */
     function _getWithdrawableAmount(
-        VotingVaultStorage.Registration memory registration
+        NFTBoostVaultStorage.Registration memory registration
     ) internal pure returns (uint256) {
         if (registration.withdrawn == registration.amount) {
             return 0;
@@ -511,7 +509,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @return                           The current voting power of the registration.
      */
     function _currentVotingPower(
-        VotingVaultStorage.Registration memory registration
+        NFTBoostVaultStorage.Registration memory registration
     ) internal view virtual returns (uint256) {
         uint256 locked = registration.amount - registration.withdrawn;
 
@@ -568,10 +566,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function _getMultipliers()
         internal
         pure
-        returns (mapping(address => mapping(uint128 => VotingVaultStorage.AddressUintUint)) storage)
+        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.AddressUintUint)) storage)
     {
         // This call returns a storage mapping with a unique non overwrite-able storage layout.
-        return (VotingVaultStorage.mappingAddressToPackedUintUint("multipliers"));
+        return (NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers"));
     }
 
     /** @dev A function to handles the receipt of a single ERC1155 token. This function is called
