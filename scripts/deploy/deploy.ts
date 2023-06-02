@@ -3,12 +3,14 @@ import hre, { ethers } from "hardhat";
 import {
     DEPLOYER_ADDRESS,
     TREASURY_OWNER,
+    TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
     BASE_QUORUM,
     MIN_PROPOSAL_POWER,
     BASE_QUORUM_GSC,
     MIN_PROPOSAL_POWER_GSC,
-    GSC_THRESHOLD
+    GSC_THRESHOLD,
+    AIRDROP_EXPIRATION
 } from "./deployment-params";
 import {
     ArcadeToken,
@@ -61,18 +63,22 @@ export async function main(): Promise<DeployedResources> {
 
     // token
     const ArcadeTokenFactory = await ethers.getContractFactory("ArcadeToken");
-    const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(DEPLOYER_ADDRESS, arcdDist.address);
+    const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(DEPLOYER_ADDRESS, arcadeTokenDistributor.address);
     await arcadeToken.deployed();
     const arcadeTokenAddress = arcadeToken.address;
     console.log("ArcadeToken deployed to:", arcadeTokenAddress);
     console.log(SUBSECTION_SEPARATOR);
+
+    // deployer sets token in distributor
+    const tx1 = await arcadeTokenDistributor.setToken(arcadeToken.address);
+    await tx1.wait();
 
     // ================= GOVERNANCE =================
 
     console.log(SECTION_SEPARATOR);
     console.log("Deploying governance...");
 
-    // ======= CORE VOTING =======
+    // // ======= CORE VOTING =======
 
     // core voting
     const CoreVotingFactory = await ethers.getContractFactory("CoreVoting");
@@ -99,7 +105,7 @@ export async function main(): Promise<DeployedResources> {
     );
     await arcadeGSCCoreVoting.deployed();
     const arcadeGSCCoreVotingAddress = arcadeGSCCoreVoting.address;
-    console.log("GSC CoreVoting deployed to:", arcadeGSCCoreVotingAddress);
+    console.log("ArcadeGSCCoreVoting deployed to:", arcadeGSCCoreVotingAddress);
     console.log(SUBSECTION_SEPARATOR);
 
     // timelock
@@ -110,14 +116,14 @@ export async function main(): Promise<DeployedResources> {
     console.log("Timelock deployed to:", timelockAddress);
     console.log(SUBSECTION_SEPARATOR);
 
-    // ======= VAULTS =======
+    // // ======= VAULTS =======
 
     const staleBlock = await ethers.provider.getBlockNumber();
 
     // team vesting vault (ARCDVestingVault)
     const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
     const teamVestingVault = await TeamVestingVaultFactory.deploy(
-        arcdToken.address,
+        arcadeToken.address,
         staleBlock,
         TEAM_VESTING_VAULT_MANAGER,
         timelock.address
@@ -130,7 +136,7 @@ export async function main(): Promise<DeployedResources> {
     // partner vesting vault (ImmutableVestingVault)
     const PartnerVestingVaultFactory = await ethers.getContractFactory("ImmutableVestingVault");
     const partnerVestingVault = await PartnerVestingVaultFactory.deploy(
-        arcdToken.address,
+        arcadeToken.address,
         staleBlock,
         TEAM_VESTING_VAULT_MANAGER,
         timelock.address
@@ -143,7 +149,7 @@ export async function main(): Promise<DeployedResources> {
     // NFTBoostVault
     const NFTBoostVaultFactory = await ethers.getContractFactory("NFTBoostVault");
     const NFTBoostVault = await NFTBoostVaultFactory.deploy(
-        arcdToken.address,
+        arcadeToken.address,
         staleBlock,
         timelock.address,
         coreVoting.address
@@ -177,16 +183,18 @@ export async function main(): Promise<DeployedResources> {
 
     // ================== AIRDROP ==================
 
-    const currentBlock = await ethers.provider.getBlockNumber();
+    console.log(SECTION_SEPARATOR);
+    console.log("Deploying Airdrop...");
 
     // airdrop
     const ArcadeAirdropFactory = await ethers.getContractFactory("ArcadeAirdrop");
+    // deploy with high gas limit
     const arcadeAirdrop = await ArcadeAirdropFactory.deploy(
-        coreVoting.address,
+        DEPLOYER_ADDRESS,
         ethers.constants.HashZero,
-        arcdToken.address,
-        currentBlock + AIRDROP_EXPIRATION,
-        NFTBoostVault.address
+        arcadeTokenAddress,
+        AIRDROP_EXPIRATION,
+        NFTBoostVaultAddress
     );
     await arcadeAirdrop.deployed();
     const arcadeAirdropAddress = arcadeAirdrop.address;
@@ -198,8 +206,8 @@ export async function main(): Promise<DeployedResources> {
 
     console.log("Writing deployment artifacts...");
     await writeJson(
-        arcdDistAddress,
-        arcdTokenAddress,
+        arcadeTokenDistributorAddress,
+        arcadeTokenAddress,
         coreVotingAddress,
         arcadeGSCCoreVotingAddress,
         timelockAddress,
@@ -208,14 +216,15 @@ export async function main(): Promise<DeployedResources> {
         NFTBoostVaultAddress,
         arcadeGSCVaultAddress,
         arcadeTreasuryAddress,
-        arcadeAirdropAddress
+        arcadeAirdropAddress,
+        staleBlock,
     );
 
     console.log(SECTION_SEPARATOR);
 
     return {
-        arcdDist,
-        arcdToken,
+        arcadeTokenDistributor,
+        arcadeToken,
         coreVoting,
         arcadeGSCCoreVoting,
         timelock,
@@ -223,7 +232,7 @@ export async function main(): Promise<DeployedResources> {
         partnerVestingVault,
         NFTBoostVault,
         arcadeGSCVault,
-        treasury,
+        arcadeTreasury,
         arcadeAirdrop
     };
 }

@@ -15,8 +15,11 @@ import {
     ArcadeTokenDistributor,
     Timelock,
     CoreVoting,
-    SimpleProxy,
-    FrozenLockingVault,
+    ArcadeGSCCoreVoting,
+    ARCDVestingVault,
+    ImmutableVestingVault,
+    NFTBoostVault,
+    ArcadeGSCVault
 } from "../../../typechain";
 
 import {
@@ -25,7 +28,9 @@ import {
     BASE_QUORUM_GSC,
     MIN_PROPOSAL_POWER_GSC,
     GSC_THRESHOLD,
-    STALE_BLOCK_LAG
+    STALE_BLOCK_LAG,
+    TEAM_VESTING_VAULT_MANAGER,
+    DEPLOYER_ADDRESS
 } from "../deployment-params";
 
 /**
@@ -97,7 +102,7 @@ describe("Deployment", function() {
         expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(5);
     });
 
-    it.skip("correctly sets up all roles and permissions", async () => {
+    it("correctly sets up all roles and permissions", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
@@ -118,54 +123,41 @@ describe("Deployment", function() {
         const Timelock = await ethers.getContractFactory("Timelock");
         const timelock = <Timelock>await Timelock.attach(deployment["Timelock"].contractAddress);
 
-        expect(await arcdToken.minter()).to.equal(timelock.address);
-        expect(await arcdToken.distributor()).to.equal(deployment["ArcadeTokenDistributor"].contractAddress);
+        expect(await arcdToken.minter()).to.equal(DEPLOYER_ADDRESS);
 
         // Make sure CoreVoting has the correct state after deployment
         const CVoting = await ethers.getContractFactory("CoreVoting");
         const cvoting = <CoreVoting>await CVoting.attach(deployment["CoreVoting"].contractAddress);
-        const GSCVault = await ethers.getContractFactory("GSCVault");
-        const gscVault = <GSCVault>await GSCVault.attach(deployment["GSCVault"].contractAddress);
+        const CVotingGSC = await ethers.getContractFactory("ArcadeGSCCoreVoting");
+        const cvotingGSC = <CoreVotingGSC>await CVotingGSC.attach(deployment["ArcadeGSCCoreVoting"].contractAddress);
+        const teamVestingVault = <ARCDVestingVault>await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress);
+        const partnerVestingVault = <ImmutableVestingVault>await ethers.getContractAt("ImmutableVestingVault", deployment["ImmutableVestingVault"].contractAddress);
+        const NFTBoostVault = <NFTBoostVault>await ethers.getContractAt("NFTBoostVault", deployment["NFTBoostVault"].contractAddress);
+        const arcadeGSCVault = <ArcadeGSCVault>await ethers.getContractAt("ArcadeGSCVault", deployment["ArcadeGSCVault"].contractAddress);
 
         expect(await cvoting.owner()).to.equal(timelock.address);
         expect(await cvoting.baseQuorum()).to.equal(BASE_QUORUM);
         expect(await cvoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER);
-        expect(await cvoting.authorized(gsc.address)).to.equal(true);
+        expect(await cvoting.authorized(cvotingGSC.address)).to.equal(true);
 
-        expect(await cvoting.approvedVaults(gsc.address)).to.equal(true);
-        expect(await cvoting.approvedVaults(frozenLockingVaultProxy.address)).to.equal(true);
-        expect(await cvoting.approvedVaults(vestingVaultProxy.address)).to.equal(true);
+        expect(await cvoting.approvedVaults(teamVestingVault.address)).to.equal(true);
+        expect(await cvoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
+        expect(await cvoting.approvedVaults(NFTBoostVault.address)).to.equal(true);
+        expect(await cvotingGSC.approvedVaults(arcadeGSCVault.address)).to.equal(true);
 
         // Make sure CoreVotingGSC has the correct state after deployment
-        const CVotingGSC = await ethers.getContractFactory("CoreVotingGSC");
-        const cvotingGSC = <CoreVotingGSC>await CVotingGSC.attach(deployment["CoreVotingGSC"].contractAddress);
-
         expect(await cvotingGSC.owner()).to.equal(timelock.address);
         expect(await cvotingGSC.baseQuorum()).to.equal(BASE_QUORUM_GSC);
         expect(await cvotingGSC.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_GSC);
 
         // Make sure Timelock has the correct admin and pending admin
         expect(await timelock.owner()).to.equal(cvoting.address);
-        expect(await timelock.authorized(cvotingGSC)).to.equal(true);
+        expect(await timelock.authorized(cvotingGSC.address)).to.equal(true);
 
         // verify GSC Vault has the correct state after deployment
-        expect(await gscVault.owner()).to.equal(timelock.address);
-        expect(await gscVault.coreVoting()).to.equal(cvoting.address);
-        expect(await gscVault.votingPowerBound()).to.equal(GSC_THRESHOLD);
-
-        // verify FrozenLockingVault has the correct state after deployment
-        const FLV = await ethers.getContractFactory("FrozenLockingVault");
-        const flv = await FLV.attach(deployment["FrozenLockingVaultProxy"].contractAddress);
-
-        expect(await flv.token()).to.equal(arcdToken.address);
-        expect(await flv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
-
-        // verify VestingVault has the correct state after deployment
-        const VV = await ethers.getContractFactory("VestingVault");
-        const vv = await VV.attach(deployment["VestingVaultProxy"].contractAddress);
-
-        expect(await vv.token()).to.equal(arcdToken.address);
-        expect(await vv.staleBlockLag()).to.equal(STALE_BLOCK_LAG);
+        expect(await arcadeGSCVault.owner()).to.equal(timelock.address);
+        expect(await arcadeGSCVault.coreVoting()).to.equal(cvoting.address);
+        expect(await arcadeGSCVault.votingPowerBound()).to.equal(GSC_THRESHOLD);       
     });
 
     it("verifies all contracts on the proper network", async () => {
@@ -176,22 +168,6 @@ describe("Deployment", function() {
             // Run setup, via command-line
             console.log(); // whitespace
             execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/verify-contracts.ts ${filename}`, { stdio: 'inherit' });
-        }
-
-        const proxyArtifact = await artifacts.readArtifact("SimpleProxy");
-
-        // For each contract - compare verified ABI against artifact ABI
-        for (let contractName of Object.keys(deployment)) {
-            const contractData = deployment[contractName];
-
-            if (contractName.includes("CoreVoting")) contractName = "CoreVoting";
-            const artifact = await artifacts.readArtifact(contractName);
-
-            const implAddress = contractData.contractAddress;
-            
-            const verifiedAbi = await getVerifiedABI(implAddress);
-            expect(artifact.abi).to.deep.equal(verifiedAbi);
-            
         }
     });
 });

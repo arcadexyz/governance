@@ -12,4 +12,4 @@ export const BASE_QUORUM_GSC = 3; // default GSC quorum for a vote to pass, each
 export const MIN_PROPOSAL_POWER_GSC = 1; // minimum GSC proposal power, this is 1 so any GSC member can propose
 export const GSC_THRESHOLD = 75000; // GSC threshold, (minimum voting power needed to be a GSC member)
 
-export const AIRDROP_EXPIRATION = 3600 * 24 * 30 / 12; // 30 days / 1 block per 12 seconds
+export const AIRDROP_EXPIRATION = 1688254873; // unix timestamp for airdrop expiration

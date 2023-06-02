@@ -17,12 +17,36 @@ async function verifyArtifacts(
 
     const address = contractImplementationAddress || contractAddress;
 
+
     // TODO: Verify proxy?
     try {
-        await hre.run("verify:verify", {
-            address,
-            constructorArguments: constructorArgs,
-        });
+        if(contractName === "CoreVoting") {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+                contract: `contracts/external/council/CoreVoting.sol:CoreVoting`,
+            });
+        }
+        if (contractName === "ArcadeGSCCoreVoting") {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+                contract: `contracts/ArcadeGSCCoreVoting.sol:ArcadeGSCCoreVoting`,
+            });
+        }
+        if (contractName === "ArcadeGSCVault") {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+                contract: `contracts/ArcadeGSCVault.sol:ArcadeGSCVault`,
+            });
+        }
+        else {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+            });
+        }
     } catch (err:any) {
         if (!err.message.match(/already verified/i)) {
             throw err;

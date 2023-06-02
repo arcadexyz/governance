@@ -11,7 +11,9 @@ import {
     MIN_PROPOSAL_POWER,
     BASE_QUORUM_GSC,
     MIN_PROPOSAL_POWER_GSC,
-    GSC_THRESHOLD
+    GSC_THRESHOLD,
+    TEAM_VESTING_VAULT_MANAGER,
+    AIRDROP_EXPIRATION, 
 } from "./deployment-params";
 
 export interface ContractData {
@@ -25,17 +27,18 @@ export interface DeploymentData {
 }
 
 export async function writeJson(
-    arcdDistAddress: string,
-    arcdTokenAddress: string,
+    arcadeTokenDistributorAddress: string,
+    arcadeTokenAddress: string,
     coreVotingAddress: string,
-    gscCoreVotingAddress: string,
+    arcadeGSCCoreVotingAddress: string,
     timelockAddress: string,
-    frozenLockingVaultImpAddress: string,
-    frozenLockingVaultProxyAddress: string,
-    vestingVaultImpAddress: string,
-    vestingVaultProxyAddress: string,
-    gscVaultAddress: string,
-    treasuryAddress: string
+    teamVestingVaultAddress: string,
+    partnerVestingVaultAddress: string,
+    NFTBoostVaultAddress: string,
+    arcadeGSCVaultAddress: string,
+    arcadeTreasuryAddress: string,
+    arcadeAirdropAddress: string,
+    staleBlock: number,
 ): Promise<void> {
     const timestamp = Math.floor(new Date().getTime() / 1000);
     const networkName = hre.network.name;
@@ -49,17 +52,18 @@ export async function writeJson(
     if (!fs.existsSync(networkFolderPath)) fs.mkdirSync(networkFolderPath);
 
     const contractInfo = await createInfo(
-        arcdDistAddress,
-        arcdTokenAddress,
+        arcadeTokenDistributorAddress,
+        arcadeTokenAddress,
         coreVotingAddress,
-        gscCoreVotingAddress,
+        arcadeGSCCoreVotingAddress,
         timelockAddress,
-        frozenLockingVaultImpAddress,
-        frozenLockingVaultProxyAddress,
-        vestingVaultImpAddress,
-        vestingVaultProxyAddress,
-        gscVaultAddress,
-        treasuryAddress
+        teamVestingVaultAddress,
+        partnerVestingVaultAddress,
+        NFTBoostVaultAddress,
+        arcadeGSCVaultAddress,
+        arcadeTreasuryAddress,
+        arcadeAirdropAddress,
+        staleBlock,
     );
 
     fs.writeFileSync(
@@ -71,35 +75,33 @@ export async function writeJson(
 }
 
 export async function createInfo(
-    arcdDistAddress: string,
-    arcdTokenAddress: string,
+    arcadeTokenDistributorAddress: string,
+    arcadeTokenAddress: string,
     coreVotingAddress: string,
-    gscCoreVotingAddress: string,
+    arcadeGSCCoreVotingAddress: string,
     timelockAddress: string,
-    frozenLockingVaultImpAddress: string,
-    frozenLockingVaultProxyAddress: string,
-    vestingVaultImpAddress: string,
-    vestingVaultProxyAddress: string,
-    gscVaultAddress: string,
-    treasuryAddress: string
+    teamVestingVaultAddress: string,
+    partnerVestingVaultAddress: string,
+    NFTBoostVaultAddress: string,
+    arcadeGSCVaultAddress: string,
+    arcadeTreasuryAddress: string,
+    arcadeAirdropAddress: string,
+    staleBlock: number,
 ): Promise<DeploymentData> {
     const contractInfo: DeploymentData = {};
 
     contractInfo["ArcadeTokenDistributor"] = {
-        contractAddress: arcdDistAddress,
-        contractImplementationAddress: "",
+        contractAddress: arcadeTokenDistributorAddress,
         constructorArgs: []
     };
 
     contractInfo["ArcadeToken"] = {
-        contractAddress: arcdTokenAddress,
-        contractImplementationAddress: "",
-        constructorArgs: [DEPLOYER_ADDRESS, arcdDistAddress]
+        contractAddress: arcadeTokenAddress,
+        constructorArgs: [DEPLOYER_ADDRESS, arcadeTokenDistributorAddress]
     };
 
     contractInfo["CoreVoting"] = {
         contractAddress: coreVotingAddress,
-        contractImplementationAddress: "",
         constructorArgs: [
             DEPLOYER_ADDRESS,
             BASE_QUORUM,
@@ -109,9 +111,8 @@ export async function createInfo(
         ]
     };
 
-    contractInfo["CoreVotingGSC"] = {
-        contractAddress: gscCoreVotingAddress,
-        contractImplementationAddress: "",
+    contractInfo["ArcadeGSCCoreVoting"] = {
+        contractAddress: arcadeGSCCoreVotingAddress,
         constructorArgs: [
             DEPLOYER_ADDRESS,
             BASE_QUORUM_GSC,
@@ -130,42 +131,59 @@ export async function createInfo(
         ]
     };
 
-    contractInfo["FrozenLockingVault"] = {
-        contractAddress: frozenLockingVaultImpAddress,
-        constructorArgs: [arcdTokenAddress, STALE_BLOCK_LAG]
-    };
-
-    contractInfo["FrozenLockingVaultProxy"] = {
-        contractAddress: frozenLockingVaultProxyAddress,
-        contractImplementationAddress: frozenLockingVaultImpAddress,
-        constructorArgs: [timelockAddress, frozenLockingVaultImpAddress],
-    };
-
-    contractInfo["VestingVault"] = {
-        contractAddress: vestingVaultImpAddress,
-        constructorArgs: [arcdTokenAddress, STALE_BLOCK_LAG]
-    };
-
-    contractInfo["VestingVaultProxy"] = {
-        contractAddress: vestingVaultProxyAddress,
-        contractImplementationAddress: vestingVaultImpAddress,
-        constructorArgs: [timelockAddress, vestingVaultImpAddress],
-    };
-
-    contractInfo["GSCVault"] = {
-        contractAddress: gscVaultAddress,
-        contractImplementationAddress: "",
+    contractInfo["ARCDVestingVault"] = {
+        contractAddress: teamVestingVaultAddress,
         constructorArgs: [
-            coreVotingAddress,
-            GSC_THRESHOLD,
+            arcadeTokenAddress,
+            staleBlock,
+            TEAM_VESTING_VAULT_MANAGER,
             timelockAddress
         ]
     };
 
-    contractInfo["Treasury"] = {
-        contractAddress: treasuryAddress,
-        contractImplementationAddress: "",
+    contractInfo["ImmutableVestingVault"] = {
+        contractAddress: partnerVestingVaultAddress,
+        constructorArgs: [
+            arcadeTokenAddress,
+            staleBlock,
+            TEAM_VESTING_VAULT_MANAGER,
+            timelockAddress
+        ],
+    };
+
+    contractInfo["NFTBoostVault"] = {
+        contractAddress: NFTBoostVaultAddress,
+        constructorArgs: [
+            arcadeTokenAddress,
+            staleBlock,
+            timelockAddress,
+            coreVotingAddress
+        ]
+    };
+
+    contractInfo["ArcadeGSCVault"] = {
+        contractAddress: arcadeGSCVaultAddress,
+        constructorArgs: [
+            coreVotingAddress,
+            GSC_THRESHOLD,
+            timelockAddress
+        ],
+    };
+
+    contractInfo["ArcadeTreasury"] = {
+        contractAddress: arcadeTreasuryAddress,
         constructorArgs: [DEPLOYER_ADDRESS]
+    };
+
+    contractInfo["ArcadeAirdrop"] = {
+        contractAddress: arcadeAirdropAddress,
+        constructorArgs: [
+            DEPLOYER_ADDRESS,
+            ethers.constants.HashZero,
+            arcadeTokenAddress,
+            AIRDROP_EXPIRATION,
+            NFTBoostVaultAddress
+        ]
     };
 
     return contractInfo;
