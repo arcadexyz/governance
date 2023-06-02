@@ -413,6 +413,28 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(tx2).to.be.revertedWith("NBV_HasRegistration");
         });
 
+        it("Reverts when user tries to register with token amount of zero", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, nftBoostVault, reputationNft, reputationNft2, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some ERC1155 nfts
+            await mintNfts();
+
+            // manager sets the value of the ERC1155 NFT multipliers
+            await setMultipliers();
+
+            // signers[1] approves tokens to voting vault
+            await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE);
+            await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVault.address, true);
+
+            // signers[1] registers
+            await expect(nftBoostVault
+                .connect(signers[1])
+                .addNftAndDelegate(0, 1, reputationNft.address, signers[1].address))
+                .to.be.revertedWith("NBV_ZeroAmount");
+        });
+
+
         it("Allows user to self-delegate", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
@@ -1613,6 +1635,76 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // get timelock address
             const timelockAddress = await nftBoostVault.connect(signers[1]).timelock();
             await expect(timelockAddress).to.eq(signers[0].address);
+        });
+    });
+
+    describe("Airdrop functionality", async () => {
+        it("Reverts if airdrop() is called by an address other than the manager", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // other account tries to call airdrop()
+            const tx = nftBoostVault.connect(signers[4]).airdropAddTokens(signers[5].address, ONE, signers[5].address);
+            await expect(tx).to.be.revertedWith("NBV_NotAirdrop()");
+        });
+
+        it("Reverts if setAirdropContract() is called by an address other than the manager", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // other account tries to call setAirdropContract()
+            const tx = nftBoostVault.connect(signers[4]).setAirdropContract(signers[5].address);
+            await expect(tx).to.be.revertedWith("BVV_NotManager()");
+        });
+
+        it("Reverts if airdrop() is called with a zero amount", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // other account tries to call airdrop()
+            const tx = nftBoostVault.connect(signers[0]).airdropAddTokens(signers[0].address, 0, signers[0].address);
+            await expect(tx).to.be.revertedWith("NBV_ZeroAmount()");
+        });
+
+        it("Reverts if airdrop() is called with a zero address", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // other account tries to call airdrop()
+            const tx = nftBoostVault
+                .connect(signers[0])
+                .airdropAddTokens(constants.AddressZero, ONE, signers[0].address);
+            await expect(tx).to.be.revertedWith("NBV_ZeroAddress()");
+        });
+
+        it("User claims airdrop, then claims again and voting power is updated", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, nftBoostVault, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            const { MULTIPLIER_A, MULTIPLIER_B } = await setMultipliers();
+
+            // signers[0] approves tokens to NFT boost vault
+            await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
+
+            // signers[0] claims airdrop
+            await nftBoostVault
+                .connect(signers[0])
+                .airdropAddTokens(signers[0].address, ONE.mul(5), signers[0].address);
+
+            // signers[0] approves tokens to NFT boost vault
+            await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
+
+            // signers[0] claims airdrop again
+            await nftBoostVault
+                .connect(signers[0])
+                .airdropAddTokens(signers[0].address, ONE.mul(5), signers[0].address);
+
+            // get total voting power amount
+            const currentBlock = await ethers.provider.getBlock("latest");
+            const votingPower = await nftBoostVault.queryVotePowerView(signers[0].address, currentBlock.number);
+
+            // confirm that signers[0] voting power is equal to the amount of tokens they have claimed
+            await expect(votingPower).to.be.eq(ONE.mul(10));
         });
     });
 });

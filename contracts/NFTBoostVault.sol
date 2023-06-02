@@ -385,8 +385,6 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     function setAirdropContract(address _newAirdropContract) external override onlyManager {
-        if (_newAirdropContract == address(0)) revert NBV_ZeroAddress();
-
         Storage.set(Storage.addressPtr("airdrop"), _newAirdropContract);
 
         emit AirdropContractUpdated(_newAirdropContract);

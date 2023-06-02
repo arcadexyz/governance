@@ -87,6 +87,9 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         ]);
         await nftBoostVault.deployed();
 
+        // set airdrop address as manager of NFTBoostVault
+        await nftBoostVault.connect(signers[0]).setAirdropContract(signers[0].address);
+
         // voting vault array
         votingVaults = [nftBoostVault.address, lockingVotingVault.address, vestingVotingVault.address];
 
