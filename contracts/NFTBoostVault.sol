@@ -240,6 +240,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         }
 
         // transfer the token amount to the user
+        // will out-of-gas revert if recipient is a contract with logic inside receive()
         token.transfer(msg.sender, amount);
     }
 

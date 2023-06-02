@@ -167,6 +167,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         uint256 balance = address(this).balance;
 
         // transfer balance to recipient
+        // will out-of-gas revert if recipient is a contract with logic inside receive()
         payable(recipient).transfer(balance);
 
         emit FeesWithdrawn(recipient, balance);

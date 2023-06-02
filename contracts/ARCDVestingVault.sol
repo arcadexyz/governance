@@ -159,11 +159,13 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // get the amount of withdrawable tokens
         uint256 withdrawable = _getWithdrawableAmount(grant);
         grant.withdrawn += uint128(withdrawable);
+        // will out-of-gas revert if recipient is a contract with logic inside receive()
         token.transfer(who, withdrawable);
 
         // transfer the remaining tokens to the vesting manager
         uint256 remaining = grant.allocation - grant.withdrawn;
         grant.withdrawn += uint128(remaining);
+        // will out-of-gas revert if recipient is a contract with logic inside receive()
         token.transfer(_manager().data, remaining);
 
         // update the delegatee's voting power
@@ -204,6 +206,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         if (unassigned.data < amount) revert AVV_InsufficientBalance(unassigned.data);
         // update unassigned value
         unassigned.data -= amount;
+        // will out-of-gas revert if recipient is a contract with logic inside receive()
         token.transfer(recipient, amount);
     }
 
@@ -239,6 +242,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         _syncVotingPower(msg.sender, grant);
 
         // transfer the available amount
+        // will out-of-gas revert if recipient is a contract with logic inside receive()
         token.transfer(msg.sender, withdrawable);
     }
 
