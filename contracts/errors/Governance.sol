@@ -39,7 +39,7 @@ error NBV_InsufficientBalance();
 /**
  * @notice Withdrawable tokens less than withdraw request amount.
  *
- * @param withdrawable              The returned withrawable amount from
+ * @param withdrawable              The returned withdrawable amount from
  *                                  a user's registration.
  */
 error NBV_InsufficientWithdrawableBalance(uint256 withdrawable);

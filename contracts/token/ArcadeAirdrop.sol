@@ -3,6 +3,7 @@
 pragma solidity 0.8.18;
 
 import "../external/council/libraries/Authorizable.sol";
+
 import "../libraries/ArcadeMerkleRewards.sol";
 
 import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
@@ -28,15 +29,15 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
      * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _token                The token to airdrop
      * @param _expiration           The expiration of the airdrop
-     * @param _lockingVault         The locking vault to deposit tokens to
+     * @param _votingVault         The voting vault to deposit tokens to
      */
     constructor(
         address _governance,
         bytes32 _merkleRoot,
         IERC20 _token,
         uint256 _expiration,
-        ILockingVault _lockingVault
-    ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _lockingVault) {
+        INFTBoostVault _votingVault
+    ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _votingVault) {
         if (_governance == address(0)) revert AA_ZeroAddress();
 
         setOwner(_governance);

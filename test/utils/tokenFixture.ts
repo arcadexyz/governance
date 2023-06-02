@@ -72,7 +72,12 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
 
         // deploy mock locking vault to simulate a voting vault in production
         const mockLockingVault = <LockingVault>(
-            await deploy("LockingVault", signers[0], [arcdToken.address, staleBlockNum])
+            await deploy("NFTBoostVault", signers[0], [
+                arcdToken.address,
+                staleBlockNum,
+                deployer.address,
+                signers[1].address,
+            ])
         );
         await mockLockingVault.deployed();
 

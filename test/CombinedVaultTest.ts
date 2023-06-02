@@ -87,7 +87,13 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             await arcdToken.approve(nftBoostVault.address, ONE);
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
             // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
-            const tx4 = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+            const tx4 = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             // view query voting power of signers[1]
             const votingPower4 = await nftBoostVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
             expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
@@ -99,7 +105,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             const tx5 = await (
                 await nftBoostVault
                     .connect(signers[2])
-                    .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
+                    .addNftAndDelegate(signers[2].address, ONE.mul(5), 1, reputationNft.address, signers[1].address)
             ).wait();
             // view query voting power of signers[1]
             const votingPower5 = await nftBoostVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
@@ -111,7 +117,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await nftBoostVault
                 .connect(signers[3])
-                .addNftAndDelegate(ONE, 1, reputationNft2.address, signers[0].address);
+                .addNftAndDelegate(signers[3].address, ONE, 1, reputationNft2.address, signers[0].address);
 
             // view query voting power of signers[0]
             const votingPower6 = await nftBoostVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
@@ -123,7 +129,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(8), 1, reputationNft.address, signers[2].address);
 
             // view query voting power of signers[2]
             const votingPower7 = await nftBoostVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
@@ -202,7 +208,13 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits ONE tokens and delegates to signers[1]
-            const tx4 = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+            const tx4 = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
 
             const votingPower4 = await nftBoostVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
             expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
@@ -214,7 +226,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             const tx5 = await (
                 await nftBoostVault
                     .connect(signers[2])
-                    .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
+                    .addNftAndDelegate(signers[2].address, ONE.mul(5), 1, reputationNft.address, signers[1].address)
             ).wait();
 
             // view query voting power of signer[1]
@@ -227,7 +239,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx6 = await nftBoostVault
                 .connect(signers[3])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
+                .addNftAndDelegate(signers[3].address, ONE, 1, reputationNft.address, signers[0].address);
 
             // view query voting power of signers[0]
             const votingPower6 = await nftBoostVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
@@ -239,7 +251,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             // signers[1] registers reputation NFT, deposits 8 tokens and delegates to signers[2]
             const tx7 = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[2].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(8), 1, reputationNft.address, signers[2].address);
 
             // view query voting power of signers[2]
             const votingPower7 = await nftBoostVault.queryVotePowerView(signers[2].address, tx7.blockNumber);

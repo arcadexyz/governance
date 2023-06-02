@@ -3,13 +3,13 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
-import "./external/council/interfaces/IERC20.sol";
+
 import "./libraries/NFTBoostVaultStorage.sol";
 import "./interfaces/INFTBoostVault.sol";
-
 import "./BaseVotingVault.sol";
 
 import {
@@ -98,6 +98,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier access.
      *
+     * @param user                      The address of the user registering their tokens.
      * @param amount                    Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
      * @param tokenId                   The id of the ERC1155 NFT.
@@ -107,6 +108,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *                                  with this Registration to
      */
     function addNftAndDelegate(
+        address user,
         uint128 amount,
         uint128 tokenId,
         address tokenAddress,
@@ -116,7 +118,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
         if (tokenAddress != address(0) && tokenId != 0) {
-            if (IERC1155(tokenAddress).balanceOf(msg.sender, tokenId) == 0) revert NBV_DoesNotOwn();
+            if (IERC1155(tokenAddress).balanceOf(user, tokenId) == 0) revert NBV_DoesNotOwn();
 
             multiplier = getMultiplier(tokenAddress, tokenId);
 
@@ -127,20 +129,20 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         Storage.Uint256 storage balance = _balance();
 
         // load the registration
-        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
 
         // If the token id and token address is not zero, revert because the Registration
-        // is already initialized. Only one Registration per msg.sender
+        // is already initialized. Only one Registration per user
         if (registration.tokenId != 0 && registration.tokenAddress != address(0)) revert NBV_HasRegistration();
 
         // load the delegate. Defaults to the registration owner
-        delegatee = delegatee == address(0) ? msg.sender : delegatee;
+        delegatee = delegatee == address(0) ? user : delegatee;
 
         // calculate the voting power provided by this registration
         uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
-        _getRegistrations()[msg.sender] = NFTBoostVaultStorage.Registration(
+        _getRegistrations()[user] = NFTBoostVaultStorage.Registration(
             amount,
             newVotingPower,
             0,
@@ -157,7 +159,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // transfer user ERC20 amount and ERC1155 nft into this contract
         _lockTokens(msg.sender, amount, tokenAddress, tokenId, 1);
 
-        emit VoteChange(msg.sender, registration.delegatee, int256(uint256(newVotingPower)));
+        emit VoteChange(user, registration.delegatee, int256(uint256(newVotingPower)));
     }
 
     /**
@@ -200,7 +202,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /**
      * @notice Removes a user's locked ERC20 tokens from this contract and if no tokens are remaining, the
-     *         user's locked ERC1155 (if utilized) is also transfered back to them. Consequently, the user's
+     *         user's locked ERC1155 (if utilized) is also transferred back to them. Consequently, the user's
      *         delegatee loses the voting power associated with the aforementioned tokens.
      *
      * @dev Withdraw is unlocked when the locked state variable is set to 2.
@@ -525,7 +527,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *         for participation in governance. Calls the _lockNft function if a user
      *         has entered an ERC1155 token address and token id.
      *
-     * @param from                      Address of owner tokens are transferred from.
+     * @param from                      Address tokens are transferred from.
      * @param amount                    Amount of ERC20 tokens being transferred.
      * @param tokenAddress              Address of the ERC1155 token being transferred.
      * @param tokenId                   Id of the ERC1155 token being transferred.

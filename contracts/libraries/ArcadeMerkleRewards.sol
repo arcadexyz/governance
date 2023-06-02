@@ -3,9 +3,9 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "../external/council/interfaces/IERC20.sol";
-import "../external/council/interfaces/ILockingVault.sol";
+import "../interfaces/INFTBoostVault.sol";
 
 import { AA_ClaimingExpired, AA_AlreadyClaimed, AA_NonParticipant, AA_ZeroAddress } from "../errors/Airdrop.sol";
 
@@ -40,32 +40,29 @@ contract ArcadeMerkleRewards {
     mapping(address => uint256) public claimed;
 
     /// @notice the locking vault to deposit tokens to
-    ILockingVault public lockingVault;
+    INFTBoostVault public votingVault;
 
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
-     * @notice Instanatiate the contract with a merkle tree root, a token for distribution,
+     * @notice Initiate the contract with a merkle tree root, a token for distribution,
      *         an expiration time for claims, and the voting vault that tokens will be
      *         airdropped into.
      *
      * @param _rewardsRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _token                 The token to airdrop
      * @param _expiration            The expiration of the airdrop
-     * @param _lockingVault          The locking vault to deposit tokens to
+     * @param _votingVault          The locking vault to deposit tokens to
      */
-    constructor(bytes32 _rewardsRoot, IERC20 _token, uint256 _expiration, ILockingVault _lockingVault) {
+    constructor(bytes32 _rewardsRoot, IERC20 _token, uint256 _expiration, INFTBoostVault _votingVault) {
         if (_expiration <= block.timestamp) revert AA_ClaimingExpired();
         if (address(_token) == address(0)) revert AA_ZeroAddress();
-        if (address(_lockingVault) == address(0)) revert AA_ZeroAddress();
+        if (address(_votingVault) == address(0)) revert AA_ZeroAddress();
 
         rewardsRoot = _rewardsRoot;
         token = _token;
         expiration = _expiration;
-        lockingVault = _lockingVault;
-
-        // we approve the locking vault so that it can deposit on behalf of users
-        _token.approve(address(lockingVault), type(uint256).max);
+        votingVault = _votingVault;
     }
 
     // ===================================== CLAIM FUNCTIONALITY ========================================
@@ -84,8 +81,11 @@ contract ArcadeMerkleRewards {
         if (delegate == address(0)) revert AA_ZeroAddress();
         // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
-        // deposit for this sender into locking vault and delegate
-        lockingVault.deposit(msg.sender, totalGrant, delegate);
+
+        // approve the voting vault to transfer tokens
+        token.approve(address(votingVault), totalGrant);
+        // deposit tokens in voting vault for this msg.sender and delegate
+        votingVault.addNftAndDelegate(msg.sender, uint128(totalGrant), 0, address(0), delegate);
     }
 
     // =========================================== HELPERS ==============================================

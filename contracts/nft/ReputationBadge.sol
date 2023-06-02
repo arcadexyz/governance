@@ -28,7 +28,7 @@ import {
  *
  * Reputation badges are ERC1155 tokens that can be minted by users who meets certain criteria.
  * For example, a user who has completed a certain number of tasks can be awarded a badge.
- * The badge can be used in governance to give a mulitplier to a user's voting power. Voting
+ * The badge can be used in governance to give a multiplier to a user's voting power. Voting
  * power multipliers associated with each tokenId are stored in the governance vault contracts
  * not the badge contract.
  *

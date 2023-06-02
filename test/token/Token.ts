@@ -438,6 +438,7 @@ describe("ArcadeToken", function () {
             );
 
             // claim and delegate to self
+            console.log("before claim and delegate");
             await expect(
                 await arcdAirdrop.connect(deployer).claimAndDelegate(
                     recipients[0].address, // address to delegate voting power to
@@ -447,6 +448,8 @@ describe("ArcadeToken", function () {
             )
                 .to.emit(arcdToken, "Transfer")
                 .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
+
+            console.log("after claim and delegate");
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -769,100 +772,6 @@ describe("ArcadeToken", function () {
             await expect(arcdAirdrop.connect(other).setMerkleRoot(newMerkleRoot)).to.be.revertedWith(
                 "Sender not owner",
             );
-        });
-    });
-
-    describe("Claiming from locking vault", function () {
-        beforeEach(async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, mockLockingVault } =
-                ctxToken;
-
-            await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
-                .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
-            await expect(await arcdDst.communityAirdropSent()).to.be.true;
-
-            // create proof for other
-            const proofOther = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
-            );
-
-            // claim and delegate to self
-            await expect(
-                await arcdAirdrop.connect(other).claimAndDelegate(
-                    recipients[1].address, // address to delegate to
-                    recipients[1].value, // total claimable amount
-                    proofOther, // merkle proof
-                ),
-            )
-                .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
-
-            await expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(recipients[1].value);
-            await expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[1].value),
-            );
-        });
-
-        it("multiple users withdraw from locking vault", async function () {
-            const { arcdToken, arcdAirdrop, deployer, other, recipients, mockLockingVault, merkleTrie } = ctxToken;
-
-            // create proof for other
-            const proofDeployer = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
-            );
-
-            // claim and delegate to self
-            await expect(
-                await arcdAirdrop.connect(deployer).claimAndDelegate(
-                    recipients[0].address, // address to delegate to
-                    recipients[0].value, // total claimable amount
-                    proofDeployer, // merkle proof
-                ),
-            )
-                .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
-
-            await expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
-                recipients[0].value.add(recipients[1].value),
-            );
-            await expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
-            );
-
-            // other claims
-            await expect(await mockLockingVault.connect(other).withdraw(recipients[1].value))
-                .to.emit(arcdToken, "Transfer")
-                .withArgs(mockLockingVault.address, other.address, recipients[1].value);
-
-            // deployer claims
-            await expect(await mockLockingVault.connect(deployer).withdraw(recipients[0].value))
-                .to.emit(arcdToken, "Transfer")
-                .withArgs(mockLockingVault.address, deployer.address, recipients[0].value);
-
-            await expect(await arcdToken.balanceOf(deployer.address)).to.equal(recipients[0].value);
-            await expect(await arcdToken.balanceOf(other.address)).to.equal(recipients[1].value);
-            await expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(0);
-        });
-
-        it("user tries to withdraw more than allotted amount", async function () {
-            const { arcdToken, other, recipients, mockLockingVault } = ctxToken;
-
-            // user tries to claim more than allotted amount
-            await expect(mockLockingVault.connect(other).withdraw(recipients[1].value.add(1))).to.be.reverted;
-
-            await expect(await arcdToken.balanceOf(other.address)).to.equal(0);
-        });
-
-        it("user tries to withdraw twice", async function () {
-            const { arcdToken, other, recipients, mockLockingVault } = ctxToken;
-
-            // user claims
-            await expect(await mockLockingVault.connect(other).withdraw(recipients[1].value))
-                .to.emit(arcdToken, "Transfer")
-                .withArgs(mockLockingVault.address, other.address, recipients[1].value);
-            // user claims again
-            await expect(mockLockingVault.connect(other).withdraw(recipients[1].value)).to.be.reverted;
         });
     });
 });
