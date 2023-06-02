@@ -438,6 +438,7 @@ describe("ArcadeToken", function () {
             );
 
             // claim and delegate to self
+            console.log("before claim and delegate");
             await expect(
                 await arcdAirdrop.connect(deployer).claimAndDelegate(
                     recipients[0].address, // address to delegate voting power to
@@ -447,6 +448,8 @@ describe("ArcadeToken", function () {
             )
                 .to.emit(arcdToken, "Transfer")
                 .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
+
+            console.log("after claim and delegate");
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(

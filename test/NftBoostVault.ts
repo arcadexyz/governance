@@ -100,7 +100,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
-            const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
 
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
             expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
@@ -112,7 +118,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
             const tx1 = await nftBoostVault
                 .connect(signers[2])
-                .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[2].address, ONE.mul(5), 1, reputationNft.address, signers[1].address);
 
             // view query voting power of signers 1
             const votingPower1 = await nftBoostVault.queryVotePowerView(signers[1].address, tx1.blockNumber);
@@ -124,7 +130,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[3] registers reputation NFT type 2, deposits three tokens and delegates to signers[0]
             const tx2 = await nftBoostVault
                 .connect(signers[3])
-                .addNftAndDelegate(ONE.mul(3), 1, reputationNft2.address, signers[0].address);
+                .addNftAndDelegate(signers[3].address, ONE.mul(3), 1, reputationNft2.address, signers[0].address);
 
             // view query voting power of signers[0]
             const votingPower2 = await nftBoostVault.queryVotePowerView(signers[0].address, tx2.blockNumber);
@@ -137,7 +143,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits THREE tokens and delegates to signers[2]
             const tx3 = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(3), 1, reputationNft.address, signers[2].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(3), 1, reputationNft.address, signers[2].address);
 
             // view query voting power of signers[2]
             const votingPower3 = await nftBoostVault.queryVotePowerView(signers[2].address, tx3.blockNumber);
@@ -189,14 +195,20 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[1].address);
 
             // signers[0] approves 5 tokens to voting vault and approves reputation nft
             await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
-            const tx = await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             await tx.wait();
 
             // get contract balance after these txns
@@ -241,7 +253,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[1].address);
 
             const now = await blockchainTime.secondsFromNow(0);
             // get signers[1] voting power before they receive any further delegation
@@ -254,7 +266,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // signers[0] registers reputation NFT, deposits FIVE tokens and delegates to signers[1]
             const tx = await (
-                await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
+                await nftBoostVault.addNftAndDelegate(
+                    signers[0].address,
+                    ONE.mul(5),
+                    1,
+                    reputationNft.address,
+                    signers[1].address,
+                )
             ).wait();
 
             // confirm that signers[0] no longer holds their reputation nft, it is held by the contract
@@ -310,7 +328,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[1].address);
 
             // signers[0] approves 5 tokens to NFT boost vault and reputation nft
             await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
@@ -318,7 +336,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // signers[0] registers reputation NFT, deposits FIVE tokens and delegates to signers[1]
             const tx = await (
-                await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address)
+                await nftBoostVault.addNftAndDelegate(
+                    signers[0].address,
+                    ONE.mul(5),
+                    1,
+                    reputationNft.address,
+                    signers[1].address,
+                )
             ).wait();
 
             // get delegatee total voting power amount
@@ -332,7 +356,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[3] registers reputation NFT, deposits ONE tokens and delegates to signers[0]
             const tx2 = await nftBoostVault
                 .connect(signers[3])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
+                .addNftAndDelegate(signers[3].address, ONE, 1, reputationNft.address, signers[0].address);
 
             // view query voting power of signers[0]
             const votingPowerSignersZero = await nftBoostVault.queryVotePowerView(signers[0].address, tx2.blockNumber);
@@ -378,7 +402,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] tries to add ERC1155 id 1 in their call for registration
             const tx = nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[1].address);
 
             await expect(tx).to.be.revertedWith("NBV_DoesNotOwn");
         });
@@ -400,7 +424,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[1].address);
 
             // signers[1] approves their other ERC1155 to the voting vault
             await reputationNft2.connect(signers[1]).setApprovalForAll(nftBoostVault.address, true);
@@ -408,7 +432,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] tries to register a second time
             const tx2 = nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft2.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft2.address, signers[1].address);
 
             await expect(tx2).to.be.revertedWith("NBV_HasRegistration");
         });
@@ -485,7 +509,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers and delegates to self by not specifying a delegation address
             const tx = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, constants.AddressZero);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, constants.AddressZero);
             await tx.wait();
 
             // get signers[1] registration
@@ -517,7 +541,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers and delegates signers[2]
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[2].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[2].address);
 
             // get signers[1] registration
             const registration = await nftBoostVault.getRegistration(signers[1].address);
@@ -548,7 +572,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(5), 0, constants.AddressZero, signers[1].address);
 
             // get user balance after deposit
             const balanceBefore = await arcdToken.balanceOf(signers[1].address);
@@ -585,7 +609,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(amountToDeposit, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, amountToDeposit, 1, reputationNft.address, signers[1].address);
 
             // confirm that signers[1] no longer holds their reputation nft, it is deposited in the contract
             const erc1155Bal = await reputationNft.balanceOf(signers[1].address, 1);
@@ -629,7 +653,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers and delegates signers[2]
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[2].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[2].address);
 
             // signers[1] calls withdraw for FIVE tokens, which is larger than what the contract holds
             const tx = nftBoostVault.connect(signers[1]).withdraw(ONE.mul(5));
@@ -656,7 +680,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers depositing ONE tokens and delegating to signers[2]
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[2].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[2].address);
 
             // signers[2] approves tokens to voting vault
             await arcdToken.connect(signers[2]).approve(nftBoostVault.address, ONE.mul(10));
@@ -665,7 +689,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] registers depositing TEN tokens and delegating to self
             await nftBoostVault
                 .connect(signers[2])
-                .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
+                .addNftAndDelegate(signers[2].address, ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
 
             // signers[1] calls withdraw for THREE tokens, which is larger than what they have deposited in their registration
             const tx = nftBoostVault.connect(signers[1]).withdraw(ONE.mul(3));
@@ -692,7 +716,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] registers depositing TEN tokens and delegating to self
             await nftBoostVault
                 .connect(signers[2])
-                .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
+                .addNftAndDelegate(signers[2].address, ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
 
             // signers[2] calls withdraw for 0 tokens
             const tx = nftBoostVault.connect(signers[2]).withdraw(0);
@@ -725,7 +749,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             expect(contractNftBal).to.be.eq(0);
 
             // signers[0] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
-            const tx = await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             await tx.wait();
 
             // confirm the user is no longer holding the erc1155 nft they deposited
@@ -772,7 +802,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = await (
                 await nftBoostVault
                     .connect(signers[1])
-                    .addNftAndDelegate(ONE.mul(8), 1, reputationNft.address, signers[1].address)
+                    .addNftAndDelegate(signers[1].address, ONE.mul(8), 1, reputationNft.address, signers[1].address)
             ).wait();
 
             // signers[0] approves 5 tokens to voting vault and approves reputation nft
@@ -783,7 +813,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // this deposit is for padding NBV's ERC20 balance, so that when signers[1] tries to withdraw
             // an amount larger than their registration withdrawable amount, the txn does not revert with
             // custom error "NBV_InsufficientBalance"
-            await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[0].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[0].address,
+            );
 
             // get signers 1 voting power amount
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
@@ -819,7 +855,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE arcdToken and delegates to self
             const tx = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(5), 0, constants.AddressZero, signers[1].address);
             await tx.wait();
 
             // get user balance before addTokens()
@@ -869,7 +905,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers and delegates to self by not specifying a delegation address
             const tx = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, constants.AddressZero);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, constants.AddressZero);
             await tx.wait();
 
             // get signers[1] registration
@@ -912,7 +948,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] registers depositing TEN arcdTokens and delegating to self
             await nftBoostVault
                 .connect(signers[2])
-                .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
+                .addNftAndDelegate(signers[2].address, ONE.mul(10), 1, reputationNft.address, constants.AddressZero);
 
             // signers[2] calls addTokens with amount 0
             const tx = nftBoostVault.connect(signers[2]).addTokens(0);
@@ -952,7 +988,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits tokens and delegates to self
-            await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                1,
+                reputationNft.address,
+                signers[0].address,
+            );
 
             // check that the user balance for reputation nft is now zero
             const userErc1155Bal = await reputationNft.balanceOf(signers[0].address, 1);
@@ -985,7 +1027,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registration deposits 5 tokens, delegates to signers[1] and deposits NO erc1155 nft
-            await nftBoostVault.addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                0,
+                constants.AddressZero,
+                signers[1].address,
+            );
 
             const tx = nftBoostVault.withdrawNft();
             await expect(tx).to.be.revertedWith(`NBV_InvalidNft("${constants.AddressZero}", ${0})`);
@@ -1006,7 +1054,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registration deposits 5 tokens, delegates to signers[1] and deposits NO erc1155 nft
-            await nftBoostVault.addNftAndDelegate(ONE.mul(5), 0, reputationNft.address, signers[1].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                0,
+                reputationNft.address,
+                signers[1].address,
+            );
 
             const tx = nftBoostVault.withdrawNft();
             await expect(tx).to.be.revertedWith(`NBV_InvalidNft("${reputationNft.address}", ${0})`);
@@ -1020,7 +1074,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await arcdToken.approve(nftBoostVault.address, ONE);
 
             // signers[0] registers reputation NFT as address zero, deposits FIVE tokens and delegates to self
-            await nftBoostVault.addNftAndDelegate(ONE, 0, ethers.constants.AddressZero, signers[0].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                0,
+                ethers.constants.AddressZero,
+                signers[0].address,
+            );
 
             // user calls withdraws ERC1155
             const tx = nftBoostVault.withdrawNft();
@@ -1044,14 +1104,20 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[1].address);
 
             // signers[0] approves 5 tokens to NFT boost vault and approves reputation nft
             await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits 5 tokens and delegates to signers[1]
-            const tx = await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
             await tx.wait();
 
             // get delegatee voting power amount
@@ -1091,7 +1157,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
-            const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
 
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
             expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
@@ -1103,7 +1175,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits 5 tokens and delegates to self
             const tx1 = await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(5), 1, reputationNft.address, signers[1].address);
 
             // view query voting power of signers 1
             const votingPower1 = await nftBoostVault.queryVotePowerView(signers[1].address, tx1.blockNumber);
@@ -1141,7 +1213,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] deposits ERC20 tokens, reputationNft and delegates to signers[3]
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[3].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[3].address);
 
             // signers[1] tries to update ERC1155 in their registration using zero token address and zero token id
             const tx = nftBoostVault.connect(signers[1]).updateNft(0, constants.AddressZero);
@@ -1164,7 +1236,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] deposits ERC20 tokens, reputationNft and delegates to signers[3]
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[3].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[3].address);
 
             // signers[1] tries to update ERC1155 in their registration using zero token address and zero token id
             const tx = nftBoostVault.connect(signers[1]).updateNft(0, reputationNft.address);
@@ -1199,7 +1271,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] deposits ERC20 tokens, reputationNft2 and delegates to signers[3]
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft2.address, signers[3].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft2.address, signers[3].address);
 
             // signers[1] tries to update ERC1155 in their registration, replacing reputationNft2 by reputationNft
             const tx = nftBoostVault.connect(signers[1]).updateNft(1, reputationNft.address);
@@ -1224,7 +1296,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // this deposit is for padding NBV's ERC20 balance, so that when signers[1] tries to withdraw
             // an amount larger than their registration withdrawable amount, the txn does not revert with
             // custom error "NBV_InsufficientBalance"
-            await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[0].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[0].address,
+            );
 
             // timelock unlocks ERC20 withdrawals
             await nftBoostVault.connect(signers[0]).unlock();
@@ -1252,7 +1330,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // this deposit is for padding NBV's ERC20 balance, so that when signers[1] tries to withdraw
             // an amount larger than their registration withdrawable amount, the txn does not revert with
             // custom error "NBV_InsufficientBalance"
-            await nftBoostVault.addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[0].address);
+            await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                1,
+                reputationNft.address,
+                signers[0].address,
+            );
 
             // initialize history for signers[1]
             await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE.mul(10));
@@ -1261,7 +1345,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(10), 1, reputationNft.address, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(10), 1, reputationNft.address, signers[1].address);
 
             // timelock unlocks ERC20 withdrawals
             await nftBoostVault.connect(signers[0]).unlock();
@@ -1290,7 +1374,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[1] registers reputation NFT, deposits ONE tokens and delegates to self
             await nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE.mul(5), 0, constants.AddressZero, signers[1].address);
+                .addNftAndDelegate(signers[1].address, ONE.mul(5), 0, constants.AddressZero, signers[1].address);
 
             // signers[1] withdraws their deposited token
             const tx = nftBoostVault.connect(signers[1]).withdraw(ONE.mul(5));
@@ -1439,7 +1523,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             const tx = nftBoostVault
                 .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
+                .addNftAndDelegate(signers[1].address, ONE, 1, reputationNft.address, signers[0].address);
             await expect(tx).to.be.revertedWith("NBV_NoMultiplierSet");
         });
 
@@ -1452,6 +1536,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // signers[0] registers reputation NFT as address zero, deposits FIVE tokens and delegates to self
             const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
                 ONE.mul(5),
                 0,
                 ethers.constants.AddressZero,
@@ -1475,7 +1560,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
 
             // signers[0] registers reputation NFT as address zero, deposits FIVE tokens and delegates to self
-            const tx = await nftBoostVault.addNftAndDelegate(ONE.mul(5), 0, reputationNft.address, signers[0].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE.mul(5),
+                0,
+                reputationNft.address,
+                signers[0].address,
+            );
 
             // get total voting power amount
             const votingPower = await nftBoostVault.queryVotePowerView(signers[0].address, tx.blockNumber);
@@ -1501,7 +1592,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.setApprovalForAll(nftBoostVault.address, true);
 
             // signers[0] registers reputation NFT, deposits arcdTokens and delegates to signers[1]
-            const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+            const tx = await nftBoostVault.addNftAndDelegate(
+                signers[0].address,
+                ONE,
+                1,
+                reputationNft.address,
+                signers[1].address,
+            );
 
             // get signers[1] voting power
             const votingPower1Before = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
@@ -1514,7 +1611,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] registers reputation NFT, deposits 5 arcdTokens and delegates to signers[3]
             const tx1 = await nftBoostVault
                 .connect(signers[2])
-                .addNftAndDelegate(ONE.mul(5), 1, reputationNft.address, signers[3].address);
+                .addNftAndDelegate(signers[2].address, ONE.mul(5), 1, reputationNft.address, signers[3].address);
 
             // view query voting power of signers[3]
             const votingPower3Before = await nftBoostVault.queryVotePowerView(signers[3].address, tx1.blockNumber);

@@ -101,6 +101,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier.
      *
+     * @param user                      The address of the user registering their tokens.
      * @param amount                    Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
      * @param tokenId                   The id of the ERC1155 NFT.
@@ -110,6 +111,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *                                  with this registration.
      */
     function addNftAndDelegate(
+        address user,
         uint128 amount,
         uint128 tokenId,
         address tokenAddress,
