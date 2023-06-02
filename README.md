@@ -69,7 +69,7 @@ A contract which allows proposed function calls to be proposed,
 voted on, and executed by users after passing votes. Arcade
 governance uses Council's `CoreVoting` directly.
 
-### ArcadeGscCoreVoting
+### ArcadeGSCCoreVoting
 
 An instance of Council's `CoreVoting`, set up for use by a GSC.
 

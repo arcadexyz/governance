@@ -97,7 +97,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function for the GSC to spend tokens from the treasury. The amount to be
-     * spent must be less than or equal to the GSC's allowance for that specific token.
+     *         spent must be less than or equal to the GSC's allowance for that specific token.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
@@ -119,7 +119,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to spend a small amount of tokens from the treasury. This function
-     * should have the lowest quorum of the three spend functions.
+     *         should have the lowest quorum of the three spend functions.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
@@ -138,7 +138,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to spend a medium amount of tokens from the treasury. This function
-     * should have the middle quorum of the three spend functions.
+     *         should have the middle quorum of the three spend functions.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
@@ -157,7 +157,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to spend a large amount of tokens from the treasury. This function
-     * should have the highest quorum of the three spend functions.
+     *         should have the highest quorum of the three spend functions.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
@@ -178,7 +178,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function for the GSC to approve tokens to be pulled from the treasury. The
-     * amount to be approved must be less than or equal to the GSC's allowance for that specific token.
+     *         amount to be approved must be less than or equal to the GSC's allowance for that specific token.
      *
      * @param token             address of the token to approve
      * @param spender           address which can take the tokens
@@ -200,7 +200,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to approve a small amount of tokens from the treasury. This function
-     * should have the lowest quorum of the three approve functions.
+     *         should have the lowest quorum of the three approve functions.
      *
      * @param token             address of the token to approve
      * @param spender           address which can take the tokens
@@ -219,7 +219,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to approve a medium amount of tokens from the treasury. This function
-     * should have the middle quorum of the three approve functions.
+     *         should have the middle quorum of the three approve functions.
      *
      * @param token             address of the token to approve
      * @param spender           address which can take the tokens
@@ -238,7 +238,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to approve a large amount of tokens from the treasury. This function
-     * should have the highest quorum of the three approve functions.
+     *         should have the highest quorum of the three approve functions.
      *
      * @param token             address of the token to approve
      * @param spender           address which can take the tokens
@@ -259,20 +259,21 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to set the spend/approve thresholds for a token. This function is only
-     * callable by the contract admin.
+     *         callable by the contract admin.
      *
      * @param token             address of the token to set the thresholds for
      * @param thresholds        struct containing the thresholds to set
      */
     function setThreshold(address token, SpendThreshold memory thresholds) external onlyRole(ADMIN_ROLE) {
+        // verify that the token is not the zero address
+        if (token == address(0)) revert T_ZeroAddress();
+        // verify small threshold is not zero
+        if (thresholds.small == 0) revert T_ZeroAmount();
+
         // verify thresholds are ascending from small to large
         if (thresholds.large < thresholds.medium || thresholds.medium < thresholds.small) {
             revert T_ThresholdsNotAscending();
         }
-        // verify small threshold is not zero
-        if (thresholds.small == 0) revert T_ZeroAmount();
-        // verify that the token is not the zero address
-        if (token == address(0)) revert T_ZeroAddress();
 
         // Overwrite the spend limits for specified token
         spendThresholds[token] = thresholds;
@@ -282,10 +283,10 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to set the GSC allowance for a token. This function is only callable
-     * by the contract admin. The new allowance must be less than or equal to the small
-     * spend threshold for that specific token. There is a cool down period of 7 days
-     * after this function has been called where it cannot be called again. Once the cooldown
-     * period is over the allowance can be updated by the admin again.
+     *         by the contract admin. The new allowance must be less than or equal to the small
+     *         spend threshold for that specific token. There is a cool down period of 7 days
+     *         after this function has been called where it cannot be called again. Once the cooldown
+     *         period is over the allowance can be updated by the admin again.
      *
      * @param token             address of the token to set the allowance for
      * @param newAllowance      new allowance amount to set
@@ -315,8 +316,8 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice function to execute arbitrary calls from the treasury. This function is only
-     * callable by the contract admin. All calls are executed in order, and if any of them fail
-     * the entire transaction is reverted.
+     *         callable by the contract admin. All calls are executed in order, and if any of them fail
+     *         the entire transaction is reverted.
      *
      * @param targets           array of addresses to call
      * @param calldatas         array of bytes data to use for each call
@@ -327,7 +328,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     ) external onlyRole(ADMIN_ROLE) nonReentrant {
         if (targets.length != calldatas.length) revert T_ArrayLengthMismatch();
         // execute a package of low level calls
-        for (uint256 i = 0; i < targets.length; i++) {
+        for (uint256 i = 0; i < targets.length; ++i) {
             if (spendThresholds[targets[i]].small != 0) revert T_InvalidTarget(targets[i]);
             (bool success, ) = targets[i].call(calldatas[i]);
             // revert if a single call fails
@@ -339,7 +340,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice helper function to send tokens from the treasury. This function is used by the
-     * transfer functions to send tokens to their destinations.
+     *         transfer functions to send tokens to their destinations.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
@@ -354,6 +355,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
         // transfer tokens
         if (address(token) == ETH_CONSTANT) {
+            // will out-of-gas revert if recipient is a contract with logic inside receive()
             payable(destination).transfer(amount);
         } else {
             IERC20(token).transfer(destination, amount);
@@ -364,7 +366,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice helper function to approve tokens from the treasury. This function is used by the
-     * approve functions to approve tokens for a spender.
+     *         approve functions to approve tokens for a spender.
      *
      * @param token             address of the token to approve
      * @param spender           address to approve
