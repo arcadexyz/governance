@@ -43,7 +43,7 @@ import {
  *      by this version of the VestingVault. When grants are added the contracts will not transfer
  *      in tokens on each add but rather check for solvency via state variables.
  */
-contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, BaseVotingVault {
+contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, BaseVotingVault {
     using History for History.HistoricalBalances;
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
@@ -78,7 +78,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      * @param who                        The Grant recipient.
      * @param amount                     The total grant value.
      * @param cliffAmount                The amount of tokens that will be unlocked at the cliff.
-     * @param startTime                  Optionally set a non standard start time. If set to zero
+     * @param startTime                  Optionally set a start time in the future. If set to zero
      *                                   then the start time will be made the block tx is in.
      * @param expiration                 Timestamp when the grant ends (all tokens count as unlocked).
      * @param cliff                      Timestamp when the cliff ends. No tokens are unlocked until
@@ -118,7 +118,6 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
         delegatee = delegatee == address(0) ? who : delegatee;
 
         // calculate the voting power. Assumes all voting power is initially locked.
-        // Come back to this assumption.
         uint128 newVotingPower = amount;
 
         // set the new grant
@@ -200,7 +199,7 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
      * @param amount           The amount to withdraw.
      * @param recipient        The address to withdraw to.
      */
-    function withdraw(uint256 amount, address recipient) external virtual onlyManager {
+    function withdraw(uint256 amount, address recipient) external override onlyManager {
         Storage.Uint256 storage unassigned = _unassigned();
         if (unassigned.data < amount) revert AVV_InsufficientBalance(unassigned.data);
         // update unassigned value
@@ -211,12 +210,12 @@ contract ARCDVestingVault is HashedStorageReentrancyBlock, IARCDVestingVault, Ba
     // ========================================= USER OPERATIONS ========================================
 
     /**
-     * @notice Grant owners use to claim all withdrawable value from a grant. Voting power
+     * @notice Grant owners use to claim any withdrawable value from a grant. Voting power
      *         is recalculated factoring in the amount withdrawn.
      *
      * @param amount                 The amount to withdraw.
      */
-    function claim(uint256 amount) external virtual nonReentrant {
+    function claim(uint256 amount) external override nonReentrant {
         if (amount == 0) revert AVV_InvalidAmount();
 
         // load the grant

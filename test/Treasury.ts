@@ -652,11 +652,18 @@ describe("Arcade Treasury", async () => {
                 MOCK_TIMELOCK.address,
                 ethers.utils.parseEther("10000"),
             ]);
+            const tokenCalldata2 = tokenFactory.interface.encodeFunctionData("transfer", [
+                signers[3].address,
+                ethers.utils.parseEther("1000"),
+            ]);
 
-            await arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]);
+            await arcadeTreasury
+                .connect(MOCK_TIMELOCK)
+                .batchCalls([arcdToken.address, arcdToken.address], [tokenCalldata, tokenCalldata2]);
 
-            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25490000"));
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25489000"));
             await expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("10000"));
+            await expect(await arcdToken.balanceOf(signers[3].address)).to.eq(ethers.utils.parseEther("1000"));
         });
 
         it("external call, array length mismatch", async () => {
