@@ -358,7 +358,6 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
             // will out-of-gas revert if recipient is a contract with logic inside receive()
             payable(destination).transfer(amount);
         } else {
-            // will out-of-gas revert if recipient is a contract with logic inside receive()
             IERC20(token).transfer(destination, amount);
         }
 
