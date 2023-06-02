@@ -62,14 +62,7 @@ contract ArcadeMerkleRewards {
         rewardsRoot = _rewardsRoot;
         token = _token;
         expiration = _expiration;
-<<<<<<< HEAD
         votingVault = _votingVault;
-=======
-        lockingVault = _lockingVault;
-
-        // we approve the locking vault so that it can deposit on behalf of users
-        // _token.approve(address(lockingVault), type(uint256).max);
->>>>>>> 59f1c6c (feat(deploy-scripts): e2e.ts all tests complete)
     }
 
     // ===================================== CLAIM FUNCTIONALITY ========================================
