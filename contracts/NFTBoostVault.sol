@@ -25,7 +25,9 @@ import {
     NBV_ZeroAddress,
     NBV_ArrayTooManyElements,
     NBV_Locked,
-    NBV_AlreadyUnlocked
+    NBV_AlreadyUnlocked,
+    NBV_NotAirdrop,
+    NBV_NoRegistration
 } from "./errors/Governance.sol";
 
 /**
@@ -94,11 +96,11 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     // ===================================== USER FUNCTIONALITY =========================================
 
     /**
-     * @notice Performs ERC1155 registration and delegation for a caller.
+     * @notice Performs token and optional ERC1155 registration for the caller. The caller cannot have
+     *         an existing registration.
      *
      * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier access.
      *
-     * @param user                      The address of the user registering their tokens.
      * @param amount                    Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
      * @param tokenId                   The id of the ERC1155 NFT.
@@ -108,58 +110,58 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *                                  with this Registration to
      */
     function addNftAndDelegate(
-        address user,
         uint128 amount,
         uint128 tokenId,
         address tokenAddress,
         address delegatee
     ) external override nonReentrant {
-        uint256 multiplier = 1e18;
+        if (amount == 0) revert NBV_ZeroAmount();
 
-        // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
-        if (tokenAddress != address(0) && tokenId != 0) {
-            if (IERC1155(tokenAddress).balanceOf(user, tokenId) == 0) revert NBV_DoesNotOwn();
+        _registerAndDelegate(msg.sender, amount, tokenId, tokenAddress, delegatee);
 
-            multiplier = getMultiplier(tokenAddress, tokenId);
+        // transfer user ERC20 amount and ERC1155 nft into this contract
+        _lockTokens(msg.sender, uint256(amount), tokenAddress, tokenId, 1);
+    }
 
-            if (multiplier == 0) revert NBV_NoMultiplierSet();
-        }
-
-        // load this contract's balance storage
-        Storage.Uint256 storage balance = _balance();
+    /**
+     * @notice Function for an airdrop contract to call to register a user or update
+     *         their registration with more tokens.
+     *
+     * @dev This function is only callable by the airdrop contract.
+     *
+     * @param user                      The address of the user to register.
+     * @param amount                    Amount of token to transfer to this contract.
+     * @param delegatee                 The address to delegate the voting power to.
+     */
+    function airdropAddTokens(
+        address user,
+        uint128 amount,
+        address delegatee
+    ) external override onlyAirdrop nonReentrant {
+        if (amount == 0) revert NBV_ZeroAmount();
+        if (user == address(0)) revert NBV_ZeroAddress();
 
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
 
-        // If the token id and token address is not zero, revert because the Registration
-        // is already initialized. Only one Registration per user
-        if (registration.tokenId != 0 && registration.tokenAddress != address(0)) revert NBV_HasRegistration();
+        // if this is the users first time claiming an airdrop, register them
+        // else just update their registration
+        if (registration.delegatee == address(0)) {
+            _registerAndDelegate(user, amount, 0, address(0), delegatee);
+        } else {
+            // get this contract's balance
+            Storage.Uint256 storage balance = _balance();
+            // update contract balance
+            balance.data += amount;
 
-        // load the delegate. Defaults to the registration owner
-        delegatee = delegatee == address(0) ? user : delegatee;
+            // update registration amount
+            registration.amount += amount;
+            // update the delegatee's voting power
+            _syncVotingPower(msg.sender, registration);
+        }
 
-        // calculate the voting power provided by this registration
-        uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
-
-        // set the new registration
-        _getRegistrations()[user] = NFTBoostVaultStorage.Registration(
-            amount,
-            newVotingPower,
-            0,
-            tokenId,
-            tokenAddress,
-            delegatee
-        );
-
-        // update this contract's balance
-        balance.data += amount;
-
-        _grantVotingPower(delegatee, newVotingPower);
-
-        // transfer user ERC20 amount and ERC1155 nft into this contract
-        _lockTokens(msg.sender, amount, tokenAddress, tokenId, 1);
-
-        emit VoteChange(user, registration.delegatee, int256(uint256(newVotingPower)));
+        // transfer user ERC20 amount only into this contract
+        _lockTokens(msg.sender, uint256(amount), address(0), 0, 0);
     }
 
     /**
@@ -244,9 +246,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
-     * @notice Tops up a user's locked ERC20 token amount in this contract.
-     *         Consequently, the user's delegatee gains voting power associated
-     *         with the newly added tokens.
+     * @notice Adds tokens to a user's registration. The user must have an existing registration.
      *
      * @param amount                      The amount of tokens to add.
      */
@@ -254,6 +254,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         if (amount == 0) revert NBV_ZeroAmount();
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+
+        // If the registration does not have a delegatee, revert because the Registration
+        // is not initialized
+        if (registration.delegatee == address(0)) revert NBV_NoRegistration();
 
         // get this contract's balance
         Storage.Uint256 storage balance = _balance();
@@ -299,7 +303,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /**
      * @notice A function that allows a user's to change the ERC1155 nft they are using for
-     *         accessing a voting power multiplier.
+     *         accessing a voting power multiplier. Or if the users does not have a NFT
+     *         registered, they can register one and their voting power will be updated.
      *
      * @param newTokenAddress            Address of the new ERC1155 token the user wants to use.
      * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
@@ -311,8 +316,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
-        // withdraw the current ERC1155 from the registration
-        withdrawNft();
+        if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
+            // withdraw the current ERC1155 from the registration
+            withdrawNft();
+        }
 
         // set the new ERC1155 values in the registration
         registration.tokenAddress = newTokenAddress;
@@ -377,6 +384,14 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         emit WithdrawalsUnlocked();
     }
 
+    function setAirdropContract(address _newAirdropContract) external override onlyManager {
+        if (_newAirdropContract == address(0)) revert NBV_ZeroAddress();
+
+        Storage.set(Storage.addressPtr("airdrop"), _newAirdropContract);
+
+        emit AirdropContractUpdated(_newAirdropContract);
+    }
+
     // ======================================= VIEW FUNCTIONS ===========================================
 
     /**
@@ -420,6 +435,58 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     // =========================================== HELPERS ==============================================
+
+    function _registerAndDelegate(
+        address user,
+        uint128 amount,
+        uint128 tokenId,
+        address tokenAddress,
+        address delegatee
+    ) internal {
+        uint256 multiplier = 1e18;
+
+        // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
+        if (tokenAddress != address(0) && tokenId != 0) {
+            if (IERC1155(tokenAddress).balanceOf(user, tokenId) == 0) revert NBV_DoesNotOwn();
+
+            multiplier = getMultiplier(tokenAddress, tokenId);
+
+            if (multiplier == 0) revert NBV_NoMultiplierSet();
+        }
+
+        // load this contract's balance storage
+        Storage.Uint256 storage balance = _balance();
+
+        // load the registration
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
+
+        // If the token id and token address is not zero, revert because the Registration
+        // is already initialized. Only one Registration per user
+        if (registration.tokenId != 0 && registration.tokenAddress != address(0)) revert NBV_HasRegistration();
+
+        // load the delegate. Defaults to the registration owner
+        delegatee = delegatee == address(0) ? user : delegatee;
+
+        // calculate the voting power provided by this registration
+        uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
+
+        // set the new registration
+        _getRegistrations()[user] = NFTBoostVaultStorage.Registration(
+            amount,
+            newVotingPower,
+            0,
+            tokenId,
+            tokenAddress,
+            delegatee
+        );
+
+        // update this contract's balance
+        balance.data += amount;
+
+        _grantVotingPower(delegatee, newVotingPower);
+
+        emit VoteChange(user, registration.delegatee, int256(uint256(newVotingPower)));
+    }
 
     /**
      * @dev Grants the chosen delegate address voting power when a new user registers.
@@ -582,5 +649,11 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      */
     function onERC1155Received(address, address, uint256, uint256, bytes memory) public virtual returns (bytes4) {
         return this.onERC1155Received.selector;
+    }
+
+    modifier onlyAirdrop() {
+        if (msg.sender != Storage.addressPtr("airdrop").data) revert NBV_NotAirdrop();
+
+        _;
     }
 }

@@ -10,6 +10,7 @@ interface INFTBoostVault {
      */
     event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
     event WithdrawalsUnlocked();
+    event AirdropContractUpdated(address newAirdropContract);
 
     /**
      * @notice View functions
@@ -23,13 +24,9 @@ interface INFTBoostVault {
     /**
      * @notice NFT boost vault functionality
      */
-    function addNftAndDelegate(
-        address user,
-        uint128 amount,
-        uint128 tokenId,
-        address tokenAddress,
-        address delegatee
-    ) external;
+    function addNftAndDelegate(uint128 amount, uint128 tokenId, address tokenAddress, address delegatee) external;
+
+    function airdropAddTokens(address user, uint128 amount, address delegatee) external;
 
     function delegate(address to) external;
 
@@ -52,4 +49,9 @@ interface INFTBoostVault {
      * @notice Only Timelock function
      */
     function unlock() external;
+
+    /**
+     * @notice Only Airdrop contract function
+     */
+    function setAirdropContract(address _newAirdropContract) external;
 }

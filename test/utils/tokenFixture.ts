@@ -114,6 +114,9 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         ]);
         await arcdAirdrop.deployed();
 
+        // set airdrop contract in mockNftBoostVault
+        await mockLockingVault.connect(signers[1]).setAirdropContract(arcdAirdrop.address);
+
         // ==================================== HELPER FUNCTIONS ===================================
 
         const bootstrapVestingManager = async (): Promise<void> => {

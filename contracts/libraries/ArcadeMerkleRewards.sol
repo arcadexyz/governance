@@ -85,7 +85,7 @@ contract ArcadeMerkleRewards {
         // approve the voting vault to transfer tokens
         token.approve(address(votingVault), totalGrant);
         // deposit tokens in voting vault for this msg.sender and delegate
-        votingVault.addNftAndDelegate(msg.sender, uint128(totalGrant), 0, address(0), delegate);
+        votingVault.airdropAddTokens(msg.sender, uint128(totalGrant), delegate);
     }
 
     // =========================================== HELPERS ==============================================
