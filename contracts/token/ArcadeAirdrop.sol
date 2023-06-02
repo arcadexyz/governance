@@ -55,7 +55,6 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
         if (destination == address(0)) revert AA_ZeroAddress();
 
         uint256 unclaimed = token.balanceOf(address(this));
-
         token.transfer(destination, unclaimed);
     }
 
