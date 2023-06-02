@@ -1,14 +1,13 @@
-import hre, { ethers } from "hardhat";
+import { ethers } from "hardhat";
 
-import { getLatestDeployment, SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
-
+import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
 import {
-    TREASURY,
-    DEVELOPMENT_PARTNERS,
-    COMMUNITY_REWARDS,
     COMMUNITY_AIRDROP,
-    VESTING_TEAM,
+    COMMUNITY_REWARDS,
+    DEVELOPMENT_PARTNERS,
+    TREASURY,
     VESTING_PARTNERS,
+    VESTING_TEAM,
 } from "./token-recipients";
 
 export async function main() {
@@ -39,7 +38,7 @@ export async function main() {
     } catch (error) {
         console.log("Error distributing tokens to recipients", error);
     }
-    
+
     console.log(SECTION_SEPARATOR);
 }
 

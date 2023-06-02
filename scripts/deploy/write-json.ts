@@ -1,19 +1,19 @@
-import fs from "fs";
-import path from "path";
-import hre, { upgrades } from "hardhat";
 import { BigNumberish } from "ethers";
+import fs from "fs";
+import hre from "hardhat";
+import path from "path";
 
 import {
-    DEPLOYER_ADDRESS,
-    TIMELOCK_WAIT_TIME,
-    STALE_BLOCK_LAG,
+    AIRDROP_EXPIRATION,
     BASE_QUORUM,
-    MIN_PROPOSAL_POWER,
     BASE_QUORUM_GSC,
-    MIN_PROPOSAL_POWER_GSC,
+    DEPLOYER_ADDRESS,
     GSC_THRESHOLD,
+    MIN_PROPOSAL_POWER_CORE_VOTING,
+    MIN_PROPOSAL_POWER_GSC,
+    STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
-    AIRDROP_EXPIRATION, 
+    TIMELOCK_WAIT_TIME,
 } from "./deployment-params";
 
 export interface ContractData {
@@ -66,10 +66,7 @@ export async function writeJson(
         staleBlock,
     );
 
-    fs.writeFileSync(
-        path.join(networkFolderPath, jsonFile),
-        JSON.stringify(contractInfo, undefined, 2)
-    );
+    fs.writeFileSync(path.join(networkFolderPath, jsonFile), JSON.stringify(contractInfo, undefined, 2));
 
     console.log("Contract info written to: ", path.join(networkFolderPath, jsonFile));
 }
@@ -92,12 +89,12 @@ export async function createInfo(
 
     contractInfo["ArcadeTokenDistributor"] = {
         contractAddress: arcadeTokenDistributorAddress,
-        constructorArgs: []
+        constructorArgs: [],
     };
 
     contractInfo["ArcadeToken"] = {
         contractAddress: arcadeTokenAddress,
-        constructorArgs: [DEPLOYER_ADDRESS, arcadeTokenDistributorAddress]
+        constructorArgs: [DEPLOYER_ADDRESS, arcadeTokenDistributorAddress],
     };
 
     contractInfo["CoreVoting"] = {
@@ -105,74 +102,45 @@ export async function createInfo(
         constructorArgs: [
             DEPLOYER_ADDRESS,
             BASE_QUORUM,
-            MIN_PROPOSAL_POWER,
+            MIN_PROPOSAL_POWER_CORE_VOTING,
             ethers.constants.AddressZero,
-            []
-        ]
+            [],
+        ],
     };
 
     contractInfo["ArcadeGSCCoreVoting"] = {
         contractAddress: arcadeGSCCoreVotingAddress,
-        constructorArgs: [
-            DEPLOYER_ADDRESS,
-            BASE_QUORUM_GSC,
-            MIN_PROPOSAL_POWER_GSC,
-            ethers.constants.AddressZero,
-            []
-        ]
+        constructorArgs: [DEPLOYER_ADDRESS, BASE_QUORUM_GSC, MIN_PROPOSAL_POWER_GSC, ethers.constants.AddressZero, []],
     };
 
     contractInfo["Timelock"] = {
         contractAddress: timelockAddress,
-        constructorArgs: [
-            TIMELOCK_WAIT_TIME,
-            DEPLOYER_ADDRESS,
-            DEPLOYER_ADDRESS
-        ]
+        constructorArgs: [TIMELOCK_WAIT_TIME, DEPLOYER_ADDRESS, DEPLOYER_ADDRESS],
     };
 
     contractInfo["ARCDVestingVault"] = {
         contractAddress: teamVestingVaultAddress,
-        constructorArgs: [
-            arcadeTokenAddress,
-            staleBlock,
-            TEAM_VESTING_VAULT_MANAGER,
-            timelockAddress
-        ]
+        constructorArgs: [arcadeTokenAddress, staleBlock, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
     };
 
     contractInfo["ImmutableVestingVault"] = {
         contractAddress: partnerVestingVaultAddress,
-        constructorArgs: [
-            arcadeTokenAddress,
-            staleBlock,
-            TEAM_VESTING_VAULT_MANAGER,
-            timelockAddress
-        ],
+        constructorArgs: [arcadeTokenAddress, staleBlock, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
     };
 
     contractInfo["NFTBoostVault"] = {
         contractAddress: NFTBoostVaultAddress,
-        constructorArgs: [
-            arcadeTokenAddress,
-            staleBlock,
-            timelockAddress,
-            coreVotingAddress
-        ]
+        constructorArgs: [arcadeTokenAddress, staleBlock, timelockAddress, coreVotingAddress],
     };
 
     contractInfo["ArcadeGSCVault"] = {
         contractAddress: arcadeGSCVaultAddress,
-        constructorArgs: [
-            coreVotingAddress,
-            GSC_THRESHOLD,
-            timelockAddress
-        ],
+        constructorArgs: [coreVotingAddress, GSC_THRESHOLD, timelockAddress],
     };
 
     contractInfo["ArcadeTreasury"] = {
         contractAddress: arcadeTreasuryAddress,
-        constructorArgs: [DEPLOYER_ADDRESS]
+        constructorArgs: [DEPLOYER_ADDRESS],
     };
 
     contractInfo["ArcadeAirdrop"] = {
@@ -182,8 +150,8 @@ export async function createInfo(
             ethers.constants.HashZero,
             arcadeTokenAddress,
             AIRDROP_EXPIRATION,
-            NFTBoostVaultAddress
-        ]
+            NFTBoostVaultAddress,
+        ],
     };
 
     return contractInfo;

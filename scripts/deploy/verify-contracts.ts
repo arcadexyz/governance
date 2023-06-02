@@ -1,10 +1,9 @@
+import { BigNumberish } from "ethers";
 import fs from "fs";
 import hre from "hardhat";
-import { BigNumberish } from "ethers";
-
-import { ContractData } from "./write-json";
 
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
+import { ContractData } from "./write-json";
 
 async function verifyArtifacts(
     contractName: string,
@@ -17,10 +16,9 @@ async function verifyArtifacts(
 
     const address = contractImplementationAddress || contractAddress;
 
-
     // TODO: Verify proxy?
     try {
-        if(contractName === "CoreVoting") {
+        if (contractName === "CoreVoting") {
             await hre.run("verify:verify", {
                 address,
                 constructorArguments: constructorArgs,
@@ -40,14 +38,13 @@ async function verifyArtifacts(
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCVault.sol:ArcadeGSCVault`,
             });
-        }
-        else {
+        } else {
             await hre.run("verify:verify", {
                 address,
                 constructorArguments: constructorArgs,
             });
         }
-    } catch (err:any) {
+    } catch (err: any) {
         if (!err.message.match(/already verified/i)) {
             throw err;
         } else {
@@ -62,10 +59,10 @@ async function verifyArtifacts(
 // get data from deployments json to run verify artifacts
 export async function main(): Promise<void> {
     // retrieve command line args array
-    const [,,file] = process.argv;
+    const [, , file] = process.argv;
 
     // read deployment json to get contract addresses and constructor arguments
-    const readData = fs.readFileSync(file, 'utf-8');
+    const readData = fs.readFileSync(file, "utf-8");
     const jsonData = JSON.parse(readData);
 
     // loop through jsonData to run verifyArtifacts function

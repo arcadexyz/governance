@@ -1,48 +1,69 @@
-import { execSync } from "child_process";
-import { expect } from "chai";
-import { ethers, artifacts } from "hardhat";
 import assert from "assert";
+import { expect } from "chai";
+import { execSync } from "child_process";
+import { ethers } from "hardhat";
 
 import {
-    NETWORK,
-    getLatestDeploymentFile,
-    getLatestDeployment,
-    getVerifiedABI
-} from "./utils";
-
-import {
+    ARCDVestingVault,
+    ArcadeGSCCoreVoting,
+    ArcadeGSCVault,
     ArcadeToken,
     ArcadeTokenDistributor,
-    Timelock,
     CoreVoting,
-    ArcadeGSCCoreVoting,
-    ARCDVestingVault,
     ImmutableVestingVault,
     NFTBoostVault,
-    ArcadeGSCVault
+    Timelock,
 } from "../../../typechain";
-
+import {
+    ADD_APPROVAL,
+    ADD_APPROVAL_QUORUM,
+    ADD_CALL,
+    ADD_CALL_QUORUM,
+    CALL_WHITELIST_ADDR,
+    CALL_WHITELIST_APPROVALS_ADDR,
+    LARGE_SPEND,
+    LARGE_SPEND_QUORUM,
+    LOAN_CORE_ADDR,
+    MEDIUM_SPEND,
+    MEDIUM_SPEND_QUORUM,
+    MINT_TOKENS,
+    MINT_TOKENS_QUORUM,
+    ORIGINATION_CONTROLLER_ADDR,
+    PAUSE,
+    PAUSE_QUORUM,
+    SET_ALLOWED_PAYABLE_CURRENCIES,
+    SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
+    SET_ALLOWED_VERIFIER,
+    SET_ALLOWED_VERIFIER_BATCH,
+    SET_ALLOWED_VERIFIER_BATCH_QUORUM,
+    SET_ALLOWED_VERIFIER_QUORUM,
+    SET_FEE_CONTROLLER,
+    SET_FEE_CONTROLLER_QUORUM,
+    SET_MINTER,
+    SET_MINTER_QUORUM,
+} from "../custom-quorum-params";
 import {
     BASE_QUORUM,
-    MIN_PROPOSAL_POWER,
     BASE_QUORUM_GSC,
-    MIN_PROPOSAL_POWER_GSC,
+    DEPLOYER_ADDRESS,
     GSC_THRESHOLD,
+    MIN_PROPOSAL_POWER_CORE_VOTING,
+    MIN_PROPOSAL_POWER_GSC,
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
-    DEPLOYER_ADDRESS
 } from "../deployment-params";
+import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI } from "./utils";
 
 /**
  * Note: Against normal conventions, these tests are interdependent and meant
  * to run sequentially. Each subsequent test relies on the state of the previous.
- * 
+ *
  * To run these this script use:
  * `yarn clean && yarn compile && npx hardhat test scripts/deploy/test/e2e.ts --network <networkName>`
  */
 assert(NETWORK !== "hardhat", "Must use a long-lived network!");
 
-describe("Deployment", function() {
+describe("Deployment", function () {
     this.timeout(0);
     this.bail();
 
@@ -50,7 +71,7 @@ describe("Deployment", function() {
         if (process.env.EXEC) {
             // Deploy everything, via command-line
             console.log(); // whitespace
-            execSync(`npx hardhat --network ${NETWORK} run scripts/deploy/deploy.ts`, { stdio: 'inherit' });
+            execSync(`npx hardhat --network ${NETWORK} run scripts/deploy/deploy.ts`, { stdio: "inherit" });
         }
 
         // Make sure JSON file exists
@@ -109,55 +130,94 @@ describe("Deployment", function() {
         if (process.env.EXEC) {
             // Run setup, via command-line
             console.log(); // whitespace
-            execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: 'inherit' });
+            execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: "inherit" });
         }
 
+        // load deployed contracts
+        const arcadeTokenDistributor = <ArcadeTokenDistributor>(
+            await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
+        );
+        const arcadeToken = <ArcadeToken>(
+            await ethers.getContractAt("ArcadeToken", deployment["ArcadeToken"].contractAddress)
+        );
+        const coreVoting = <CoreVoting>(
+            await ethers.getContractAt("CoreVoting", deployment["CoreVoting"].contractAddress)
+        );
+        const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>(
+            await ethers.getContractAt("ArcadeGSCCoreVoting", deployment["ArcadeGSCCoreVoting"].contractAddress)
+        );
+        const timelock = <Timelock>await ethers.getContractAt("Timelock", deployment["Timelock"].contractAddress);
+        const teamVestingVault = <ARCDVestingVault>(
+            await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
+        );
+        const partnerVestingVault = <ImmutableVestingVault>(
+            await ethers.getContractAt("ImmutableVestingVault", deployment["ImmutableVestingVault"].contractAddress)
+        );
+        const nftBoostVault = <NFTBoostVault>(
+            await ethers.getContractAt("NFTBoostVault", deployment["NFTBoostVault"].contractAddress)
+        );
+        const arcadeGSCVault = <ArcadeGSCVault>(
+            await ethers.getContractAt("ArcadeGSCVault", deployment["ArcadeGSCVault"].contractAddress)
+        );
+
+        // ArcadeToken has the correct minter address
+        expect(await arcadeToken.minter()).to.equal(deployment["CoreVoting"].contractAddress);
+
         // Make sure ArcadeTokenDistributor has the correct token for distribution set
-        const ARCDDist = await ethers.getContractFactory("ArcadeTokenDistributor");
-        const arcdDst = <ArcadeTokenDistributor>await ARCDDist.attach(deployment["ArcadeTokenDistributor"].contractAddress);
-        expect(await arcdDst.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
-
-        // Make sure ArcadeToken has the correct minter and distributor
-        const ARCDToken = await ethers.getContractFactory("ArcadeToken");
-        const arcdToken = <ArcadeToken>await ARCDToken.attach(deployment["ArcadeToken"].contractAddress);
-        const Timelock = await ethers.getContractFactory("Timelock");
-        const timelock = <Timelock>await Timelock.attach(deployment["Timelock"].contractAddress);
-
-        expect(await arcdToken.minter()).to.equal(DEPLOYER_ADDRESS);
+        expect(await arcadeTokenDistributor.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
 
         // Make sure CoreVoting has the correct state after deployment
-        const CVoting = await ethers.getContractFactory("CoreVoting");
-        const cvoting = <CoreVoting>await CVoting.attach(deployment["CoreVoting"].contractAddress);
-        const CVotingGSC = await ethers.getContractFactory("ArcadeGSCCoreVoting");
-        const cvotingGSC = <CoreVotingGSC>await CVotingGSC.attach(deployment["ArcadeGSCCoreVoting"].contractAddress);
-        const teamVestingVault = <ARCDVestingVault>await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress);
-        const partnerVestingVault = <ImmutableVestingVault>await ethers.getContractAt("ImmutableVestingVault", deployment["ImmutableVestingVault"].contractAddress);
-        const NFTBoostVault = <NFTBoostVault>await ethers.getContractAt("NFTBoostVault", deployment["NFTBoostVault"].contractAddress);
-        const arcadeGSCVault = <ArcadeGSCVault>await ethers.getContractAt("ArcadeGSCVault", deployment["ArcadeGSCVault"].contractAddress);
+        expect(await coreVoting.owner()).to.equal(timelock.address);
+        expect(await coreVoting.baseQuorum()).to.equal(BASE_QUORUM);
+        expect(await coreVoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_CORE_VOTING);
+        expect(await coreVoting.authorized(arcadeGSCVault.address)).to.equal(true);
 
-        expect(await cvoting.owner()).to.equal(timelock.address);
-        expect(await cvoting.baseQuorum()).to.equal(BASE_QUORUM);
-        expect(await cvoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER);
-        expect(await cvoting.authorized(cvotingGSC.address)).to.equal(true);
-
-        expect(await cvoting.approvedVaults(teamVestingVault.address)).to.equal(true);
-        expect(await cvoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
-        expect(await cvoting.approvedVaults(NFTBoostVault.address)).to.equal(true);
-        expect(await cvotingGSC.approvedVaults(arcadeGSCVault.address)).to.equal(true);
+        // verify correct voting vaults
+        expect(await coreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);
+        expect(await coreVoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
+        expect(await coreVoting.approvedVaults(nftBoostVault.address)).to.equal(true);
+        expect(await arcadeGSCCoreVoting.approvedVaults(arcadeGSCVault.address)).to.equal(true);
 
         // Make sure CoreVotingGSC has the correct state after deployment
-        expect(await cvotingGSC.owner()).to.equal(timelock.address);
-        expect(await cvotingGSC.baseQuorum()).to.equal(BASE_QUORUM_GSC);
-        expect(await cvotingGSC.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_GSC);
+        expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
+        expect(await arcadeGSCCoreVoting.baseQuorum()).to.equal(BASE_QUORUM_GSC);
+        expect(await arcadeGSCCoreVoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_GSC);
 
         // Make sure Timelock has the correct admin and pending admin
-        expect(await timelock.owner()).to.equal(cvoting.address);
-        expect(await timelock.authorized(cvotingGSC.address)).to.equal(true);
+        expect(await timelock.owner()).to.equal(coreVoting.address);
+        expect(await timelock.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
 
         // verify GSC Vault has the correct state after deployment
         expect(await arcadeGSCVault.owner()).to.equal(timelock.address);
-        expect(await arcadeGSCVault.coreVoting()).to.equal(cvoting.address);
-        expect(await arcadeGSCVault.votingPowerBound()).to.equal(GSC_THRESHOLD);       
+        expect(await arcadeGSCVault.coreVoting()).to.equal(coreVoting.address);
+        expect(await arcadeGSCVault.votingPowerBound()).to.equal(GSC_THRESHOLD);
+
+        // verify custom quorums
+        expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, SET_MINTER)).to.equal(
+            SET_MINTER_QUORUM,
+        );
+        expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, MINT_TOKENS)).to.equal(
+            MINT_TOKENS_QUORUM,
+        );
+        expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, MEDIUM_SPEND)).to.equal(
+            MEDIUM_SPEND_QUORUM,
+        );
+        expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, LARGE_SPEND)).to.equal(
+            LARGE_SPEND_QUORUM,
+        );
+        expect(await coreVoting.quorums(CALL_WHITELIST_ADDR, ADD_CALL)).to.equal(ADD_CALL_QUORUM);
+        expect(await coreVoting.quorums(CALL_WHITELIST_APPROVALS_ADDR, ADD_APPROVAL)).to.equal(ADD_APPROVAL_QUORUM);
+        expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIER)).to.equal(
+            SET_ALLOWED_VERIFIER_QUORUM,
+        );
+        expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIER_BATCH)).to.equal(
+            SET_ALLOWED_VERIFIER_BATCH_QUORUM,
+        );
+        expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
+            SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
+        );
+        expect(await coreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(PAUSE_QUORUM);
+        expect(await coreVoting.quorums(LOAN_CORE_ADDR, SET_FEE_CONTROLLER)).to.equal(SET_FEE_CONTROLLER_QUORUM);
     });
 
     it("verifies all contracts on the proper network", async () => {
@@ -167,7 +227,24 @@ describe("Deployment", function() {
         if (process.env.EXEC) {
             // Run setup, via command-line
             console.log(); // whitespace
-            execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/verify-contracts.ts ${filename}`, { stdio: 'inherit' });
+            execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/verify-contracts.ts ${filename}`, {
+                stdio: "inherit",
+            });
+        }
+
+        // For each contract - compare verified ABI against artifact ABI
+        for (let contractName of Object.keys(deployment)) {
+            const contractData = deployment[contractName];
+
+            if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "CoreVoting";
+            if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
+
+            const artifact = await artifacts.readArtifact(contractName);
+
+            const implAddress = contractData.contractAddress;
+
+            const verifiedAbi = await getVerifiedABI(implAddress);
+            expect(artifact.abi).to.deep.equal(verifiedAbi);
         }
     });
 });
