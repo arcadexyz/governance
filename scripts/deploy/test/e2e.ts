@@ -166,6 +166,9 @@ describe("Deployment", function () {
         // Make sure ArcadeTokenDistributor has the correct token for distribution set
         expect(await arcadeTokenDistributor.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
 
+        // make sure the nftBoostVault has the correct airdrop contract set
+        expect(await nftBoostVault.getAirdropContract()).to.equal(deployment["ArcadeAirdrop"].contractAddress);
+
         // Make sure CoreVoting has the correct state after deployment
         expect(await coreVoting.owner()).to.equal(timelock.address);
         expect(await coreVoting.baseQuorum()).to.equal(BASE_QUORUM);

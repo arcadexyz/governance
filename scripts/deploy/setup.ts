@@ -79,7 +79,11 @@ export async function main(
 
     // set airdrop merkle root
     console.log("Setting airdrop merkle root...");
-    const tx00 = await arcadeAirdrop.setMerkleRoot(AIRDROP_MERKLE_ROOT);
+    const tx000 = await arcadeAirdrop.setMerkleRoot(AIRDROP_MERKLE_ROOT);
+    await tx000.wait();
+
+    console.log("Setting airdrop contract in nftBoostVault...");
+    const tx00 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
     await tx00.wait();
 
     // deployer sets token in distributor
