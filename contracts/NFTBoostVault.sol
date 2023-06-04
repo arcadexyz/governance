@@ -385,7 +385,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
-     * @notice Manager-only airdrop contract update function.
+     * @notice Manager-only airdrop contract address update function.
      *
      * @dev Allows the manager to update the airdrop contract address.
      *

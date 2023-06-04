@@ -71,7 +71,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         const staleBlockNum = staleBlock.number;
 
         // deploy mock voting vault to simulate the nftBoostVault vault in production
-        const mockNFTBoostVault = <LockingVault>await deploy("NFTBoostVault", signers[0], [
+        const mockNFTBoostVault = <NFTBoostVault>await deploy("NFTBoostVault", signers[0], [
             arcdToken.address,
             staleBlockNum,
             deployer.address, // timelock - vault admin (can update manager)

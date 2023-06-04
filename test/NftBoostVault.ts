@@ -1645,7 +1645,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(airdropContractAddress).to.eq(signers[0].address);
         });
 
-        it("Reverts if airdrop() is called by an address other than the manager", async () => {
+        it("Reverts if airdropReceive() is called by an address other than airdrop address", async () => {
             const { signers, nftBoostVault } = ctxGovernance;
 
             // other account tries to call airdrop()
