@@ -432,6 +432,15 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         return _getRegistrations()[who];
     }
 
+    /**
+     * @notice A function to access the stored airdrop contract address.
+     *
+     * @return address                  The address of the airdrop contract.
+     */
+    function getAirdropContract() external view override returns (address) {
+        return Storage.addressPtr("airdrop").data;
+    }
+
     // =========================================== HELPERS ==============================================
 
     function _registerAndDelegate(

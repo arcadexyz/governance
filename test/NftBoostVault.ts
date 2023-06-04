@@ -415,7 +415,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
         it("Reverts when user tries to register with token amount of zero", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, nftBoostVault, reputationNft, reputationNft2, mintNfts, setMultipliers } = ctxGovernance;
+            const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
@@ -428,12 +428,10 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVault.address, true);
 
             // signers[1] registers
-            await expect(nftBoostVault
-                .connect(signers[1])
-                .addNftAndDelegate(0, 1, reputationNft.address, signers[1].address))
-                .to.be.revertedWith("NBV_ZeroAmount");
+            await expect(
+                nftBoostVault.connect(signers[1]).addNftAndDelegate(0, 1, reputationNft.address, signers[1].address),
+            ).to.be.revertedWith("NBV_ZeroAmount");
         });
-
 
         it("Allows user to self-delegate", async () => {
             const { arcdToken } = ctxToken;
@@ -1639,6 +1637,14 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
     });
 
     describe("Airdrop functionality", async () => {
+        it("Gets the current airdrop contract address", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // get airdrop contract address
+            const airdropContractAddress = await nftBoostVault.connect(signers[1]).getAirdropContract();
+            await expect(airdropContractAddress).to.eq(signers[0].address);
+        });
+
         it("Reverts if airdrop() is called by an address other than the manager", async () => {
             const { signers, nftBoostVault } = ctxGovernance;
 

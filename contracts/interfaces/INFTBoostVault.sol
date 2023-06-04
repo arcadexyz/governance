@@ -21,6 +21,8 @@ interface INFTBoostVault {
 
     function getMultiplier(address tokenAddress, uint128 tokenId) external view returns (uint256);
 
+    function getAirdropContract() external view returns (address);
+
     /**
      * @notice NFT boost vault functionality
      */
