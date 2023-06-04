@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.18;
 
-import "../libraries/VotingVaultStorage.sol";
+import "../libraries/NFTBoostVaultStorage.sol";
 
 interface INFTBoostVault {
     /**
@@ -10,20 +10,25 @@ interface INFTBoostVault {
      */
     event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
     event WithdrawalsUnlocked();
+    event AirdropContractUpdated(address newAirdropContract);
 
     /**
      * @notice View functions
      */
     function getIsLocked() external view returns (uint256);
 
-    function getRegistration(address who) external view returns (VotingVaultStorage.Registration memory);
+    function getRegistration(address who) external view returns (NFTBoostVaultStorage.Registration memory);
 
     function getMultiplier(address tokenAddress, uint128 tokenId) external view returns (uint256);
+
+    function getAirdropContract() external view returns (address);
 
     /**
      * @notice NFT boost vault functionality
      */
     function addNftAndDelegate(uint128 amount, uint128 tokenId, address tokenAddress, address delegatee) external;
+
+    function airdropReceive(address user, uint128 amount, address delegatee) external;
 
     function delegate(address to) external;
 
@@ -46,4 +51,9 @@ interface INFTBoostVault {
      * @notice Only Timelock function
      */
     function unlock() external;
+
+    /**
+     * @notice Only Airdrop contract function
+     */
+    function setAirdropContract(address _newAirdropContract) external;
 }

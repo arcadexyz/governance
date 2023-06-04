@@ -2,12 +2,14 @@
 
 pragma solidity 0.8.18;
 
-import "./external/council/interfaces/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 
 import "./libraries/ARCDVestingVaultStorage.sol";
 import "./libraries/HashedStorageReentrancyBlock.sol";
+
 import "./interfaces/IARCDVestingVault.sol";
 import "./BaseVotingVault.sol";
 

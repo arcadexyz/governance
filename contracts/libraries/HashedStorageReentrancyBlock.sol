@@ -5,6 +5,13 @@ pragma solidity 0.8.18;
 import "../external/council/libraries/History.sol";
 import "../external/council/libraries/Storage.sol";
 
+/**
+ * @title HashedStorageReentrancyBlock
+ * @author Non-Fungible Technologies, Inc.
+ *
+ * Helper contract to prevent reentrancy attacks using hashed storage. This contract is used
+ * to protect against reentrancy attacks in the Arcade voting vault contracts.
+ */
 abstract contract HashedStorageReentrancyBlock {
     // =========================================== HELPERS ==============================================
 

@@ -6,8 +6,8 @@ pragma solidity 0.8.18;
  * @title ARCDVestingVaultStorage
  * @author Non-Fungible Technologies, Inc.
  *
- * Copy of Council `Storage` with modified scope to match the VestingVault requirements.
- * This library allows for secure storage pointers across proxy implementations.
+ * Contract based on Council's `Storage.sol` with modified scope to match the VestingVault
+ * requirements. This library allows for secure storage pointers across proxy implementations.
  * It will return storage pointers based on a hashed name and type string.
  */
 library ARCDVestingVaultStorage {

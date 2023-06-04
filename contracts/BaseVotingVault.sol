@@ -2,9 +2,10 @@
 
 pragma solidity 0.8.18;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
-import "./external/council/interfaces/IERC20.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
 

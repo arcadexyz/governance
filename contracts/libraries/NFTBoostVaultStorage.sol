@@ -3,12 +3,13 @@
 pragma solidity 0.8.18;
 
 /**
- * Copy of `VestingVaultStorage` with modified scope to match the NFTBoostVault
- * requirements. These libraries allow for secure storage pointers across proxy
- * implementations and will return storage pointers based on a hashed name and type string.
+ * @title NFTBoostVaultStorage
+ * @author Non-Fungible Technologies, Inc.
+ *
+ * Contract based on Council's `Storage.sol` with modified scope to match the NFTBoostVault
+ * requirements. This library will return storage pointers based on a hashed name and type string.
  */
-
-library VotingVaultStorage {
+library NFTBoostVaultStorage {
     /**
     * This library follows a pattern which if solidity had higher level
     * type or macro support would condense quite a bit.

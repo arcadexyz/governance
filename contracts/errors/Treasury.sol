@@ -27,7 +27,7 @@ error T_ZeroAmount();
 error T_ThresholdsNotAscending();
 
 /**
- * @notice Array lenghts must match.
+ * @notice Array lengths must match.
  */
 error T_ArrayLengthMismatch();
 

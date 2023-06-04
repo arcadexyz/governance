@@ -27,6 +27,11 @@ error NBV_DoesNotOwn();
 error NBV_HasRegistration();
 
 /**
+ * @notice Caller has not already registered.
+ */
+error NBV_NoRegistration();
+
+/**
  * @notice Ensure delegatee is not already registered as the delegate in user's Registration.
  */
 error NBV_AlreadyDelegated();
@@ -39,7 +44,7 @@ error NBV_InsufficientBalance();
 /**
  * @notice Withdrawable tokens less than withdraw request amount.
  *
- * @param withdrawable              The returned withrawable amount from
+ * @param withdrawable              The returned withdrawable amount from
  *                                  a user's registration.
  */
 error NBV_InsufficientWithdrawableBalance(uint256 withdrawable);
@@ -85,6 +90,11 @@ error NBV_AlreadyUnlocked();
  * @notice ERC20 withdrawals from NFT Boost Voting Vault are frozen.
  */
 error NBV_Locked();
+
+/**
+ * @notice Airdrop contract is not the caller.
+ */
+error NBV_NotAirdrop();
 
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
