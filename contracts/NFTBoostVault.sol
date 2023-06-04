@@ -99,7 +99,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @notice Performs token and optional ERC1155 registration for the caller. The caller cannot have
      *         an existing registration.
      *
-     * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier access.
+     * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier.
      *
      * @param amount                    Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
@@ -107,7 +107,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param tokenAddress              The address of the ERC1155 token the user is registering for multiplier
      *                                  access.
      * @param delegatee                 Optional param. The address to delegate the voting power associated
-     *                                  with this Registration to
+     *                                  with this registration.
      */
     function addNftAndDelegate(
         uint128 amount,
@@ -133,7 +133,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param amount                    Amount of token to transfer to this contract.
      * @param delegatee                 The address to delegate the voting power to.
      */
-    function airdropAddTokens(
+    function airdropReceive(
         address user,
         uint128 amount,
         address delegatee
@@ -144,7 +144,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
 
-        // if this is the users first time claiming an airdrop, register them
+        // if user is not already registered, register them
         // else just update their registration
         if (registration.delegatee == address(0)) {
             _registerAndDelegate(user, amount, 0, address(0), delegatee);
@@ -384,10 +384,17 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         emit WithdrawalsUnlocked();
     }
 
-    function setAirdropContract(address _newAirdropContract) external override onlyManager {
-        Storage.set(Storage.addressPtr("airdrop"), _newAirdropContract);
+    /**
+     * @notice Manager-only airdrop contract update function.
+     *
+     * @dev Allows the manager to update the airdrop contract address.
+     *
+     * @param newAirdropContract        The address of the new airdrop contract.
+     */
+    function setAirdropContract(address newAirdropContract) external override onlyManager {
+        Storage.set(Storage.addressPtr("airdrop"), newAirdropContract);
 
-        emit AirdropContractUpdated(_newAirdropContract);
+        emit AirdropContractUpdated(newAirdropContract);
     }
 
     // ======================================= VIEW FUNCTIONS ===========================================

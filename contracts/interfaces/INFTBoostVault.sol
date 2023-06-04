@@ -28,7 +28,7 @@ interface INFTBoostVault {
      */
     function addNftAndDelegate(uint128 amount, uint128 tokenId, address tokenAddress, address delegatee) external;
 
-    function airdropAddTokens(address user, uint128 amount, address delegatee) external;
+    function airdropReceive(address user, uint128 amount, address delegatee) external;
 
     function delegate(address to) external;
 

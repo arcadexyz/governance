@@ -87,7 +87,9 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         ]);
         await nftBoostVault.deployed();
 
-        // set airdrop address as manager of NFTBoostVault
+        // use manager of NFTBoostVault to set a mock airdrop contract. This is used for testing purposes
+        // and is not used in production. The address of this mock airdrop contract can call the
+        // NFTBoostVault's `airdropReceive` function
         await nftBoostVault.connect(signers[0]).setAirdropContract(signers[0].address);
 
         // voting vault array

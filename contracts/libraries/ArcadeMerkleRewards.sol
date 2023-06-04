@@ -39,7 +39,7 @@ contract ArcadeMerkleRewards {
     /// @notice past user claims
     mapping(address => uint256) public claimed;
 
-    /// @notice the locking vault to deposit tokens to
+    /// @notice the voting vault vault which receives airdropped tokens
     INFTBoostVault public votingVault;
 
     // ========================================== CONSTRUCTOR ===========================================
@@ -52,7 +52,7 @@ contract ArcadeMerkleRewards {
      * @param _rewardsRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _token                 The token to airdrop
      * @param _expiration            The expiration of the airdrop
-     * @param _votingVault          The locking vault to deposit tokens to
+     * @param _votingVault           The voting vault to deposit tokens to
      */
     constructor(bytes32 _rewardsRoot, IERC20 _token, uint256 _expiration, INFTBoostVault _votingVault) {
         if (_expiration <= block.timestamp) revert AA_ClaimingExpired();
@@ -85,7 +85,7 @@ contract ArcadeMerkleRewards {
         // approve the voting vault to transfer tokens
         token.approve(address(votingVault), totalGrant);
         // deposit tokens in voting vault for this msg.sender and delegate
-        votingVault.airdropAddTokens(msg.sender, uint128(totalGrant), delegate);
+        votingVault.airdropReceive(msg.sender, uint128(totalGrant), delegate);
     }
 
     // =========================================== HELPERS ==============================================

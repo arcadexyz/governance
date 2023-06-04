@@ -421,7 +421,7 @@ describe("ArcadeToken", function () {
 
     describe("ArcadeToken Airdrop", () => {
         it("all recipients claim airdrop and delegate to themselves", async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, mockLockingVault } =
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, mockNFTBoostVault } =
                 ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -446,7 +446,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -456,9 +456,9 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[1].value);
 
-            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
+            expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
@@ -513,7 +513,7 @@ describe("ArcadeToken", function () {
         });
 
         it("user tries to claim airdrop twice", async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockLockingVault } = ctxToken;
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
@@ -534,7 +534,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
 
             // try to claim again
             await expect(
@@ -587,7 +587,7 @@ describe("ArcadeToken", function () {
                 recipients,
                 merkleTrie,
                 blockchainTime,
-                mockLockingVault,
+                mockNFTBoostVault,
             } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -613,7 +613,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -623,11 +623,11 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[1].value);
 
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(0);
             expect(await arcdToken.balanceOf(other.address)).to.equal(0);
-            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
+            expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
@@ -661,7 +661,7 @@ describe("ArcadeToken", function () {
                 recipients,
                 merkleTrie,
                 blockchainTime,
-                mockLockingVault,
+                mockNFTBoostVault,
             } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -687,7 +687,7 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[0].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
 
             await expect(
                 await arcdAirdrop.connect(other).claimAndDelegate(
@@ -697,11 +697,11 @@ describe("ArcadeToken", function () {
                 ),
             )
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, mockLockingVault.address, recipients[1].value);
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[1].value);
 
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(0);
             expect(await arcdToken.balanceOf(other.address)).to.equal(0);
-            expect(await arcdToken.balanceOf(mockLockingVault.address)).to.equal(
+            expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(

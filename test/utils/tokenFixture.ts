@@ -4,7 +4,7 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, LockingVault } from "../../src/types";
+import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
@@ -22,7 +22,7 @@ export interface TestContextToken {
     arcdAirdrop: ArcadeAirdrop;
     arcdToken: IArcadeToken;
     arcdDst: ArcadeTokenDistributor;
-    mockLockingVault: LockingVault;
+    mockNFTBoostVault: NFTBoostVault;
     recipients: Account;
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
@@ -70,16 +70,14 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         const staleBlock = await ethers.provider.getBlock("latest");
         const staleBlockNum = staleBlock.number;
 
-        // deploy mock locking vault to simulate a voting vault in production
-        const mockLockingVault = <LockingVault>(
-            await deploy("NFTBoostVault", signers[0], [
-                arcdToken.address,
-                staleBlockNum,
-                deployer.address,
-                signers[1].address,
-            ])
-        );
-        await mockLockingVault.deployed();
+        // deploy mock voting vault to simulate the nftBoostVault vault in production
+        const mockNFTBoostVault = <LockingVault>await deploy("NFTBoostVault", signers[0], [
+            arcdToken.address,
+            staleBlockNum,
+            deployer.address, // timelock - vault admin (can update manager)
+            signers[1].address, // manager - vault manager (can set airdrop contract and multipliers)
+        ]);
+        await mockNFTBoostVault.deployed();
 
         // ====================================== AIRDROP SETUP =====================================
 
@@ -110,12 +108,12 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             root,
             arcdToken.address,
             expiration,
-            mockLockingVault.address,
+            mockNFTBoostVault.address,
         ]);
         await arcdAirdrop.deployed();
 
         // set airdrop contract in mockNftBoostVault
-        await mockLockingVault.connect(signers[1]).setAirdropContract(arcdAirdrop.address);
+        await mockNFTBoostVault.connect(signers[1]).setAirdropContract(arcdAirdrop.address);
 
         // ==================================== HELPER FUNCTIONS ===================================
 
@@ -148,7 +146,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             arcdAirdrop,
             arcdToken,
             arcdDst,
-            mockLockingVault,
+            mockNFTBoostVault,
             recipients,
             blockchainTime,
             merkleTrie,
