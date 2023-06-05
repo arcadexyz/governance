@@ -13,6 +13,9 @@ import {
     ImmutableVestingVault,
     NFTBoostVault,
     Timelock,
+    ArcadeTreasury,
+    ArcadeAirdrop,
+    ReputationBadge,
 } from "../../../typechain";
 import {
     ADD_APPROVAL,
@@ -199,6 +202,9 @@ describe("Deployment", function () {
         // ArcadeToken has the correct minter address
         expect(await arcadeToken.minter()).to.equal(deployment["CoreVoting"].contractAddress);
 
+        // check the arcade token distributed the initial supply to the distributor
+        expect(await arcadeToken.balanceOf(arcadeTokenDistributor.address)).to.equal(ethers.utils.parseEther("100000000"));
+
         // verify correct voting vaults for CoreVoting
         expect(await coreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);
         expect(await coreVoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
@@ -239,7 +245,7 @@ describe("Deployment", function () {
 
         // check authorized addresses in CoreVoting
         expect(await coreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
-        //expect(await coreVoting.authorized(deployment["ArcadeGSCCoreVoting"].contractAddress)).to.equal(true);
+        expect(await coreVoting.authorized(deployment["ArcadeGSCCoreVoting"].contractAddress)).to.equal(true);
 
         // check CoreVoting owner
         expect(await coreVoting.owner()).to.equal(timelock.address);

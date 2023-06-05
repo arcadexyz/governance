@@ -17,6 +17,7 @@ import {
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
+    STALE_BLOCK_LAG,
 } from "./deployment-params";
 
 export interface ContractData {
@@ -42,7 +43,6 @@ export async function writeJson(
     arcadeAirdropAddress: string,
     badgeDescriptorAddress: string,
     reputationBadgeAddress: string,
-    staleBlock: number,
 ): Promise<void> {
     const timestamp = Math.floor(new Date().getTime() / 1000);
     const networkName = hre.network.name;
@@ -69,7 +69,6 @@ export async function writeJson(
         arcadeAirdropAddress,
         badgeDescriptorAddress,
         reputationBadgeAddress,
-        staleBlock,
     );
 
     fs.writeFileSync(path.join(networkFolderPath, jsonFile), JSON.stringify(contractInfo, undefined, 2));
@@ -91,7 +90,6 @@ export async function createInfo(
     arcadeAirdropAddress: string,
     badgeDescriptorAddress: string,
     reputationBadgeAddress: string,
-    staleBlock: number,
 ): Promise<DeploymentData> {
     const contractInfo: DeploymentData = {};
 
@@ -122,17 +120,17 @@ export async function createInfo(
 
     contractInfo["ARCDVestingVault"] = {
         contractAddress: teamVestingVaultAddress,
-        constructorArgs: [arcadeTokenAddress, staleBlock, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
+        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
     };
 
     contractInfo["ImmutableVestingVault"] = {
         contractAddress: partnerVestingVaultAddress,
-        constructorArgs: [arcadeTokenAddress, staleBlock, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
+        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
     };
 
     contractInfo["NFTBoostVault"] = {
         contractAddress: NFTBoostVaultAddress,
-        constructorArgs: [arcadeTokenAddress, staleBlock, timelockAddress, NFT_BOOST_VAULT_MANAGER],
+        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, timelockAddress, NFT_BOOST_VAULT_MANAGER],
     };
 
     contractInfo["ArcadeGSCVault"] = {

@@ -103,7 +103,7 @@ export async function main(
     await tx3.wait();
 
     // transfer ownership of arcadeTokenDistributor to multisig
-    console.log("Transferring ownership of ArcadeTokenDistributor to timelock...");
+    console.log("Transferring ownership of ArcadeTokenDistributor to multisig...");
     const tx4 = await arcadeTokenDistributor.transferOwnership(DISTRIBUTION_MULTISIG);
     await tx4.wait();
 

@@ -16,6 +16,8 @@ export const BASE_QUORUM_GSC = 3; // default GSC quorum for a vote to pass, each
 export const MIN_PROPOSAL_POWER_GSC = 1; // minimum GSC proposal power, this is 1 so any GSC member can propose
 export const GSC_THRESHOLD = 75000; // GSC threshold, (minimum voting power needed to be a GSC member)
 
+export const STALE_BLOCK_LAG = 9126594; // number of blocks to wait before a vote can be executed
+
 export const AIRDROP_EXPIRATION = 1688254873; // unix timestamp for airdrop expiration
 export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero; // change to actual merkle root
 

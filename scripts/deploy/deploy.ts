@@ -27,6 +27,7 @@ import {
     REPUTATION_BADGE_ADMIN,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
+    STALE_BLOCK_LAG,
 } from "./deployment-params";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { writeJson } from "./write-json";
@@ -119,13 +120,11 @@ export async function main(): Promise<DeployedResources> {
 
     // // ======= VAULTS =======
 
-    const staleBlock = await ethers.provider.getBlockNumber();
-
     // team vesting vault (ARCDVestingVault)
     const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
     const teamVestingVault = await TeamVestingVaultFactory.deploy(
         arcadeToken.address,
-        staleBlock,
+        STALE_BLOCK_LAG,
         TEAM_VESTING_VAULT_MANAGER,
         timelock.address,
     );
@@ -138,7 +137,7 @@ export async function main(): Promise<DeployedResources> {
     const PartnerVestingVaultFactory = await ethers.getContractFactory("ImmutableVestingVault");
     const partnerVestingVault = await PartnerVestingVaultFactory.deploy(
         arcadeToken.address,
-        staleBlock,
+        STALE_BLOCK_LAG,
         TEAM_VESTING_VAULT_MANAGER,
         timelock.address,
     );
@@ -151,7 +150,7 @@ export async function main(): Promise<DeployedResources> {
     const NFTBoostVaultFactory = await ethers.getContractFactory("NFTBoostVault");
     const NFTBoostVault = await NFTBoostVaultFactory.deploy(
         arcadeToken.address,
-        staleBlock,
+        STALE_BLOCK_LAG,
         timelock.address,
         NFT_BOOST_VAULT_MANAGER,
     );
@@ -229,7 +228,6 @@ export async function main(): Promise<DeployedResources> {
         arcadeAirdropAddress,
         badgeDescriptorAddress,
         reputationBadgeAddress,
-        staleBlock,
     );
 
     console.log(SECTION_SEPARATOR);
