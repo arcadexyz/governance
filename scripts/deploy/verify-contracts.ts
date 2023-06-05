@@ -9,30 +9,32 @@ async function verifyArtifacts(contractName: string, contractAddress: string, co
     console.log(`${contractName}: ${contractAddress}`);
     console.log(SUBSECTION_SEPARATOR);
 
+    const address = contractAddress;
+
     try {
         if (contractName === "CoreVoting") {
             await hre.run("verify:verify", {
-                contractAddress,
+                address,
                 constructorArguments: constructorArgs,
                 contract: `contracts/external/council/CoreVoting.sol:CoreVoting`,
             });
         }
         if (contractName === "ArcadeGSCCoreVoting") {
             await hre.run("verify:verify", {
-                contractAddress,
+                address,
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCCoreVoting.sol:ArcadeGSCCoreVoting`,
             });
         }
         if (contractName === "ArcadeGSCVault") {
             await hre.run("verify:verify", {
-                contractAddress,
+                address,
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCVault.sol:ArcadeGSCVault`,
             });
         } else {
             await hre.run("verify:verify", {
-                contractAddress,
+                address,
                 constructorArguments: constructorArgs,
             });
         }

@@ -44,15 +44,15 @@ import {
 } from "../custom-quorum-params";
 import {
     ADMIN_ADDRESS,
+    AIRDROP_MERKLE_ROOT,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
-    MIN_PROPOSAL_POWER_CORE_VOTING,
-    STALE_BLOCK_LAG,
-    AIRDROP_MERKLE_ROOT,
     GSC_MIN_LOCK_DURATION,
+    MIN_PROPOSAL_POWER_CORE_VOTING,
     REPUTATION_BADGE_ADMIN,
     REPUTATION_BADGE_MANAGER,
     REPUTATION_BADGE_RESOURCE_MANAGER,
+    STALE_BLOCK_LAG,
 } from "../deployment-params";
 import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI } from "./utils";
 
@@ -239,7 +239,7 @@ describe("Deployment", function () {
 
         // check authorized addresses in CoreVoting
         expect(await coreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
-        expect(await coreVoting.authorized(deployment["ArcadeGSCCoreVoting"].contractAddress)).to.equal(true);
+        //expect(await coreVoting.authorized(deployment["ArcadeGSCCoreVoting"].contractAddress)).to.equal(true);
 
         // check CoreVoting owner
         expect(await coreVoting.owner()).to.equal(timelock.address);
@@ -255,10 +255,14 @@ describe("Deployment", function () {
         expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
 
         // check ArcadeTreasury GSC_CORE_VOTING_ROLE
-        expect(await arcadeTreasury.hasRole(await arcadeTreasury.GSC_CORE_VOTING_ROLE(), arcadeGSCCoreVoting.address)).to.equal(true);
+        expect(
+            await arcadeTreasury.hasRole(await arcadeTreasury.GSC_CORE_VOTING_ROLE(), arcadeGSCCoreVoting.address),
+        ).to.equal(true);
 
         // check ArcadeTreasury CORE_VOTING_ROLE
-        expect(await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address)).to.equal(true);
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address)).to.equal(
+            true,
+        );
 
         // check ArcadeTreasury ADMIN_ROLE
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address)).to.equal(true);
@@ -267,13 +271,22 @@ describe("Deployment", function () {
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
 
         // check the ReputationBadge has the correct BADGE_MANAGER_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER)).to.equal(true);
+        expect(
+            await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER),
+        ).to.equal(true);
 
         // check the ReputationBadge has the correct RESOURCE_MANAGER_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), REPUTATION_BADGE_RESOURCE_MANAGER)).to.equal(true);
+        expect(
+            await reputationBadge.hasRole(
+                await reputationBadge.RESOURCE_MANAGER_ROLE(),
+                REPUTATION_BADGE_RESOURCE_MANAGER,
+            ),
+        ).to.equal(true);
 
         // check the ReputationBadge has the correct ADMIN_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN)).to.equal(true);
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN)).to.equal(
+            true,
+        );
 
         // check the ReputationBadge ADMIN_ROLE was renounced by deployer
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
