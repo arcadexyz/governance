@@ -1,7 +1,7 @@
-export const DEPLOYER_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // deployer wallet
+export const ADMIN_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // deployer wallet
 
-export const TREASURY_OWNER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
 export const TEAM_VESTING_VAULT_MANAGER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
+export const NFT_BOOST_VAULT_MANAGER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
 
 export const TIMELOCK_WAIT_TIME = 3600 * 24 * 3; // 3 days (3 days allows for a grace period that is longer than a weekend)
 export const GSC_MIN_LOCK_DURATION = 3600 * 24 * 3; // 7 days
@@ -15,3 +15,9 @@ export const GSC_THRESHOLD = 75000; // GSC threshold, (minimum voting power need
 
 export const AIRDROP_EXPIRATION = 1688254873; // unix timestamp for airdrop expiration
 export const AIRDROP_MERKLE_ROOT = ""; // change to actual merkle root
+
+export const BADGE_DESCRIPTOR_BASE_URI = "https://arcade.xyz/"; // base uri for badge descriptors
+
+export const REPUTATION_BADGE_ADMIN = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
+export const REPUTATION_BADGE_MANAGER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
+export const REPUTATION_BADGE_RESOURCE_MANAGER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!

@@ -1,14 +1,7 @@
 import { ethers } from "hardhat";
 
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
-import {
-    COMMUNITY_AIRDROP,
-    COMMUNITY_REWARDS,
-    DEVELOPMENT_PARTNERS,
-    TREASURY,
-    VESTING_PARTNERS,
-    VESTING_TEAM,
-} from "./token-recipients";
+import { COMMUNITY_REWARDS, DEVELOPMENT_PARTNERS } from "./token-recipients";
 
 export async function main() {
     console.log(SECTION_SEPARATOR);
@@ -16,28 +9,23 @@ export async function main() {
     // Get latest deployment on the specified network
     const deployment = getLatestDeployment();
 
-    // token distributor
+    // Attach to deployed distributor contract
     const ARCDDist = await ethers.getContractFactory("ArcadeTokenDistributor");
     const arcdDist = await ARCDDist.attach(deployment["ArcadeTokenDistributor"].contractAddress);
 
-    try {
-        // distribute
-        const res1 = await arcdDist.toTreasury(TREASURY);
-        await res1.wait();
-        const res2 = await arcdDist.toDevPartner(DEVELOPMENT_PARTNERS);
-        await res2.wait();
-        const res3 = await arcdDist.toCommunityRewards(COMMUNITY_REWARDS);
-        await res3.wait();
-        const res4 = await arcdDist.toCommunityAirdrop(COMMUNITY_AIRDROP);
-        await res4.wait();
-        const res5 = await arcdDist.toTeamVesting(VESTING_TEAM);
-        await res5.wait();
-        const res6 = await arcdDist.toPartnerVesting(VESTING_PARTNERS);
-        await res6.wait();
-        console.log("All tokens distributed to recipients");
-    } catch (error) {
-        console.log("Error distributing tokens to recipients", error);
-    }
+    // Distribute tokens to all recipient addresses
+    const res1 = await arcdDist.toTreasury(deployment["ArcadeTreasury"].contractAddress);
+    await res1.wait();
+    const res2 = await arcdDist.toCommunityAirdrop(deployment["ArcadeAirdrop"].contractAddress);
+    await res2.wait();
+    const res3 = await arcdDist.toTeamVesting(deployment["ARCDVestingVault"].contractAddress);
+    await res3.wait();
+    const res4 = await arcdDist.toPartnerVesting(deployment["ImmutableVestingVault"].contractAddress);
+    await res4.wait();
+    const res5 = await arcdDist.toDevPartner(DEVELOPMENT_PARTNERS);
+    await res5.wait();
+    const res6 = await arcdDist.toCommunityRewards(COMMUNITY_REWARDS);
+    await res6.wait();
 
     console.log(SECTION_SEPARATOR);
 }

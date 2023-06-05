@@ -5,42 +5,34 @@ import hre from "hardhat";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { ContractData } from "./write-json";
 
-async function verifyArtifacts(
-    contractName: string,
-    contractAddress: string,
-    contractImplementationAddress: string | undefined,
-    constructorArgs: BigNumberish[],
-) {
+async function verifyArtifacts(contractName: string, contractAddress: string, constructorArgs: BigNumberish[]) {
     console.log(`${contractName}: ${contractAddress}`);
     console.log(SUBSECTION_SEPARATOR);
 
-    const address = contractImplementationAddress || contractAddress;
-
-    // TODO: Verify proxy?
     try {
         if (contractName === "CoreVoting") {
             await hre.run("verify:verify", {
-                address,
+                contractAddress,
                 constructorArguments: constructorArgs,
                 contract: `contracts/external/council/CoreVoting.sol:CoreVoting`,
             });
         }
         if (contractName === "ArcadeGSCCoreVoting") {
             await hre.run("verify:verify", {
-                address,
+                contractAddress,
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCCoreVoting.sol:ArcadeGSCCoreVoting`,
             });
         }
         if (contractName === "ArcadeGSCVault") {
             await hre.run("verify:verify", {
-                address,
+                contractAddress,
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCVault.sol:ArcadeGSCVault`,
             });
         } else {
             await hre.run("verify:verify", {
-                address,
+                contractAddress,
                 constructorArguments: constructorArgs,
             });
         }
@@ -69,12 +61,7 @@ export async function main(): Promise<void> {
     for (const property in jsonData) {
         const dataFromJson = <ContractData>jsonData[property];
 
-        await verifyArtifacts(
-            property,
-            dataFromJson.contractAddress,
-            dataFromJson.contractImplementationAddress,
-            dataFromJson.constructorArgs,
-        );
+        await verifyArtifacts(property, dataFromJson.contractAddress, dataFromJson.constructorArgs);
     }
 }
 

@@ -30,7 +30,7 @@ import {
     SET_MINTER,
     SET_MINTER_QUORUM,
 } from "./custom-quorum-params";
-import { AIRDROP_MERKLE_ROOT, DEPLOYER_ADDRESS, GSC_MIN_LOCK_DURATION } from "./deployment-params";
+import { ADMIN_ADDRESS, AIRDROP_MERKLE_ROOT, GSC_MIN_LOCK_DURATION } from "./deployment-params";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 
 const jsonContracts: { [key: string]: string } = {
@@ -72,7 +72,7 @@ export async function main(
     nftBoostVault: Contract,
     arcadeGSCVault: Contract,
     arcadeTreasury: Contract,
-    arcadeAirdrop?: Contract,
+    arcadeAirdrop: Contract,
 ): Promise<void> {
     console.log(SECTION_SEPARATOR);
     console.log("Setup contract state variables and relinquish control...");
@@ -154,7 +154,7 @@ export async function main(
 
     // authorize gsc vault and change owner to be the coreVoting contract
     console.log("Setup CoreVoting permissions...");
-    const tx17 = await coreVoting.deauthorize(DEPLOYER_ADDRESS);
+    const tx17 = await coreVoting.deauthorize(ADMIN_ADDRESS);
     await tx17.wait();
     const tx18 = await coreVoting.authorize(arcadeGSCVault.address);
     await tx18.wait();
@@ -163,7 +163,7 @@ export async function main(
 
     // authorize arcadeGSCCoreVoting and change owner to be the coreVoting contract
     console.log("Setup Timelock permissions...");
-    const tx20 = await timelock.deauthorize(DEPLOYER_ADDRESS);
+    const tx20 = await timelock.deauthorize(ADMIN_ADDRESS);
     await tx20.wait();
     const tx21 = await timelock.authorize(arcadeGSCCoreVoting.address);
     await tx21.wait();
@@ -183,6 +183,21 @@ export async function main(
     await tx25.wait();
     const tx26 = await arcadeTreasury.grantRole(arcadeTreasury.ADMIN_ROLE(), timelock.address);
     await tx26.wait();
+    const tx27 = await arcadeTreasury.renouceRole(arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS);
+    await tx27.wait();
+
+    // ReputationBadge permissions
+    console.log("Setup ReputationBadge permissions...");
+    const tx28 = await reputationBadge.grantRole(reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER);
+    await tx28.wait();
+    const tx29 = await reputationBadge.grantRole(reputationBadge.RESOURCE_MANAGER_ROLE(), REPUTATION_BADGE_RESOURCE_MANAGER);
+    await tx29.wait();
+    const tx30 = await reputationBadge.grantRole(reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN);
+    await tx30.wait();
+    const tx31 = await reputationBadge.renouceRole(reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS);
+    await tx31.wait();
+
+
 }
 
 async function attachAddresses(jsonFile: string): Promise<ContractArgs> {

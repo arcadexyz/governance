@@ -4,21 +4,23 @@ import hre from "hardhat";
 import path from "path";
 
 import {
+    ADMIN_ADDRESS,
     AIRDROP_EXPIRATION,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
-    DEPLOYER_ADDRESS,
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
+    NFT_BOOST_VAULT_MANAGER,
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
+    BADGE_DESCRIPTOR_BASE_URI,
+    REPUTATION_BADGE_ADMIN,
 } from "./deployment-params";
 
 export interface ContractData {
     contractAddress: string;
-    contractImplementationAddress?: string;
     constructorArgs: BigNumberish[];
 }
 
@@ -38,6 +40,8 @@ export async function writeJson(
     arcadeGSCVaultAddress: string,
     arcadeTreasuryAddress: string,
     arcadeAirdropAddress: string,
+    badgeDescriptorAddress: string,
+    reputationBadgeAddress: string,
     staleBlock: number,
 ): Promise<void> {
     const timestamp = Math.floor(new Date().getTime() / 1000);
@@ -63,6 +67,8 @@ export async function writeJson(
         arcadeGSCVaultAddress,
         arcadeTreasuryAddress,
         arcadeAirdropAddress,
+        badgeDescriptorAddress,
+        reputationBadgeAddress,
         staleBlock,
     );
 
@@ -83,6 +89,8 @@ export async function createInfo(
     arcadeGSCVaultAddress: string,
     arcadeTreasuryAddress: string,
     arcadeAirdropAddress: string,
+    badgeDescriptorAddress: string,
+    reputationBadgeAddress: string,
     staleBlock: number,
 ): Promise<DeploymentData> {
     const contractInfo: DeploymentData = {};
@@ -94,28 +102,22 @@ export async function createInfo(
 
     contractInfo["ArcadeToken"] = {
         contractAddress: arcadeTokenAddress,
-        constructorArgs: [DEPLOYER_ADDRESS, arcadeTokenDistributorAddress],
+        constructorArgs: [ADMIN_ADDRESS, arcadeTokenDistributorAddress],
     };
 
     contractInfo["CoreVoting"] = {
         contractAddress: coreVotingAddress,
-        constructorArgs: [
-            DEPLOYER_ADDRESS,
-            BASE_QUORUM,
-            MIN_PROPOSAL_POWER_CORE_VOTING,
-            ethers.constants.AddressZero,
-            [],
-        ],
+        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM, MIN_PROPOSAL_POWER_CORE_VOTING, ethers.constants.AddressZero, []],
     };
 
     contractInfo["ArcadeGSCCoreVoting"] = {
         contractAddress: arcadeGSCCoreVotingAddress,
-        constructorArgs: [DEPLOYER_ADDRESS, BASE_QUORUM_GSC, MIN_PROPOSAL_POWER_GSC, ethers.constants.AddressZero, []],
+        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM_GSC, MIN_PROPOSAL_POWER_GSC, ethers.constants.AddressZero, []],
     };
 
     contractInfo["Timelock"] = {
         contractAddress: timelockAddress,
-        constructorArgs: [TIMELOCK_WAIT_TIME, DEPLOYER_ADDRESS, DEPLOYER_ADDRESS],
+        constructorArgs: [TIMELOCK_WAIT_TIME, ADMIN_ADDRESS, ADMIN_ADDRESS],
     };
 
     contractInfo["ARCDVestingVault"] = {
@@ -130,7 +132,7 @@ export async function createInfo(
 
     contractInfo["NFTBoostVault"] = {
         contractAddress: NFTBoostVaultAddress,
-        constructorArgs: [arcadeTokenAddress, staleBlock, timelockAddress, coreVotingAddress],
+        constructorArgs: [arcadeTokenAddress, staleBlock, timelockAddress, NFT_BOOST_VAULT_MANAGER],
     };
 
     contractInfo["ArcadeGSCVault"] = {
@@ -140,18 +142,28 @@ export async function createInfo(
 
     contractInfo["ArcadeTreasury"] = {
         contractAddress: arcadeTreasuryAddress,
-        constructorArgs: [DEPLOYER_ADDRESS],
+        constructorArgs: [ADMIN_ADDRESS],
     };
 
     contractInfo["ArcadeAirdrop"] = {
         contractAddress: arcadeAirdropAddress,
         constructorArgs: [
-            DEPLOYER_ADDRESS,
+            ADMIN_ADDRESS,
             ethers.constants.HashZero,
             arcadeTokenAddress,
             AIRDROP_EXPIRATION,
             NFTBoostVaultAddress,
         ],
+    };
+
+    contractInfo["BadgeDescriptor"] = {
+        contractAddress: badgeDescriptorAddress,
+        constructorArgs: [BADGE_DESCRIPTOR_BASE_URI],
+    };
+
+    contractInfo["ReputationBadge"] = {
+        contractAddress: reputationBadgeAddress,
+        constructorArgs: [REPUTATION_BADGE_ADMIN, badgeDescriptorAddress],
     };
 
     return contractInfo;

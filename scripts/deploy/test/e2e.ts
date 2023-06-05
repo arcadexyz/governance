@@ -43,14 +43,16 @@ import {
     SET_MINTER_QUORUM,
 } from "../custom-quorum-params";
 import {
+    ADMIN_ADDRESS,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
-    DEPLOYER_ADDRESS,
-    GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
-    MIN_PROPOSAL_POWER_GSC,
     STALE_BLOCK_LAG,
-    TEAM_VESTING_VAULT_MANAGER,
+    AIRDROP_MERKLE_ROOT,
+    GSC_MIN_LOCK_DURATION,
+    REPUTATION_BADGE_ADMIN,
+    REPUTATION_BADGE_MANAGER,
+    REPUTATION_BADGE_RESOURCE_MANAGER,
 } from "../deployment-params";
 import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI } from "./utils";
 
@@ -121,11 +123,25 @@ describe("Deployment", function () {
         expect(deployment["ArcadeAirdrop"]).to.exist;
         expect(deployment["ArcadeAirdrop"].contractAddress).to.exist;
         expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(5);
+
+        expect(deployment["BadgeDescriptor"]).to.exist;
+        expect(deployment["BadgeDescriptor"].contractAddress).to.exist;
+        expect(deployment["BadgeDescriptor"].constructorArgs.length).to.eq(1);
+
+        expect(deployment["ReputationBadge"]).to.exist;
+        expect(deployment["ReputationBadge"].contractAddress).to.exist;
+        expect(deployment["ReputationBadge"].constructorArgs.length).to.eq(2);
     });
 
     it("correctly sets up all roles and permissions", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
+
+        if (!ADMIN_ADDRESS) {
+            throw new Error("did not get admin address!");
+        } else {
+            console.log("Admin:", ADMIN_ADDRESS);
+        }
 
         if (process.env.EXEC) {
             // Run setup, via command-line
@@ -133,7 +149,9 @@ describe("Deployment", function () {
             execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: "inherit" });
         }
 
-        // load deployed contracts
+        /**
+         * Verify all the governance setup transactions were executed properly
+         */
         const arcadeTokenDistributor = <ArcadeTokenDistributor>(
             await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
         );
@@ -159,48 +177,45 @@ describe("Deployment", function () {
         const arcadeGSCVault = <ArcadeGSCVault>(
             await ethers.getContractAt("ArcadeGSCVault", deployment["ArcadeGSCVault"].contractAddress)
         );
+        const arcadeTreasury = <ArcadeTreasury>(
+            await ethers.getContractAt("ArcadeTreasury", deployment["ArcadeTreasury"].contractAddress)
+        );
+        const arcadeAirdrop = <ArcadeAirdrop>(
+            await ethers.getContractAt("ArcadeAirdrop", deployment["ArcadeAirdrop"].contractAddress)
+        );
+        const reputationBadge = <ReputationBadge>(
+            await ethers.getContractAt("ReputationBadge", deployment["ReputationBadge"].contractAddress)
+        );
 
-        // ArcadeToken has the correct minter address
-        expect(await arcadeToken.minter()).to.equal(deployment["CoreVoting"].contractAddress);
-
-        // Make sure ArcadeTokenDistributor has the correct token for distribution set
-        expect(await arcadeTokenDistributor.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
+        // check ArcadeAirdrop merkle root
+        expect(await arcadeAirdrop.rewardsRoot()).to.equal(AIRDROP_MERKLE_ROOT);
 
         // make sure the nftBoostVault has the correct airdrop contract set
         expect(await nftBoostVault.getAirdropContract()).to.equal(deployment["ArcadeAirdrop"].contractAddress);
 
-        // Make sure CoreVoting has the correct state after deployment
-        expect(await coreVoting.owner()).to.equal(timelock.address);
-        expect(await coreVoting.baseQuorum()).to.equal(BASE_QUORUM);
-        expect(await coreVoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_CORE_VOTING);
-        expect(await coreVoting.authorized(arcadeGSCVault.address)).to.equal(true);
+        // Make sure ArcadeTokenDistributor has the correct token for distribution set
+        expect(await arcadeTokenDistributor.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
 
-        // verify correct voting vaults
+        // ArcadeToken has the correct minter address
+        expect(await arcadeToken.minter()).to.equal(deployment["CoreVoting"].contractAddress);
+
+        // verify correct voting vaults for CoreVoting
         expect(await coreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);
         expect(await coreVoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
         expect(await coreVoting.approvedVaults(nftBoostVault.address)).to.equal(true);
+
+        // verify correct voting vaults for ArcadeGSCCoreVoting
         expect(await arcadeGSCCoreVoting.approvedVaults(arcadeGSCVault.address)).to.equal(true);
 
-        // Make sure CoreVotingGSC has the correct state after deployment
-        expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
-        expect(await arcadeGSCCoreVoting.baseQuorum()).to.equal(BASE_QUORUM_GSC);
-        expect(await arcadeGSCCoreVoting.minProposalPower()).to.equal(MIN_PROPOSAL_POWER_GSC);
+        // verify GSCCoreVoting has the correct minimum lock duration
+        expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);
 
-        // Make sure Timelock has the correct admin and pending admin
-        expect(await timelock.owner()).to.equal(coreVoting.address);
-        expect(await timelock.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
-
-        // verify GSC Vault has the correct state after deployment
-        expect(await arcadeGSCVault.owner()).to.equal(timelock.address);
-        expect(await arcadeGSCVault.coreVoting()).to.equal(coreVoting.address);
-        expect(await arcadeGSCVault.votingPowerBound()).to.equal(GSC_THRESHOLD);
-
-        // verify custom quorums
-        expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, SET_MINTER)).to.equal(
-            SET_MINTER_QUORUM,
-        );
+        // check custom quorums in CoreVoting
         expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, MINT_TOKENS)).to.equal(
             MINT_TOKENS_QUORUM,
+        );
+        expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, SET_MINTER)).to.equal(
+            SET_MINTER_QUORUM,
         );
         expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, MEDIUM_SPEND)).to.equal(
             MEDIUM_SPEND_QUORUM,
@@ -221,6 +236,47 @@ describe("Deployment", function () {
         );
         expect(await coreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(PAUSE_QUORUM);
         expect(await coreVoting.quorums(LOAN_CORE_ADDR, SET_FEE_CONTROLLER)).to.equal(SET_FEE_CONTROLLER_QUORUM);
+
+        // check authorized addresses in CoreVoting
+        expect(await coreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
+        expect(await coreVoting.authorized(deployment["ArcadeGSCCoreVoting"].contractAddress)).to.equal(true);
+
+        // check CoreVoting owner
+        expect(await coreVoting.owner()).to.equal(timelock.address);
+
+        // Make sure Timelock has the correct owner
+        expect(await timelock.owner()).to.equal(coreVoting.address);
+
+        // check authorized addresses in Timelock
+        expect(await timelock.authorized(ADMIN_ADDRESS)).to.equal(false);
+        expect(await timelock.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
+
+        // check ArcadeGSCCoreVoting owner
+        expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
+
+        // check ArcadeTreasury GSC_CORE_VOTING_ROLE
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.GSC_CORE_VOTING_ROLE(), arcadeGSCCoreVoting.address)).to.equal(true);
+
+        // check ArcadeTreasury CORE_VOTING_ROLE
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address)).to.equal(true);
+
+        // check ArcadeTreasury ADMIN_ROLE
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address)).to.equal(true);
+
+        // check ArcadeTreasury ADMIN_ROLE was renounced by deployer
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
+
+        // check the ReputationBadge has the correct BADGE_MANAGER_ROLE
+        expect(await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER)).to.equal(true);
+
+        // check the ReputationBadge has the correct RESOURCE_MANAGER_ROLE
+        expect(await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), REPUTATION_BADGE_RESOURCE_MANAGER)).to.equal(true);
+
+        // check the ReputationBadge has the correct ADMIN_ROLE
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN)).to.equal(true);
+
+        // check the ReputationBadge ADMIN_ROLE was renounced by deployer
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
     });
 
     it("verifies all contracts on the proper network", async () => {
@@ -244,9 +300,7 @@ describe("Deployment", function () {
 
             const artifact = await artifacts.readArtifact(contractName);
 
-            const implAddress = contractData.contractAddress;
-
-            const verifiedAbi = await getVerifiedABI(implAddress);
+            const verifiedAbi = await getVerifiedABI(contractData.contractAddress);
             expect(artifact.abi).to.deep.equal(verifiedAbi);
         }
     });
