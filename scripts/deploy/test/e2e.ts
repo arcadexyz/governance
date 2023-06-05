@@ -5,17 +5,17 @@ import { ethers } from "hardhat";
 
 import {
     ARCDVestingVault,
+    ArcadeAirdrop,
     ArcadeGSCCoreVoting,
     ArcadeGSCVault,
     ArcadeToken,
     ArcadeTokenDistributor,
+    ArcadeTreasury,
     CoreVoting,
     ImmutableVestingVault,
     NFTBoostVault,
-    Timelock,
-    ArcadeTreasury,
-    ArcadeAirdrop,
     ReputationBadge,
+    Timelock,
 } from "../../../typechain";
 import {
     ADD_APPROVAL,
@@ -203,7 +203,9 @@ describe("Deployment", function () {
         expect(await arcadeToken.minter()).to.equal(deployment["CoreVoting"].contractAddress);
 
         // check the arcade token distributed the initial supply to the distributor
-        expect(await arcadeToken.balanceOf(arcadeTokenDistributor.address)).to.equal(ethers.utils.parseEther("100000000"));
+        expect(await arcadeToken.balanceOf(arcadeTokenDistributor.address)).to.equal(
+            ethers.utils.parseEther("100000000"),
+        );
 
         // verify correct voting vaults for CoreVoting
         expect(await coreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);

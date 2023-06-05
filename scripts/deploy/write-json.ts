@@ -17,7 +17,6 @@ import {
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
-    STALE_BLOCK_LAG,
 } from "./deployment-params";
 
 export interface ContractData {

@@ -25,9 +25,9 @@ import {
     MIN_PROPOSAL_POWER_GSC,
     NFT_BOOST_VAULT_MANAGER,
     REPUTATION_BADGE_ADMIN,
+    STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
-    STALE_BLOCK_LAG,
 } from "./deployment-params";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { writeJson } from "./write-json";
