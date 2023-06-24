@@ -142,7 +142,6 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
 
             // pass proposal with YES majority
             await coreVoting.connect(signers[2]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 0, 0); // yes vote
-
             await coreVoting.connect(signers[1]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 0, 1); // no vote
 
             // increase blockNumber to exceed 3 day default lock duration set in coreVoting

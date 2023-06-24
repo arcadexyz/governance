@@ -363,7 +363,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
         if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit();
 
-        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
         multiplierData.multiplier = multiplierValue;
 
@@ -413,7 +413,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *                                  multiplier for.
      * @param tokenId                   The token id of the ERC1155 for which the multiplier is being set.
      *
-     * @return                          The token multiplier.
+     * @return multiplier               Multiplier value associated with token address and tokenId.
      */
     function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint128) {
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
@@ -676,13 +676,12 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /** @dev A single function endpoint for loading storage for multipliers.
      *
-     * @return                          A storage mapping which can be used to lookup a
-     *                                  token's multiplier data and token id data.
+     * @return MultiplierData           Multiplier storage mapping.
      */
     function _getMultipliers()
         internal
         pure
-        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.AddressUintUint)) storage)
+        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.MultiplierData)) storage)
     {
         // This call returns a storage mapping with a unique non overwrite-able storage layout.
         return NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers");

@@ -1739,13 +1739,10 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
         it("User claims airdrop, then claims again. Registration and voting power are updated", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, nftBoostVault, mintNfts, setMultipliers } = ctxGovernance;
+            const { signers, nftBoostVault, mintNfts } = ctxGovernance;
 
             // mint users some reputation nfts
             await mintNfts();
-
-            // manager sets the value of the reputation NFT multiplier
-            const { MULTIPLIER_A, MULTIPLIER_B } = await setMultipliers();
 
             // signers[0] approves tokens to NFT boost vault
             await arcdToken.approve(nftBoostVault.address, ONE.mul(5));

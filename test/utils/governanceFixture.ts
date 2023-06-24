@@ -241,7 +241,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             };
         };
 
-        const setTreasuryThresholds = async () => {
+        const setTreasuryThresholds = async (): Promise<Thresholds[]> => {
             const arcdThresholds: Thresholds = [
                 ethers.utils.parseEther("100"),
                 ethers.utils.parseEther("500"),

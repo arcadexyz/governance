@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 
-import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
+import { SECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
 import { COMMUNITY_REWARDS, DEVELOPMENT_PARTNERS } from "./token-recipients";
 
 export async function main() {
