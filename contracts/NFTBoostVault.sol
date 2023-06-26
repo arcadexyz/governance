@@ -450,6 +450,17 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     // =========================================== HELPERS ==============================================
 
+    /**
+     * @notice A helper function to register a user and delegate their voting power. This function is called
+     *         when a user does not have a Registration created yet.
+     *
+     * @param user                          The address of the user to register.
+     * @param amount                        Amount of tokens to be locked.
+     * @param tokenId                       The id of the ERC1155 NFT.
+     * @param tokenAddress                  The address of the ERC1155 token.
+     * @param delegatee                     The address to delegate the voting power associated
+     *                                      with this registration.
+     */
     function _registerAndDelegate(
         address user,
         uint128 amount,
@@ -474,9 +485,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
 
-        // If the token id and token address is not zero, revert because the Registration
+        // If the delegate address is not address zero, revert because the Registration
         // is already initialized. Only one Registration per user
-        if (registration.tokenId != 0 && registration.tokenAddress != address(0)) revert NBV_HasRegistration();
+        if (registration.delegatee != address(0)) revert NBV_HasRegistration();
 
         // load the delegate. Defaults to the registration owner
         delegatee = delegatee == address(0) ? user : delegatee;
