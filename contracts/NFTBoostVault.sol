@@ -277,7 +277,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @notice Allows a users to withdraw the ERC1155 NFT they are using for
      *         accessing a voting power multiplier.
      */
-    function withdrawNft() public override nonReentrant {
+    function withdrawNft() public override {
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -620,7 +620,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address tokenAddress,
         uint128 tokenId,
         uint128 nftAmount
-    ) internal nonReentrant {
+    ) internal {
         token.transferFrom(from, address(this), amount);
 
         if (tokenAddress != address(0) && tokenId != 0) {
@@ -637,7 +637,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param tokenId                   Id of the token being transferred.
      * @param nftAmount                 Amount of token being transferred.
      */
-    function _lockNft(address from, address tokenAddress, uint128 tokenId, uint128 nftAmount) internal nonReentrant {
+    function _lockNft(address from, address tokenAddress, uint128 tokenId, uint128 nftAmount) internal {
         IERC1155(tokenAddress).safeTransferFrom(from, address(this), tokenId, nftAmount, bytes(""));
     }
 

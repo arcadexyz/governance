@@ -20,7 +20,7 @@ abstract contract HashedStorageReentrancyBlock {
      *
      * @return Storage              pointer to the entered state variable.
      */
-    function _entered() internal pure returns (Storage.Uint256 memory) {
+    function _entered() internal pure returns (Storage.Uint256 storage) {
         return Storage.uint256Ptr("entered");
     }
 
@@ -30,17 +30,17 @@ abstract contract HashedStorageReentrancyBlock {
      * @dev Re-entrancy guard modifier using hashed storage.
      */
     modifier nonReentrant() {
-        Storage.Uint256 memory entered = _entered();
+        Storage.Uint256 storage entered = _entered();
         // Check the state variable before the call is entered
         require(entered.data == 1, "REENTRANCY");
 
         // Store that the function has been entered
-        entered.data = 2;
+        Storage.set(Storage.uint256Ptr("entered"), 2);
 
         // Run the function code
         _;
 
         // Clear the state
-        entered.data = 1;
+        Storage.set(Storage.uint256Ptr("entered"), 1);
     }
 }
