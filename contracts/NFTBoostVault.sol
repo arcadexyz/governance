@@ -27,7 +27,8 @@ import {
     NBV_Locked,
     NBV_AlreadyUnlocked,
     NBV_NotAirdrop,
-    NBV_NoRegistration
+    NBV_NoRegistration,
+    NBV_NewDelegate
 } from "./errors/Governance.sol";
 
 /**
@@ -128,6 +129,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *         their registration with more tokens.
      *
      * @dev This function is only callable by the airdrop contract.
+     * @dev If a user already has a registration, they cannot change their delegatee.
      *
      * @param user                      The address of the user to register.
      * @param amount                    Amount of token to transfer to this contract.
@@ -156,8 +158,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
             // update registration amount
             registration.amount += amount;
-            // update the delegatee's voting power
-            _syncVotingPower(msg.sender, registration);
+            // if user supplies new delegatee address revert
+            if (delegatee != registration.delegatee) revert NBV_NewDelegate(delegatee, registration.delegatee);
+            // sync current delegatee's voting power
+            _syncVotingPower(user, registration);
         }
 
         // transfer user ERC20 amount only into this contract
