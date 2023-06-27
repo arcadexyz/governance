@@ -96,6 +96,10 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint128 cliff,
         address delegatee
     ) external onlyManager {
+        // input validation
+        if (who == address(0)) revert AVV_ZeroAddress();
+        if (amount == 0) revert AVV_InvalidAmount();
+
         // if no custom start time is needed we use this block.
         if (startTime == 0) {
             startTime = uint128(block.number);

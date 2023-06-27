@@ -380,6 +380,65 @@ describe("Vesting voting vault", function () {
             ).to.be.revertedWith("AVV_InsufficientBalance(0)");
         });
 
+        it("reverts when manager adds grant with address zero", async () => {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const { arcdToken, bootstrapVestingManager } = ctxToken;
+            const MANAGER = signers[1];
+
+            await bootstrapVestingManager();
+
+            // manager deposits tokens
+            await arcdToken.connect(MANAGER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+
+            // manager tries to add grant with address zero
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const expiration = currentBlock + 200; // 200 blocks in the future
+            const tx = vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
+                ethers.constants.AddressZero, // recipient
+                ethers.utils.parseEther("100"), // grant amount
+                ethers.utils.parseEther("50"), // cliff unlock amount
+                currentBlock, // start time is current block
+                expiration,
+                currentBlock + 100, // cliff is 100 blocks in the future
+                ethers.constants.AddressZero, // voting power delegate
+            );
+
+            await expect(tx).to.be.revertedWith("AVV_ZeroAddress");
+        });
+
+        it("reverts when manager adds grant with zero amount", async () => {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const { arcdToken, bootstrapVestingManager } = ctxToken;
+            const MANAGER = signers[1];
+            const OTHER_ADDRESS = signers[0].address;
+
+            await bootstrapVestingManager();
+
+            // manager deposits tokens
+            await arcdToken.connect(MANAGER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+
+            // manager tries to add grant with address zero
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const expiration = currentBlock + 200; // 200 blocks in the future
+            const tx = vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
+                OTHER_ADDRESS, // recipient
+                0, // grant amount
+                ethers.utils.parseEther("50"), // cliff unlock amount
+                currentBlock, // start time is current block
+                expiration,
+                currentBlock + 100, // cliff is 100 blocks in the future
+                ethers.constants.AddressZero, // voting power delegate
+            );
+
+            await expect(tx).to.be.revertedWith("AVV_InvalidAmount");
+        });
+
         it("manager tries to add grant for account that already exists", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
