@@ -232,6 +232,55 @@ describe("Arcade Treasury", async () => {
             ).to.be.revertedWith(`T_ZeroAddress("token")`);
         });
 
+        it("if small threshold value is reduced to be < GSCAllowance, calling setGSCAllowance() will set GSCAllowance to equal reduced small threshold value before setting it to new allowance value", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds, blockchainTime } = ctxGovernance;
+            const MOCK_TIMELOCK = signers[1];
+
+            await setTreasuryThresholds();
+
+            const spendThresholds = await arcadeTreasury.spendThresholds(arcdToken.address);
+            const smallThreshold = spendThresholds[0];
+
+            const allowance = ethers.utils.parseEther("100");
+
+            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).setGSCAllowance(arcdToken.address, allowance))
+                .to.emit(arcadeTreasury, `GSCAllowanceUpdated`)
+                .withArgs(arcdToken.address, allowance);
+
+            expect(await arcadeTreasury.gscAllowance(arcdToken.address)).to.equal(allowance);
+
+            // create a new array of thresholds with reduced small threshold value
+            const thresholds2: Thresholds = [
+                ethers.utils.parseEther("80"),
+                ethers.utils.parseEther("500"),
+                ethers.utils.parseEther("1000"),
+            ];
+
+            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds2))
+                .to.emit(arcadeTreasury, `SpendThresholdsUpdated`)
+                .withArgs(arcdToken.address, thresholds2);
+
+            // confirm the small threshold value is now less
+            const spendThresholds2 = await arcadeTreasury.spendThresholds(arcdToken.address);
+            const smallThresholdReduced = spendThresholds2[0];
+            await expect(smallThreshold.sub(smallThresholdReduced)).to.eq(ethers.utils.parseEther("20"));
+
+            // confirm that the small threshold value is also less than the GSCAllowance value
+            await expect(smallThresholdReduced).to.lt(await arcadeTreasury.gscAllowance(arcdToken.address));
+
+            const allowanceB = ethers.utils.parseEther("90");
+
+            // movwqe past cool down period
+            await blockchainTime.increaseTime(3600 * 24 * 7);
+
+            // call setGscAllowance with a new allowance value
+            // custom revert error message to reflect the reduced allowance threshold
+            await expect(
+                arcadeTreasury.connect(MOCK_TIMELOCK).setGSCAllowance(arcdToken.address, allowanceB),
+            ).to.be.revertedWith(`T_InvalidAllowance(${allowanceB}, ${smallThresholdReduced})`);
+        });
+
         it("If no threshold set, cannot set an allowance", async () => {
             const { arcdToken } = ctxToken;
             const { signers, arcadeTreasury } = ctxGovernance;

@@ -301,6 +301,11 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         }
 
         uint256 spendLimit = spendThresholds[token].small;
+        if (gscAllowance[token] > spendLimit) {
+            gscAllowance[token] = spendLimit;
+
+            emit GSCAllowanceUpdated(token, spendLimit);
+        }
 
         // new limit cannot be more than the small threshold
         if (newAllowance > spendLimit) {
