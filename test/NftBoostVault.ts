@@ -1820,7 +1820,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] claims airdrop again, delegates to different 3rd party address
             await expect(
                 nftBoostVault.connect(signers[0]).airdropReceive(signers[2].address, ONE.mul(5), signers[4].address),
-            ).to.be.revertedWith(`NBV_NewDelegate("${signers[4].address}", "${signers[3].address}")`);
+            ).to.be.revertedWith(`NBV_NewDelegatee("${signers[4].address}", "${signers[3].address}")`);
         });
     });
 });

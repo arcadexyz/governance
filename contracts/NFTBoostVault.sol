@@ -28,7 +28,7 @@ import {
     NBV_AlreadyUnlocked,
     NBV_NotAirdrop,
     NBV_NoRegistration,
-    NBV_NewDelegate
+    NBV_NewDelegatee
 } from "./errors/Governance.sol";
 
 /**
@@ -159,7 +159,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
             // update registration amount
             registration.amount += amount;
             // if user supplies new delegatee address revert
-            if (delegatee != registration.delegatee) revert NBV_NewDelegate(delegatee, registration.delegatee);
+            if (delegatee != registration.delegatee) revert NBV_NewDelegatee(delegatee, registration.delegatee);
             // sync current delegatee's voting power
             _syncVotingPower(user, registration);
         }
