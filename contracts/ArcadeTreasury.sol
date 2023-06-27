@@ -83,7 +83,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
      * @param _timelock              address of the timelock contract
      */
     constructor(address _timelock) {
-        if (_timelock == address(0)) revert T_ZeroAddress();
+        if (_timelock == address(0)) revert T_ZeroAddress("timelock");
 
         _setupRole(ADMIN_ROLE, _timelock);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
@@ -108,7 +108,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount,
         address destination
     ) external onlyRole(GSC_CORE_VOTING_ROLE) nonReentrant {
-        if (destination == address(0)) revert T_ZeroAddress();
+        if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
 
         // Will underflow if amount is greater than remaining allowance
@@ -130,7 +130,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount,
         address destination
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
-        if (destination == address(0)) revert T_ZeroAddress();
+        if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
 
         _spend(token, amount, destination, spendThresholds[token].small);
@@ -149,7 +149,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount,
         address destination
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
-        if (destination == address(0)) revert T_ZeroAddress();
+        if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
 
         _spend(token, amount, destination, spendThresholds[token].medium);
@@ -168,7 +168,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount,
         address destination
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
-        if (destination == address(0)) revert T_ZeroAddress();
+        if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
 
         _spend(token, amount, destination, spendThresholds[token].large);
@@ -189,7 +189,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         address spender,
         uint256 amount
     ) external onlyRole(GSC_CORE_VOTING_ROLE) nonReentrant {
-        if (spender == address(0)) revert T_ZeroAddress();
+        if (spender == address(0)) revert T_ZeroAddress("spender");
         if (amount == 0) revert T_ZeroAmount();
 
         // Will underflow if amount is greater than remaining allowance
@@ -211,7 +211,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         address spender,
         uint256 amount
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
-        if (spender == address(0)) revert T_ZeroAddress();
+        if (spender == address(0)) revert T_ZeroAddress("spender");
         if (amount == 0) revert T_ZeroAmount();
 
         _approve(token, spender, amount, spendThresholds[token].small);
@@ -230,7 +230,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         address spender,
         uint256 amount
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
-        if (spender == address(0)) revert T_ZeroAddress();
+        if (spender == address(0)) revert T_ZeroAddress("spender");
         if (amount == 0) revert T_ZeroAmount();
 
         _approve(token, spender, amount, spendThresholds[token].medium);
@@ -249,7 +249,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         address spender,
         uint256 amount
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
-        if (spender == address(0)) revert T_ZeroAddress();
+        if (spender == address(0)) revert T_ZeroAddress("spender");
         if (amount == 0) revert T_ZeroAmount();
 
         _approve(token, spender, amount, spendThresholds[token].large);
@@ -266,7 +266,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
      */
     function setThreshold(address token, SpendThreshold memory thresholds) external onlyRole(ADMIN_ROLE) {
         // verify that the token is not the zero address
-        if (token == address(0)) revert T_ZeroAddress();
+        if (token == address(0)) revert T_ZeroAddress("token");
         // verify small threshold is not zero
         if (thresholds.small == 0) revert T_ZeroAmount();
 
@@ -292,7 +292,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
      * @param newAllowance      new allowance amount to set
      */
     function setGSCAllowance(address token, uint256 newAllowance) external onlyRole(ADMIN_ROLE) {
-        if (token == address(0)) revert T_ZeroAddress();
+        if (token == address(0)) revert T_ZeroAddress("token");
         if (newAllowance == 0) revert T_ZeroAmount();
 
         // enforce cool down period

@@ -111,8 +111,8 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
      * @param _initialDistribution  The address to receive the initial distribution of tokens.
      */
     constructor(address _minter, address _initialDistribution) ERC20("Arcade", "ARCD") ERC20Permit("Arcade") {
-        if (_minter == address(0)) revert AT_ZeroAddress();
-        if (_initialDistribution == address(0)) revert AT_ZeroAddress();
+        if (_minter == address(0)) revert AT_ZeroAddress("minter");
+        if (_initialDistribution == address(0)) revert AT_ZeroAddress("initialDistribution");
 
         minter = _minter;
 
@@ -130,7 +130,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
      * @param _newMinter            The address of the new minter.
      */
     function setMinter(address _newMinter) external onlyMinter {
-        if (_newMinter == address(0)) revert AT_ZeroAddress();
+        if (_newMinter == address(0)) revert AT_ZeroAddress("newMinter");
 
         minter = _newMinter;
         emit MinterUpdated(minter);
@@ -144,7 +144,7 @@ contract ArcadeToken is ERC20, ERC20Burnable, IArcadeToken, ERC20Permit {
      */
     function mint(address _to, uint256 _amount) external onlyMinter {
         if (block.timestamp < mintingAllowedAfter) revert AT_MintingNotStarted(mintingAllowedAfter, block.timestamp);
-        if (_to == address(0)) revert AT_ZeroAddress();
+        if (_to == address(0)) revert AT_ZeroAddress("to");
         if (_amount == 0) revert AT_ZeroMintAmount();
 
         // record the mint

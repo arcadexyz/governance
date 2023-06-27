@@ -63,8 +63,8 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
      * @param timelock_           The address of the timelock.
      */
     constructor(IERC20 _token, uint256 _stale, address manager_, address timelock_) BaseVotingVault(_token, _stale) {
-        if (manager_ == address(0)) revert AVV_ZeroAddress();
-        if (timelock_ == address(0)) revert AVV_ZeroAddress();
+        if (manager_ == address(0)) revert AVV_ZeroAddress("manager");
+        if (timelock_ == address(0)) revert AVV_ZeroAddress("timelock");
 
         Storage.set(Storage.addressPtr("manager"), manager_);
         Storage.set(Storage.addressPtr("timelock"), timelock_);

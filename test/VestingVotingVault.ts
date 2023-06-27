@@ -37,7 +37,7 @@ describe("Vesting voting vault", function () {
                 signers[1].address,
                 signers[2].address,
             ]),
-        ).to.be.revertedWith("BVV_ZeroAddress()");
+        ).to.be.revertedWith(`BVV_ZeroAddress("token")`);
 
         await expect(
             deploy("ARCDVestingVault", signers[0], [
@@ -46,7 +46,7 @@ describe("Vesting voting vault", function () {
                 ethers.constants.AddressZero,
                 signers[2].address,
             ]),
-        ).to.be.revertedWith("AVV_ZeroAddress()");
+        ).to.be.revertedWith(`AVV_ZeroAddress("manager")`);
 
         await expect(
             deploy("ARCDVestingVault", signers[0], [
@@ -55,7 +55,7 @@ describe("Vesting voting vault", function () {
                 signers[2].address,
                 ethers.constants.AddressZero,
             ]),
-        ).to.be.revertedWith("AVV_ZeroAddress()");
+        ).to.be.revertedWith(`AVV_ZeroAddress("timelock")`);
     });
 
     describe("Manager only functions", function () {

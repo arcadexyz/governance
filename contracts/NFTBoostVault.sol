@@ -84,8 +84,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address timelock,
         address manager
     ) BaseVotingVault(token, staleBlockLag) {
-        if (timelock == address(0)) revert NBV_ZeroAddress();
-        if (manager == address(0)) revert NBV_ZeroAddress();
+        if (timelock == address(0)) revert NBV_ZeroAddress("timelock");
+        if (manager == address(0)) revert NBV_ZeroAddress("manager");
 
         Storage.set(Storage.uint256Ptr("initialized"), 1);
         Storage.set(Storage.addressPtr("timelock"), timelock);
@@ -141,7 +141,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address delegatee
     ) external override onlyAirdrop nonReentrant {
         if (amount == 0) revert NBV_ZeroAmount();
-        if (user == address(0)) revert NBV_ZeroAddress();
+        if (user == address(0)) revert NBV_ZeroAddress("user");
 
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
@@ -179,6 +179,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param to                        The address to delegate to.
      */
     function delegate(address to) external override {
+        if (to == address(0)) revert NBV_ZeroAddress("to");
+
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
         // If to address is already the delegate, don't send the tx

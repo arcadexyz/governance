@@ -38,7 +38,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
         uint256 _expiration,
         INFTBoostVault _votingVault
     ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _votingVault) {
-        if (_governance == address(0)) revert AA_ZeroAddress();
+        if (_governance == address(0)) revert AA_ZeroAddress("governance");
 
         setOwner(_governance);
     }
@@ -53,7 +53,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
      */
     function reclaim(address destination) external onlyOwner {
         if (block.timestamp <= expiration) revert AA_ClaimingNotExpired();
-        if (destination == address(0)) revert AA_ZeroAddress();
+        if (destination == address(0)) revert AA_ZeroAddress("destination");
 
         uint256 unclaimed = token.balanceOf(address(this));
         token.transfer(destination, unclaimed);

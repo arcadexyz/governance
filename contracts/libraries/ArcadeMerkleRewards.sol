@@ -56,8 +56,8 @@ contract ArcadeMerkleRewards {
      */
     constructor(bytes32 _rewardsRoot, IERC20 _token, uint256 _expiration, INFTBoostVault _votingVault) {
         if (_expiration <= block.timestamp) revert AA_ClaimingExpired();
-        if (address(_token) == address(0)) revert AA_ZeroAddress();
-        if (address(_votingVault) == address(0)) revert AA_ZeroAddress();
+        if (address(_token) == address(0)) revert AA_ZeroAddress("token");
+        if (address(_votingVault) == address(0)) revert AA_ZeroAddress("votingVault");
 
         rewardsRoot = _rewardsRoot;
         token = _token;
@@ -78,7 +78,7 @@ contract ArcadeMerkleRewards {
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();
         // no delegating to zero address
-        if (delegate == address(0)) revert AA_ZeroAddress();
+        if (delegate == address(0)) revert AA_ZeroAddress("delegate");
         // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
 

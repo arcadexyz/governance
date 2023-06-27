@@ -40,6 +40,9 @@ error AA_NoClaiming();
 error AA_NonParticipant();
 
 /**
- * @notice Thrown when a zero address is passed in as a parameter.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The name of the parameter for which a zero
+ *                                   address was provided.
  */
-error AA_ZeroAddress();
+error AA_ZeroAddress(string addressType);

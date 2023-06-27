@@ -41,7 +41,7 @@ describe("Arcade Treasury", async () => {
 
         // deploy with timelock set to zero address
         await expect(deploy("ArcadeTreasury", signers[0], [ethers.constants.AddressZero])).to.be.revertedWith(
-            "T_ZeroAddress()",
+            `T_ZeroAddress("timelock")`,
         );
     });
 
@@ -138,7 +138,7 @@ describe("Arcade Treasury", async () => {
 
             await expect(
                 arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(ethers.constants.AddressZero, thresholds),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("token")`);
         });
 
         it("Try to spend/approve without thresholds set", async () => {
@@ -233,7 +233,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_TIMELOCK)
                     .setGSCAllowance(ethers.constants.AddressZero, smallThreshold.add(1)),
-            ).to.be.revertedWith(`T_ZeroAddress()`);
+            ).to.be.revertedWith(`T_ZeroAddress("token")`);
         });
 
         it("If no threshold set, cannot set an allowance", async () => {
@@ -289,7 +289,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .smallSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("destination")`);
 
             // try to approve zero amount
             await expect(
@@ -303,7 +303,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .approveSmallSpend(arcdToken.address, ethers.constants.AddressZero, ethers.utils.parseEther("100")),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("spender")`);
 
             // ======= Core Voting Spends =======
 
@@ -420,7 +420,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .mediumSpend(arcdToken.address, ethers.utils.parseEther("100"), ethers.constants.AddressZero),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("destination")`);
 
             // try to approve more than threshold limit
             await expect(
@@ -445,7 +445,7 @@ describe("Arcade Treasury", async () => {
                         ethers.constants.AddressZero,
                         ethers.utils.parseEther("500"),
                     ),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("spender")`);
         });
 
         it("large spend", async () => {
@@ -521,7 +521,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
                     .largeSpend(arcdToken.address, ethers.utils.parseEther("1000"), ethers.constants.AddressZero),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("destination")`);
 
             // try to approve more than threshold limit
             await expect(
@@ -546,7 +546,7 @@ describe("Arcade Treasury", async () => {
                         ethers.constants.AddressZero,
                         ethers.utils.parseEther("1000"),
                     ),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("spender")`);
         });
 
         it("non authorized account tries to spend/approve tokens", async () => {
@@ -951,7 +951,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_GSC_CORE_VOTING)
                     .gscSpend(arcdToken.address, ethers.utils.parseEther("1"), ethers.constants.AddressZero),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("destination")`);
 
             await expect(
                 arcadeTreasury
@@ -963,7 +963,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury
                     .connect(MOCK_GSC_CORE_VOTING)
                     .gscApprove(arcdToken.address, ethers.constants.AddressZero, ethers.utils.parseEther("1")),
-            ).to.be.revertedWith("T_ZeroAddress()");
+            ).to.be.revertedWith(`T_ZeroAddress("spender")`);
         });
 
         it("third party tries to use GSC spend/approve", async () => {
