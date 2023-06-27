@@ -60,3 +60,8 @@ error AT_MintingCapExceeded(uint256 totalSupply, uint256 mintCapAmount, uint256 
  *                                   address was provided.
  */
 error AT_ZeroAddress(string addressType);
+
+/**
+ * @notice Thrown when the distributor contract already has a token set in state.
+ */
+error AT_TokenAlreadySet();

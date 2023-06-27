@@ -25,9 +25,6 @@ describe("Governance Operations with Locking Voting Vault", async () => {
         ctxGovernance = await loadFixture(fixtureGov);
         const { signers, lockingVotingVault } = ctxGovernance;
 
-        // distribute tokens to signers[0]/ deployer for testing
-        await arcdDst.connect(deployer).setToken(arcdToken.address);
-        expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
         // mint tokens take tokens from the distributor for use in tests
         await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[0].address))
             .to.emit(arcdDst, "Distribute")

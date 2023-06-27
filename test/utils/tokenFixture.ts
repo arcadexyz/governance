@@ -118,10 +118,6 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         // ==================================== HELPER FUNCTIONS ===================================
 
         const bootstrapVestingManager = async (): Promise<void> => {
-            // distribute tokens to the vesting vault manager
-            await arcdDst.connect(deployer).setToken(arcdToken.address);
-            expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
-
             const partnerVestingAmount = await arcdDst.vestingPartnerAmount();
             const teamVestingAmount = await arcdDst.vestingTeamAmount();
             await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[1].address))
