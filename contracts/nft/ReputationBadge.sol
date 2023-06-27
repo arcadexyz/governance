@@ -102,7 +102,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         uint256 totalClaimable,
         bytes32[] calldata merkleProof
     ) external payable {
-        uint256 mintPrice = mintPrices[tokenId];
+        uint256 mintPrice = mintPrices[tokenId] * amount;
         uint48 claimExpiration = claimExpirations[tokenId];
 
         if (block.timestamp > claimExpiration) revert RB_ClaimingExpired(claimExpiration, uint48(block.timestamp));

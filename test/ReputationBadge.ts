@@ -259,12 +259,12 @@ describe("Reputation Badge", async () => {
                 .mint(user3.address, 1, 1, 1, proofUser3, { value: ethers.utils.parseEther("0.1") });
             await reputationBadge
                 .connect(user4)
-                .mint(user4.address, 1, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.1") });
+                .mint(user4.address, 1, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.2") });
 
             // check balances
             expect(await reputationBadge.balanceOf(user3.address, 1)).to.equal(1);
             expect(await reputationBadge.balanceOf(user4.address, 1)).to.equal(2);
-            expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(ethers.utils.parseEther("0.2"));
+            expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(ethers.utils.parseEther("0.3"));
 
             // tries to withdraw ETH with recipient address zero
             await expect(
@@ -278,7 +278,7 @@ describe("Reputation Badge", async () => {
             // check balance
             expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(0);
             expect(await ethers.provider.getBalance(manager.address)).to.equal(
-                balanceBefore.add(ethers.utils.parseEther("0.2")).sub(gas),
+                balanceBefore.add(ethers.utils.parseEther("0.3")).sub(gas),
             );
         });
 
@@ -298,9 +298,18 @@ describe("Reputation Badge", async () => {
         });
 
         it("Invalid mint fee", async () => {
-            // mint
+            // mint 1 badge
             await expect(reputationBadge.connect(user3).mint(user3.address, 1, 1, 1, proofUser3)).to.be.revertedWith(
                 `RB_InvalidMintFee(${ethers.utils.parseEther("0.1")}, ${ethers.utils.parseEther("0")})`,
+            );
+
+            // mint multiple badges
+            await expect(
+                reputationBadge
+                    .connect(user3)
+                    .mint(user4.address, 1, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.1") }),
+            ).to.be.revertedWith(
+                `RB_InvalidMintFee(${ethers.utils.parseEther("0.2")}, ${ethers.utils.parseEther("0.1")})`,
             );
         });
 
