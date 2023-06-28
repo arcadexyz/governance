@@ -1783,7 +1783,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             expect(registration2[5]).to.eq(signers[3].address); // delegatee
         });
 
-        it("Airdrop claim reverts when subsequent claims delegate to a different delegatee", async () => {
+        it("Airdrop claim reverts when subsequent claim delegates to a different delegatee", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, mintNfts, setMultipliers } = ctxGovernance;
 
@@ -1820,7 +1820,85 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // signers[2] claims airdrop again, delegates to different 3rd party address
             await expect(
                 nftBoostVault.connect(signers[0]).airdropReceive(signers[2].address, ONE.mul(5), signers[4].address),
-            ).to.be.revertedWith(`NBV_NewDelegatee("${signers[4].address}", "${signers[3].address}")`);
+            ).to.be.revertedWith(`NBV_WrongDelegatee("${signers[4].address}", "${signers[3].address}")`);
+        });
+
+        it("reverts when user creates registration via addNftAndDelegate(), then claims airdrop with different delegatee address", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            const { MULTIPLIER_A } = await setMultipliers();
+
+            // signers[0] approves tokens to NFT boost vault and approves reputation nft
+            await arcdToken.approve(nftBoostVault.address, ONE);
+            await reputationNft.setApprovalForAll(nftBoostVault.address, true);
+
+            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+
+            const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+
+            // get users registration and confirm values
+            const registration = await nftBoostVault.getRegistration(signers[0].address);
+            expect(registration[0]).to.eq(ONE); // amount
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE)); // latestVotingPower
+            expect(registration[2]).to.eq(0); // withdrawn
+            expect(registration[3]).to.eq(1); // tokenId
+            expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
+            expect(registration[5]).to.eq(signers[1].address); // delegatee
+
+            // signers[0] approves tokens to NFT boost vault
+            await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
+
+            // signers[0] claims airdrop, delegates to signers[3]
+            await expect(
+                nftBoostVault.connect(signers[0]).airdropReceive(signers[0].address, ONE.mul(5), signers[3].address),
+            ).to.be.revertedWith(`NBV_WrongDelegatee("${signers[3].address}", "${signers[1].address}")`);
+        });
+
+        it("user creates registration via addNftAndDelegate(), then claims airdrop", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            const { MULTIPLIER_A } = await setMultipliers();
+
+            // signers[0] approves tokens to NFT boost vault and approves reputation nft
+            await arcdToken.approve(nftBoostVault.address, ONE);
+            await reputationNft.setApprovalForAll(nftBoostVault.address, true);
+
+            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
+
+            const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+
+            // get users registration and confirm values
+            const registration = await nftBoostVault.getRegistration(signers[0].address);
+            expect(registration[0]).to.eq(ONE); // amount
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE)); // latestVotingPower
+            expect(registration[2]).to.eq(0); // withdrawn
+            expect(registration[3]).to.eq(1); // tokenId
+            expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
+            expect(registration[5]).to.eq(signers[1].address); // delegatee
+
+            // signers[0] approves tokens to NFT boost vault
+            await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
+
+            // signers[0] claims airdrop, delegates to signers[3]
+            await expect(
+                nftBoostVault.connect(signers[0]).airdropReceive(signers[0].address, ONE.mul(5), signers[1].address),
+            )
+                .to.emit(nftBoostVault, "VoteChange")
+                .withArgs(signers[0].address, signers[1].address, ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
         });
     });
 });

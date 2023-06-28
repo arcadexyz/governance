@@ -100,7 +100,7 @@ error NBV_NotAirdrop();
  * @notice If a user already has a registration, they cannot change their
  *         delegatee when claiming subsequent airdrops.
  */
-error NBV_NewDelegatee(address newDelegate, address currentDelegate);
+error NBV_WrongDelegatee(address newDelegate, address currentDelegate);
 
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
