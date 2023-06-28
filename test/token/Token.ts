@@ -407,7 +407,7 @@ describe("ArcadeToken", function () {
             );
         });
 
-        it("Cannot set new token address with less than 100 million tokens in contract", async () => {
+        it("Cannot set new token address more than once", async () => {
             const { arcdToken, arcdDst, deployer } = ctxToken;
 
             await expect(arcdDst.connect(deployer).setToken(arcdToken.address)).to.be.revertedWith(
