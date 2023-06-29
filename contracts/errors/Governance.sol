@@ -75,7 +75,8 @@ error NBV_ZeroAmount();
 /**
  * @notice Zero address passed in where not allowed.
  *
- * @param addressType                The type of address that is zero.
+ * @param addressType                The name of the parameter for which
+ *                                   a zero address was provided.
  */
 error NBV_ZeroAddress(string addressType);
 
@@ -163,7 +164,8 @@ error AVV_InvalidAmount();
 /**
  * @notice Zero address passed in where not allowed.
  *
- * @param addressType                The type of address that is zero.
+ * @param addressType                The name of the parameter for which
+ *                                   a zero address was provided.
  */
 error AVV_ZeroAddress(string addressType);
 
