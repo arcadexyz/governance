@@ -467,6 +467,48 @@ describe("ArcadeToken", function () {
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
         });
 
+        it("user claims airdrop then call to addNftAndDelegate reverts", async function () {
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
+
+            await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcdDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                await arcdAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate voting power to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
+
+            expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(recipients[0].value);
+            expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value),
+            );
+            expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
+
+            await expect(
+                mockNFTBoostVault
+                    .connect(deployer)
+                    .addNftAndDelegate(
+                        recipients[0].value,
+                        0,
+                        ethers.constants.AddressZero,
+                        ethers.constants.AddressZero,
+                    ),
+            ).to.be.revertedWith("NBV_HasRegistration()");
+        });
+
         it("user tries to delegate to address zero", async function () {
             const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie } = ctxToken;
 
