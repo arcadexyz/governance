@@ -236,7 +236,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         if (registration.withdrawn == registration.amount) {
             if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
-                withdrawNft();
+                _withdrawNft();
             }
             delete _getRegistrations()[msg.sender];
         }
@@ -274,31 +274,11 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
-     * @notice Allows a users to withdraw the ERC1155 NFT they are using for
-     *         accessing a voting power multiplier.
+     * @notice Nonreentrant function that calls a helper when users want to withdraw
+     *         the ERC1155 NFT they are using in their registration.
      */
-    function withdrawNft() public override nonReentrant {
-        // load the registration
-        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
-
-        if (registration.tokenAddress == address(0) || registration.tokenId == 0)
-            revert NBV_InvalidNft(registration.tokenAddress, registration.tokenId);
-
-        // transfer ERC1155 back to the user
-        IERC1155(registration.tokenAddress).safeTransferFrom(
-            address(this),
-            msg.sender,
-            registration.tokenId,
-            1,
-            bytes("")
-        );
-
-        // remove ERC1155 values from registration struct
-        registration.tokenAddress = address(0);
-        registration.tokenId = 0;
-
-        // update the delegatee's voting power based on multiplier removal
-        _syncVotingPower(msg.sender, registration);
+    function withdrawNft() external override nonReentrant {
+        _withdrawNft();
     }
 
     /**
@@ -318,7 +298,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
             // withdraw the current ERC1155 from the registration
-            withdrawNft();
+            _withdrawNft();
         }
 
         // set the new ERC1155 values in the registration
@@ -546,6 +526,34 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
+     * @notice Helper function called when a user wants to withdraw the ERC1155 NFT
+     *         they have registered for accessing a voting power multiplier.
+     */
+    function _withdrawNft() internal {
+        // load the registration
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
+
+        if (registration.tokenAddress == address(0) || registration.tokenId == 0)
+            revert NBV_InvalidNft(registration.tokenAddress, registration.tokenId);
+
+        // transfer ERC1155 back to the user
+        IERC1155(registration.tokenAddress).safeTransferFrom(
+            address(this),
+            msg.sender,
+            registration.tokenId,
+            1,
+            bytes("")
+        );
+
+        // remove ERC1155 values from registration struct
+        registration.tokenAddress = address(0);
+        registration.tokenId = 0;
+
+        // update the delegatee's voting power based on multiplier removal
+        _syncVotingPower(msg.sender, registration);
+    }
+
+    /**
      * @dev Helper to update a delegatee's voting power.
      *
      * @param who                        The address who's voting power we need to sync.
@@ -631,7 +639,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address tokenAddress,
         uint128 tokenId,
         uint128 nftAmount
-    ) internal nonReentrant {
+    ) internal {
         token.transferFrom(from, address(this), amount);
 
         if (tokenAddress != address(0) && tokenId != 0) {
@@ -648,7 +656,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param tokenId                   Id of the token being transferred.
      * @param nftAmount                 Amount of token being transferred.
      */
-    function _lockNft(address from, address tokenAddress, uint128 tokenId, uint128 nftAmount) internal nonReentrant {
+    function _lockNft(address from, address tokenAddress, uint128 tokenId, uint128 nftAmount) internal {
         IERC1155(tokenAddress).safeTransferFrom(from, address(this), tokenId, nftAmount, bytes(""));
     }
 
