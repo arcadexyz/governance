@@ -56,11 +56,12 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         let votingVaults: string[] = [];
         let arcadeGSCVaults: string[] = [];
 
-        const staleBlock = await ethers.provider.getBlock("latest");
-        const staleBlockNum = staleBlock.number;
+        const blockNumber = await ethers.provider.getBlockNumber();
+        // staleBlockNum has to be a number in the past, lower than the current block number.
+        // upon deployment, update staleBlockNum to be relevant in the realm of mainnet
+        const staleBlockNum = blockNumber - 5;
 
         // ================================= CORE VOTING VAULTS =================================
-
         // deploy locking vault
         const lockingVotingVault = <LockingVault>(
             await deploy("LockingVault", signers[0], [arcdToken.address, staleBlockNum])

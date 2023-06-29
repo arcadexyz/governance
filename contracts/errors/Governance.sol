@@ -193,3 +193,11 @@ error BVV_NotTimelock();
  *                                   address was provided.
  */
 error BVV_ZeroAddress(string addressType);
+
+/**
+ * @notice The provided stale block number is too high.
+ *
+ * @param staleBlock                The block number in the past, provided at deployment
+ *                                  before which a user's history is pruned.
+ */
+error BVV_UpperLimitBlock(uint256 staleBlock);

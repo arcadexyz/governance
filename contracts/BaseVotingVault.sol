@@ -11,7 +11,7 @@ import "./libraries/HashedStorageReentrancyBlock.sol";
 
 import "./interfaces/IBaseVotingVault.sol";
 
-import { BVV_NotManager, BVV_NotTimelock, BVV_ZeroAddress } from "./errors/Governance.sol";
+import { BVV_NotManager, BVV_NotTimelock, BVV_ZeroAddress, BVV_UpperLimitBlock } from "./errors/Governance.sol";
 
 /**
  * @title BaseVotingVault
@@ -51,6 +51,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      */
     constructor(IERC20 _token, uint256 _staleBlockLag) {
         if (address(_token) == address(0)) revert BVV_ZeroAddress("token");
+        if (_staleBlockLag >= block.number) revert BVV_UpperLimitBlock(_staleBlockLag);
 
         token = _token;
         staleBlockLag = _staleBlockLag;
