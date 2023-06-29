@@ -796,7 +796,11 @@ describe("ArcadeToken", function () {
 
             // owner changes merkle root
             const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
-            await expect(await arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot));
+
+            await expect(await arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot))
+                .to.emit(arcdAirdrop, "SetMerkleRoot")
+                .withArgs(newMerkleRoot);
+
             expect(await arcdAirdrop.rewardsRoot()).to.equal(newMerkleRoot);
         });
 
