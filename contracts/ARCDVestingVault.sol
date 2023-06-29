@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.18;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
@@ -50,6 +50,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
     using Storage for Storage.Uint256;
+    using SafeERC20 for IERC20;
 
     // ========================================= CONSTRUCTOR ============================================
 
@@ -165,12 +166,12 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // get the amount of withdrawable tokens
         uint256 withdrawable = _getWithdrawableAmount(grant);
         grant.withdrawn += uint128(withdrawable);
-        token.transfer(who, withdrawable);
+        token.safeTransfer(who, withdrawable);
 
         // transfer the remaining tokens to the vesting manager
         uint256 remaining = grant.allocation - grant.withdrawn;
         grant.withdrawn += uint128(remaining);
-        token.transfer(_manager().data, remaining);
+        token.safeTransfer(_manager().data, remaining);
 
         // update the delegatee's voting power
         _syncVotingPower(who, grant);
@@ -195,7 +196,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         Storage.Uint256 storage unassigned = _unassigned();
         // update unassigned value
         unassigned.data += amount;
-        token.transferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /**
@@ -211,7 +212,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // update unassigned value
         unassigned.data -= amount;
 
-        token.transfer(recipient, amount);
+        token.safeTransfer(recipient, amount);
     }
 
     // ========================================= USER OPERATIONS ========================================
@@ -246,7 +247,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         _syncVotingPower(msg.sender, grant);
 
         // transfer the available amount
-        token.transfer(msg.sender, withdrawable);
+        token.safeTransfer(msg.sender, withdrawable);
     }
 
     /**
