@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
 import { IBadgeDescriptor, IReputationBadge } from "../src/types";
-import { ADMIN_ROLE, BADGE_MANAGER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
+import { BADGE_MANAGER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
 import { deploy } from "./utils/deploy";
 import { BlockchainTime } from "./utils/time";
 
@@ -172,12 +172,12 @@ describe("Reputation Badge", async () => {
         // invalid admin
         await expect(
             deploy("ReputationBadge", admin, [ethers.constants.AddressZero, descriptor.address]),
-        ).to.be.revertedWith("RB_ZeroAddress()");
+        ).to.be.revertedWith(`RB_ZeroAddress("owner")`);
 
         // invalid descriptor
         await expect(
             deploy("ReputationBadge", admin, [admin.address, ethers.constants.AddressZero]),
-        ).to.be.revertedWith("RB_ZeroAddress()");
+        ).to.be.revertedWith(`RB_ZeroAddress("descriptor")`);
     });
 
     it("Validate published roots", async () => {
@@ -269,7 +269,7 @@ describe("Reputation Badge", async () => {
             // tries to withdraw ETH with recipient address zero
             await expect(
                 reputationBadge.connect(manager).withdrawFees(ethers.constants.AddressZero),
-            ).to.be.revertedWith("RB_ZeroAddress()");
+            ).to.be.revertedWith(`RB_ZeroAddress("recipient")`);
 
             // manager withdraws ETH
             const res = await reputationBadge.connect(manager).withdrawFees(manager.address);
@@ -371,7 +371,7 @@ describe("Reputation Badge", async () => {
             // try to set descriptor to zero address
             await expect(
                 reputationBadge.connect(resourceManager).setDescriptor(ethers.constants.AddressZero),
-            ).to.be.revertedWith("RB_ZeroAddress()");
+            ).to.be.revertedWith(`RB_ZeroAddress("descriptor")`);
         });
     });
 

@@ -73,9 +73,11 @@ error NBV_InvalidNft(address tokenAddress, uint256 tokenId);
 error NBV_ZeroAmount();
 
 /**
- * @notice Cannot pass zero address as an address parameter.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The type of address that is zero.
  */
-error NBV_ZeroAddress();
+error NBV_ZeroAddress(string addressType);
 
 /**
  * @notice Provided addresses array holds more than 50 addresses.
@@ -159,9 +161,11 @@ error AVV_AlreadyDelegated();
 error AVV_InvalidAmount();
 
 /**
- * @notice Cannot pass zero address as an address parameter.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The type of address that is zero.
  */
-error AVV_ZeroAddress();
+error AVV_ZeroAddress(string addressType);
 
 // ==================================== IMMUTABLE VESTING VAULT ======================================
 
@@ -183,6 +187,9 @@ error BVV_NotManager();
 error BVV_NotTimelock();
 
 /**
- * @notice Cannot pass zero address as an address parameter.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The name of the parameter for which a zero
+ *                                   address was provided.
  */
-error BVV_ZeroAddress();
+error BVV_ZeroAddress(string addressType);

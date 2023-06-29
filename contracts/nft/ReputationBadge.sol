@@ -73,8 +73,8 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      * @param _descriptor    The address of the descriptor contract.
      */
     constructor(address _owner, address _descriptor) ERC1155("") {
-        if (_owner == address(0)) revert RB_ZeroAddress();
-        if (_descriptor == address(0)) revert RB_ZeroAddress();
+        if (_owner == address(0)) revert RB_ZeroAddress("owner");
+        if (_descriptor == address(0)) revert RB_ZeroAddress("descriptor");
 
         _setupRole(ADMIN_ROLE, _owner);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
@@ -161,7 +161,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      * @param recipient        The address to withdraw the fees to.
      */
     function withdrawFees(address recipient) external onlyRole(BADGE_MANAGER_ROLE) {
-        if (recipient == address(0)) revert RB_ZeroAddress();
+        if (recipient == address(0)) revert RB_ZeroAddress("recipient");
 
         // get contract balance
         uint256 balance = address(this).balance;
@@ -182,7 +182,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      * @param _descriptor           The new descriptor contract address.
      */
     function setDescriptor(address _descriptor) external onlyRole(RESOURCE_MANAGER_ROLE) {
-        if (_descriptor == address(0)) revert RB_ZeroAddress();
+        if (_descriptor == address(0)) revert RB_ZeroAddress("descriptor");
 
         descriptor = IBadgeDescriptor(_descriptor);
 

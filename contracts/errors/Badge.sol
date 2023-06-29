@@ -33,9 +33,12 @@ error RB_InvalidMintFee(uint256 mintPrice, uint256 amountSent);
 error RB_InvalidClaimAmount(uint256 amountToClaim, uint256 totalClaimableAmount);
 
 /**
- * @notice Thrown if zero address is provided as input.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The name of the parameter for which a zero
+ *                                   address was provided.
  */
-error RB_ZeroAddress();
+error RB_ZeroAddress(string addressType);
 
 /**
  * @notice Thrown when the claim expiration has passed for a specific merkle root.

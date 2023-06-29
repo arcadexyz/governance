@@ -54,6 +54,9 @@ error AT_ZeroMintAmount();
 error AT_MintingCapExceeded(uint256 totalSupply, uint256 mintCapAmount, uint256 amount);
 
 /**
- * @notice Thrown when a zero address is passed in as a parameter.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The name of the parameter for which a zero
+ *                                   address was provided.
  */
-error AT_ZeroAddress();
+error AT_ZeroAddress(string addressType);

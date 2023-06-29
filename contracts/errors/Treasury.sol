@@ -12,9 +12,12 @@ pragma solidity 0.8.18;
  */
 
 /**
- * @notice Thrown when the zero address is passed as input.
+ * @notice Zero address passed in where not allowed.
+ *
+ * @param addressType                The name of the parameter for which a zero
+ *                                   address was provided.
  */
-error T_ZeroAddress();
+error T_ZeroAddress(string addressType);
 
 /**
  * @notice Cannot pass zero as an amount.

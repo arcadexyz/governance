@@ -50,7 +50,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      * @param _staleBlockLag             The number of blocks before which the delegation history is forgotten.
      */
     constructor(IERC20 _token, uint256 _staleBlockLag) {
-        if (address(_token) == address(0)) revert BVV_ZeroAddress();
+        if (address(_token) == address(0)) revert BVV_ZeroAddress("token");
 
         token = _token;
         staleBlockLag = _staleBlockLag;

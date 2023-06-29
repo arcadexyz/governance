@@ -58,7 +58,7 @@ describe("ArcadeToken", function () {
                     expiration,
                     deployer.address,
                 ]),
-            ).to.be.revertedWith(`AA_ZeroAddress()`);
+            ).to.be.revertedWith(`AA_ZeroAddress("governance")`);
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
@@ -68,7 +68,7 @@ describe("ArcadeToken", function () {
                     expiration,
                     ethers.constants.AddressZero,
                 ]),
-            ).to.be.revertedWith(`AA_ZeroAddress()`);
+            ).to.be.revertedWith(`AA_ZeroAddress("votingVault")`);
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
@@ -78,7 +78,7 @@ describe("ArcadeToken", function () {
                     expiration,
                     deployer.address,
                 ]),
-            ).to.be.revertedWith(`AA_ZeroAddress()`);
+            ).to.be.revertedWith(`AA_ZeroAddress("token")`);
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
@@ -106,11 +106,11 @@ describe("ArcadeToken", function () {
 
             await expect(
                 deploy("ArcadeToken", deployer, [deployer.address, ethers.constants.AddressZero]),
-            ).to.be.revertedWith(`AT_ZeroAddress()`);
+            ).to.be.revertedWith(`AT_ZeroAddress("initialDistribution")`);
 
             await expect(
                 deploy("ArcadeToken", deployer, [ethers.constants.AddressZero, deployer.address]),
-            ).to.be.revertedWith(`AT_ZeroAddress()`);
+            ).to.be.revertedWith(`AT_ZeroAddress("minter")`);
         });
     });
 
@@ -146,7 +146,7 @@ describe("ArcadeToken", function () {
                 const { arcdToken, deployer } = ctxToken;
 
                 await expect(arcdToken.connect(deployer).setMinter(ethers.constants.AddressZero)).to.be.revertedWith(
-                    "AT_ZeroAddress()",
+                    `AT_ZeroAddress("newMinter")`,
                 );
             });
         });
@@ -188,7 +188,7 @@ describe("ArcadeToken", function () {
                 await blockchainTime.increaseTime(3600 * 24 * 365);
 
                 await expect(arcdToken.connect(deployer).mint(ethers.constants.AddressZero, 100)).to.be.revertedWith(
-                    "AT_ZeroAddress()",
+                    `AT_ZeroAddress("to")`,
                 );
             });
 
@@ -313,27 +313,27 @@ describe("ArcadeToken", function () {
             await arcdDst.connect(deployer).setToken(arcdToken.address);
 
             await expect(arcdDst.connect(deployer).toTreasury(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("treasury")`,
             );
             await expect(arcdDst.connect(deployer).toDevPartner(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("devPartner")`,
             );
             await expect(arcdDst.connect(deployer).toCommunityRewards(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("communityRewards")`,
             );
             await expect(arcdDst.connect(deployer).toCommunityAirdrop(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("communityAirdrop")`,
             );
             await expect(arcdDst.connect(deployer).toTeamVesting(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("vestingTeam")`,
             );
             await expect(arcdDst.connect(deployer).toPartnerVesting(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("vestingPartner")`,
             );
 
             // owner tries to set the token address to the zero address
             await expect(arcdDst.connect(deployer).setToken(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AT_ZeroAddress()",
+                `AT_ZeroAddress("arcadeToken")`,
             );
         });
 
@@ -529,7 +529,7 @@ describe("ArcadeToken", function () {
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
                 ),
-            ).to.be.revertedWith("AA_ZeroAddress()");
+            ).to.be.revertedWith(`AA_ZeroAddress("delegate")`);
         });
 
         it("user tries to claim airdrop with invalid proof", async function () {
@@ -755,7 +755,7 @@ describe("ArcadeToken", function () {
 
             // reclaim all tokens
             await expect(arcdAirdrop.connect(deployer).reclaim(ethers.constants.AddressZero)).to.be.revertedWith(
-                "AA_ZeroAddress()",
+                `AA_ZeroAddress("destination")`,
             );
         });
 
