@@ -275,6 +275,13 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
             revert T_ThresholdsNotAscending();
         }
 
+        // if gscAllowance is greater than new small threshold, set it to the new small threshold
+        if (thresholds.small < gscAllowance[token]) {
+            gscAllowance[token] = thresholds.small;
+
+            emit GSCAllowanceUpdated(token, thresholds.small);
+        }
+
         // Overwrite the spend limits for specified token
         spendThresholds[token] = thresholds;
 
@@ -301,12 +308,6 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         }
 
         uint256 spendLimit = spendThresholds[token].small;
-        if (gscAllowance[token] > spendLimit) {
-            gscAllowance[token] = spendLimit;
-
-            emit GSCAllowanceUpdated(token, spendLimit);
-        }
-
         // new limit cannot be more than the small threshold
         if (newAllowance > spendLimit) {
             revert T_InvalidAllowance(newAllowance, spendLimit);
