@@ -42,6 +42,10 @@ contract ArcadeMerkleRewards {
     /// @notice the voting vault vault which receives airdropped tokens
     INFTBoostVault public votingVault;
 
+    // ============================================= EVENTS =============================================
+
+    event SetMerkleRoot(bytes32 indexed merkleRoot);
+
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
