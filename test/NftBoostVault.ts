@@ -43,6 +43,10 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
         const staleBlockNum = 10;
 
+        // get current block number
+        const blockNumber = await ethers.provider.getBlockNumber();
+        const staleBlockNum2 = blockNumber + 10; // adding ten to exceed current block
+
         await expect(
             deploy("NFTBoostVault", signers[0], [
                 ethers.constants.AddressZero,
@@ -69,6 +73,15 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 ethers.constants.AddressZero,
             ]),
         ).to.be.revertedWith(`NBV_ZeroAddress("manager")`);
+
+        await expect(
+            deploy("NFTBoostVault", signers[0], [
+                signers[0].address,
+                staleBlockNum2, // make the staleBlockLag equal to current block number
+                signers[1].address,
+                signers[1].address,
+            ]),
+        ).to.be.revertedWith(`BVV_UpperLimitBlock(${staleBlockNum2}`);
     });
 
     describe("Governance flow with NFT boost vault", async () => {
