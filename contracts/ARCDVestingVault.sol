@@ -97,7 +97,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         address delegatee
     ) external onlyManager {
         // input validation
-        if (who == address(0)) revert AVV_ZeroAddress();
+        if (who == address(0)) revert AVV_ZeroAddress("who");
         if (amount == 0) revert AVV_InvalidAmount();
 
         // if no custom start time is needed we use this block.
