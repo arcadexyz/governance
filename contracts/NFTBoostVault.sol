@@ -3,7 +3,7 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
@@ -53,6 +53,7 @@ import {
  *      storage and return the following as methods to isolate that call.
  */
 contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
+    using SafeERC20 for IERC20;
     // ======================================== STATE ==================================================
 
     // Bring History library into scope
@@ -250,7 +251,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         }
 
         // transfer the token amount to the user
-        token.transfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
     }
 
     /**
@@ -653,7 +654,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         uint128 tokenId,
         uint128 nftAmount
     ) internal {
-        token.transferFrom(from, address(this), amount);
+        token.safeTransferFrom(from, address(this), amount);
 
         if (tokenAddress != address(0) && tokenId != 0) {
             _lockNft(from, tokenAddress, tokenId, nftAmount);
