@@ -232,6 +232,43 @@ describe("Arcade Treasury", async () => {
             ).to.be.revertedWith(`T_ZeroAddress("token")`);
         });
 
+        it("if new small threshold value is less than GSCAllowance, setThreshold() updates GSCAllowance to equal new small threshold value", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
+            const MOCK_TIMELOCK = signers[1];
+
+            await setTreasuryThresholds();
+
+            const allowance = ethers.utils.parseEther("100");
+
+            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).setGSCAllowance(arcdToken.address, allowance))
+                .to.emit(arcadeTreasury, `GSCAllowanceUpdated`)
+                .withArgs(arcdToken.address, allowance);
+
+            expect(await arcadeTreasury.gscAllowance(arcdToken.address)).to.eq(allowance);
+
+            // create a new array of thresholds with reduced small threshold value
+            const thresholds2: Thresholds = [
+                ethers.utils.parseEther("80"),
+                ethers.utils.parseEther("500"),
+                ethers.utils.parseEther("1000"),
+            ];
+
+            // confirm the new small thresholds value is less than the GSCAllowance value
+            await expect(thresholds2[0]).to.lt(await arcadeTreasury.gscAllowance(arcdToken.address));
+
+            // call setThresholds with the new thresholds array
+            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds2))
+                .to.emit(arcadeTreasury, `SpendThresholdsUpdated`)
+                .withArgs(arcdToken.address, thresholds2);
+
+            // get the new spendThresholds2 values
+            const spendThresholds2 = await arcadeTreasury.spendThresholds(arcdToken.address);
+
+            // confirm that GSCAllowance value has been updated to equal the new small threshold value
+            await expect(await arcadeTreasury.gscAllowance(arcdToken.address)).to.eq(spendThresholds2[0]);
+        });
+
         it("If no threshold set, cannot set an allowance", async () => {
             const { arcdToken } = ctxToken;
             const { signers, arcadeTreasury } = ctxGovernance;
