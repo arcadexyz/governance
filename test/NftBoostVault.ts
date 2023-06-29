@@ -1232,6 +1232,24 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(tx).to.be.revertedWith("NBV_DoesNotOwn");
         });
 
+        it("Reverts if user calls updateNft() without an existing registration", async () => {
+            const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
+
+            // mint users some ERC1155 nfts
+            await mintNfts();
+
+            await setMultipliers();
+
+            // confirm that signers[1] owns reputationNft id 1
+            const userBal = await reputationNft.balanceOf(signers[1].address, 1);
+            expect(userBal).to.be.eq(1);
+
+            // signers[1] tries to add NFT without prior registration
+            await expect(nftBoostVault.connect(signers[1]).updateNft(1, reputationNft.address)).to.be.revertedWith(
+                "NBV_NoRegistration()",
+            );
+        });
+
         it("Returns ZERO when _getWithdrawableAmount() is triggered for a non-registration", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;

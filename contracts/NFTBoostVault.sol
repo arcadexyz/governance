@@ -304,12 +304,17 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
+        // If the registration does not have a delegatee, revert because the Registration
+        // is not initialized
+        if (registration.delegatee == address(0)) revert NBV_NoRegistration();
+
+        // if the user already has an ERC1155 registered, withdraw it
         if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
             // withdraw the current ERC1155 from the registration
             _withdrawNft();
         }
 
-        // set the new ERC1155 values in the registration
+        // set the new ERC1155 values in the registration and lock the new ERC1155
         registration.tokenAddress = newTokenAddress;
         registration.tokenId = newTokenId;
 
