@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/IArcadeToken.sol";
 
-import { AT_AlreadySent, AT_ZeroAddress } from "../errors/Token.sol";
+import { AT_AlreadySent, AT_ZeroAddress, AT_TokenAlreadySet } from "../errors/Token.sol";
 
 /**
  * @title Arcade Token Distributor
@@ -164,12 +164,14 @@ contract ArcadeTokenDistributor is Ownable {
     // ============================================ ADMIN OPS ===========================================
 
     /**
-     * @notice Sets the Arcade Token contract address, to be used in token distribution.
+     * @notice Sets the Arcade Token contract address, to be used in token distribution. The token
+     *         contract address can only be set once.
      *
      * @param _arcadeToken             The Arcade Token contract.
      */
     function setToken(IArcadeToken _arcadeToken) external onlyOwner {
         if (address(_arcadeToken) == address(0)) revert AT_ZeroAddress("arcadeToken");
+        if (address(arcadeToken) != address(0)) revert AT_TokenAlreadySet();
 
         arcadeToken = _arcadeToken;
     }

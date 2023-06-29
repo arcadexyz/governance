@@ -262,9 +262,6 @@ describe("ArcadeToken", function () {
                 vestingPartner,
             } = ctxToken;
 
-            await arcdDst.connect(deployer).setToken(arcdToken.address);
-            expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
-
             await expect(await arcdDst.connect(deployer).toTreasury(treasury.address))
                 .to.emit(arcdDst, "Distribute")
                 .withArgs(arcdToken.address, treasury.address, ethers.utils.parseEther("25500000"));
@@ -308,9 +305,7 @@ describe("ArcadeToken", function () {
         });
 
         it("Cannot distribute to the zero address", async () => {
-            const { arcdToken, arcdDst, deployer } = ctxToken;
-
-            await arcdDst.connect(deployer).setToken(arcdToken.address);
+            const { arcdDst, deployer } = ctxToken;
 
             await expect(arcdDst.connect(deployer).toTreasury(ethers.constants.AddressZero)).to.be.revertedWith(
                 `AT_ZeroAddress("treasury")`,
@@ -341,7 +336,6 @@ describe("ArcadeToken", function () {
             const {
                 arcdToken,
                 arcdDst,
-                deployer,
                 other,
                 treasury,
                 devPartner,
@@ -350,8 +344,6 @@ describe("ArcadeToken", function () {
                 vestingTeamMultisig,
                 vestingPartner,
             } = ctxToken;
-
-            await arcdDst.connect(deployer).setToken(arcdToken.address);
 
             await expect(arcdDst.connect(other).toTreasury(treasury.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
@@ -380,7 +372,6 @@ describe("ArcadeToken", function () {
 
         it("Verifies all transfer functions can only be called once by contract owner", async () => {
             const {
-                arcdToken,
                 arcdDst,
                 deployer,
                 treasury,
@@ -390,8 +381,6 @@ describe("ArcadeToken", function () {
                 vestingTeamMultisig,
                 vestingPartner,
             } = ctxToken;
-
-            await arcdDst.connect(deployer).setToken(arcdToken.address);
 
             await arcdDst.connect(deployer).toTreasury(treasury.address);
             await arcdDst.connect(deployer).toDevPartner(devPartner.address);
@@ -415,6 +404,14 @@ describe("ArcadeToken", function () {
             );
             await expect(arcdDst.connect(deployer).toPartnerVesting(vestingPartner.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
+            );
+        });
+
+        it("Cannot set new token address more than once", async () => {
+            const { arcdToken, arcdDst, deployer } = ctxToken;
+
+            await expect(arcdDst.connect(deployer).setToken(arcdToken.address)).to.be.revertedWith(
+                "AT_TokenAlreadySet()",
             );
         });
     });

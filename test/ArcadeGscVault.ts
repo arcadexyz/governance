@@ -39,10 +39,6 @@ describe("Vote Execution with Arcade GSC Vault", async () => {
                 blockchainTime,
             } = ctxGovernance;
 
-            // distribute tokens to test users
-            await arcdDst.connect(deployer).setToken(arcdToken.address);
-            expect(await arcdDst.arcadeToken()).to.equal(arcdToken.address);
-
             const teamVestingAmount = await arcdDst.vestingTeamAmount();
             await expect(await arcdDst.connect(deployer).toTeamVesting(signers[0].address))
                 .to.emit(arcdDst, "Distribute")
