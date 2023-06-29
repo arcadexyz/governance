@@ -74,7 +74,7 @@ contract ArcadeMerkleRewards {
      * @param totalGrant             The total amount of tokens the user was granted
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
-    function claimAndDelegate(address delegate, uint256 totalGrant, bytes32[] calldata merkleProof) external {
+    function claimAndDelegate(address delegate, uint128 totalGrant, bytes32[] calldata merkleProof) external {
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();
         // no delegating to zero address
@@ -83,9 +83,9 @@ contract ArcadeMerkleRewards {
         _validateWithdraw(totalGrant, merkleProof);
 
         // approve the voting vault to transfer tokens
-        token.approve(address(votingVault), totalGrant);
+        token.approve(address(votingVault), uint256(totalGrant));
         // deposit tokens in voting vault for this msg.sender and delegate
-        votingVault.airdropReceive(msg.sender, uint128(totalGrant), delegate);
+        votingVault.airdropReceive(msg.sender, totalGrant, delegate);
     }
 
     // =========================================== HELPERS ==============================================
