@@ -66,6 +66,8 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      * @param timelock_                  The new timelock.
      */
     function setTimelock(address timelock_) external onlyTimelock {
+        if (timelock_ == address(0)) revert BVV_ZeroAddress("timelock");
+
         Storage.set(Storage.addressPtr("timelock"), timelock_);
     }
 
@@ -76,6 +78,8 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      * @param manager_                   The new manager address.
      */
     function setManager(address manager_) external onlyTimelock {
+        if (manager_ == address(0)) revert BVV_ZeroAddress("manager");
+
         Storage.set(Storage.addressPtr("manager"), manager_);
     }
 

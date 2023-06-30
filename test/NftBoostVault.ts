@@ -1654,6 +1654,14 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(tx).to.be.revertedWith("BVV_NotTimelock()");
         });
 
+        it("reverts if setTimelock() is called with address zero", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // set timelock to address zero
+            const tx = nftBoostVault.connect(signers[0]).setTimelock(ethers.constants.AddressZero);
+            await expect(tx).to.be.revertedWith(`BVV_ZeroAddress("timelock")`);
+        });
+
         it("successfully sets the address of the timelock with setTimelock()", async () => {
             const { signers, nftBoostVault } = ctxGovernance;
 
@@ -1671,6 +1679,14 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // other account tries to set a new manager
             const tx = nftBoostVault.connect(signers[4]).setManager(signers[5].address);
             await expect(tx).to.be.revertedWith("BVV_NotTimelock()");
+        });
+
+        it("reverts if setManager() is called with address zero", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // set manager to address zero
+            const tx = nftBoostVault.connect(signers[0]).setManager(ethers.constants.AddressZero);
+            await expect(tx).to.be.revertedWith(`BVV_ZeroAddress("manager")`);
         });
 
         it("successfully sets a new manager with setManager()", async () => {
