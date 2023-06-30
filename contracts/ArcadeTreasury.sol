@@ -338,7 +338,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
             if (spendThresholds[targets[i]].small != 0) revert T_InvalidTarget(targets[i]);
             (bool success, ) = targets[i].call(calldatas[i]);
             // revert if a single call fails
-            if (success == false) revert T_CallFailed();
+            if (!success) revert T_CallFailed();
         }
     }
 
