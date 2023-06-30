@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.18;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import "../external/council/libraries/Authorizable.sol";
 
 import "../libraries/ArcadeMerkleRewards.sol";
@@ -17,6 +19,8 @@ import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
  * over and also change the merkle root at their discretion.
  */
 contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
+    using SafeERC20 for IERC20;
+
     // ============================================= EVENTS =============================================
 
     event SetMerkleRoot(bytes32 indexed merkleRoot);
@@ -60,7 +64,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
         if (destination == address(0)) revert AA_ZeroAddress("destination");
 
         uint256 unclaimed = token.balanceOf(address(this));
-        token.transfer(destination, unclaimed);
+        token.safeTransfer(destination, unclaimed);
     }
 
     /**
