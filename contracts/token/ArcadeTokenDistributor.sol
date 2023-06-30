@@ -3,7 +3,7 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "../interfaces/IArcadeToken.sol";
 
@@ -21,6 +21,8 @@ import { AT_AlreadySent, AT_ZeroAddress, AT_TokenAlreadySet } from "../errors/To
  * not hold any tokens.
  */
 contract ArcadeTokenDistributor is Ownable {
+    using SafeERC20 for IArcadeToken;
+
     // ============================================= STATE =============================================
 
     /// @notice The Arcade Token contract to be used in token distribution.
@@ -74,7 +76,7 @@ contract ArcadeTokenDistributor is Ownable {
 
         treasurySent = true;
 
-        arcadeToken.transfer(_treasury, treasuryAmount);
+        arcadeToken.safeTransfer(_treasury, treasuryAmount);
 
         emit Distribute(address(arcadeToken), _treasury, treasuryAmount);
     }
@@ -90,7 +92,7 @@ contract ArcadeTokenDistributor is Ownable {
 
         devPartnerSent = true;
 
-        arcadeToken.transfer(_devPartner, devPartnerAmount);
+        arcadeToken.safeTransfer(_devPartner, devPartnerAmount);
 
         emit Distribute(address(arcadeToken), _devPartner, devPartnerAmount);
     }
@@ -106,7 +108,7 @@ contract ArcadeTokenDistributor is Ownable {
 
         communityRewardsSent = true;
 
-        arcadeToken.transfer(_communityRewards, communityRewardsAmount);
+        arcadeToken.safeTransfer(_communityRewards, communityRewardsAmount);
 
         emit Distribute(address(arcadeToken), _communityRewards, communityRewardsAmount);
     }
@@ -122,7 +124,7 @@ contract ArcadeTokenDistributor is Ownable {
 
         communityAirdropSent = true;
 
-        arcadeToken.transfer(_communityAirdrop, communityAirdropAmount);
+        arcadeToken.safeTransfer(_communityAirdrop, communityAirdropAmount);
 
         emit Distribute(address(arcadeToken), _communityAirdrop, communityAirdropAmount);
     }
@@ -139,7 +141,7 @@ contract ArcadeTokenDistributor is Ownable {
 
         vestingTeamSent = true;
 
-        arcadeToken.transfer(_vestingTeam, vestingTeamAmount);
+        arcadeToken.safeTransfer(_vestingTeam, vestingTeamAmount);
 
         emit Distribute(address(arcadeToken), _vestingTeam, vestingTeamAmount);
     }
@@ -156,7 +158,7 @@ contract ArcadeTokenDistributor is Ownable {
 
         vestingPartnerSent = true;
 
-        arcadeToken.transfer(_vestingPartner, vestingPartnerAmount);
+        arcadeToken.safeTransfer(_vestingPartner, vestingPartnerAmount);
 
         emit Distribute(address(arcadeToken), _vestingPartner, vestingPartnerAmount);
     }
