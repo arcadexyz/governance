@@ -334,7 +334,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param userAddresses             Array of addresses whose registration voting power this
      *                                  function updates.
      */
-    function updateVotingPower(address[] memory userAddresses) public override {
+    function updateVotingPower(address[] calldata userAddresses) public override {
         if (userAddresses.length > 50) revert NBV_ArrayTooManyElements();
 
         for (uint256 i = 0; i < userAddresses.length; ++i) {
