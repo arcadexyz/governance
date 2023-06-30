@@ -83,8 +83,8 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
      * @param cliffAmount                The amount of tokens that will be unlocked at the cliff.
      * @param startTime                  Optionally set a start time in the future. If set to zero
      *                                   then the start time will be made the block tx is in.
-     * @param expiration                 Timestamp when the grant ends (all tokens count as unlocked).
-     * @param cliff                      Timestamp when the cliff ends. No tokens are unlocked until
+     * @param expiration                 Timestamp when the grant ends - all tokens are unlocked and withdrawable.
+     * @param cliff                      Timestamp when the cliff ends. cliffAmount tokens are withdrawable when
      *                                   this timestamp is reached.
      * @param delegatee                  The address to delegate the voting power to
      */
