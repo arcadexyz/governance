@@ -4,7 +4,7 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./interfaces/IArcadeTreasury.sol";
 
@@ -42,6 +42,8 @@ import {
  * Additionally, there is a cool down period between each GSC allowance update of 7 days.
  */
 contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     /// @notice access control roles
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant GSC_CORE_VOTING_ROLE = keccak256("GSC_CORE_VOTING");
@@ -364,7 +366,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
             // will out-of-gas revert if recipient is a contract with logic inside receive()
             payable(destination).transfer(amount);
         } else {
-            IERC20(token).transfer(destination, amount);
+            IERC20(token).safeTransfer(destination, amount);
         }
 
         emit TreasuryTransfer(token, destination, amount);
