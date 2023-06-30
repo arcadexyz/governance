@@ -17,6 +17,10 @@ import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
  * over and also change the merkle root at their discretion.
  */
 contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
+    // ============================================= EVENTS =============================================
+
+    event SetMerkleRoot(bytes32 indexed merkleRoot);
+
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
