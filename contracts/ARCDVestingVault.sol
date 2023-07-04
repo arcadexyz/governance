@@ -261,7 +261,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(grant.delegatee);
-        uint256 newVotingPower = grant.latestVotingPower;
 
         // Remove old delegatee's voting power and emit event
         votingPower.push(grant.delegatee, oldDelegateeVotes - grant.latestVotingPower);
@@ -272,13 +271,12 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint256 newDelegateeVotes = votingPower.loadTop(to);
 
         // add voting power to the target delegatee and emit event
-        votingPower.push(to, newDelegateeVotes + newVotingPower);
+        votingPower.push(to, newDelegateeVotes + grant.latestVotingPower);
 
         // update grant delgatee info
-        // grant.latestVotingPower = uint128(newVotingPower);
         grant.delegatee = to;
 
-        emit VoteChange(to, msg.sender, int256(newVotingPower));
+        emit VoteChange(to, msg.sender, int256(uint256(grant.latestVotingPower)));
     }
 
     // ========================================= VIEW FUNCTIONS =========================================
