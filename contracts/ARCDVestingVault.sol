@@ -322,16 +322,12 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
             return (grant.allocation - grant.withdrawn);
         }
         // if after cliff, return vested amount minus what has already been withdrawn
-        if (block.number >= grant.cliff) {
-            uint256 postCliffAmount = grant.allocation - grant.cliffAmount;
-            uint256 blocksElapsedSinceCliff = block.number - grant.cliff;
-            uint256 totalBlocksPostCliff = grant.expiration - grant.cliff;
-            uint256 unlocked = grant.cliffAmount + (postCliffAmount * blocksElapsedSinceCliff) / totalBlocksPostCliff;
+        uint256 postCliffAmount = grant.allocation - grant.cliffAmount;
+        uint256 blocksElapsedSinceCliff = block.number - grant.cliff;
+        uint256 totalBlocksPostCliff = grant.expiration - grant.cliff;
+        uint256 unlocked = grant.cliffAmount + (postCliffAmount * blocksElapsedSinceCliff) / totalBlocksPostCliff;
 
-            return unlocked - grant.withdrawn;
-        } else {
-            return 0;
-        }
+        return unlocked - grant.withdrawn;
     }
 
     /**
