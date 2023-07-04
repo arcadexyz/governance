@@ -106,7 +106,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
             startTime = uint128(block.number);
         }
         // grant schedule check
-        if (cliff >= expiration || startTime >= expiration || cliff < startTime) revert AVV_InvalidSchedule();
+        if (cliff >= expiration || cliff < startTime) revert AVV_InvalidSchedule();
 
         // cliff check
         if (cliffAmount >= amount) revert AVV_InvalidCliffAmount();
