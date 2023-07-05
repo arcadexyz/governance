@@ -47,7 +47,7 @@ library NFTBoostVaultStorage {
     }
 
     /**
-     * @notice Returns the storage pointer for a named mapping of address to registration data
+     * @notice Returns the storage pointer for a mapping of address to registration data
      *
      * @param name                      The variable name for the pointer.
      *
@@ -63,7 +63,7 @@ library NFTBoostVaultStorage {
     }
 
     /**
-     * @notice Returns the storage pointer for a named mapping of address to uint128 pair
+     * @notice Returns the storage pointer for a mapping of address to a uint128 pair
      *
      * @param name                      The variable name for the pointer.
      *
