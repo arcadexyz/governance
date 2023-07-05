@@ -186,8 +186,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         grant.cliff = 0;
         grant.latestVotingPower = 0;
         grant.delegatee = address(0);
-
-        // delete _grants()[who];
     }
 
     /**
