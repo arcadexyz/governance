@@ -48,7 +48,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
     ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _votingVault) {
         if (_governance == address(0)) revert AA_ZeroAddress("governance");
 
-        setOwner(_governance);
+        owner = _governance;
     }
 
     // ===================================== ADMIN FUNCTIONALITY ========================================
