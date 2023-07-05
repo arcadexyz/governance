@@ -128,16 +128,16 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint128 newVotingPower = amount;
 
         // set the new grant
-        _grants()[who] = ARCDVestingVaultStorage.Grant(
-            amount,
-            cliffAmount,
-            0,
-            startTime,
-            expiration,
-            cliff,
-            newVotingPower,
-            delegatee
-        );
+        _grants()[who] = ARCDVestingVaultStorage.Grant({
+            allocation: amount,
+            cliffAmount: cliffAmount,
+            withdrawn: 0,
+            created: startTime,
+            expiration: expiration,
+            cliff: cliff,
+            latestVotingPower: newVotingPower,
+            delegatee: delegatee
+        });
 
         // update the amount of unassigned tokens
         unassigned.data -= amount;

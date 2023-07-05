@@ -490,14 +490,14 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         uint128 newVotingPower = (amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
-        _getRegistrations()[user] = NFTBoostVaultStorage.Registration(
-            amount,
-            newVotingPower,
-            0,
-            tokenId,
-            tokenAddress,
-            delegatee
-        );
+        _getRegistrations()[user] = NFTBoostVaultStorage.Registration({
+            amount: amount,
+            latestVotingPower: newVotingPower,
+            withdrawn: 0,
+            tokenId: tokenId,
+            tokenAddress: tokenAddress,
+            delegatee: delegatee
+        });
 
         // update this contract's balance
         balance.data += amount;
