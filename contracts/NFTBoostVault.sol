@@ -536,7 +536,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      */
     function _getRegistrations() internal pure returns (mapping(address => NFTBoostVaultStorage.Registration) storage) {
         // This call returns a storage mapping with a unique non overwrite-able storage location.
-        return (NFTBoostVaultStorage.mappingAddressToRegistrationPtr("registrations"));
+        return NFTBoostVaultStorage.mappingAddressToRegistrationPtr("registrations");
     }
 
     /**
@@ -685,7 +685,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.AddressUintUint)) storage)
     {
         // This call returns a storage mapping with a unique non overwrite-able storage layout.
-        return (NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers"));
+        return NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers");
     }
 
     /** @dev A function to handles the receipt of a single ERC1155 token. This function is called
