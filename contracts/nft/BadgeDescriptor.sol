@@ -17,7 +17,7 @@ import "../interfaces/IBadgeDescriptor.sol";
 contract BadgeDescriptor is IBadgeDescriptor, Ownable {
     using Strings for uint256;
 
-    event SetBaseURI(address indexed caller, string indexed baseURI);
+    event SetBaseURI(address indexed caller, string baseURI);
 
     // ============================================ STATE ==============================================
 
