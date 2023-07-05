@@ -35,12 +35,12 @@ abstract contract HashedStorageReentrancyBlock {
         require(entered.data == 1, "REENTRANCY");
 
         // Store that the function has been entered
-        Storage.set(Storage.uint256Ptr("entered"), 2);
+        Storage.set(entered, 2);
 
         // Run the function code
         _;
 
         // Clear the state
-        Storage.set(Storage.uint256Ptr("entered"), 1);
+        Storage.set(entered, 1);
     }
 }
