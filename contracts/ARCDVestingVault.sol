@@ -171,7 +171,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // transfer the remaining tokens to the vesting manager
         uint256 remaining = grant.allocation - grant.withdrawn;
         grant.withdrawn += uint128(remaining);
-        token.safeTransfer(_manager().data, remaining);
+        token.safeTransfer(msg.sender, remaining);
 
         // update the delegatee's voting power
         _syncVotingPower(who, grant);
