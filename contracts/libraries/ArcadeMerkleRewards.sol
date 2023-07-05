@@ -21,7 +21,7 @@ import { AA_ClaimingExpired, AA_AlreadyClaimed, AA_NonParticipant, AA_ZeroAddres
  * Arcade Governance. When claiming, the user can delegate voting power to themselves or another
  * account.
  */
-contract ArcadeMerkleRewards {
+abstract contract ArcadeMerkleRewards {
     // ============================================ STATE ==============================================
 
     // =================== Immutable references =====================
