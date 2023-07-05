@@ -24,6 +24,12 @@ library NFTBoostVaultStorage {
     * upgrades and overrides the default solidity storage slot system.
     */
 
+    /// @dev typehash of the 'AddressUintUint' mapping
+    bytes32 public constant MULTIPLIER_TYPEHASH = keccak256("mapping(address => mapping(uint128 => AddressUintUint))");
+
+    /// @dev typehash of the 'Registration' mapping
+    bytes32 public constant REGISTRATION_TYPEHASH = keccak256("mapping(address => Registration)");
+
     /// @dev struct which represents 1 packed storage location (Registration)
     struct Registration {
         uint128 amount; // token amount
@@ -50,8 +56,7 @@ library NFTBoostVaultStorage {
     function mappingAddressToRegistrationPtr(
         string memory name
     ) internal pure returns (mapping(address => Registration) storage data) {
-        bytes32 typehash = keccak256("mapping(address => Registration)");
-        bytes32 offset = keccak256(abi.encodePacked(typehash, name));
+        bytes32 offset = keccak256(abi.encodePacked(REGISTRATION_TYPEHASH, name));
         assembly {
             data.slot := offset
         }
@@ -67,8 +72,7 @@ library NFTBoostVaultStorage {
     function mappingAddressToPackedUintUint(
         string memory name
     ) internal pure returns (mapping(address => mapping(uint128 => AddressUintUint)) storage data) {
-        bytes32 typehash = keccak256("mapping(address => mapping(uint128 => AddressUintUint))");
-        bytes32 offset = keccak256(abi.encodePacked(typehash, name));
+        bytes32 offset = keccak256(abi.encodePacked(MULTIPLIER_TYPEHASH, name));
         assembly {
             data.slot := offset
         }
