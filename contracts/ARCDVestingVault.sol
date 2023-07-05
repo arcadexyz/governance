@@ -319,7 +319,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         }
         // if after expiration, return the full allocation minus what has already been withdrawn
         if (block.number >= grant.expiration) {
-            return (grant.allocation - grant.withdrawn);
+            return grant.allocation - grant.withdrawn;
         }
         // if after cliff, return vested amount minus what has already been withdrawn
         uint256 postCliffAmount = grant.allocation - grant.cliffAmount;
