@@ -261,7 +261,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
 
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(grant.delegatee);
-        uint256 newVotingPower = _currentVotingPower(grant);
 
         // Remove old delegatee's voting power and emit event
         votingPower.push(grant.delegatee, oldDelegateeVotes - grant.latestVotingPower);
@@ -272,13 +271,12 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint256 newDelegateeVotes = votingPower.loadTop(to);
 
         // add voting power to the target delegatee and emit event
-        votingPower.push(to, newDelegateeVotes + newVotingPower);
+        votingPower.push(to, newDelegateeVotes + grant.latestVotingPower);
 
-        // update grant info
-        grant.latestVotingPower = uint128(newVotingPower);
+        // update grant delgatee info
         grant.delegatee = to;
 
-        emit VoteChange(to, msg.sender, int256(newVotingPower));
+        emit VoteChange(to, msg.sender, int256(uint256(grant.latestVotingPower)));
     }
 
     // ========================================= VIEW FUNCTIONS =========================================
@@ -337,17 +335,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
     }
 
     /**
-     * @notice Helper that returns the current voting power of a grant.
-     *
-     * @param grant                     The grant to check for voting power.
-     *
-     * @return votingPower              The current voting power of the grant.
-     */
-    function _currentVotingPower(ARCDVestingVaultStorage.Grant memory grant) internal pure returns (uint256) {
-        return (grant.allocation - grant.withdrawn);
-    }
-
-    /**
      * @notice Helper to update a delegatee's voting power.
      *
      * @param who                       The address who's voting power we need to sync.
@@ -358,7 +345,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
 
         uint256 delegateeVotes = votingPower.loadTop(grant.delegatee);
 
-        uint256 newVotingPower = _currentVotingPower(grant);
+        uint256 newVotingPower = grant.allocation - grant.withdrawn;
         // get the change in voting power. Negative if the voting power is reduced
         int256 change = int256(newVotingPower) - int256(uint256(grant.latestVotingPower));
         // voting power can only go down since only called when tokens are claimed or grant revoked
