@@ -103,26 +103,26 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @dev User has to own ERC1155 nft for receiving the benefits of a multiplier.
      *
-     * @param amount                    Amount of tokens sent to this contract by the user for locking
+     * @param _amount                   Amount of tokens sent to this contract by the user for locking
      *                                  in governance.
-     * @param tokenId                   The id of the ERC1155 NFT.
-     * @param tokenAddress              The address of the ERC1155 token the user is registering for multiplier
+     * @param _tokenId                  The id of the ERC1155 NFT.
+     * @param _tokenAddress             The address of the ERC1155 token the user is registering for multiplier
      *                                  access.
-     * @param delegatee                 Optional param. The address to delegate the voting power associated
+     * @param _delegatee                Optional param. The address to delegate the voting power associated
      *                                  with this registration.
      */
     function addNftAndDelegate(
-        uint128 amount,
-        uint128 tokenId,
-        address tokenAddress,
-        address delegatee
+        uint128 _amount,
+        uint128 _tokenId,
+        address _tokenAddress,
+        address _delegatee
     ) external override nonReentrant {
-        if (amount == 0) revert NBV_ZeroAmount();
+        if (_amount == 0) revert NBV_ZeroAmount();
 
-        _registerAndDelegate(msg.sender, amount, tokenId, tokenAddress, delegatee);
+        _registerAndDelegate(msg.sender, _amount, _tokenId, _tokenAddress, _delegatee);
 
         // transfer user ERC20 amount and ERC1155 nft into this contract
-        _lockTokens(msg.sender, uint256(amount), tokenAddress, tokenId, 1);
+        _lockTokens(msg.sender, uint256(_amount), _tokenAddress, _tokenId, 1);
     }
 
     /**

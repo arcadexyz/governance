@@ -80,22 +80,22 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
      *
      * @param who                        The Grant recipient.
      * @param amount                     The total grant value.
-     * @param cliffAmount                The amount of tokens that will be unlocked at the cliff.
+     * @param _cliffAmount               The amount of tokens that will be unlocked at the cliff.
      * @param startTime                  Optionally set a start time in the future. If set to zero
      *                                   then the start time will be made the block tx is in.
-     * @param expiration                 Timestamp when the grant ends - all tokens are unlocked and withdrawable.
-     * @param cliff                      Timestamp when the cliff ends. cliffAmount tokens are withdrawable when
+     * @param _expiration                Timestamp when the grant ends - all tokens are unlocked and withdrawable.
+     * @param _cliff                     Timestamp when the cliff ends. cliffAmount tokens are withdrawable when
      *                                   this timestamp is reached.
-     * @param delegatee                  The address to delegate the voting power to
+     * @param _delegatee                 The address to delegate the voting power to
      */
     function addGrantAndDelegate(
         address who,
         uint128 amount,
-        uint128 cliffAmount,
+        uint128 _cliffAmount,
         uint128 startTime,
-        uint128 expiration,
-        uint128 cliff,
-        address delegatee
+        uint128 _expiration,
+        uint128 _cliff,
+        address _delegatee
     ) external onlyManager {
         // input validation
         if (who == address(0)) revert AVV_ZeroAddress("who");
@@ -106,10 +106,10 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
             startTime = uint128(block.number);
         }
         // grant schedule check
-        if (cliff >= expiration || startTime >= expiration || cliff < startTime) revert AVV_InvalidSchedule();
+        if (_cliff >= _expiration || startTime >= _expiration || _cliff < startTime) revert AVV_InvalidSchedule();
 
         // cliff check
-        if (cliffAmount >= amount) revert AVV_InvalidCliffAmount();
+        if (_cliffAmount >= amount) revert AVV_InvalidCliffAmount();
 
         Storage.Uint256 storage unassigned = _unassigned();
         if (unassigned.data < amount) revert AVV_InsufficientBalance(unassigned.data);
@@ -122,7 +122,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         if (grant.allocation != 0) revert AVV_HasGrant();
 
         // load the delegate. Defaults to the grant owner
-        delegatee = delegatee == address(0) ? who : delegatee;
+        _delegatee = _delegatee == address(0) ? who : _delegatee;
 
         // calculate the voting power. Assumes all voting power is initially locked.
         uint128 newVotingPower = amount;
@@ -130,13 +130,13 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // set the new grant
         _grants()[who] = ARCDVestingVaultStorage.Grant({
             allocation: amount,
-            cliffAmount: cliffAmount,
+            cliffAmount: _cliffAmount,
             withdrawn: 0,
             created: startTime,
-            expiration: expiration,
-            cliff: cliff,
+            expiration: _expiration,
+            cliff: _cliff,
             latestVotingPower: newVotingPower,
-            delegatee: delegatee
+            delegatee: _delegatee
         });
 
         // update the amount of unassigned tokens
