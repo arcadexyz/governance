@@ -44,6 +44,26 @@ describe("ArcadeToken", function () {
             expect(await arcdToken.minter()).to.equal(deployer.address);
         });
 
+        it("Verify the governance address assigned in constructor is Owner of ArcadeAirdrop", async () => {
+            const { arcdToken, deployer, merkleTrie, expiration, other } = ctxToken;
+
+            const governanceAddress = other.address;
+
+            const arcadeAirdropContract = await deploy("ArcadeAirdrop", deployer, [
+                governanceAddress, // address to be assigned as owner of arcadeAirdrop
+                merkleTrie.getHexRoot(),
+                arcdToken.address,
+                expiration,
+                deployer.address,
+            ]);
+
+            // query owner of arcadeAirdrop
+            const arcadeAirdropOwner = await arcadeAirdropContract.owner();
+
+            // confirm that the returned owner is the address assigned in the constructor
+            expect(arcadeAirdropOwner).to.equal(governanceAddress);
+        });
+
         it("Invalid ArcadeAirdrop deployment parameters", async () => {
             const { arcdToken, deployer, merkleTrie, expiration } = ctxToken;
 
