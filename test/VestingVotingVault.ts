@@ -1638,4 +1638,58 @@ describe("Vesting voting vault", function () {
             expect(originationFee).to.equal(newFee);
         });
     });
+
+    describe("Reentrancy protection", async () => {
+        it("Reverts when user tries to reenter", async () => {
+            const { signers } = ctxGovernance;
+            // deploy reentrancy contract
+            const MockERC20RFactory = await ethers.getContractFactory("MockERC20Reentrancy");
+            const mockERC20R = await MockERC20RFactory.deploy();
+            await mockERC20R.deployed();
+            // deploy the ARCDVestingVault contract
+            const ARCDVestingFactory = await ethers.getContractFactory("ARCDVestingVault");
+            const vestingVault = await ARCDVestingFactory.deploy(
+                mockERC20R.address, // token
+                10, // stale block lag
+                signers[1].address, // manager
+                signers[1].address, // timelock
+            );
+            await vestingVault.deployed();
+
+            // set vesting vault address in mockERC20R
+            await mockERC20R.setVesting(vestingVault.address);
+
+            // manager deposits tokens in vesting contract
+            await mockERC20R.connect(signers[0]).mint(signers[1].address, ethers.utils.parseEther("1000000"));
+            expect(await mockERC20R.balanceOf(signers[1].address)).to.equal(ethers.utils.parseEther("1000000"));
+            await mockERC20R.connect(signers[1]).approve(vestingVault.address, ethers.utils.parseEther("1000000"));
+            await vestingVault.connect(signers[1]).deposit(ethers.utils.parseEther("1000000"));
+
+            // manager adds grant for signers[0]
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const grantCreatedBlock = currentBlock + 1; // 1 block in the future
+            const cliff = grantCreatedBlock + 100; // 100 blocks in the future
+            const expiration = grantCreatedBlock + 200; // 200 blocks in the future
+            await vestingVault.connect(signers[1]).addGrantAndDelegate(
+                signers[0].address, // recipient
+                ethers.utils.parseEther("1000000"), // grant amount
+                ethers.utils.parseEther("500000"), // cliff unlock amount
+                0, // start time is current block
+                expiration,
+                cliff,
+                signers[0].address, // voting power delegate
+            );
+
+            // increase blocks to cliff
+            for (let i = 0; i < 100; i++) {
+                await ethers.provider.send("evm_mine", []);
+            }
+
+            // user claims fraction of cliff amount and token tries to reenter
+            const claimable = await vestingVault.connect(signers[0]).claimable(signers[0].address);
+            expect(claimable).to.equal(ethers.utils.parseEther("500000"));
+            await expect(vestingVault.connect(signers[0]).claim(claimable.div(2))).to.be.revertedWith("REENTRANCY");
+        });
+    });
 });
