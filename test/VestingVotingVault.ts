@@ -1640,7 +1640,7 @@ describe("Vesting voting vault", function () {
     });
 
     describe("Reentrancy protection", async () => {
-        it.only("Reverts when user tries to reenter", async () => {
+        it("Reverts when user tries to reenter", async () => {
             const { signers } = ctxGovernance;
             // deploy reentrancy contract
             const MockERC20RFactory = await ethers.getContractFactory("MockERC20Reentrancy");
