@@ -612,9 +612,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
             return 0;
         }
 
-        uint256 withdrawable = registration.amount - registration.withdrawn;
-
-        return withdrawable;
+        return registration.amount - registration.withdrawn;
     }
 
     /**
@@ -629,7 +627,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function _currentVotingPower(
         NFTBoostVaultStorage.Registration memory registration
     ) internal view virtual returns (uint256) {
-        uint256 locked = registration.amount - registration.withdrawn;
+        uint128 locked = registration.amount - registration.withdrawn;
 
         if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
             return (locked * getMultiplier(registration.tokenAddress, registration.tokenId)) / MULTIPLIER_DENOMINATOR;
