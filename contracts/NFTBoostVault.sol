@@ -654,7 +654,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         uint128 tokenId,
         uint128 nftAmount
     ) internal {
-        token.safeTransferFrom(from, address(this), amount);
+        token.transferFrom(from, address(this), amount);
 
         if (tokenAddress != address(0) && tokenId != 0) {
             _lockNft(from, tokenAddress, tokenId, nftAmount);
