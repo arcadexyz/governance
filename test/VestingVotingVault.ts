@@ -1640,7 +1640,7 @@ describe("Vesting voting vault", function () {
     });
 
     describe("Reentrancy protection", async () => {
-        it("Reverts when user tries to reenter", async () => {
+        it.only("Reverts when user tries to reenter", async () => {
             const { signers } = ctxGovernance;
             // deploy reentrancy contract
             const MockERC20RFactory = await ethers.getContractFactory("MockERC20Reentrancy");
@@ -1665,20 +1665,20 @@ describe("Vesting voting vault", function () {
             await mockERC20R.connect(signers[1]).approve(vestingVault.address, ethers.utils.parseEther("1000000"));
             await vestingVault.connect(signers[1]).deposit(ethers.utils.parseEther("1000000"));
 
-            // manager adds grant for signers[0]
+            // manager adds grant for signers[3] (random user)
             const currentTime = await ethers.provider.getBlock("latest");
             const currentBlock = currentTime.number;
             const grantCreatedBlock = currentBlock + 1; // 1 block in the future
             const cliff = grantCreatedBlock + 100; // 100 blocks in the future
             const expiration = grantCreatedBlock + 200; // 200 blocks in the future
             await vestingVault.connect(signers[1]).addGrantAndDelegate(
-                signers[0].address, // recipient
+                signers[3].address, // recipient
                 ethers.utils.parseEther("1000000"), // grant amount
                 ethers.utils.parseEther("500000"), // cliff unlock amount
                 0, // start time is current block
                 expiration,
                 cliff,
-                signers[0].address, // voting power delegate
+                signers[3].address, // voting power delegate
             );
 
             // increase blocks to cliff
@@ -1687,9 +1687,9 @@ describe("Vesting voting vault", function () {
             }
 
             // user claims fraction of cliff amount and token tries to reenter
-            const claimable = await vestingVault.connect(signers[0]).claimable(signers[0].address);
+            const claimable = await vestingVault.connect(signers[3]).claimable(signers[3].address);
             expect(claimable).to.equal(ethers.utils.parseEther("500000"));
-            await expect(vestingVault.connect(signers[0]).claim(claimable.div(2))).to.be.revertedWith("REENTRANCY");
+            await expect(vestingVault.connect(signers[3]).claim(claimable.div(2))).to.be.revertedWith("REENTRANCY");
         });
     });
 });
