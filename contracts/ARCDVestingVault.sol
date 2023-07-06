@@ -201,7 +201,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         Storage.Uint256 storage unassigned = _unassigned();
         // update unassigned value
         unassigned.data += amount;
-        token.safeTransferFrom(msg.sender, address(this), amount);
+        token.transferFrom(msg.sender, address(this), amount);
     }
 
     /**
