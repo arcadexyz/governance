@@ -13,6 +13,13 @@ import "../external/council/libraries/Storage.sol";
  * to protect against reentrancy attacks in the Arcade voting vault contracts.
  */
 abstract contract HashedStorageReentrancyBlock {
+    // =========================================== STATE ================================================
+
+    // ============== CONSTANTS ==============
+
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
     // =========================================== HELPERS ==============================================
 
     /**
@@ -32,15 +39,15 @@ abstract contract HashedStorageReentrancyBlock {
     modifier nonReentrant() {
         Storage.Uint256 storage entered = _entered();
         // Check the state variable before the call is entered
-        require(entered.data == 1, "REENTRANCY");
+        require(entered.data == _NOT_ENTERED, "REENTRANCY");
 
         // Store that the function has been entered
-        Storage.set(Storage.uint256Ptr("entered"), 2);
+        Storage.set(entered, _ENTERED);
 
         // Run the function code
         _;
 
         // Clear the state
-        Storage.set(Storage.uint256Ptr("entered"), 1);
+        Storage.set(entered, _NOT_ENTERED);
     }
 }
