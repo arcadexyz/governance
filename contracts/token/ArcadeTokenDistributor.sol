@@ -48,12 +48,12 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
-    /// @notice 32.7% of initial distribution is for Arcade's launch partners
+    /// @notice 16.2% of initial distribution is for the Arcade team
     uint256 public constant vestingTeamAmount = 16_200_000 ether;
     /// @notice A flag to indicate if the launch partners have already been transferred to
     bool public vestingTeamSent;
 
-    /// @notice 16.2% of initial distribution is for the Arcade team
+    /// @notice 32.7% of initial distribution is for Arcade's launch partners
     uint256 public constant vestingPartnerAmount = 32_700_000 ether;
     /// @notice A flag to indicate if the Arcade team has already been transferred to
     bool public vestingPartnerSent;
