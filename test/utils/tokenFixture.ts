@@ -14,6 +14,7 @@ type Signer = SignerWithAddress;
 export interface TestContextToken {
     deployer: Signer;
     other: Signer;
+    other2: Signer;
     treasury: Wallet;
     devPartner: Wallet;
     communityRewardsPool: Wallet;
@@ -43,6 +44,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         const signers: Signer[] = await hre.ethers.getSigners();
         const deployer: Signer = signers[0];
         const other: Signer = signers[1];
+        const other2: Signer = signers[2];
 
         // mock recipients for distribution
         const treasury = new Wallet.createRandom();
@@ -85,11 +87,15 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         const recipients: Account = [
             {
                 address: deployer.address,
-                value: ethers.utils.parseEther("100"),
+                value: ethers.utils.parseEther("1000"),
             },
             {
                 address: other.address,
-                value: ethers.utils.parseEther("100"),
+                value: ethers.utils.parseEther("1000000"),
+            },
+            {
+                address: other2.address,
+                value: ethers.utils.parseEther("8000000"),
             },
         ];
 
@@ -134,6 +140,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         return {
             deployer,
             other,
+            other2,
             treasury,
             devPartner,
             communityRewardsPool,

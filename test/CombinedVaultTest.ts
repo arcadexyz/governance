@@ -13,6 +13,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
     let fixtureGov: () => Promise<TestContextGovernance>;
 
     const ONE = ethers.utils.parseEther("1");
+    const MULTIPLIER_DENOMINATOR = 1e3;
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
@@ -87,7 +88,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             const tx4 = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
             // view query voting power of signers[1]
             const votingPower4 = await nftBoostVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
-            expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signers[2] tokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[2]).approve(nftBoostVault.address, ONE.mul(5));
@@ -100,7 +101,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             ).wait();
             // view query voting power of signers[1]
             const votingPower5 = await nftBoostVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signers[3] tokens to NFT boost vault and approves repuation nft
             await arcdToken.connect(signers[3]).approve(nftBoostVault.address, ONE);
@@ -112,7 +113,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
 
             // view query voting power of signers[0]
             const votingPower6 = await nftBoostVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
-            expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_B).div(ONE));
+            expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_B).div(MULTIPLIER_DENOMINATOR));
 
             // approve signers[1] tokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE.mul(8));
@@ -124,7 +125,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
 
             // view query voting power of signers[2]
             const votingPower7 = await nftBoostVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // create proposal to update V2 originationFee
             const newFee = 60;
@@ -202,7 +203,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             const tx4 = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
             const votingPower4 = await nftBoostVault.queryVotePowerView(signers[1].address, tx4.blockNumber);
-            expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower4).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signers[2] tokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[2]).approve(nftBoostVault.address, ONE.mul(5));
@@ -216,7 +217,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
 
             // view query voting power of signer[1]
             const votingPower5 = await nftBoostVault.queryVotePowerView(signers[1].address, tx5.blockNumber);
-            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower5).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signers[3] tokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[3]).approve(nftBoostVault.address, ONE);
@@ -228,7 +229,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
 
             // view query voting power of signers[0]
             const votingPower6 = await nftBoostVault.queryVotePowerView(signers[0].address, tx6.blockNumber);
-            expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower6).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signers[1] tokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE.mul(8));
@@ -240,7 +241,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
 
             // view query voting power of signers[2]
             const votingPower7 = await nftBoostVault.queryVotePowerView(signers[2].address, tx7.blockNumber);
-            expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower7).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // prepare proposal data
             const newRolloverFee = 62;

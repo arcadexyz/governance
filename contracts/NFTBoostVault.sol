@@ -63,10 +63,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /// @dev Determines the maximum multiplier for any given NFT.
     /* solhint-disable var-name-mixedcase */
-    uint128 public constant MAX_MULTIPLIER = 1.5e18;
+    uint128 public constant MAX_MULTIPLIER = 1.5e3;
 
     /// @dev Precision of the multiplier.
-    uint128 public constant MULTIPLIER_DENOMINATOR = 1e18;
+    uint128 public constant MULTIPLIER_DENOMINATOR = 1e3;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -361,7 +361,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      */
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
-        if (multiplierValue >= MAX_MULTIPLIER) revert NBV_MultiplierLimit();
+        if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit();
 
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
@@ -415,12 +415,12 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @return                          The token multiplier.
      */
-    function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint256) {
+    function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint128) {
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         // if a user does not specify a ERC1155 nft, their multiplier is set to 1
         if (tokenAddress == address(0) || tokenId == 0) {
-            return 1e18;
+            return MULTIPLIER_DENOMINATOR;
         }
 
         return multiplierData.multiplier;
@@ -466,7 +466,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address _tokenAddress,
         address _delegatee
     ) internal {
-        uint256 multiplier = 1e18;
+        uint128 multiplier = MULTIPLIER_DENOMINATOR;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
         if (_tokenAddress != address(0) && _tokenId != 0) {
@@ -491,7 +491,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         _delegatee = _delegatee == address(0) ? user : _delegatee;
 
         // calculate the voting power provided by this registration
-        uint128 newVotingPower = (_amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
+        uint128 newVotingPower = (_amount * multiplier) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
         registration.amount = _amount;

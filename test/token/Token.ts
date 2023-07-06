@@ -438,8 +438,17 @@ describe("ArcadeToken", function () {
 
     describe("ArcadeToken Airdrop", () => {
         it("all recipients claim airdrop and delegate to themselves", async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, other, recipients, merkleTrie, mockNFTBoostVault } =
-                ctxToken;
+            const {
+                arcdToken,
+                arcdDst,
+                arcdAirdrop,
+                deployer,
+                other,
+                other2,
+                recipients,
+                merkleTrie,
+                mockNFTBoostVault,
+            } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
@@ -452,6 +461,9 @@ describe("ArcadeToken", function () {
             );
             const proofOther = merkleTrie.getHexProof(
                 ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+            );
+            const proofOther2 = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[2].address, recipients[2].value]),
             );
 
             // claim and delegate to self
@@ -474,12 +486,25 @@ describe("ArcadeToken", function () {
             )
                 .to.emit(arcdToken, "Transfer")
                 .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[1].value);
+            await expect(
+                await arcdAirdrop.connect(other2).claimAndDelegate(
+                    recipients[2].address, // address to delegate voting power to
+                    recipients[2].value, // total claimable amount
+                    proofOther2, // merkle proof
+                ),
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[2].value);
 
             expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(
-                recipients[0].value.add(recipients[1].value),
+                recipients[0].value.add(recipients[1].value).add(recipients[2].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+                ethers.utils
+                    .parseEther("10000000")
+                    .sub(recipients[0].value)
+                    .sub(recipients[1].value)
+                    .sub(recipients[2].value),
             );
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
         });
