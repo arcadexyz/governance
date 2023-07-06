@@ -448,7 +448,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @notice A helper function to register a user and delegate their voting power. This function is called
      *         when a user does not have a Registration created yet.
      *
-     * @param _user                         The address of the user to register.
+     * @param user                         The address of the user to register.
      * @param _amount                       Amount of tokens to be locked.
      * @param _tokenId                      The id of the ERC1155 NFT.
      * @param _tokenAddress                 The address of the ERC1155 token.
@@ -456,7 +456,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *                                      with this registration.
      */
     function _registerAndDelegate(
-        address _user,
+        address user,
         uint128 _amount,
         uint128 _tokenId,
         address _tokenAddress,
@@ -466,7 +466,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
         if (_tokenAddress != address(0) && _tokenId != 0) {
-            if (IERC1155(_tokenAddress).balanceOf(_user, _tokenId) == 0) revert NBV_DoesNotOwn();
+            if (IERC1155(_tokenAddress).balanceOf(user, _tokenId) == 0) revert NBV_DoesNotOwn();
 
             multiplier = getMultiplier(_tokenAddress, _tokenId);
 
@@ -477,34 +477,32 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         Storage.Uint256 storage balance = _balance();
 
         // load the registration
-        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[_user];
+        NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[user];
 
         // If the delegate address is not address zero, revert because the Registration
         // is already initialized. Only one Registration per user
         if (registration.delegatee != address(0)) revert NBV_HasRegistration();
 
         // load the delegate. Defaults to the registration owner
-        _delegatee = _delegatee == address(0) ? _user : _delegatee;
+        _delegatee = _delegatee == address(0) ? user : _delegatee;
 
         // calculate the voting power provided by this registration
         uint128 newVotingPower = (_amount * uint128(multiplier)) / MULTIPLIER_DENOMINATOR;
 
         // set the new registration
-        _getRegistrations()[_user] = NFTBoostVaultStorage.Registration({
-            amount: _amount,
-            latestVotingPower: newVotingPower,
-            withdrawn: 0,
-            tokenId: _tokenId,
-            tokenAddress: _tokenAddress,
-            delegatee: _delegatee
-        });
+        registration.amount = _amount;
+        registration.latestVotingPower = newVotingPower;
+        registration.withdrawn = 0;
+        registration.tokenId = _tokenId;
+        registration.tokenAddress = _tokenAddress;
+        registration.delegatee = _delegatee;
 
         // update this contract's balance
         balance.data += _amount;
 
         _grantVotingPower(_delegatee, newVotingPower);
 
-        emit VoteChange(_user, _delegatee, int256(uint256(newVotingPower)));
+        emit VoteChange(user, _delegatee, int256(uint256(newVotingPower)));
     }
 
     /**
