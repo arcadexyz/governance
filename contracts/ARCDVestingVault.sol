@@ -347,12 +347,18 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint256 delegateeVotes = votingPower.loadTop(grant.delegatee);
 
         uint256 newVotingPower = grant.allocation - grant.withdrawn;
-        // get the change in voting power. Negative if the voting power is reduced
-        int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
-        // voting power can only go down since only called when tokens are claimed or grant revoked
-        if (change < 0) {
-            // if the change is negative, we multiply by -1 to avoid underflow when casting
-            votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));
+
+        int256 change;
+        // calculate the absolute value of the change in voting power
+        if (newVotingPower > grant.latestVotingPower) {
+            change = int256(newVotingPower) - int256(grant.latestVotingPower);
+        } else {
+            change = int256(grant.latestVotingPower) - int256(newVotingPower);
+        }
+
+        // if not zero, update the voting power
+        if (change != 0) {
+            votingPower.push(grant.delegatee, delegateeVotes - uint256(change));
             emit VoteChange(grant.delegatee, who, change);
 
             grant.latestVotingPower = newVotingPower;
