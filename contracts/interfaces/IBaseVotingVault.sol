@@ -11,7 +11,7 @@ interface IBaseVotingVault {
 
     function setManager(address manager_) external;
 
-    function timelock() external pure returns (address);
+    function timelock() external view returns (address);
 
-    function manager() external pure returns (address);
+    function manager() external view returns (address);
 }

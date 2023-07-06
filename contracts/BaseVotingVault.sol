@@ -123,7 +123,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @return timelock                  The timelock address.
      */
-    function timelock() public pure returns (address) {
+    function timelock() public view returns (address) {
         return _timelock().data;
     }
 
@@ -134,7 +134,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @return manager                   The manager address.
      */
-    function manager() public pure returns (address) {
+    function manager() public view returns (address) {
         return _manager().data;
     }
 
@@ -156,7 +156,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @return timelock                   A struct containing the timelock address.
      */
-    function _timelock() internal pure returns (Storage.Address memory) {
+    function _timelock() internal view returns (Storage.Address storage) {
         return Storage.addressPtr("timelock");
     }
 
@@ -167,7 +167,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @return manager                    A struct containing the manager address.
      */
-    function _manager() internal pure returns (Storage.Address memory) {
+    function _manager() internal view returns (Storage.Address storage) {
         return Storage.addressPtr("manager");
     }
 
