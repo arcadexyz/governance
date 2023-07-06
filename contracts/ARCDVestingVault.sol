@@ -128,16 +128,14 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint128 newVotingPower = amount;
 
         // set the new grant
-        _grants()[who] = ARCDVestingVaultStorage.Grant(
-            amount,
-            cliffAmount,
-            0,
-            startTime,
-            expiration,
-            cliff,
-            newVotingPower,
-            delegatee
-        );
+        grant.allocation = amount;
+        grant.cliffAmount = cliffAmount;
+        grant.withdrawn = 0;
+        grant.created = startTime;
+        grant.expiration = expiration;
+        grant.cliff = cliff;
+        grant.latestVotingPower = newVotingPower;
+        grant.delegatee = delegatee;
 
         // update the amount of unassigned tokens
         unassigned.data -= amount;
@@ -180,7 +178,14 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         emit VoteChange(grant.delegatee, who, -1 * int256(grant.latestVotingPower));
 
         // delete the grant
-        delete _grants()[who];
+        grant.allocation = 0;
+        grant.cliffAmount = 0;
+        grant.withdrawn = 0;
+        grant.created = 0;
+        grant.expiration = 0;
+        grant.cliff = 0;
+        grant.latestVotingPower = 0;
+        grant.delegatee = address(0);
     }
 
     /**
