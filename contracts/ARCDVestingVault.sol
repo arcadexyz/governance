@@ -348,6 +348,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // get the change in voting power. voting power can only go down
         // since the sync is only called when tokens are claimed or grant revoked
         int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
+        // we multiply by -1 to avoid underflow when casting
         votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));
 
         grant.latestVotingPower = newVotingPower;
