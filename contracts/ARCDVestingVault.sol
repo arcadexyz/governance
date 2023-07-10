@@ -174,9 +174,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // update the delegatee's voting power
         _syncVotingPower(who, grant);
 
-        // Emit the vote change event
-        emit VoteChange(grant.delegatee, who, -1 * int256(grant.latestVotingPower));
-
         // delete the grant
         grant.allocation = 0;
         grant.cliffAmount = 0;
@@ -347,16 +344,16 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         uint256 delegateeVotes = votingPower.loadTop(grant.delegatee);
 
         uint256 newVotingPower = grant.allocation - grant.withdrawn;
-        // get the change in voting power. Negative if the voting power is reduced
-        int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
-        // voting power can only go down since only called when tokens are claimed or grant revoked
-        if (change < 0) {
-            // if the change is negative, we multiply by -1 to avoid underflow when casting
-            votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));
-            emit VoteChange(grant.delegatee, who, change);
 
-            grant.latestVotingPower = newVotingPower;
-        }
+        // get the change in voting power. voting power can only go down
+        // since the sync is only called when tokens are claimed or grant revoked
+        int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
+        // we multiply by -1 to avoid underflow when casting
+        votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));
+
+        grant.latestVotingPower = newVotingPower;
+
+        emit VoteChange(grant.delegatee, who, change);
     }
 
     /**
