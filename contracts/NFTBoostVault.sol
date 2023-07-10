@@ -247,7 +247,11 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
             if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
                 _withdrawNft();
             }
-            delete _getRegistrations()[msg.sender];
+            // delete registration. tokenId and token address already set to 0 in _withdrawNft()
+            registration.amount = 0;
+            registration.latestVotingPower = 0;
+            registration.withdrawn = 0;
+            registration.delegatee = address(0);
         }
 
         // transfer the token amount to the user
