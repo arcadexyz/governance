@@ -350,9 +350,9 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
         votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));
 
-        emit VoteChange(grant.delegatee, who, change);
-
         grant.latestVotingPower = newVotingPower;
+
+        emit VoteChange(grant.delegatee, who, change);
     }
 
     /**
