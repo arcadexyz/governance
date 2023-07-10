@@ -41,7 +41,7 @@ library NFTBoostVaultStorage {
     }
 
     /// @dev represents 1 packed storage location with a compressed uint128 pair
-    struct MultiplierData {
+    struct AddressUintUint {
         uint128 tokenId;
         uint128 multiplier;
     }

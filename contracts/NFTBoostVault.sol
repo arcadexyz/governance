@@ -363,7 +363,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
         if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit();
 
-        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
         multiplierData.multiplier = multiplierValue;
 
@@ -681,7 +681,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function _getMultipliers()
         internal
         pure
-        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.MultiplierData)) storage)
+        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.AddressUintUint)) storage)
     {
         // This call returns a storage mapping with a unique non overwrite-able storage layout.
         return NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers");

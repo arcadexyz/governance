@@ -486,6 +486,7 @@ describe("ArcadeToken", function () {
             )
                 .to.emit(arcdToken, "Transfer")
                 .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[1].value);
+
             await expect(
                 await arcdAirdrop.connect(other2).claimAndDelegate(
                     recipients[2].address, // address to delegate voting power to
@@ -496,13 +497,6 @@ describe("ArcadeToken", function () {
                 .to.emit(arcdToken, "Transfer")
                 .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[2].value);
 
-            await expect(
-                await arcdAirdrop.connect(other2).claimAndDelegate(
-                    recipients[2].address, // address to delegate voting power to
-                    recipients[2].value, // total claimable amount
-                    proofOther2, // merkle proof
-                ),
-            );
 
             expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(
                 recipients[0].value.add(recipients[1].value).add(recipients[2].value),

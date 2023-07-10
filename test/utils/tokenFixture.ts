@@ -91,19 +91,11 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             },
             {
                 address: other.address,
-<<<<<<< HEAD
                 value: ethers.utils.parseEther("1000000"),
             },
             {
                 address: other2.address,
                 value: ethers.utils.parseEther("8000000"),
-=======
-                value: ethers.utils.parseEther("500000"),
-            },
-            {
-                address: other2.address,
-                value: ethers.utils.parseEther("1000000"),
->>>>>>> 5721899 (fix(dapp-testing): initial fixes as a result of dapp/airdorp testing)
             },
         ];
 
