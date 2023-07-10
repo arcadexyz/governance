@@ -448,7 +448,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @notice A helper function to register a user and delegate their voting power. This function is called
      *         when a user does not have a Registration created yet.
      *
-     * @param user                         The address of the user to register.
+     * @param user                          The address of the user to register.
      * @param _amount                       Amount of tokens to be locked.
      * @param _tokenId                      The id of the ERC1155 NFT.
      * @param _tokenAddress                 The address of the ERC1155 token.
