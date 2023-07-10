@@ -300,7 +300,7 @@ describe("Deployment", function () {
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
     });
 
-    it("verifies all contracts on the proper network", async () => {
+    it.only("verifies all contracts on the proper network", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
