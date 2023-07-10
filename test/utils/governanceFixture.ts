@@ -204,9 +204,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         const setMultipliers = async (): Promise<Multipliers> => {
             // manager sets the value of the reputation NFT multiplier
-            const txA = await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            const txA = await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1200);
             const receiptA = await txA.wait();
 
             // get votingPower multiplier A
@@ -222,9 +220,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             }
 
             // manager sets the value of the reputation NFT 2's multiplier
-            const txB = await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft2.address, 1, ethers.utils.parseEther("1.4"));
+            const txB = await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft2.address, 1, 1400);
             const receiptB = await txB.wait();
 
             // get votingPower multiplier B

@@ -19,7 +19,7 @@ interface INFTBoostVault {
 
     function getRegistration(address who) external view returns (NFTBoostVaultStorage.Registration memory);
 
-    function getMultiplier(address tokenAddress, uint128 tokenId) external view returns (uint256);
+    function getMultiplier(address tokenAddress, uint128 tokenId) external view returns (uint128);
 
     function getAirdropContract() external view returns (address);
 

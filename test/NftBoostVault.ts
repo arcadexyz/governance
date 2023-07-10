@@ -14,6 +14,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
     let fixtureToken: () => Promise<TestContextToken>;
 
     const ONE = ethers.utils.parseEther("1");
+    const MULTIPLIER_DENOMINATOR = 1e3;
     const MAX = ethers.constants.MaxUint256;
     const zeroExtraData = ["0x", "0x", "0x", "0x"];
 
@@ -113,7 +114,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signer tokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[2]).approve(nftBoostVault.address, ONE.mul(5));
@@ -126,7 +127,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // view query voting power of signers 1
             const votingPower1 = await nftBoostVault.queryVotePowerView(signers[1].address, tx1.blockNumber);
-            expect(votingPower1).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower1).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // approve signer tokens to NFT boost vault
             await arcdToken.connect(signers[3]).approve(nftBoostVault.address, ONE.mul(3));
@@ -138,7 +139,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // view query voting power of signers[0]
             const votingPower2 = await nftBoostVault.queryVotePowerView(signers[0].address, tx2.blockNumber);
-            expect(votingPower2).to.be.eq(ONE.mul(3).mul(MULTIPLIER_B).div(ONE));
+            expect(votingPower2).to.be.eq(ONE.mul(3).mul(MULTIPLIER_B).div(MULTIPLIER_DENOMINATOR));
 
             // signers[1] approves ONE tokens to voting vault and approves reputation nft
             await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE.mul(3));
@@ -151,7 +152,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // view query voting power of signers[2]
             const votingPower3 = await nftBoostVault.queryVotePowerView(signers[2].address, tx3.blockNumber);
-            expect(votingPower3).to.be.eq(ONE.mul(3).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower3).to.be.eq(ONE.mul(3).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // proposal creation to update originationFee in FeeController
             const newFee = 62;
@@ -214,7 +215,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get delegatee voting power amount
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] withdraws ONE token
             await nftBoostVault.connect(signers[0]).withdraw(ONE);
@@ -228,7 +229,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // get delegatee voting power after
             const votingPowerAfter = await nftBoostVault.queryVotePowerView(signers[1].address, nowBlock);
             // confirm that delegatee voting power is ONE less than before withdrawal
-            expect(votingPowerAfter).to.eq(votingPower.sub(ONE.mul(MULTIPLIER_A).div(ONE)));
+            expect(votingPowerAfter).to.eq(votingPower.sub(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR)));
         });
 
         it("Full token withdrawal reduces delegatee voting power. Withdrawn tokens transferred back to user", async () => {
@@ -256,7 +257,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const now = await blockchainTime.secondsFromNow(0);
             // get signers[1] voting power before they receive any further delegation
             const votingPowerBefore = await nftBoostVault.queryVotePowerView(signers[1].address, now);
-            expect(votingPowerBefore).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPowerBefore).to.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] approves 5 tokens to voting vault and approves reputation nft
             await arcdToken.approve(nftBoostVault.address, ONE.mul(5));
@@ -276,7 +277,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get delegatee total voting power amount
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] balance before they withdraw
             const withdrawerBalBefore = await arcdToken.balanceOf(signers[0].address);
@@ -292,7 +293,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // get delegatee voting power after token withdrawal
             const votingPowerAfter = await nftBoostVault.queryVotePowerView(signers[1].address, afterBlock);
             // confirm that the delegatee voting is now less
-            expect(votingPowerAfter).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPowerAfter).to.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] balance after withdraw
             const withdrawerBalAfter = await arcdToken.balanceOf(signers[0].address);
@@ -333,7 +334,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get delegatee total voting power amount
             const votingPowerSignersOne = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPowerSignersOne).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPowerSignersOne).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers [3] approves tokens to voting vault and approves reputation nft
             await arcdToken.connect(signers[3]).approve(nftBoostVault.address, ONE);
@@ -346,7 +347,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // view query voting power of signers[0]
             const votingPowerSignersZero = await nftBoostVault.queryVotePowerView(signers[0].address, tx2.blockNumber);
-            expect(votingPowerSignersZero).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPowerSignersZero).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] changes their delegation from users[1] to users[3]
             await (await nftBoostVault.connect(signers[0]).delegate(signers[3].address)).wait();
@@ -355,11 +356,13 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // confirm that signers[1] lost signers[0]'s voting power
             const votingPowerSignersOneAfter = await nftBoostVault.queryVotePowerView(signers[1].address, afterBlock);
-            expect(votingPowerSignersOneAfter).to.eq(votingPowerSignersOne.sub(ONE.mul(5).mul(MULTIPLIER_A).div(ONE)));
+            expect(votingPowerSignersOneAfter).to.eq(
+                votingPowerSignersOne.sub(ONE.mul(5).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR)),
+            );
 
             // confirm that signers[3] has received signers[0]'s voting power
             const votingPowerSignersThreeAfter = await nftBoostVault.queryVotePowerView(signers[3].address, afterBlock);
-            expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPowerSignersThreeAfter).to.eq(ONE.mul(5).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
         });
 
         it("Reverts a user calls addNftAndDelegate() with an nft they do not own", async () => {
@@ -463,7 +466,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 .addNftAndDelegate(ONE, 1, reputationNft.address, constants.AddressZero);
             await tx.wait();
 
-            const newAmount = ONE.mul(MULTIPLIER_A).div(ONE);
+            const newAmount = ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR);
             await expect(tx)
                 .to.emit(nftBoostVault, "VoteChange")
                 .withArgs(signers[1].address, signers[1].address, newAmount);
@@ -503,7 +506,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // confirm signers[1] registration data
             expect(registration[0]).to.eq(ONE);
-            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
             expect(registration[2]).to.eq(0);
             expect(registration[3]).to.eq(1);
             expect(registration[4]).to.eq(reputationNft.address);
@@ -826,16 +829,16 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get signers 1 voting power amount
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(8).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers 1 withdraws THREE tokens
             const tx2 = await nftBoostVault.connect(signers[1]).withdraw(ONE.mul(3));
             const votingPower2 = await nftBoostVault.queryVotePowerView(signers[1].address, tx2.blockNumber);
-            expect(votingPower2).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower2).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // calculate signers[1] withdrawable amount
             const withdrawable = votingPower2.div(MULTIPLIER_A);
-            expect(withdrawable).to.be.eq(ONE.mul(5).div(ONE));
+            expect(withdrawable).to.be.eq(ONE.mul(5).div(MULTIPLIER_DENOMINATOR));
 
             // signers 1 tries to withdraw SIX tokens (less than registration amount but larger than
             // registration withdrawable amount)
@@ -916,7 +919,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // confirm signers[1] registration data
             expect(registration[0]).to.eq(ONE); // amount
-            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE)); // latestVotingPower
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR)); // latestVotingPower
             expect(registration[2]).to.eq(0); // withdrawn
             expect(registration[3]).to.eq(1); // tokenId
             expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
@@ -984,7 +987,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await mintNfts();
 
             // manager sets the value of the reputation NFT multiplier
-            await nftBoostVault.setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            await nftBoostVault.setMultiplier(reputationNft.address, 1, 1200);
 
             // signers[0] approves ONE tokens to the voting vault and approves reputation nft
             await arcdToken.approve(nftBoostVault.address, ONE);
@@ -1095,7 +1098,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get delegatee voting power amount
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(6).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] withdraws ERC1155
             const tx2 = await nftBoostVault.withdrawNft();
@@ -1105,7 +1108,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const votingPowerAfter = await nftBoostVault.queryVotePowerView(signers[1].address, tx2.blockNumber);
             // expect only the votingPower amount associated with signers[0] to have the multiplier value eliminated
             // from the delegatee's voting power
-            expect(votingPowerAfter).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE).add(ONE.mul(5)));
+            expect(votingPowerAfter).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR).add(ONE.mul(5)));
         });
 
         it("User can change their multiplier with updateNft()", async () => {
@@ -1133,7 +1136,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[1] approves tokens to voting vault and approves reputation nft
             await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE.mul(5));
@@ -1146,7 +1149,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // view query voting power of signers 1
             const votingPower1 = await nftBoostVault.queryVotePowerView(signers[1].address, tx1.blockNumber);
-            expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower1).to.be.eq(ONE.mul(5).add(ONE).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[0] approves reputation nft 2 to voting vault
             await reputationNft2.setApprovalForAll(nftBoostVault.address, true);
@@ -1161,7 +1164,9 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // their delegatee voting power is updated based on the multiplier value of their new ERC1155 nft
             // view query voting power of signers 1
             const votingPower2 = await nftBoostVault.queryVotePowerView(signers[1].address, tx2.blockNumber);
-            expect(votingPower2).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).add(ONE.mul(MULTIPLIER_B)).div(ONE));
+            expect(votingPower2).to.be.eq(
+                ONE.mul(5).mul(MULTIPLIER_A).add(ONE.mul(MULTIPLIER_B)).div(MULTIPLIER_DENOMINATOR),
+            );
         });
 
         it("Reverts if user calls updateNft() with invalid token address", async () => {
@@ -1391,22 +1396,18 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // manager updates the value of the ERC1155 token multiplier
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1200);
 
             // get new multiplier value
             const multiplierVal = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            expect(multiplierVal).to.eq(ethers.utils.parseEther("1.2"));
+            expect(multiplierVal).to.eq(1200);
         });
 
         it("Reverts if setMultiplier() is called with a value higher than multiplier limit", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value higher than limit
-            const tx = nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.8"));
+            const tx = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1501);
 
             await expect(tx).to.be.revertedWith("NBV_MultiplierLimit()");
         });
@@ -1415,31 +1416,25 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // manager sets the value of the multiplier for ERC1155's token id 1
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1200);
 
             // manager sets the value of the multiplier for ERC1155's token id 2
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 2, ethers.utils.parseEther("1.4"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 2, 1400);
 
             // get multiplier value for tokenId 1
             const multiplier1Val = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(multiplier1Val).to.eq(ethers.utils.parseEther("1.2"));
+            await expect(multiplier1Val).to.eq(1200);
 
             // get multiplier value for tokenId 2
             const multiplier2Val = await nftBoostVault.getMultiplier(reputationNft.address, 2);
-            await expect(multiplier2Val).to.eq(ethers.utils.parseEther("1.4"));
+            await expect(multiplier2Val).to.eq(1400);
         });
 
         it("Fails if the caller is not the manager", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // non-manager account to try to update the value of the token address multiplier
-            const tx = nftBoostVault
-                .connect(signers[2])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            const tx = nftBoostVault.connect(signers[2]).setMultiplier(reputationNft.address, 1, 1200);
             await expect(tx).to.be.revertedWith("BVV_NotManager()");
         });
 
@@ -1455,22 +1450,18 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // manager sets the value of the token address multiplier
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.2"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1200);
 
             // get the current multiplier
             const multiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(multiplier).to.eq(ethers.utils.parseEther("1.2"));
+            await expect(multiplier).to.eq(1200);
 
             // manager updates the value of the multiplier
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.4"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1400);
 
             // get new multiplier value
             const newMultiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(newMultiplier).to.eq(ethers.utils.parseEther("1.4"));
+            await expect(newMultiplier).to.eq(1400);
         });
 
         it("Returns ZERO if getMultiplier() is called on a token that does not have a multiplier", async () => {
@@ -1520,8 +1511,8 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get the current multiplier
             const multiplier = await nftBoostVault.getMultiplier(constants.AddressZero, 1);
-            await expect(multiplier).to.eq(ethers.utils.parseEther("1"));
-            await expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(ONE));
+            await expect(multiplier).to.eq(MULTIPLIER_DENOMINATOR);
+            await expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(MULTIPLIER_DENOMINATOR));
         });
 
         it("Multiplier value returns ONE when addNftAndDelegate() is called with ERC1155 token id == 0", async () => {
@@ -1539,8 +1530,8 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get the current multiplier
             const multiplier = await nftBoostVault.getMultiplier(reputationNft.address, 0);
-            await expect(multiplier).to.eq(ethers.utils.parseEther("1"));
-            await expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(ONE));
+            await expect(multiplier).to.eq(MULTIPLIER_DENOMINATOR);
+            await expect(votingPower).to.be.eq(ONE.mul(5).mul(multiplier).div(MULTIPLIER_DENOMINATOR));
         });
 
         it("Calling updateVotingPower() syncs delegates voting power when a multiplier value is adjusted", async () => {
@@ -1562,7 +1553,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get signers[1] voting power
             const votingPower1Before = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower1Before).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower1Before).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // signers[2] approves arcdTokens to NFT boost vault and approves reputation nft
             await arcdToken.connect(signers[2]).approve(nftBoostVault.address, ONE.mul(5));
@@ -1575,20 +1566,18 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // view query voting power of signers[3]
             const votingPower3Before = await nftBoostVault.queryVotePowerView(signers[3].address, tx1.blockNumber);
-            expect(votingPower3Before).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower3Before).to.be.eq(ONE.mul(5).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // get the current multiplier
             const multiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(multiplier).to.eq(ethers.utils.parseEther("1.2"));
+            await expect(multiplier).to.eq(1200);
 
             // manager updates the value of the multiplier
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.4"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1400);
 
             // get new multiplier value
             const newMultiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(newMultiplier).to.eq(ethers.utils.parseEther("1.4"));
+            await expect(newMultiplier).to.eq(1400);
 
             const nowBlock = await ethers.provider.getBlock("latest");
 
@@ -1606,16 +1595,14 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 signers[1].address,
                 nowBlock2.number,
             );
-            expect(votingPower1AfterUpdateVP).to.eq(ONE.mul(newMultiplier).div(ONE));
+            expect(votingPower1AfterUpdateVP).to.eq(ONE.mul(newMultiplier).div(MULTIPLIER_DENOMINATOR));
 
             // manager updates the value of the multiplier again, this time reducing it
-            await nftBoostVault
-                .connect(signers[0])
-                .setMultiplier(reputationNft.address, 1, ethers.utils.parseEther("1.1"));
+            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1100);
 
             // get new multiplier value
             const reducedMultiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(reducedMultiplier).to.eq(ethers.utils.parseEther("1.1"));
+            await expect(reducedMultiplier).to.eq(1100);
 
             // signers[3] voting power value is still the same as pre multiplier updates
             const votingPower3After = await nftBoostVault.queryVotePowerView(signers[3].address, nowBlock.number);
@@ -1628,7 +1615,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             //confirm that signers[3] voting power is now aligned with the reduced multiplier value
             const votingPower3C = await nftBoostVault.queryVotePowerView(signers[3].address, currentBlock.number);
-            expect(votingPower3C).to.eq(ONE.mul(5).mul(reducedMultiplier).div(ONE));
+            expect(votingPower3C).to.eq(ONE.mul(5).mul(reducedMultiplier).div(MULTIPLIER_DENOMINATOR));
         });
 
         it("Reverts if updateVotingPower() is called with more than 50 addresses", async () => {
@@ -1914,12 +1901,12 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // get users registration and confirm values
             const registration = await nftBoostVault.getRegistration(signers[0].address);
             expect(registration[0]).to.eq(ONE); // amount
-            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE)); // latestVotingPower
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR)); // latestVotingPower
             expect(registration[2]).to.eq(0); // withdrawn
             expect(registration[3]).to.eq(1); // tokenId
             expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
@@ -1952,12 +1939,12 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = await nftBoostVault.addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
             const votingPower = await nftBoostVault.queryVotePowerView(signers[1].address, tx.blockNumber);
-            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(ONE));
+            expect(votingPower).to.be.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR));
 
             // get users registration and confirm values
             const registration = await nftBoostVault.getRegistration(signers[0].address);
             expect(registration[0]).to.eq(ONE); // amount
-            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(ONE)); // latestVotingPower
+            expect(registration[1]).to.eq(ONE.mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR)); // latestVotingPower
             expect(registration[2]).to.eq(0); // withdrawn
             expect(registration[3]).to.eq(1); // tokenId
             expect(registration[4]).to.eq(reputationNft.address); // tokenAddress
@@ -1971,7 +1958,11 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 nftBoostVault.connect(signers[0]).airdropReceive(signers[0].address, ONE.mul(5), signers[1].address),
             )
                 .to.emit(nftBoostVault, "VoteChange")
-                .withArgs(signers[0].address, signers[1].address, ONE.mul(5).mul(MULTIPLIER_A).div(ONE));
+                .withArgs(
+                    signers[0].address,
+                    signers[1].address,
+                    ONE.mul(5).mul(MULTIPLIER_A).div(MULTIPLIER_DENOMINATOR),
+                );
         });
     });
 });
