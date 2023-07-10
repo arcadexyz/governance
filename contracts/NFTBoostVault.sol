@@ -420,7 +420,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         // if a user does not specify a ERC1155 nft, their multiplier is set to 1
         if (tokenAddress == address(0) || tokenId == 0) {
-            return MULTIPLIER_DENOMINATOR;
+            return 1e3;
         }
 
         return multiplierData.multiplier;
@@ -466,7 +466,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address _tokenAddress,
         address _delegatee
     ) internal {
-        uint128 multiplier = MULTIPLIER_DENOMINATOR;
+        uint128 multiplier = 1e3;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
         if (_tokenAddress != address(0) && _tokenId != 0) {
