@@ -48,14 +48,10 @@ import {
 import {
     ADMIN_ADDRESS,
     AIRDROP_MERKLE_ROOT,
-    BASE_QUORUM,
-    BASE_QUORUM_GSC,
     GSC_MIN_LOCK_DURATION,
-    MIN_PROPOSAL_POWER_CORE_VOTING,
     REPUTATION_BADGE_ADMIN,
     REPUTATION_BADGE_MANAGER,
     REPUTATION_BADGE_RESOURCE_MANAGER,
-    STALE_BLOCK_LAG,
 } from "../deployment-params";
 import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI } from "./utils";
 
@@ -155,6 +151,8 @@ describe("Deployment", function () {
         /**
          * Verify all the governance setup transactions were executed properly
          */
+        console.log("Verifying governance setup...")
+        
         const arcadeTokenDistributor = <ArcadeTokenDistributor>(
             await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
         );
@@ -220,30 +218,30 @@ describe("Deployment", function () {
 
         // check custom quorums in CoreVoting
         expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, MINT_TOKENS)).to.equal(
-            MINT_TOKENS_QUORUM,
+            ethers.utils.parseEther(MINT_TOKENS_QUORUM),
         );
         expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, SET_MINTER)).to.equal(
-            SET_MINTER_QUORUM,
+            ethers.utils.parseEther(SET_MINTER_QUORUM),
         );
         expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, MEDIUM_SPEND)).to.equal(
-            MEDIUM_SPEND_QUORUM,
+            ethers.utils.parseEther(MEDIUM_SPEND_QUORUM),
         );
         expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, LARGE_SPEND)).to.equal(
-            LARGE_SPEND_QUORUM,
+            ethers.utils.parseEther(LARGE_SPEND_QUORUM),
         );
-        expect(await coreVoting.quorums(CALL_WHITELIST_ADDR, ADD_CALL)).to.equal(ADD_CALL_QUORUM);
-        expect(await coreVoting.quorums(CALL_WHITELIST_APPROVALS_ADDR, ADD_APPROVAL)).to.equal(ADD_APPROVAL_QUORUM);
+        expect(await coreVoting.quorums(CALL_WHITELIST_ADDR, ADD_CALL)).to.equal(ethers.utils.parseEther(ADD_CALL_QUORUM));
+        expect(await coreVoting.quorums(CALL_WHITELIST_APPROVALS_ADDR, ADD_APPROVAL)).to.equal(ethers.utils.parseEther(ADD_APPROVAL_QUORUM));
         expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIER)).to.equal(
-            SET_ALLOWED_VERIFIER_QUORUM,
+            ethers.utils.parseEther(SET_ALLOWED_VERIFIER_QUORUM),
         );
         expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIER_BATCH)).to.equal(
-            SET_ALLOWED_VERIFIER_BATCH_QUORUM,
+            ethers.utils.parseEther(SET_ALLOWED_VERIFIER_BATCH_QUORUM),
         );
         expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
-            SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
+            ethers.utils.parseEther(SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM),
         );
-        expect(await coreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(PAUSE_QUORUM);
-        expect(await coreVoting.quorums(LOAN_CORE_ADDR, SET_FEE_CONTROLLER)).to.equal(SET_FEE_CONTROLLER_QUORUM);
+        expect(await coreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(ethers.utils.parseEther(PAUSE_QUORUM));
+        expect(await coreVoting.quorums(LOAN_CORE_ADDR, SET_FEE_CONTROLLER)).to.equal(ethers.utils.parseEther(SET_FEE_CONTROLLER_QUORUM));
 
         // check authorized addresses in CoreVoting
         expect(await coreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
@@ -300,7 +298,7 @@ describe("Deployment", function () {
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
     });
 
-    it.only("verifies all contracts on the proper network", async () => {
+    it("verifies all contracts on the proper network", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 

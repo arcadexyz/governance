@@ -2,6 +2,7 @@ import { BigNumberish } from "ethers";
 import fs from "fs";
 import hre from "hardhat";
 import path from "path";
+import { ethers } from "hardhat";
 
 import {
     ADMIN_ADDRESS,
@@ -104,7 +105,7 @@ export async function createInfo(
 
     contractInfo["CoreVoting"] = {
         contractAddress: coreVotingAddress,
-        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM, MIN_PROPOSAL_POWER_CORE_VOTING, ethers.constants.AddressZero, []],
+        constructorArgs: [ADMIN_ADDRESS, ethers.utils.parseEther(BASE_QUORUM), ethers.utils.parseEther(MIN_PROPOSAL_POWER_CORE_VOTING), ethers.constants.AddressZero, []],
     };
 
     contractInfo["ArcadeGSCCoreVoting"] = {
@@ -134,7 +135,7 @@ export async function createInfo(
 
     contractInfo["ArcadeGSCVault"] = {
         contractAddress: arcadeGSCVaultAddress,
-        constructorArgs: [coreVotingAddress, GSC_THRESHOLD, timelockAddress],
+        constructorArgs: [coreVotingAddress, ethers.utils.parseEther(GSC_THRESHOLD), timelockAddress],
     };
 
     contractInfo["ArcadeTreasury"] = {

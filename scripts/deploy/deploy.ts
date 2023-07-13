@@ -24,7 +24,6 @@ import {
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
     NFT_BOOST_VAULT_MANAGER,
-    REPUTATION_BADGE_ADMIN,
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
@@ -42,7 +41,7 @@ export interface DeployedResources {
     partnerVestingVault: ImmutableVestingVault;
     NFTBoostVault: NFTBoostVault;
     arcadeGSCVault: ArcadeGSCVault;
-    ArcadeTreasury: Treasury;
+    arcadeTreasury: Treasury;
     arcadeAirdrop: ArcadeAirdrop;
     badgeDescriptor: BadgeDescriptor;
     reputationBadge: ReputationBadge;
@@ -86,8 +85,8 @@ export async function main(): Promise<DeployedResources> {
     const CoreVotingFactory = await ethers.getContractFactory("CoreVoting");
     const coreVoting = await CoreVotingFactory.deploy(
         ADMIN_ADDRESS,
-        BASE_QUORUM,
-        MIN_PROPOSAL_POWER_CORE_VOTING,
+        ethers.utils.parseEther(BASE_QUORUM),
+        ethers.utils.parseEther(MIN_PROPOSAL_POWER_CORE_VOTING),
         ethers.constants.AddressZero,
         [],
     );
@@ -161,7 +160,7 @@ export async function main(): Promise<DeployedResources> {
 
     // GSC vault
     const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
-    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, GSC_THRESHOLD, timelock.address);
+    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, ethers.utils.parseEther(GSC_THRESHOLD), timelock.address);
     await arcadeGSCVault.deployed();
     const arcadeGSCVaultAddress = arcadeGSCVault.address;
     console.log("ArcadeGSCVault deployed to:", arcadeGSCVaultAddress);
@@ -188,9 +187,9 @@ export async function main(): Promise<DeployedResources> {
     const arcadeAirdrop = await ArcadeAirdropFactory.deploy(
         ADMIN_ADDRESS,
         ethers.constants.HashZero,
-        arcadeTokenAddress,
+        arcadeToken.address,
         AIRDROP_EXPIRATION,
-        NFTBoostVaultAddress,
+        NFTBoostVault.address,
     );
     await arcadeAirdrop.deployed();
     const arcadeAirdropAddress = arcadeAirdrop.address;

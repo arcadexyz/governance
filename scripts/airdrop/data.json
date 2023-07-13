@@ -5,11 +5,11 @@
     },
     {
         "address": "0xA6FF17BC632a48D903771EAabBFe6abd15B63854",
-        "value": 250
+        "value": 1000
     },
     {
         "address": "0x6c6F915B21d43107d83c47541e5D29e872d82Da6",
-        "value": 250
+        "value": 200000
     },
     {
         "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
@@ -17,10 +17,10 @@
     },
     {
         "address": "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
-        "value": 250
+        "value": 1000
     },
     {
         "address": "0x752649E5De74e63f3942C8DCc9A9832774D6663C",
-        "value": 250
+        "value": 200000
     }
 ]
