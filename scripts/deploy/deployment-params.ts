@@ -12,8 +12,8 @@ export const GSC_MIN_LOCK_DURATION = 70 // 3600 * 24 * 3; // 7 days
 export const BASE_QUORUM = "1500000"; // default quorum for a vote to pass through standard core voting contract
 export const MIN_PROPOSAL_POWER_CORE_VOTING = "20000"; // minimum proposal power
 
-export const BASE_QUORUM_GSC = 3; // default GSC quorum for a vote to pass, each GSC member has 1 vote
-export const MIN_PROPOSAL_POWER_GSC = 1; // minimum GSC proposal power, this is 1 so any GSC member can propose
+export const BASE_QUORUM_GSC = "3"; // default GSC quorum for a vote to pass, each GSC member has 1 vote
+export const MIN_PROPOSAL_POWER_GSC = "1"; // minimum GSC proposal power, this is 1 so any GSC member can propose
 export const GSC_THRESHOLD = "150000"; // GSC threshold, (minimum voting power needed to be a GSC member)
 
 export const STALE_BLOCK_LAG = 600; // number of blocks before voting power is pruned. CHANGE FOR TEAM TESTING!

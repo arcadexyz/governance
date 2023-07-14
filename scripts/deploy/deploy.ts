@@ -99,8 +99,8 @@ export async function main(): Promise<DeployedResources> {
     const ArcadeGSCCoreVotingFactory = await ethers.getContractFactory("ArcadeGSCCoreVoting");
     const arcadeGSCCoreVoting = await ArcadeGSCCoreVotingFactory.deploy(
         ADMIN_ADDRESS,
-        BASE_QUORUM_GSC,
-        MIN_PROPOSAL_POWER_GSC,
+        ethers.utils.parseEther(BASE_QUORUM_GSC),
+        ethers.utils.parseEther(MIN_PROPOSAL_POWER_GSC),
         ethers.constants.AddressZero,
         [],
     );
@@ -160,7 +160,11 @@ export async function main(): Promise<DeployedResources> {
 
     // GSC vault
     const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
-    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, ethers.utils.parseEther(GSC_THRESHOLD), timelock.address);
+    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(
+        coreVoting.address,
+        ethers.utils.parseEther(GSC_THRESHOLD),
+        timelock.address
+    );
     await arcadeGSCVault.deployed();
     const arcadeGSCVaultAddress = arcadeGSCVault.address;
     console.log("ArcadeGSCVault deployed to:", arcadeGSCVaultAddress);
