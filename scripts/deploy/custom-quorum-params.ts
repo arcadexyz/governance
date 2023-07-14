@@ -21,7 +21,7 @@ export const LARGE_SPEND_QUORUM = "6000000";
  */
 
 // CallWhitelist
-export const CALL_WHITELIST_ADDR = "0xB5A41eD8bA7E415754bdA155405A46b3a9035d86";
+export const CALL_WHITELIST_ADDR = "0x175D277C67370876BC6780c47ff5C036246Ba527";
 // CallWhitelist - add
 export const ADD_CALL = "0x2dba161f";
 export const ADD_CALL_QUORUM = "10000000";
@@ -33,7 +33,7 @@ export const ADD_APPROVAL = "0x2dba161f";
 export const ADD_APPROVAL_QUORUM = "10000000";
 
 // OriginationController
-export const ORIGINATION_CONTROLLER_ADDR = "0xCaf4760C8aE804347F6d8b7e971e2AC366cb2c5c";
+export const ORIGINATION_CONTROLLER_ADDR = "0x92e87E769f21D815dD6b7F37675D0B7A2A55796e";
 // OriginationController - setAllowedVerifier
 export const SET_ALLOWED_VERIFIER = "0x73bc4d1a";
 export const SET_ALLOWED_VERIFIER_QUORUM = "10000000";
@@ -45,7 +45,7 @@ export const SET_ALLOWED_PAYABLE_CURRENCIES = "0xded30f49";
 export const SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM = "6000000";
 
 // LoanCore
-export const LOAN_CORE_ADDR = "0xb1B694b20cc0f46fdE468FBFCB3073FC6e4E50ab";
+export const LOAN_CORE_ADDR = "0x4AC54128207E49F0DC4e4ce3dA82fF6aADf6027d";
 // LoanCore - pause
 export const PAUSE = "0x8456cb59";
 export const PAUSE_QUORUM = "25000000";

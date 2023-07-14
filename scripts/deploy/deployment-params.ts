@@ -6,8 +6,8 @@ export const DISTRIBUTION_MULTISIG = "0x0a606524006a48C4D93662aA935AEC203CaC98C1
 export const TEAM_VESTING_VAULT_MANAGER = "0x6c6F915B21d43107d83c47541e5D29e872d82Da6"; // change to multisig!
 export const NFT_BOOST_VAULT_MANAGER = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // change to multisig!
 
-export const TIMELOCK_WAIT_TIME = 1800 // 3600 * 24 * 3; // 3 days (3 days allows for a grace period that is longer than a weekend)
-export const GSC_MIN_LOCK_DURATION = 1800 // 3600 * 24 * 3; // 7 days
+export const TIMELOCK_WAIT_TIME = 70 // 3600 * 24 * 3; // 3 days (3 days allows for a grace period that is longer than a weekend)
+export const GSC_MIN_LOCK_DURATION = 70 // 3600 * 24 * 3; // 7 days
 
 export const BASE_QUORUM = "1500000"; // default quorum for a vote to pass through standard core voting contract
 export const MIN_PROPOSAL_POWER_CORE_VOTING = "20000"; // minimum proposal power

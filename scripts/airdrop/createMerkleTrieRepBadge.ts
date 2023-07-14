@@ -2,23 +2,24 @@ import { ethers } from "ethers";
 import fs from "fs";
 import { MerkleTree } from "merkletreejs";
 
-import file from "./data.json";
+import repBadgeData from "./repBadgeData.json";
 
 /**
- * To run this script use the command: `npx hardhat run scripts/airdrop/createMerkleTrie.ts`
+ * To run this script use the command: `npx hardhat run scripts/airdrop/createMerkleTrieRepBadge.ts`
  */
 
 interface Account {
     address: string;
-    value: number;
+    tokenId: number;
+    amount: number;
 }
 
 async function getMerkleTree(accounts: Account[]) {
     const leaves = await Promise.all(
         accounts.map(account =>
             ethers.utils.solidityKeccak256(
-                ["address", "uint256"],
-                [account.address, ethers.utils.parseEther(account.value.toString())],
+                ["address", "uint256", "uint256"],
+                [account.address, account.tokenId, account.amount],
             ),
         ),
     );
@@ -34,28 +35,31 @@ function keccak256Custom(bytes: Buffer) {
 }
 
 export async function main() {
-    const merkleTrie = await getMerkleTree(file);
+    const merkleTrie = await getMerkleTree(repBadgeData);
     const root = merkleTrie.getHexRoot();
 
     console.log("Merkle Root: ", root);
 
     const proofs = await Promise.all(
-        file.map(async account => {
-            const amount = ethers.utils.parseEther(account.value.toString());
+        repBadgeData.map(async account => {
+            const tokenId = ethers.utils.parseEther(account.tokenId.toString());
+            const amount = ethers.utils.parseEther(account.amount.toString());
+
             const proof = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256"], [account.address, amount]),
+                ethers.utils.solidityKeccak256(["address", "uint256", "uint256"], [account.address, account.tokenId, account.amount]),
             );
             console.log(proof);
             return {
                 address: account.address,
-                value: account.value,
+                value: account.amount,
+                tokenId: account.tokenId,
                 proof: proof,
             };
         }),
     );
 
-    fs.writeFileSync("scripts/airdrop/merkleProofs.json", JSON.stringify(proofs, null, 2));
-    console.log("Merkle Proofs written to scripts/airdrop/merkleProofs.json");
+    fs.writeFileSync("scripts/airdrop/repBadgeMerkleProofs.json", JSON.stringify(proofs, null, 2));
+    console.log("Merkle Proofs written to scripts/airdrop/repBadgeMerkleProofs.json");
 }
 
 main()
