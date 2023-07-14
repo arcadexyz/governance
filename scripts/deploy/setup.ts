@@ -175,59 +175,56 @@ export async function main(
     const tx22 = await coreVoting.setCustomQuorum(LOAN_CORE_ADDR, SET_FEE_CONTROLLER, ethers.utils.parseEther(SET_FEE_CONTROLLER_QUORUM));
     await tx22.wait();
 
-    const tx23 = await coreVoting.setCustomQuorum(nftBoostVault.address, UNLOCK, ethers.utils.parseEther(UNLOCK_QUORUM));
-    await tx23.wait();
-
     // authorize gsc vault and change owner to be the coreVoting contract
     console.log("Setup CoreVoting permissions...");
-    const tx24 = await coreVoting.deauthorize(ADMIN_ADDRESS);
+    const tx23 = await coreVoting.deauthorize(ADMIN_ADDRESS);
+    await tx23.wait();
+    const tx24 = await coreVoting.authorize(arcadeGSCCoreVoting.address);
     await tx24.wait();
-    const tx25 = await coreVoting.authorize(arcadeGSCCoreVoting.address);
+    const tx25 = await coreVoting.setOwner(timelock.address);
     await tx25.wait();
-    const tx26 = await coreVoting.setOwner(timelock.address);
-    await tx26.wait();
 
     // authorize arcadeGSCCoreVoting and change owner to be the coreVoting contract
     console.log("Setup Timelock permissions...");
-    const tx27 = await timelock.deauthorize(ADMIN_ADDRESS);
+    const tx26 = await timelock.deauthorize(ADMIN_ADDRESS);
+    await tx26.wait();
+    const tx27 = await timelock.authorize(arcadeGSCCoreVoting.address);
     await tx27.wait();
-    const tx28 = await timelock.authorize(arcadeGSCCoreVoting.address);
+    const tx28 = await timelock.setOwner(coreVoting.address);
     await tx28.wait();
-    const tx29 = await timelock.setOwner(coreVoting.address);
-    await tx29.wait();
 
     // set owner in arcadeGSCCoreVoting
     console.log("Setup ArcadeGSCCoreVoting permissions...");
-    const tx30 = await arcadeGSCCoreVoting.setOwner(timelock.address);
-    await tx30.wait();
+    const tx29 = await arcadeGSCCoreVoting.setOwner(timelock.address);
+    await tx29.wait();
 
     // ArcadeTreasury permissions
     console.log("Setup ArcadeTreasury permissions...");
-    const tx31 = await arcadeTreasury.grantRole(
+    const tx30 = await arcadeTreasury.grantRole(
         await arcadeTreasury.GSC_CORE_VOTING_ROLE(),
         arcadeGSCCoreVoting.address,
     );
+    await tx30.wait();
+    const tx31 = await arcadeTreasury.grantRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address);
     await tx31.wait();
-    const tx32 = await arcadeTreasury.grantRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address);
+    const tx32 = await arcadeTreasury.grantRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address);
     await tx32.wait();
-    const tx33 = await arcadeTreasury.grantRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address);
+    const tx33 = await arcadeTreasury.renounceRole(await arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS);
     await tx33.wait();
-    const tx34 = await arcadeTreasury.renounceRole(await arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS);
-    await tx34.wait();
 
     // ReputationBadge permissions
     console.log("Setup ReputationBadge permissions...");
-    const tx35 = await reputationBadge.grantRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER);
-    await tx35.wait();
-    const tx36 = await reputationBadge.grantRole(
+    const tx34 = await reputationBadge.grantRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER);
+    await tx34.wait();
+    const tx35 = await reputationBadge.grantRole(
         await reputationBadge.RESOURCE_MANAGER_ROLE(),
         REPUTATION_BADGE_RESOURCE_MANAGER,
     );
+    await tx35.wait();
+    const tx36 = await reputationBadge.grantRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN);
     await tx36.wait();
-    const tx37 = await reputationBadge.grantRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN);
+    const tx37 = await reputationBadge.renounceRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS);
     await tx37.wait();
-    const tx38 = await reputationBadge.renounceRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS);
-    await tx38.wait();
 }
 
 async function attachAddresses(jsonFile: string): Promise<ContractArgs> {

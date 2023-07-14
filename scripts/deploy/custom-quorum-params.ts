@@ -55,8 +55,3 @@ export const UNPAUSE_QUORUM = "25000000";
 // LoanCore - setFeeController
 export const SET_FEE_CONTROLLER = "0x3ed4c678";
 export const SET_FEE_CONTROLLER_QUORUM = "10000000";
-
-// NFTBoostVault
-// NFTBoostVault - unlock
-export const UNLOCK = "0xa69df4b5";
-export const UNLOCK_QUORUM = "25000000";
