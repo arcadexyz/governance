@@ -1,26 +1,66 @@
 [
     {
-        "address": "0x1C1109B12adD84Af6249F720e39eF3Ddc43EeB07",
-        "value": 1000
-    },
-    {
-        "address": "0xA6FF17BC632a48D903771EAabBFe6abd15B63854",
-        "value": 250000
+        "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
+        "value": 3940
     },
     {
         "address": "0x6c6F915B21d43107d83c47541e5D29e872d82Da6",
-        "value": 250000
+        "value": 6748
     },
     {
-        "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
-        "value": 1000
+        "address": "0x6f2fc07bef63cbecfaa30af9ff9a5544b6665cc8",
+        "value": 55405
     },
     {
-        "address": "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
-        "value": 250000
+        "address": "0x8A18a7ea34a476018DA24C385f07Dc2508A45c50",
+        "value": 9455
     },
     {
-        "address": "0x752649E5De74e63f3942C8DCc9A9832774D6663C",
-        "value": 250000
+        "address": "0x585BA4bA51818Faf84e4dd823ac363907ed890D6",
+        "value": 8291
+    },
+    {
+        "address": "0xeE50C24a127B23E28d4C1Ec222d6915298F048eC",
+        "value": 64345
+    },
+    {
+        "address": "0x7c99670ECc3A57Cd1A8D1Bdfc8e2Ff5b4527b382",
+        "value": 180743
+    },
+    {
+        "address": "0xF36270C2124829fCE84D9aA5D7A7C7a674F29ab1",
+        "value": 36401
+    },
+    {
+        "address": "0x57c4921465BD2C5071766954a677fC46D5B09F35",
+        "value": 145589
+    },
+    {
+        "address": "0x6402cB41945A662E978c6a8A65d93c0Ab17F7AC9",
+        "value": 20291
+    },
+    {
+        "address": "0x0fbeD7537e4120e1021c0f39F53E9953d5D8973D",
+        "value": 3742
+    },
+    {
+        "address": "0x583BFcE209e0aAac546350C2663a58954a5DD750",
+        "value": 13110
+    },
+    {
+        "address": "0x91BcAACf3A997E467c8A16Fb8C56a80413d0C207",
+        "value": 5353
+    },
+    {
+        "address": "0xE7e9fAdbc0A35A4019297d879c56506835716166",
+        "value": 76137
+    },
+    {
+        "address": "0xff72bE26Db7D64008657e6962248eE837F76a5A3",
+        "value": 28091
+    },
+    {
+        "address": "0x251e6B86a5946BC09aB71FF3b326C37780780895",
+        "value": 9519
     }
 ]

@@ -1,0 +1,71 @@
+[
+  {
+    "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xbbaf28eabdf5edd8092bc30b7e5f189d86de1536ba49dd35f77fedc45e379a71",
+      "0x2edd93a8a203d68c836081241a05fc02249183cb4031f57adfa9c935cccb4208",
+      "0xf2f5433b664b68fc2eebd46985ff7ad35cc104a9195b605dcf088cb3fd3b7fa9"
+    ]
+  },
+  {
+    "address": "0x6c6F915B21d43107d83c47541e5D29e872d82Da6",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xec0cd9f5e4e605eef3ff67a6c85e5fdc759272468cb08441d139886d5058adb4",
+      "0x2edd93a8a203d68c836081241a05fc02249183cb4031f57adfa9c935cccb4208",
+      "0xf2f5433b664b68fc2eebd46985ff7ad35cc104a9195b605dcf088cb3fd3b7fa9"
+    ]
+  },
+  {
+    "address": "0x8A18a7ea34a476018DA24C385f07Dc2508A45c50",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x482ecaf6d1526eaa2571e22f3fc971d259ccae72813959c47d0f33434211c75c",
+      "0x631ed20dbcab383aea1416aa29fe00c8b0af9f37a38fb9a0326872158793683a",
+      "0xf2f5433b664b68fc2eebd46985ff7ad35cc104a9195b605dcf088cb3fd3b7fa9"
+    ]
+  },
+  {
+    "address": "0x7c99670ECc3A57Cd1A8D1Bdfc8e2Ff5b4527b382",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xbc9ff51ff17b176c982187cdf0854fb64e24c98f4164d7e675dd273e1812345d",
+      "0x631ed20dbcab383aea1416aa29fe00c8b0af9f37a38fb9a0326872158793683a",
+      "0xf2f5433b664b68fc2eebd46985ff7ad35cc104a9195b605dcf088cb3fd3b7fa9"
+    ]
+  },
+  {
+    "address": "0xF36270C2124829fCE84D9aA5D7A7C7a674F29ab1",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x5e87fa59e08a4d06d177f9b21aa46f11892f858000d609443146f472b711aa7d",
+      "0xbebdde1bf5e33023e40c5704a63607d363f71bfe68b5458bc8ea76d3b9c08dcd",
+      "0xc372fda783c07ee5953a7f29456c07390051aad646f3cf7c568e701a7bd3621e"
+    ]
+  },
+  {
+    "address": "0x6402cB41945A662E978c6a8A65d93c0Ab17F7AC9",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x7fe4f6f355b9042b5d636ca4b2368746b9a78746a06905ac861a6ba1a06cbcb0",
+      "0xbebdde1bf5e33023e40c5704a63607d363f71bfe68b5458bc8ea76d3b9c08dcd",
+      "0xc372fda783c07ee5953a7f29456c07390051aad646f3cf7c568e701a7bd3621e"
+    ]
+  },
+  {
+    "address": "0x91BcAACf3A997E467c8A16Fb8C56a80413d0C207",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xb0354e4f93a941e789cacc4957ed02011668e000e06d85926d36da93f3085279",
+      "0xc372fda783c07ee5953a7f29456c07390051aad646f3cf7c568e701a7bd3621e"
+    ]
+  }
+]

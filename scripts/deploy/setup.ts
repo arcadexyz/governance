@@ -29,8 +29,6 @@ import {
     SET_FEE_CONTROLLER_QUORUM,
     SET_MINTER,
     SET_MINTER_QUORUM,
-    UNLOCK,
-    UNLOCK_QUORUM,
     UNPAUSE,
     UNPAUSE_QUORUM,
 } from "./custom-quorum-params";

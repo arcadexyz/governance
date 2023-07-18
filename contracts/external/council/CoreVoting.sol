@@ -16,7 +16,7 @@ contract CoreVoting is Authorizable, ReentrancyBlock, ICoreVoting {
 
     // minimum time a proposal must be active for before executing
     // Default to 3 days, this avoids weekend surprise proposals
-    uint256 public lockDuration = 70;
+    uint256 public lockDuration = DAY_IN_BLOCKS * 3;
 
     // The number of blocks after the proposal is unlocked during which
     // voting can continue. Max vote time = lockDuration + extraVoteTime

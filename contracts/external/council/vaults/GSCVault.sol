@@ -20,7 +20,7 @@ contract GSCVault is Authorizable, IVotingVault {
     // The amount of votes needed to be on the GSC
     uint256 public votingPowerBound;
     // The duration during which a fresh gsc member cannot vote.
-    uint256 public idleDuration = 15 minutes;
+    uint256 public idleDuration = 4 days;
 
     // Event to help tracking members
     event MembershipProved(address indexed who, uint256 when);

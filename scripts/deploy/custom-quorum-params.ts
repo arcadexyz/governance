@@ -11,17 +11,17 @@ export const SET_MINTER_QUORUM = "25000000";
 
 // Treasury - mediumSpend
 export const MEDIUM_SPEND = "0xfe3738c0";
-export const MEDIUM_SPEND_QUORUM = "6000000";
+export const MEDIUM_SPEND_QUORUM = "3000000";
 // Treasury - largeSpend
 export const LARGE_SPEND = "0xfbada999";
-export const LARGE_SPEND_QUORUM = "6000000";
+export const LARGE_SPEND_QUORUM = "4000000";
 
 /**
  * Lending protocol custom quorum params
  */
 
 // CallWhitelist
-export const CALL_WHITELIST_ADDR = "0x175D277C67370876BC6780c47ff5C036246Ba527";
+export const CALL_WHITELIST_ADDR = "0xCF7f96C47AD6bD438a509737D37b7C07F6F5513E";
 // CallWhitelist - add
 export const ADD_CALL = "0x2dba161f";
 export const ADD_CALL_QUORUM = "10000000";
@@ -33,7 +33,7 @@ export const ADD_APPROVAL = "0x2dba161f";
 export const ADD_APPROVAL_QUORUM = "10000000";
 
 // OriginationController
-export const ORIGINATION_CONTROLLER_ADDR = "0x92e87E769f21D815dD6b7F37675D0B7A2A55796e";
+export const ORIGINATION_CONTROLLER_ADDR = "0xDD4C612c843Ff593eB29C6cBF1D7CE4c880558f2";
 // OriginationController - setAllowedVerifier
 export const SET_ALLOWED_VERIFIER = "0x73bc4d1a";
 export const SET_ALLOWED_VERIFIER_QUORUM = "10000000";
@@ -42,10 +42,10 @@ export const SET_ALLOWED_VERIFIER_BATCH = "0x04b86147";
 export const SET_ALLOWED_VERIFIER_BATCH_QUORUM = "10000000";
 // OriginationController - setAllowedPayableCurrencies
 export const SET_ALLOWED_PAYABLE_CURRENCIES = "0xded30f49";
-export const SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM = "6000000";
+export const SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM = "4000000";
 
 // LoanCore
-export const LOAN_CORE_ADDR = "0x4AC54128207E49F0DC4e4ce3dA82fF6aADf6027d";
+export const LOAN_CORE_ADDR = "0x8a2E4795B395B6eE9A04284a6074539753bfAbF8";
 // LoanCore - pause
 export const PAUSE = "0x8456cb59";
 export const PAUSE_QUORUM = "25000000";

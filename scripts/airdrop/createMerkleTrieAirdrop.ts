@@ -5,7 +5,7 @@ import { MerkleTree } from "merkletreejs";
 import airdropData from "./airdropData.json";
 
 /**
- * To run this script use the command: `npx hardhat run scripts/airdrop/createMerkleTrie.ts`
+ * To run this script use the command: `npx hardhat run scripts/airdrop/createMerkleTrieAirdrop.ts`
  */
 
 interface Account {

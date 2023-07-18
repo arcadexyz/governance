@@ -99,8 +99,8 @@ export async function main(): Promise<DeployedResources> {
     const ArcadeGSCCoreVotingFactory = await ethers.getContractFactory("ArcadeGSCCoreVoting");
     const arcadeGSCCoreVoting = await ArcadeGSCCoreVotingFactory.deploy(
         ADMIN_ADDRESS,
-        ethers.utils.parseEther(BASE_QUORUM_GSC),
-        ethers.utils.parseEther(MIN_PROPOSAL_POWER_GSC),
+        BASE_QUORUM_GSC,
+        MIN_PROPOSAL_POWER_GSC,
         ethers.constants.AddressZero,
         [],
     );
