@@ -336,12 +336,12 @@ describe("ArcadeToken", function () {
         it("Cannot distribute to the zero address", async () => {
             const { arcdDst, deployer } = ctxToken;
 
-            await expect(arcdDst.connect(deployer).toGovernanceTreasury(ethers.constants.AddressZero)).to.be.revertedWith(
-                `AT_ZeroAddress("govTreasury")`,
-            );
-            await expect(arcdDst.connect(deployer).toFoundationTreasury(ethers.constants.AddressZero)).to.be.revertedWith(
-                `AT_ZeroAddress("foundationTreasury")`,
-            );
+            await expect(
+                arcdDst.connect(deployer).toGovernanceTreasury(ethers.constants.AddressZero),
+            ).to.be.revertedWith(`AT_ZeroAddress("govTreasury")`);
+            await expect(
+                arcdDst.connect(deployer).toFoundationTreasury(ethers.constants.AddressZero),
+            ).to.be.revertedWith(`AT_ZeroAddress("foundationTreasury")`);
             await expect(arcdDst.connect(deployer).toDevPartner(ethers.constants.AddressZero)).to.be.revertedWith(
                 `AT_ZeroAddress("devPartner")`,
             );
@@ -451,9 +451,11 @@ describe("ArcadeToken", function () {
             await arcdDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address);
             await arcdDst.connect(deployer).toPartnerVesting(vestingPartner.address);
 
-            await expect(arcdDst.connect(deployer).toGovernanceTreasury(govTreasury.address)).to.be.revertedWith("AT_AlreadySent()");
+            await expect(arcdDst.connect(deployer).toGovernanceTreasury(govTreasury.address)).to.be.revertedWith(
+                "AT_AlreadySent()",
+            );
             await expect(arcdDst.connect(deployer).toFoundationTreasury(foundationTreasury.address)).to.be.revertedWith(
-                "AT_AlreadySent()"
+                "AT_AlreadySent()",
             );
             await expect(arcdDst.connect(deployer).toDevPartner(devPartner.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
@@ -545,10 +547,7 @@ describe("ArcadeToken", function () {
                 recipients[0].value.add(recipients[1].value).add(recipients[2].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                totalAirdropAmount
-                    .sub(recipients[0].value)
-                    .sub(recipients[1].value)
-                    .sub(recipients[2].value),
+                totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value).sub(recipients[2].value),
             );
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
         });
