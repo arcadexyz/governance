@@ -25,7 +25,6 @@ describe("Arcade Treasury", async () => {
         ctxGovernance = await loadFixture(fixtureGov);
         const { arcadeTreasury } = ctxGovernance;
 
-        const treasuryAmount = await arcdDst.governanceTreasuryAmount();
         await expect(await arcdDst.connect(deployer).toGovernanceTreasury(arcadeTreasury.address))
             .to.emit(arcdDst, "Distribute")
             .withArgs(arcdToken.address, arcadeTreasury.address, treasuryAmount);
