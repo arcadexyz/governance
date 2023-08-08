@@ -30,12 +30,12 @@ contract ArcadeTokenDistributor is Ownable {
 
     /// @notice 25.1% of initial distribution is for the governance treasury
     uint256 public constant governanceTreasuryAmount = 25_100_000 ether;
-    /// @notice A flag to indicate if the treasury has already been transferred to
+    /// @notice A flag to indicate if the governance treasury has already been transferred to
     bool public governanceTreasurySent;
 
     /// @notice 10% of initial distribution is for the foundation treasury
     uint256 public constant foundationTreasuryAmount = 10_000_000 ether;
-    /// @notice A flag to indicate if the treasury has already been transferred to
+    /// @notice A flag to indicate if the foundation treasury has already been transferred to
     bool public foundationTreasurySent;
 
     /// @notice 1.081284% of initial distribution is for the token development partner
@@ -53,14 +53,14 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
-    /// @notice 15.61262% of initial distribution is for the Arcade team
+    /// @notice 15.61262% of initial distribution is for the Arcade team vesting
     uint256 public constant vestingTeamAmount = 15_612_620 ether;
-    /// @notice A flag to indicate if the launch partners have already been transferred to
+    /// @notice A flag to indicate if the Arcade team vesting have already been transferred to
     bool public vestingTeamSent;
 
-    /// @notice 33.206096% of initial distribution is for Arcade's launch partners
+    /// @notice 33.206096% of initial distribution is for Arcade's launch partner vesting
     uint256 public constant vestingPartnerAmount = 33_206_096 ether;
-    /// @notice A flag to indicate if the Arcade team has already been transferred to
+    /// @notice A flag to indicate if Arcade's launch partner vesting has already been transferred to
     bool public vestingPartnerSent;
 
     // ============================================ EVENTS ==============================================
@@ -73,7 +73,7 @@ contract ArcadeTokenDistributor is Ownable {
     /**
      * @notice Transfers a predetermined amount of Arcade Tokens to the governance treasury.
      *
-     * @param _governanceTreasury                The address of the Arcade treasury.
+     * @param _governanceTreasury                The address of the Arcade governance treasury.
      */
     function toGovernanceTreasury(address _governanceTreasury) external onlyOwner whenTokenSet {
         if (governanceTreasurySent) revert AT_AlreadySent();
