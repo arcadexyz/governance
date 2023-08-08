@@ -14,6 +14,7 @@ describe("Arcade Treasury", async () => {
     let ctxGovernance: TestContextGovernance;
     let fixtureToken: () => Promise<TestContextToken>;
     let fixtureGov: () => Promise<TestContextGovernance>;
+    const treasuryAmount = ethers.utils.parseEther("25100000");
 
     beforeEach(async function () {
         fixtureToken = await tokenFixture();
@@ -24,11 +25,11 @@ describe("Arcade Treasury", async () => {
         ctxGovernance = await loadFixture(fixtureGov);
         const { arcadeTreasury } = ctxGovernance;
 
-        const treasuryAmount = await arcdDst.treasuryAmount();
-        await expect(await arcdDst.connect(deployer).toTreasury(arcadeTreasury.address))
+        const treasuryAmount = await arcdDst.governanceTreasuryAmount();
+        await expect(await arcdDst.connect(deployer).toGovernanceTreasury(arcadeTreasury.address))
             .to.emit(arcdDst, "Distribute")
             .withArgs(arcdToken.address, arcadeTreasury.address, treasuryAmount);
-        expect(await arcdDst.treasurySent()).to.be.true;
+        expect(await arcdDst.governanceTreasurySent()).to.be.true;
 
         expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(treasuryAmount);
     });
@@ -389,8 +390,8 @@ describe("Arcade Treasury", async () => {
                 .to.emit(arcdToken, `Transfer`)
                 .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("100"));
 
-            expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("100"));
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499900"));
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("100"));
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(treasuryAmount.sub(ethers.utils.parseEther("100")));
 
             // core voting - spend ETH
             const balanceBeforeUser = await ethers.provider.getBalance(signers[4].address);
@@ -443,8 +444,8 @@ describe("Arcade Treasury", async () => {
                 .to.emit(arcdToken, `Transfer`)
                 .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("500"));
 
-            expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("500"));
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499500"));
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("500"));
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(treasuryAmount.sub(ethers.utils.parseEther("500")));
 
             // core voting - approve ARCD
             await expect(
@@ -559,8 +560,8 @@ describe("Arcade Treasury", async () => {
                 .to.emit(arcdToken, `Transfer`)
                 .withArgs(arcadeTreasury.address, signers[4].address, ethers.utils.parseEther("1000"));
 
-            expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("1000"));
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25499000"));
+            await expect(await arcdToken.balanceOf(signers[4].address)).to.eq(ethers.utils.parseEther("1000"));
+            await expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(treasuryAmount.sub(ethers.utils.parseEther("1000")));
 
             // core voting - approve ARCD
             await expect(
@@ -747,7 +748,7 @@ describe("Arcade Treasury", async () => {
                 .withArgs(arcdToken.address, OTHER_ACCOUNT.address, ethers.utils.parseEther("50"));
 
             expect(await arcdToken.balanceOf(OTHER_ACCOUNT.address)).to.equal(ethers.utils.parseEther("50"));
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(ethers.utils.parseEther("25499950"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(treasuryAmount.sub(ethers.utils.parseEther("50")));
             expect(await arcdToken.allowance(arcadeTreasury.address, OTHER_ACCOUNT.address)).to.equal(
                 ethers.utils.parseEther("50"),
             );
@@ -799,7 +800,7 @@ describe("Arcade Treasury", async () => {
                 .withArgs(arcdToken.address, OTHER_ACCOUNT.address, ethers.utils.parseEther("50"));
 
             expect(await arcdToken.balanceOf(OTHER_ACCOUNT.address)).to.equal(ethers.utils.parseEther("50"));
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(ethers.utils.parseEther("25499950"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(treasuryAmount.sub(ethers.utils.parseEther("50")));
             expect(await arcdToken.allowance(arcadeTreasury.address, OTHER_ACCOUNT.address)).to.equal(
                 ethers.utils.parseEther("50"),
             );
@@ -952,7 +953,7 @@ describe("Arcade Treasury", async () => {
                 .withArgs(arcdToken.address, OTHER_ACCOUNT.address, ethers.utils.parseEther("100"));
 
             expect(await arcdToken.balanceOf(OTHER_ACCOUNT.address)).to.equal(ethers.utils.parseEther("100"));
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(ethers.utils.parseEther("25499900"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.equal(treasuryAmount.sub(ethers.utils.parseEther("100")));
             expect(await arcadeTreasury.gscAllowance(arcdToken.address)).to.equal(ethers.utils.parseEther("0"));
 
             await expect(

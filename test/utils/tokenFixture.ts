@@ -15,7 +15,8 @@ export interface TestContextToken {
     deployer: Signer;
     other: Signer;
     other2: Signer;
-    treasury: Wallet;
+    govTreasury: Wallet;
+    foundationTreasury: Wallet;
     devPartner: Wallet;
     communityRewardsPool: Wallet;
     vestingTeamMultisig: Wallet;
@@ -47,7 +48,8 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         const other2: Signer = signers[2];
 
         // mock recipients for distribution
-        const treasury = new Wallet.createRandom();
+        const govTreasury = new Wallet.createRandom();
+        const foundationTreasury = new Wallet.createRandom();
         const devPartner = new Wallet.createRandom();
         const communityRewardsPool = new Wallet.createRandom();
         const vestingTeamMultisig = new Wallet.createRandom();
@@ -95,7 +97,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             },
             {
                 address: other2.address,
-                value: ethers.utils.parseEther("8000000"),
+                value: ethers.utils.parseEther("4500000"),
             },
         ];
 
@@ -141,7 +143,8 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             deployer,
             other,
             other2,
-            treasury,
+            govTreasury,
+            foundationTreasury,
             devPartner,
             communityRewardsPool,
             vestingTeamMultisig,

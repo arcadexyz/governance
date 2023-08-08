@@ -1,7 +1,6 @@
 import { ethers } from "hardhat";
 
-import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
-import { COMMUNITY_REWARDS, DEVELOPMENT_PARTNERS } from "./token-recipients";
+import { SECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
 
 export async function main() {
     console.log(SECTION_SEPARATOR);
@@ -14,18 +13,10 @@ export async function main() {
     const arcdDist = await ARCDDist.attach(deployment["ArcadeTokenDistributor"].contractAddress);
 
     // Distribute tokens to all recipient addresses
-    const res1 = await arcdDist.toTreasury(deployment["ArcadeTreasury"].contractAddress);
+    const res1 = await arcdDist.toGovernanceTreasury(deployment["ArcadeTreasury"].contractAddress);
     await res1.wait();
     const res2 = await arcdDist.toCommunityAirdrop(deployment["ArcadeAirdrop"].contractAddress);
     await res2.wait();
-    const res3 = await arcdDist.toTeamVesting(deployment["ARCDVestingVault"].contractAddress);
-    await res3.wait();
-    const res4 = await arcdDist.toPartnerVesting(deployment["ImmutableVestingVault"].contractAddress);
-    await res4.wait();
-    const res5 = await arcdDist.toDevPartner(DEVELOPMENT_PARTNERS);
-    await res5.wait();
-    const res6 = await arcdDist.toCommunityRewards(COMMUNITY_REWARDS);
-    await res6.wait();
 
     console.log(SECTION_SEPARATOR);
 }
