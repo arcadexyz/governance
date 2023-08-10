@@ -64,8 +64,8 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     /// @notice mapping of token address to GSC allowance amount
     mapping(address => uint256) public gscAllowance;
 
-    /// @notice mapping storing how much is spent or approved in each block.
-    mapping(uint256 => uint256) public blockExpenditure;
+    /// @notice mapping for tracking the amount spent in a block by threshold level, including approvals
+    mapping(uint256 => mapping(uint256 => uint256)) public blockExpenditure;
 
     /// @notice event emitted when a token's spend thresholds are updated
     event SpendThresholdsUpdated(address indexed token, SpendThreshold thresholds);
@@ -112,11 +112,13 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     ) external onlyRole(GSC_CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
+        uint256 smallThreshold = spendThresholds[token].small;
+        if (smallThreshold == 0) revert T_InvalidTarget(token);
 
         // Will underflow if amount is greater than remaining allowance
         gscAllowance[token] -= amount;
 
-        _spend(token, amount, destination, spendThresholds[token].small);
+        _spend(token, amount, destination, smallThreshold);
     }
 
     /**
@@ -134,8 +136,10 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
+        uint256 smallThreshold = spendThresholds[token].small;
+        if (smallThreshold == 0) revert T_InvalidTarget(token);
 
-        _spend(token, amount, destination, spendThresholds[token].small);
+        _spend(token, amount, destination, smallThreshold);
     }
 
     /**
@@ -153,8 +157,10 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
+        uint256 mediumThreshold = spendThresholds[token].medium;
+        if (mediumThreshold == 0) revert T_InvalidTarget(token);
 
-        _spend(token, amount, destination, spendThresholds[token].medium);
+        _spend(token, amount, destination, mediumThreshold);
     }
 
     /**
@@ -172,15 +178,17 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (destination == address(0)) revert T_ZeroAddress("destination");
         if (amount == 0) revert T_ZeroAmount();
+        uint256 largeThreshold = spendThresholds[token].large;
+        if (largeThreshold == 0) revert T_InvalidTarget(token);
 
-        _spend(token, amount, destination, spendThresholds[token].large);
+        _spend(token, amount, destination, largeThreshold);
     }
 
     // ===== APPROVALS =====
 
     /**
-     * @notice function for the GSC to approve tokens to be pulled from the treasury. The
-     *         amount to be approved must be less than or equal to the GSC's allowance for that specific token.
+     * @notice function for the GSC to approve tokens to be pulled from the treasury. The amount to
+     *         be approved must be less than or equal to the GSC's allowance for that specific token.
      *
      * @param token             address of the token to approve
      * @param spender           address which can take the tokens
@@ -192,12 +200,23 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount
     ) external onlyRole(GSC_CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress("spender");
-        if (amount == 0) revert T_ZeroAmount();
+        if (token == address(0)) revert T_ZeroAddress("token");
+        uint256 smallThreshold = spendThresholds[token].small;
+        if (smallThreshold == 0) revert T_InvalidTarget(token);
 
-        // Will underflow if amount is greater than remaining allowance
-        gscAllowance[token] -= amount;
+        // get spender's current allowance
+        uint256 currentAllowance = IERC20(token).allowance(address(this), spender);
 
-        _approve(token, spender, amount, spendThresholds[token].small);
+        // if amount is greater than current allowance, increase gscAllowance by the difference
+        if (amount > currentAllowance) {
+            gscAllowance[token] -= amount - currentAllowance;
+            _approve(token, spender, amount, currentAllowance, smallThreshold);
+        }
+        // if amount is less than current allowance, decrease gscAllowance by the difference
+        if (amount < currentAllowance) {
+            gscAllowance[token] += currentAllowance - amount;
+            _approve(token, spender, amount, currentAllowance, smallThreshold);
+        }
     }
 
     /**
@@ -214,9 +233,14 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress("spender");
-        if (amount == 0) revert T_ZeroAmount();
+        if (token == address(0)) revert T_ZeroAddress("token");
+        uint256 smallThreshold = spendThresholds[token].small;
+        if (smallThreshold == 0) revert T_InvalidTarget(token);
 
-        _approve(token, spender, amount, spendThresholds[token].small);
+        // get spender's current allowance
+        uint256 currentAllowance = IERC20(token).allowance(address(this), spender);
+
+        _approve(token, spender, amount, currentAllowance, smallThreshold);
     }
 
     /**
@@ -233,9 +257,14 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress("spender");
-        if (amount == 0) revert T_ZeroAmount();
+        if (token == address(0)) revert T_ZeroAddress("token");
+        uint256 mediumThreshold = spendThresholds[token].medium;
+        if (mediumThreshold == 0) revert T_InvalidTarget(token);
 
-        _approve(token, spender, amount, spendThresholds[token].medium);
+        // get spender's current allowance
+        uint256 currentAllowance = IERC20(token).allowance(address(this), spender);
+
+        _approve(token, spender, amount, currentAllowance, mediumThreshold);
     }
 
     /**
@@ -252,9 +281,14 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         uint256 amount
     ) external onlyRole(CORE_VOTING_ROLE) nonReentrant {
         if (spender == address(0)) revert T_ZeroAddress("spender");
-        if (amount == 0) revert T_ZeroAmount();
+        if (token == address(0)) revert T_ZeroAddress("token");
+        uint256 largeThreshold = spendThresholds[token].large;
+        if (largeThreshold == 0) revert T_InvalidTarget(token);
 
-        _approve(token, spender, amount, spendThresholds[token].large);
+        // get spender's current allowance
+        uint256 currentAllowance = IERC20(token).allowance(address(this), spender);
+
+        _approve(token, spender, amount, currentAllowance, largeThreshold);
     }
 
     // ============== ONLY ADMIN ==============
@@ -272,8 +306,13 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         // verify small threshold is not zero
         if (thresholds.small == 0) revert T_ZeroAmount();
 
+        // enforce cool down period
+        if (uint48(block.timestamp) < lastAllowanceSet[token] + SET_ALLOWANCE_COOL_DOWN) {
+            revert T_CoolDownPeriod(block.timestamp, lastAllowanceSet[token] + SET_ALLOWANCE_COOL_DOWN);
+        }
+
         // verify thresholds are ascending from small to large
-        if (thresholds.large < thresholds.medium || thresholds.medium < thresholds.small) {
+        if (thresholds.large <= thresholds.medium || thresholds.medium <= thresholds.small) {
             revert T_ThresholdsNotAscending();
         }
 
@@ -347,8 +386,8 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     // =============== HELPERS ===============
 
     /**
-     * @notice helper function to send tokens from the treasury. This function is used by the
-     *         transfer functions to send tokens to their destinations.
+     * @notice Helper function to send tokens from the treasury. This function is used by the
+     *         small, medium, and large transfer functions to transfer tokens to their destination.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend
@@ -356,10 +395,10 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
      * @param limit             max tokens that can be spent/approved in a single block for this threshold
      */
     function _spend(address token, uint256 amount, address destination, uint256 limit) internal {
-        // check that after processing this we will not have spent more than the block limit
-        uint256 spentThisBlock = blockExpenditure[block.number];
+        // check that after spending we will not have spent more than the block limit
+        uint256 spentThisBlock = blockExpenditure[block.number][limit];
         if (amount + spentThisBlock > limit) revert T_BlockSpendLimit();
-        blockExpenditure[block.number] = amount + spentThisBlock;
+        blockExpenditure[block.number][limit] = amount + spentThisBlock;
 
         // transfer tokens
         if (address(token) == ETH_CONSTANT) {
@@ -373,24 +412,39 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     }
 
     /**
-     * @notice helper function to approve tokens from the treasury. This function is used by the
-     *         approve functions to approve tokens for a spender.
+     * @notice Helper function to approve tokens from the treasury. This function is used by the
+     *         approve functions to either increase or decrease a token approval for the specified
+     *         spender.
      *
-     * @param token             address of the token to approve
-     * @param spender           address to approve
-     * @param amount            amount of tokens to approve
-     * @param limit             max tokens that can be spent/approved in a single block for this threshold
+     * @param token               address of the token to approve
+     * @param spender             address to approve
+     * @param amount              amount of tokens to approve
+     * @param currentAllowance    current allowance for the spender
+     * @param limit               max tokens that can be spent/approved in a single block for this threshold
      */
-    function _approve(address token, address spender, uint256 amount, uint256 limit) internal {
-        // check that after processing this we will not have spent more than the block limit
-        uint256 spentThisBlock = blockExpenditure[block.number];
+    function _approve(
+        address token,
+        address spender,
+        uint256 amount,
+        uint256 currentAllowance,
+        uint256 limit
+    ) internal {
+        // check that after approving we will not have spent more than the block limit
+        uint256 spentThisBlock = blockExpenditure[block.number][limit];
         if (amount + spentThisBlock > limit) revert T_BlockSpendLimit();
-        blockExpenditure[block.number] = amount + spentThisBlock;
+        blockExpenditure[block.number][limit] = amount + spentThisBlock;
 
         // approve tokens
-        IERC20(token).approve(spender, amount);
-
-        emit TreasuryApproval(token, spender, amount);
+        if (amount < currentAllowance) {
+            // if the new allowance is less than the current allowance, decrease it
+            IERC20(token).safeDecreaseAllowance(spender, currentAllowance - amount);
+            emit TreasuryApproval(token, spender, amount);
+        }
+        if (amount > currentAllowance) {
+            // if the new allowance is more than the current allowance, increase it
+            IERC20(token).safeIncreaseAllowance(spender, amount - currentAllowance);
+            emit TreasuryApproval(token, spender, amount);
+        }
     }
 
     /// @notice do not execute code on receiving ether

@@ -1,10 +1,22 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumberish, constants } from "ethers";
+import { constants } from "ethers";
 import { ethers } from "hardhat";
 
-import { FeeController, MockERC1155, PromissoryNote } from "../../src/types";
-import { Timelock } from "../../src/types";
-import { ArcadeToken, ArcadeTreasury, CoreVoting, LockingVault, NFTBoostVault, VestingVault } from "../../src/types";
+import { Multipliers, Thresholds } from "./types";
+import {
+    ArcadeToken,
+    ArcadeTreasury,
+    CoreVoting,
+    ArcadeGSCCoreVoting,
+    ArcadeGSCVault,
+    LockingVault,
+    NFTBoostVault,
+    ARCDVestingVault,
+    Timelock,
+    FeeController,
+    MockERC1155,
+    PromissoryNote
+} from "../../src/types";
 import { CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./constants";
 import { deploy } from "./contracts";
 import { BlockchainTime } from "./time";
@@ -14,7 +26,7 @@ type Signer = SignerWithAddress;
 export interface TestContextGovernance {
     signers: Signer[];
     lockingVotingVault: LockingVault;
-    vestingVotingVault: VestingVault;
+    vestingVotingVault: ARCDVestingVault;
     nftBoostVault: NFTBoostVault;
     arcadeGSCVault: ArcadeGSCVault;
     coreVoting: CoreVoting;
@@ -31,17 +43,6 @@ export interface TestContextGovernance {
     mintNfts(): Promise<void>;
     setMultipliers(): Promise<Multipliers>;
     setTreasuryThresholds(): Promise<Thresholds[]>;
-}
-
-interface Multipliers {
-    MULTIPLIER_A: BigNumberish;
-    MULTIPLIER_B: BigNumberish;
-}
-
-interface Thresholds {
-    small: BigNumberish;
-    medium: BigNumberish;
-    large: BigNumberish;
 }
 
 /**
@@ -69,7 +70,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         await lockingVotingVault.deployed();
 
         // deploy vesting vault with signers[1] as the manager and signers[2] as the owner
-        const vestingVotingVault = <VestingVault>(
+        const vestingVotingVault = <ARCDVestingVault>(
             await deploy("ARCDVestingVault", signers[0], [
                 arcdToken.address,
                 staleBlockNum,
@@ -135,7 +136,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         // ================================== ARCADE GSC VOTING VAULTS ==============================
 
         // Deploy the GSC Vault
-        const arcadeGSCVault = <CoreVoting>await deploy("ArcadeGSCVault", signers[0], [
+        const arcadeGSCVault = <ArcadeGSCVault>await deploy("ArcadeGSCVault", signers[0], [
             coreVoting.address, // the core voting contract
             50, // amount of voting power needed to be on the GSC (using 50 for ease of testing. Council GSC on Mainnet requires 110,000)
             timelock.address, // owner of the GSC vault contract: the timelock contract
@@ -146,7 +147,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         // ================================== ARCADE GSC CORE VOTING ================================
 
-        const arcadeGSCCoreVoting = <CoreVoting>await deploy("CoreVoting", signers[0], [
+        const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>await deploy("CoreVoting", signers[0], [
             signers[0].address, // deployer address at first, then ownership set to timelock contract
             3, // quorum
             1, // voting power needed to submit a proposal
@@ -241,18 +242,19 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             };
         };
 
-        const setTreasuryThresholds = async () => {
-            const arcdThresholds: Thresholds = [
-                ethers.utils.parseEther("100"),
-                ethers.utils.parseEther("500"),
-                ethers.utils.parseEther("1000"),
-            ];
+        const setTreasuryThresholds = async (): Promise<Thresholds[]> => {
+            const arcdThresholds: Thresholds = {
+                small: ethers.utils.parseEther("100"),
+                medium: ethers.utils.parseEther("500"),
+                large: ethers.utils.parseEther("1000"),
+            };
 
-            const ethThresholds: Thresholds = [
-                ethers.utils.parseEther("1"),
-                ethers.utils.parseEther("5"),
-                ethers.utils.parseEther("10"),
-            ];
+            const ethThresholds: Thresholds = {
+                small: ethers.utils.parseEther("1"),
+                medium: ethers.utils.parseEther("5"),
+                large: ethers.utils.parseEther("10"),
+            };
+
             // set arcd threshold
             const tx = await arcadeTreasury.connect(signers[1]).setThreshold(arcdToken.address, arcdThresholds);
             await tx.wait();
