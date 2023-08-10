@@ -64,7 +64,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
     /// @notice mapping of token address to GSC allowance amount
     mapping(address => uint256) public gscAllowance;
 
-    /// @notice mapping for tracking the amount spent in a block by threshold level, including approvals
+    /// @notice mapping to track the amount spent in a block by threshold level, including approvals
     mapping(uint256 => mapping(uint256 => uint256)) public blockExpenditure;
 
     /// @notice event emitted when a token's spend thresholds are updated
@@ -207,12 +207,12 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
         // get spender's current allowance
         uint256 currentAllowance = IERC20(token).allowance(address(this), spender);
 
-        // if amount is greater than current allowance, increase gscAllowance by the difference
+        // if amount is greater than current allowance, decrease gscAllowance by the difference
         if (amount > currentAllowance) {
             gscAllowance[token] -= amount - currentAllowance;
             _approve(token, spender, amount, currentAllowance, smallThreshold);
         }
-        // if amount is less than current allowance, decrease gscAllowance by the difference
+        // if amount is less than current allowance, increase gscAllowance by the difference
         if (amount < currentAllowance) {
             gscAllowance[token] += currentAllowance - amount;
             _approve(token, spender, amount, currentAllowance, smallThreshold);
@@ -387,7 +387,7 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
 
     /**
      * @notice Helper function to send tokens from the treasury. This function is used by the
-     *         small, medium, and large transfer functions to transfer tokens to their destination.
+     *         small, medium, and large transfer functions to send tokens to their destination.
      *
      * @param token             address of the token to spend
      * @param amount            amount of tokens to spend

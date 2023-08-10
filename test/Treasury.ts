@@ -48,7 +48,7 @@ describe("Arcade Treasury", async () => {
             const { signers, arcadeTreasury } = ctxGovernance;
             const MOCK_TIMELOCK = signers[1];
 
-            const thresholds: Thresholds =  {
+            const thresholds: Thresholds = {
                 small: ethers.utils.parseEther("100"),
                 medium: ethers.utils.parseEther("500"),
                 large: ethers.utils.parseEther("1000"),
@@ -64,7 +64,7 @@ describe("Arcade Treasury", async () => {
             const { signers, arcadeTreasury } = ctxGovernance;
             const MOCK_CORE_VOTING = signers[2];
 
-            const thresholds: Thresholds =  {
+            const thresholds: Thresholds = {
                 small: ethers.utils.parseEther("100"),
                 medium: ethers.utils.parseEther("500"),
                 large: ethers.utils.parseEther("1000"),
@@ -263,7 +263,7 @@ describe("Arcade Treasury", async () => {
 
         it("call setGSCAllowance, then they to setThreshold for same token without waiting for cool down period.", async () => {
             const { arcdToken } = ctxToken;
-            const { signers, arcadeTreasury, blockchainTime, setTreasuryThresholds } = ctxGovernance;
+            const { signers, arcadeTreasury, setTreasuryThresholds } = ctxGovernance;
             const MOCK_TIMELOCK = signers[1];
 
             await setTreasuryThresholds();
@@ -286,8 +286,9 @@ describe("Arcade Treasury", async () => {
             };
 
             // call setThresholds with the new thresholds array
-            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds2))
-                .to.be.revertedWith(`T_CoolDownPeriod`);
+            await expect(
+                arcadeTreasury.connect(MOCK_TIMELOCK).setThreshold(arcdToken.address, thresholds2),
+            ).to.be.revertedWith(`T_CoolDownPeriod`);
 
             // confirm that GSCAllowance value has been updated to equal the new small threshold value
             expect(await arcadeTreasury.gscAllowance(arcdToken.address)).to.eq(spendThresholds.small);
@@ -363,7 +364,11 @@ describe("Arcade Treasury", async () => {
             await expect(
                 arcadeTreasury
                     .connect(MOCK_CORE_VOTING)
-                    .approveSmallSpend(ethers.constants.AddressZero, signers[4].address, ethers.utils.parseEther("100")),
+                    .approveSmallSpend(
+                        ethers.constants.AddressZero,
+                        signers[4].address,
+                        ethers.utils.parseEther("100"),
+                    ),
             ).to.be.revertedWith(`T_ZeroAddress("token")`);
 
             // no threshold set
@@ -874,9 +879,7 @@ describe("Arcade Treasury", async () => {
             );
 
             await expect(
-                arcadeTreasury
-                    .connect(MOCK_GSC_CORE_VOTING)
-                    .gscApprove(arcdToken.address, OTHER_ACCOUNT.address, 0),
+                arcadeTreasury.connect(MOCK_GSC_CORE_VOTING).gscApprove(arcdToken.address, OTHER_ACCOUNT.address, 0),
             )
                 .to.emit(arcadeTreasury, "TreasuryApproval")
                 .withArgs(arcdToken.address, OTHER_ACCOUNT.address, 0);
@@ -908,14 +911,15 @@ describe("Arcade Treasury", async () => {
                 .withArgs(arcdToken.address, OTHER_ACCOUNT.address, ethers.utils.parseEther("50"));
 
             expect(await arcdToken.allowance(arcadeTreasury.address, OTHER_ACCOUNT.address)).to.eq(
-                ethers.utils.parseEther("50")
+                ethers.utils.parseEther("50"),
             );
 
-            await arcadeTreasury.connect(MOCK_GSC_CORE_VOTING)
+            await arcadeTreasury
+                .connect(MOCK_GSC_CORE_VOTING)
                 .gscApprove(arcdToken.address, OTHER_ACCOUNT.address, ethers.utils.parseEther("50"));
 
             expect(await arcdToken.allowance(arcadeTreasury.address, OTHER_ACCOUNT.address)).to.eq(
-                ethers.utils.parseEther("50")
+                ethers.utils.parseEther("50"),
             );
         });
 
@@ -964,8 +968,9 @@ describe("Arcade Treasury", async () => {
             // fast forward time but stop short before cool down ends
             await blockchainTime.secondsFromNow(2600 * 24 * 7 - 100);
 
-            await expect(arcadeTreasury.connect(MOCK_TIMELOCK).setGSCAllowance(arcdToken.address, smallThreshold))
-                .to.be.revertedWith(`T_CoolDownPeriod`);
+            await expect(
+                arcadeTreasury.connect(MOCK_TIMELOCK).setGSCAllowance(arcdToken.address, smallThreshold),
+            ).to.be.revertedWith(`T_CoolDownPeriod`);
 
             expect(await arcadeTreasury.gscAllowance(arcdToken.address)).to.equal(0);
         });

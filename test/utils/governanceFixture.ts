@@ -2,24 +2,24 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 import { constants } from "ethers";
 import { ethers } from "hardhat";
 
-import { Multipliers, Thresholds } from "./types";
 import {
+    ARCDVestingVault,
+    ArcadeGSCCoreVoting,
+    ArcadeGSCVault,
     ArcadeToken,
     ArcadeTreasury,
     CoreVoting,
-    ArcadeGSCCoreVoting,
-    ArcadeGSCVault,
-    LockingVault,
-    NFTBoostVault,
-    ARCDVestingVault,
-    Timelock,
     FeeController,
+    LockingVault,
     MockERC1155,
-    PromissoryNote
+    NFTBoostVault,
+    PromissoryNote,
+    Timelock,
 } from "../../src/types";
 import { CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./constants";
 import { deploy } from "./contracts";
 import { BlockchainTime } from "./time";
+import { Multipliers, Thresholds } from "./types";
 
 type Signer = SignerWithAddress;
 
