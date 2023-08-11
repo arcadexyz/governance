@@ -264,6 +264,9 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
                 .setThreshold("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", ethThresholds);
             await tx2.wait();
 
+            // increase time to allow for test threshold changes
+            await blockchainTime.increaseTime(3600 * 24 * 7);
+
             return [arcdThresholds, ethThresholds];
         };
 
