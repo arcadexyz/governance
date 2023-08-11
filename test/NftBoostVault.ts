@@ -513,6 +513,18 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             expect(registration[5]).to.eq(signers[1].address);
         });
 
+        it("cannot call delegate() when user is not registered", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            // signers[1] approves tokens to voting vault
+            await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE);
+
+            await expect(nftBoostVault.connect(signers[1]).delegate(signers[2].address)).to.be.revertedWith(
+                "NBV_NoRegistration()",
+            );
+        });
+
         it("Reverts when calling delegate() when 'to' is already the user's delegatee", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;

@@ -172,7 +172,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
-     * @notice Changes the caller's token voting power delegation.
+     * @notice Changes the caller's token voting power delegation. User must have an existing
+     *         registration.
      *
      * @dev The total voting power is not guaranteed to go up because the token
      *      multiplier can be updated at any time.
@@ -184,6 +185,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
+        // user must have an existing registration
+        if (registration.delegatee == address(0)) revert NBV_NoRegistration();
         // If to address is already the delegate, don't send the tx
         if (to == registration.delegatee) revert NBV_AlreadyDelegated();
 
@@ -268,8 +271,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
-        // If the registration does not have a delegatee, revert because the Registration
-        // is not initialized
+        // user must have an existing registration
         if (registration.delegatee == address(0)) revert NBV_NoRegistration();
 
         // get this contract's balance
@@ -309,8 +311,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
-        // If the registration does not have a delegatee, revert because the Registration
-        // is not initialized
+        // user must have an existing registration
         if (registration.delegatee == address(0)) revert NBV_NoRegistration();
 
         // if the user already has an ERC1155 registered, withdraw it
