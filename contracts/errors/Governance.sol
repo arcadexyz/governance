@@ -51,8 +51,10 @@ error NBV_InsufficientWithdrawableBalance(uint256 withdrawable);
 
 /**
  * @notice Multiplier limit exceeded.
+ *
+ * @param limitType                 Whether the multiplier is too high or too low.
  */
-error NBV_MultiplierLimit();
+error NBV_MultiplierLimit(string limitType);
 
 /**
  * @notice No multiplier has been set for token.

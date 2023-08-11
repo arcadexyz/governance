@@ -361,7 +361,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      */
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
-        if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit();
+        if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit("high");
+        if (multiplierValue < 1e3) revert NBV_MultiplierLimit("low");
 
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
@@ -416,12 +417,13 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @return                          The token multiplier.
      */
     function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint128) {
+        // if a user does not specify a ERC1155 nft, their multiplier is set to 1
+        if (tokenAddress == address(0) || tokenId == 0) return 1e3;
+
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
-        // if a user does not specify a ERC1155 nft, their multiplier is set to 1
-        if (tokenAddress == address(0) || tokenId == 0) {
-            return 1e3;
-        }
+        // if a user specifies a ERC1155 nft but no multiplier is set, their multiplier is set to 1
+        if (multiplierData.multiplier == 0) return 1e3;
 
         return multiplierData.multiplier;
     }

@@ -1403,13 +1403,16 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             expect(multiplierVal).to.eq(1200);
         });
 
-        it("Reverts if setMultiplier() is called with a value higher than multiplier limit", async () => {
+        it("Reverts if setMultiplier() is called with a value higher out of bounds", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value higher than limit
             const tx = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1501);
+            await expect(tx).to.be.revertedWith(`NBV_MultiplierLimit("high")`);
 
-            await expect(tx).to.be.revertedWith("NBV_MultiplierLimit()");
+            // manager tries to update the value of the ERC1155 token multiplier w/ value lower than limit
+            const tx2 = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 999);
+            await expect(tx2).to.be.revertedWith(`NBV_MultiplierLimit("low")`);
         });
 
         it("Sets a multiplier for each different tokenId of the same ERC1155 token address", async () => {
@@ -1464,16 +1467,16 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(newMultiplier).to.eq(1400);
         });
 
-        it("Returns ZERO if getMultiplier() is called on a token that does not have a multiplier", async () => {
+        it("Returns ONE if getMultiplier() is called on a token that does not have a multiplier", async () => {
             const { nftBoostVault, reputationNft } = ctxGovernance;
 
             // no multiplier has been set for reputationNft.address
             // get reputationNft.address multiplier
             const multiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(multiplier).to.eq(0);
+            await expect(multiplier).to.eq(1000);
         });
 
-        it("Reverts if addNftAndDelegate() is called with a token that does not have a multiplier", async () => {
+        it("call to addNftAndDelegate() with a token that does not have a multiplier", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, reputationNft, mintNfts } = ctxGovernance;
 
@@ -1485,10 +1488,14 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE);
             await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVault.address, true);
 
-            const tx = nftBoostVault
+            const tx = await nftBoostVault
                 .connect(signers[1])
                 .addNftAndDelegate(ONE, 1, reputationNft.address, signers[0].address);
-            await expect(tx).to.be.revertedWith("NBV_NoMultiplierSet");
+            await expect(tx).to.emit(reputationNft, "TransferSingle");
+
+            // check voting power is not multiplied
+            const votingPower = await nftBoostVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            expect(votingPower).to.eq(ONE);
         });
 
         it("Multiplier value returns ONE when addNftAndDelegate() is called with ERC1155 token address == 0", async () => {
