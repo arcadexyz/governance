@@ -323,6 +323,8 @@ contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
             emit GSCAllowanceUpdated(token, thresholds.small);
         }
 
+        // update allowance state
+        lastAllowanceSet[token] = uint48(block.timestamp);
         // Overwrite the spend limits for specified token
         spendThresholds[token] = thresholds;
 
