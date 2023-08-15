@@ -8,7 +8,7 @@ import "../external/council/libraries/Authorizable.sol";
 
 import "../libraries/ArcadeMerkleRewards.sol";
 
-import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
+import { AA_ClaimingNotExpired, AA_ClaimingExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
 
 /**
  * @title Arcade Airdrop
@@ -16,14 +16,14 @@ import { AA_ClaimingNotExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
  *
  * This contract receives tokens from the ArcadeTokenDistributor and facilitates airdrop claims.
  * The contract is ownable, where the owner can reclaim any remaining tokens once the airdrop is
- * over and also change the merkle root at their discretion.
+ * over and also change the merkle root and its expiration at their discretion.
  */
 contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
     using SafeERC20 for IERC20;
 
     // ============================================= EVENTS =============================================
 
-    event SetMerkleRoot(bytes32 indexed merkleRoot);
+    event SetMerkleRoot(bytes32 indexed merkleRoot, uint256 indexed expiration);
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -37,7 +37,7 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
      * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _token                The token to airdrop
      * @param _expiration           The expiration of the airdrop
-     * @param _votingVault         The voting vault to deposit tokens to
+     * @param _votingVault          The voting vault to deposit tokens to
      */
     constructor(
         address _governance,
@@ -68,13 +68,18 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
     }
 
     /**
-     * @notice Allows the owner to change the merkle root.
+     * @notice Allows the owner to set a merkle root and its expiration timestamp. When creating
+     *         a merkle trie, a users address should not be associated with multiple leaves.
      *
      * @param _merkleRoot        The new merkle root
+     * @param _expiration        The new expiration timestamp for this root
      */
-    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
-        rewardsRoot = _merkleRoot;
+    function setMerkleRoot(bytes32 _merkleRoot, uint256 _expiration) external onlyOwner {
+        if (_expiration <= block.timestamp) revert AA_ClaimingExpired();
 
-        emit SetMerkleRoot(_merkleRoot);
+        rewardsRoot = _merkleRoot;
+        expiration = _expiration;
+
+        emit SetMerkleRoot(_merkleRoot, _expiration);
     }
 }
