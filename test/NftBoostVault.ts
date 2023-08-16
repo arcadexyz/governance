@@ -3,7 +3,6 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
 
-import { BaseVotingVault } from "../src/types";
 import { deploy } from "./utils/deploy";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
 import { TestContextToken, tokenFixture } from "./utils/tokenFixture";

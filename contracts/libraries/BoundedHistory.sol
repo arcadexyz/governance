@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 
+/* solhint-disable max-line-length */
+/* solhint-disable reason-string */
+
 pragma solidity 0.8.18;
 
 import "../external/council/libraries/Storage.sol";
