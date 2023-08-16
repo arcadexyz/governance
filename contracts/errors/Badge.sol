@@ -65,3 +65,31 @@ error RB_ArrayTooLarge();
  * @param tokenId                The tokenId for the claim.
  */
 error RB_InvalidExpiration(bytes32 claimRoot, uint256 tokenId);
+
+/**
+ * @notice Thrown when user tries to mint or burn tokenId of zero. Token ID zero is excluded
+ *         from receiving a multiplier in the NFTBoostVault.
+ */
+error RB_ZeroTokenId();
+
+/**
+ * @notice Thrown when the user tries lookup the URI for a non-existent tokenId.
+ *
+ * @param tokenId                The tokenId used to lookup tokenURI.
+ */
+error RB_InvalidTokenId(uint256 tokenId);
+
+/**
+ * @notice Thrown when there is a call to mintBatch or burnBatch commands
+ */
+error RB_UnsupportedOp();
+
+/**
+ * @notice Thrown when the user tries to burn a badge they are not approved to burn.
+ */
+error RB_UnauthorizedBurn(address caller, address account);
+
+/**
+ * @notice Thrown when the user tries to burn zero tokens.
+ */
+error RB_ZeroAmount();

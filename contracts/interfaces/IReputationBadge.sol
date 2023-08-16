@@ -26,13 +26,15 @@ interface IReputationBadge is IERC1155 {
 
     function uri(uint256 tokenId) external view returns (string memory);
 
+    function burn(address account, uint256 tokenId, uint256 amount) external;
+
     function publishRoots(ClaimData[] calldata _claimData) external;
 
     function withdrawFees(address recipient) external;
 
     function setDescriptor(address _descriptor) external;
 
-    function amountClaimed(address, uint256) external view returns (uint256);
+    function amountClaimed(address, bytes32) external view returns (uint256);
 
     function claimRoots(uint256) external view returns (bytes32);
 
