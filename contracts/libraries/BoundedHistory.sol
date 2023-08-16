@@ -4,8 +4,6 @@ pragma solidity 0.8.18;
 
 import "../external/council/libraries/Storage.sol";
 
-import "hardhat/console.sol";
-
 // This library is an assembly optimized storage library which is designed
 // to track timestamp history in a struct which uses hash derived pointers.
 // WARNING - Developers using it should not access the underlying storage
@@ -78,15 +76,6 @@ library BoundedHistory {
         uint256 packedData = blockNumber | data;
         // Load the array length
         (uint256 minIndex, uint256 length) = _loadBounds(storageData);
-        console.log("MIN INDEX LENGTH", minIndex, length);
-
-        // If arrayLength is maxLength, we need to remove the oldest entry
-        // and reload the bounds
-        if (length == maxLength) {
-            _clear(minIndex, minIndex + 1, storageData);
-            (minIndex, length) = _loadBounds(storageData);
-            console.log("MIN INDEX LENGTH AGTER PRUNE", minIndex, length);
-        }
 
         // On the first push we don't try to load
         uint256 loadedBlockNumber = 0;
@@ -95,11 +84,17 @@ library BoundedHistory {
         }
         // The index we push to, note - we use this pattern to not branch the assembly
         uint256 index = length;
-        // If the caller is changing data in the same block we change the entry for this block
-        // instead of adding a new one. This ensures each block numb is unique in the array.
+
         if (loadedBlockNumber == block.number) {
+            // If the caller is changing data in the same block we change the entry for this block
+            // instead of adding a new one. This ensures each block numb is unique in the array.
             index = length - 1;
+        } else if (length - minIndex >= maxLength) {
+            // We need to push to the array, but if array is full to maxLength, so
+            // we clear the oldest entry and increment the minIndex
+            _clear(minIndex, ++minIndex, storageData);
         }
+
         // We use assembly to write our data to the index
         assembly {
             // Stores packed data in the equivalent of storageData[length]
@@ -113,6 +108,7 @@ library BoundedHistory {
                 packedData
             )
         }
+
         // Reset the boundaries if they changed
         if (loadedBlockNumber != block.number) {
             _setBounds(storageData, minIndex, length + 1);
