@@ -70,7 +70,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _treasury                The address of the Arcade treasury.
      */
-    function toTreasury(address _treasury) external onlyOwner {
+    function toTreasury(address _treasury) external onlyOwner whenTokenSet {
         if (treasurySent) revert AT_AlreadySent();
         if (_treasury == address(0)) revert AT_ZeroAddress("treasury");
 
@@ -86,7 +86,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _devPartner              The address of the token's development partner.
      */
-    function toDevPartner(address _devPartner) external onlyOwner {
+    function toDevPartner(address _devPartner) external onlyOwner whenTokenSet {
         if (devPartnerSent) revert AT_AlreadySent();
         if (_devPartner == address(0)) revert AT_ZeroAddress("devPartner");
 
@@ -102,7 +102,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _communityRewards        The address of the community rewards pool.
      */
-    function toCommunityRewards(address _communityRewards) external onlyOwner {
+    function toCommunityRewards(address _communityRewards) external onlyOwner whenTokenSet {
         if (communityRewardsSent) revert AT_AlreadySent();
         if (_communityRewards == address(0)) revert AT_ZeroAddress("communityRewards");
 
@@ -118,7 +118,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _communityAirdrop        The address of the community airdrop contract.
      */
-    function toCommunityAirdrop(address _communityAirdrop) external onlyOwner {
+    function toCommunityAirdrop(address _communityAirdrop) external onlyOwner whenTokenSet {
         if (communityAirdropSent) revert AT_AlreadySent();
         if (_communityAirdrop == address(0)) revert AT_ZeroAddress("communityAirdrop");
 
@@ -135,7 +135,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _vestingTeam             Address responsible for distributing vesting rewards.
      */
-    function toTeamVesting(address _vestingTeam) external onlyOwner {
+    function toTeamVesting(address _vestingTeam) external onlyOwner whenTokenSet {
         if (vestingTeamSent) revert AT_AlreadySent();
         if (_vestingTeam == address(0)) revert AT_ZeroAddress("vestingTeam");
 
@@ -152,7 +152,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _vestingPartner          Address responsible for distributing vesting rewards.
      */
-    function toPartnerVesting(address _vestingPartner) external onlyOwner {
+    function toPartnerVesting(address _vestingPartner) external onlyOwner whenTokenSet {
         if (vestingPartnerSent) revert AT_AlreadySent();
         if (_vestingPartner == address(0)) revert AT_ZeroAddress("vestingPartner");
 
@@ -176,5 +176,15 @@ contract ArcadeTokenDistributor is Ownable {
         if (address(arcadeToken) != address(0)) revert AT_TokenAlreadySet();
 
         arcadeToken = _arcadeToken;
+    }
+
+    // ============================================ HELPERS ============================================
+
+    /** @notice Check to ensure that the Arcade Token contract address has been set
+     *          before calling a withdraw function.
+     */
+    modifier whenTokenSet() {
+        if (address(arcadeToken) == address(0)) revert AT_ZeroAddress("arcadeToken");
+        _;
     }
 }

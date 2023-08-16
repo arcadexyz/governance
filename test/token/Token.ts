@@ -353,6 +353,40 @@ describe("ArcadeToken", function () {
             );
         });
 
+        it("Cannot distribute before token is set", async () => {
+            const { deployer } = ctxToken;
+
+            // get distributor contract factory
+            const arcdDistFact = await ethers.getContractFactory("ArcadeTokenDistributor");
+            const arcdDst = await arcdDistFact.deploy();
+            await arcdDst.deployed();
+
+            // call all the distribution functions
+            await expect(arcdDst.toTreasury(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toDevPartner(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toCommunityRewards(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toCommunityAirdrop(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toTeamVesting(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toPartnerVesting(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+        });
+
         it("Verifies all transfer functions can only be called by the contract owner", async () => {
             const {
                 arcdToken,
