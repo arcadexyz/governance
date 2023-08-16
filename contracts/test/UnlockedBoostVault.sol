@@ -5,12 +5,12 @@ pragma solidity 0.8.18;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./external/council/libraries/History.sol";
-import "./external/council/libraries/Storage.sol";
+import "../external/council/libraries/History.sol";
+import "../external/council/libraries/Storage.sol";
 
-import "./libraries/NFTBoostVaultStorage.sol";
-import "./interfaces/INFTBoostVault.sol";
-import "./BaseVotingVault.sol";
+import "../libraries/NFTBoostVaultStorage.sol";
+import "../interfaces/INFTBoostVault.sol";
+import "../BaseVotingVault.sol";
 
 import {
     NBV_DoesNotOwn,
@@ -29,7 +29,7 @@ import {
     NBV_NotAirdrop,
     NBV_NoRegistration,
     NBV_WrongDelegatee
-} from "./errors/Governance.sol";
+} from "../errors/Governance.sol";
 
 /**
  * @title NFTBoostVault
@@ -52,7 +52,7 @@ import {
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
-contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
+contract UnlockedBoostVault is INFTBoostVault, BaseVotingVault {
     using SafeERC20 for IERC20;
     // ======================================== STATE ==================================================
 
@@ -92,7 +92,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         Storage.set(Storage.addressPtr("timelock"), timelock);
         Storage.set(Storage.addressPtr("manager"), manager);
         Storage.set(Storage.uint256Ptr("entered"), 1);
-        Storage.set(Storage.uint256Ptr("locked"), 1);
+        Storage.set(Storage.uint256Ptr("locked"), 0);
     }
 
     // ===================================== USER FUNCTIONALITY =========================================
