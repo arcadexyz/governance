@@ -4,7 +4,7 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import "./external/council/libraries/History.sol";
+import "./libraries/BoundedHistory.sol";
 import "./external/council/libraries/Storage.sol";
 
 import "./libraries/HashedStorageReentrancyBlock.sol";
@@ -25,7 +25,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
     // ======================================== STATE ==================================================
 
     // Bring libraries into scope
-    using History for History.HistoricalBalances;
+    using BoundedHistory for BoundedHistory.HistoricalBalances;
 
     // ============================================ STATE ===============================================
 
@@ -95,7 +95,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      */
     function queryVotePower(address user, uint256 blockNumber, bytes calldata) external override returns (uint256) {
         // Get our reference to historical data
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
 
         // Find the historical data and clear everything more than 'staleBlockLag' into the past
         return votingPower.findAndClear(user, blockNumber, block.number - staleBlockLag);
@@ -111,7 +111,7 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      */
     function queryVotePowerView(address user, uint256 blockNumber) external view returns (uint256) {
         // Get our reference to historical data
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
 
         // Find the historical datum
         return votingPower.find(user, blockNumber);
@@ -176,9 +176,9 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
      *
      * @return votingPower              Historical voting power tracker.
      */
-    function _votingPower() internal pure returns (History.HistoricalBalances memory) {
+    function _votingPower() internal pure returns (BoundedHistory.HistoricalBalances memory) {
         // This call returns a storage mapping with a unique non overwrite-able storage location.
-        return History.load("votingPower");
+        return BoundedHistory.load("votingPower");
     }
 
     /**

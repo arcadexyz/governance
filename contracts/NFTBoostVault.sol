@@ -5,7 +5,7 @@ pragma solidity 0.8.18;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./external/council/libraries/History.sol";
+import "./libraries/BoundedHistory.sol";
 import "./external/council/libraries/Storage.sol";
 
 import "./libraries/NFTBoostVaultStorage.sol";
@@ -56,7 +56,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring History library into scope
-    using History for History.HistoricalBalances;
+    using BoundedHistory for BoundedHistory.HistoricalBalances;
 
     // ======================================== STATE ==================================================
 
@@ -66,6 +66,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /// @dev Precision of the multiplier.
     uint128 public constant MULTIPLIER_DENOMINATOR = 1e3;
+
+    /// @dev Max length of any voting history. Prevents gas exhaustion
+    ///      attacks from having too-large history.
+    uint256 public constant MAX_HISTORY_LENGTH = 256;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -186,11 +190,15 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // If to address is already the delegate, don't send the tx
         if (to == registration.delegatee) revert NBV_AlreadyDelegated();
 
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
 
         // Remove voting power from old delegatee and emit event
-        votingPower.push(registration.delegatee, oldDelegateeVotes - registration.latestVotingPower);
+        votingPower.push(
+            registration.delegatee,
+            oldDelegateeVotes - registration.latestVotingPower,
+            MAX_HISTORY_LENGTH
+        );
         emit VoteChange(msg.sender, registration.delegatee, -1 * int256(uint256(registration.latestVotingPower)));
 
         // Note - It is important that this is loaded here and not before the previous state change because if
@@ -201,7 +209,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         uint256 addedVotingPower = _currentVotingPower(registration);
 
         // add voting power to the target delegatee and emit event
-        votingPower.push(to, newDelegateeVotes + addedVotingPower);
+        votingPower.push(to, newDelegateeVotes + addedVotingPower, MAX_HISTORY_LENGTH);
 
         // update registration properties
         registration.latestVotingPower = uint128(addedVotingPower);
@@ -516,13 +524,13 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      */
     function _grantVotingPower(address delegatee, uint128 newVotingPower) internal {
         // update the delegatee's voting power
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
 
         // loads the most recent timestamp of voting power for this delegate
         uint256 delegateeVotes = votingPower.loadTop(delegatee);
 
         // add block stamp indexed delegation power for this delegate to historical data array
-        votingPower.push(delegatee, delegateeVotes + newVotingPower);
+        votingPower.push(delegatee, delegateeVotes + newVotingPower, MAX_HISTORY_LENGTH);
     }
 
     /**
@@ -574,7 +582,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param registration               The storage pointer to the registration of that user.
      */
     function _syncVotingPower(address who, NFTBoostVaultStorage.Registration storage registration) internal {
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
         uint256 delegateeVotes = votingPower.loadTop(registration.delegatee);
 
         uint256 newVotingPower = _currentVotingPower(registration);
@@ -584,10 +592,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // do nothing if there is no change
         if (change == 0) return;
         if (change > 0) {
-            votingPower.push(registration.delegatee, delegateeVotes + uint256(change));
+            votingPower.push(registration.delegatee, delegateeVotes + uint256(change), MAX_HISTORY_LENGTH);
         } else {
             // if the change is negative, we multiply by -1 to avoid underflow when casting
-            votingPower.push(registration.delegatee, delegateeVotes - uint256(change * -1));
+            votingPower.push(registration.delegatee, delegateeVotes - uint256(change * -1), MAX_HISTORY_LENGTH);
         }
 
         registration.latestVotingPower = uint128(newVotingPower);
