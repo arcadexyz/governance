@@ -2006,7 +2006,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const NFTBoostVaultFactory = await ethers.getContractFactory("UnlockedBoostVault");
             const NFTBoostVault = await NFTBoostVaultFactory.deploy(
                 TestERC20.address,
-                1000,
+                10,
                 owner.address,
                 owner.address,
             );
@@ -2068,7 +2068,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // attack
             // Bob performs it on himself
             let gasUsed = 0;
-            for (let i = 0; i < 3000; i++) {
+            for (let i = 0; i < 1000; i++) {
                 const tx1 = await NFTBoostVault.connect(Bob).delegate(Alice.address);
                 // needed since it's
                 // impossible to change current delegatee to the same address
@@ -2083,10 +2083,17 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             // Bob withdraws his tokens
             await NFTBoostVault.connect(Bob).withdraw(BOBS_BALANCE);
 
+            // Mine some blocks to make sure there are many stale blocks for pruning
+            await mine(11);
+
             // Alice cannot kick out Bob
             const tx = arcadeGSCVault.connect(Alice).kick(Bob.address, ["0x"]);
             const receipt = await (await tx).wait();
+            const gasUsedToKick = receipt.cumulativeGasUsed.toNumber();
             console.log(`Gas used by Alice: ${receipt.cumulativeGasUsed.toNumber()}`);
+
+            // Kicking should never come close to block gas limit
+            expect(gasUsedToKick).to.be.lt(3_000_000);
 
             await expect(tx).to.emit(arcadeGSCVault, "Kicked");
 
