@@ -362,13 +362,9 @@ describe("ArcadeToken", function () {
             await arcdDst.deployed();
 
             // call all the distribution functions
-            await expect(arcdDst.toTreasury(deployer.address)).to.be.revertedWith(
-                `AT_ZeroAddress("arcadeToken")`,
-            );
+            await expect(arcdDst.toTreasury(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
 
-            await expect(arcdDst.toDevPartner(deployer.address)).to.be.revertedWith(
-                `AT_ZeroAddress("arcadeToken")`,
-            );
+            await expect(arcdDst.toDevPartner(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
 
             await expect(arcdDst.toCommunityRewards(deployer.address)).to.be.revertedWith(
                 `AT_ZeroAddress("arcadeToken")`,
@@ -378,9 +374,7 @@ describe("ArcadeToken", function () {
                 `AT_ZeroAddress("arcadeToken")`,
             );
 
-            await expect(arcdDst.toTeamVesting(deployer.address)).to.be.revertedWith(
-                `AT_ZeroAddress("arcadeToken")`,
-            );
+            await expect(arcdDst.toTeamVesting(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
 
             await expect(arcdDst.toPartnerVesting(deployer.address)).to.be.revertedWith(
                 `AT_ZeroAddress("arcadeToken")`,
