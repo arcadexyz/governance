@@ -341,71 +341,6 @@ describe("Reputation Badge", async () => {
         });
     });
 
-    describe("Burn", async () => {
-        it("Burn NFTs", async () => {
-            // mint
-            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
-
-            // burn
-            await reputationBadge.connect(user1).burn(user1.address, 1, 1);
-
-            // check balance
-            expect(await reputationBadge.balanceOf(user1.address, 1)).to.equal(0);
-        });
-
-        it("Approved user burns", async () => {
-            // mint
-            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
-
-            // user2 tried to burn
-            await expect(reputationBadge.connect(user2).burn(user1.address, 1, 1)).to.be.revertedWith(
-                `RB_UnauthorizedBurn`,
-            );
-
-            // check balance
-            expect(await reputationBadge.balanceOf(user1.address, 1)).to.equal(1);
-
-            // approve user 2
-            await reputationBadge.connect(user1).setApprovalForAll(user2.address, true);
-
-            // cannot burn badge that does not exist
-            await expect(reputationBadge.connect(user2).burn(user1.address, 2, 1)).to.be.revertedWith(
-                `ERC1155: burn amount exceeds balance`,
-            );
-
-            // user2 burns
-            await reputationBadge.connect(user2).burn(user1.address, 1, 1);
-
-            // check balance
-            expect(await reputationBadge.balanceOf(user1.address, 1)).to.equal(0);
-        });
-
-        it("Invalid burn", async () => {
-            // mint
-            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
-
-            // burn
-            await expect(reputationBadge.connect(user2).burn(user1.address, 1, 1)).to.be.revertedWith(
-                `RB_UnauthorizedBurn`,
-            );
-
-            // cannot burn badge that does not exist
-            await expect(reputationBadge.connect(user1).burn(user1.address, 2, 1)).to.be.revertedWith(
-                `ERC1155: burn amount exceeds balance`,
-            );
-        });
-
-        it("Invalid params", async () => {
-            // mint
-            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
-
-            // burn
-            await expect(reputationBadge.connect(user1).burn(user1.address, 1, 0)).to.be.revertedWith(`RB_ZeroAmount`);
-
-            await expect(reputationBadge.connect(user1).burn(user1.address, 0, 1)).to.be.revertedWith(`RB_ZeroTokenId`);
-        });
-    });
-
     describe("URI Descriptor", async () => {
         it("Gets tokenURI for specific value", async () => {
             // mint
@@ -435,10 +370,6 @@ describe("Reputation Badge", async () => {
 
             // check tokenURI
             expect(await reputationBadge.uri(1)).to.equal("");
-        });
-
-        it("TokenId does not exist", async () => {
-            await expect(reputationBadge.connect(user1).uri(1)).to.be.revertedWith(`RB_InvalidTokenId`);
         });
 
         it("Set new descriptor contract", async () => {

@@ -3,7 +3,7 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -20,11 +20,7 @@ import {
     RB_NoClaimData,
     RB_ArrayTooLarge,
     RB_InvalidExpiration,
-    RB_ZeroTokenId,
-    RB_InvalidTokenId,
-    RB_UnsupportedOp,
-    RB_UnauthorizedBurn,
-    RB_ZeroAmount
+    RB_ZeroTokenId
 } from "../errors/Badge.sol";
 
 /**
@@ -41,7 +37,7 @@ import {
  * Only the manager of the contract can update the merkle roots and claim expirations. Additionally,
  * there is an optional mint price which can be set and claimed by the manager.
  */
-contract ReputationBadge is ERC1155, AccessControl, ERC1155Supply, IReputationBadge {
+contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputationBadge {
     /// @dev Contract for returning tokenURI resources.
     IBadgeDescriptor public descriptor;
 
@@ -111,20 +107,26 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Supply, IReputationBa
         uint48 claimExpiration = claimExpirations[tokenId];
         bytes32 claimRoot = claimRoots[tokenId];
 
+        // input validation
         if (block.timestamp > claimExpiration) revert RB_ClaimingExpired(claimExpiration, uint48(block.timestamp));
         if (msg.value < mintPrice) revert RB_InvalidMintFee(mintPrice, msg.value);
 
-        if (!_verifyClaim(recipient, tokenId, totalClaimable, merkleProof)) revert RB_InvalidMerkleProof();
-
+        // check if amount to claim is greater than total claimable
         if (amountClaimed[recipient][claimRoot] + amount > totalClaimable) {
             revert RB_InvalidClaimAmount(amount, totalClaimable);
         }
+
+        // verify proof
+        if (!_verifyClaim(recipient, tokenId, totalClaimable, merkleProof)) revert RB_InvalidMerkleProof();
 
         // increment amount claimed
         amountClaimed[recipient][claimRoot] += amount;
 
         // mint to recipient
         _mint(recipient, tokenId, amount, "");
+
+        // refund excess ETH
+        if (msg.value > mintPrice) payable(msg.sender).transfer(msg.value - mintPrice);
     }
 
     /**
@@ -135,29 +137,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Supply, IReputationBa
      * @return uri                  The token ID's URI.
      */
     function uri(uint256 tokenId) public view override(ERC1155, IReputationBadge) returns (string memory) {
-        if (exists(tokenId)) {
-            return descriptor.tokenURI(tokenId);
-        } else {
-            revert RB_InvalidTokenId(tokenId);
-        }
-    }
-
-    /**
-     * @notice Burn a specific amount of a tokenId. Account must be the caller, or an approved
-     *         operator for the caller.
-     *
-     * @param account           The address of the user to burn the badge from.
-     * @param tokenId           The ID of the badge to burn.
-     * @param amount            The amount of a specific badge to burn.
-     */
-    function burn(address account, uint256 tokenId, uint256 amount) external {
-        if (account != _msgSender() && !isApprovedForAll(account, _msgSender())) {
-            revert RB_UnauthorizedBurn(_msgSender(), account);
-        }
-        if (amount == 0) revert RB_ZeroAmount();
-        if (tokenId == 0) revert RB_ZeroTokenId();
-
-        _burn(account, tokenId, amount);
+        return descriptor.tokenURI(tokenId);
     }
 
     // =========================== MANAGER FUNCTIONS ===========================
@@ -176,6 +156,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Supply, IReputationBa
             if (_claimData[i].claimExpiration <= block.timestamp) {
                 revert RB_InvalidExpiration(_claimData[i].claimRoot, _claimData[i].tokenId);
             }
+            // cannot set root for tokenId 0
             if (_claimData[i].tokenId == 0) revert RB_ZeroTokenId();
 
             claimRoots[_claimData[i].tokenId] = _claimData[i].claimRoot;
@@ -249,38 +230,5 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Supply, IReputationBa
         bytes4 interfaceId
     ) public view override(ERC1155, AccessControl, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
-    }
-
-    // =============================== OVERRIDES ================================
-    // The following functions are overrides required when using ERC1155Supply.
-
-    function _mint(
-        address account,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._mint(account, id, amount, data);
-    }
-
-    function _mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._mintBatch(to, ids, amounts, data);
-    }
-
-    function _burn(address account, uint256 id, uint256 amount) internal override(ERC1155, ERC1155Supply) {
-        super._burn(account, id, amount);
-    }
-
-    function _burnBatch(
-        address account,
-        uint256[] memory ids,
-        uint256[] memory amounts
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._burnBatch(account, ids, amounts);
     }
 }
