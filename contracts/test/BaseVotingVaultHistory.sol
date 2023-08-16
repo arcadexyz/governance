@@ -21,7 +21,7 @@ import { BVV_NotManager, BVV_NotTimelock, BVV_ZeroAddress, BVV_UpperLimitBlock }
  * It includes basic voting vault functions like querying vote power, setting
  * the timelock and manager addresses, and getting the contracts token balance.
  */
-abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVault {
+abstract contract BaseVotingVaultHistory is HashedStorageReentrancyBlock, IBaseVotingVault {
     // ======================================== STATE ==================================================
 
     // Bring libraries into scope

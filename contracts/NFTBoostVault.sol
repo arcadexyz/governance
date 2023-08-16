@@ -67,10 +67,6 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     /// @dev Precision of the multiplier.
     uint128 public constant MULTIPLIER_DENOMINATOR = 1e3;
 
-    /// @dev Max length of any voting history. Prevents gas exhaustion
-    ///      attacks from having too-large history.
-    uint256 public constant MAX_HISTORY_LENGTH = 256;
-
     // ========================================== CONSTRUCTOR ===========================================
 
     /**

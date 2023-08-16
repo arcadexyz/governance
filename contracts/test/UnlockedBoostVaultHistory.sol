@@ -52,7 +52,7 @@ import {
  *      This contract is a proxy so we use the custom state management system from
  *      storage and return the following as methods to isolate that call.
  */
-contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVault {
+contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
     using SafeERC20 for IERC20;
     // ======================================== STATE ==================================================
 

@@ -52,8 +52,6 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
     using Storage for Storage.Uint256;
     using SafeERC20 for IERC20;
 
-    uint256 public constant MAX_HISTORY_LENGTH = 256;
-
     // ========================================= CONSTRUCTOR ============================================
 
     /**

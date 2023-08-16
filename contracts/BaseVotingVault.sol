@@ -35,6 +35,10 @@ abstract contract BaseVotingVault is HashedStorageReentrancyBlock, IBaseVotingVa
     /// @notice Number of blocks after which history can be pruned.
     uint256 public immutable staleBlockLag;
 
+    /// @dev Max length of any voting history. Prevents gas exhaustion
+    ///      attacks from having too-large history.
+    uint256 public constant MAX_HISTORY_LENGTH = 256;
+
     // ============================================ EVENTS ==============================================
 
     // Event to track delegation data

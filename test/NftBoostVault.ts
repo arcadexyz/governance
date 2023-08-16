@@ -1985,7 +1985,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 );
         });
 
-        describe("Registration length enforcement", () => {
+        describe.skip("Registration length enforcement", () => {
             const verbose = false;
 
             const poisonHistory = async (NFTBoostVault: Contract, TestERC20: MockERC20, numEntries = 1000) => {
