@@ -125,12 +125,57 @@ describe("Vote Execution with Arcade GSC Vault", async () => {
             await arcadeGSCCoreVoting.connect(signers[2]).vote([arcadeGSCVault.address], zeroExtraData, 0, 0); // yes vote
 
             //increase blockNumber to exceed 3 day default lock duration set in gscCoreVoting
-            await increaseBlockNumber(provider, 19488);
+            await increaseBlockNumber(provider, 7150 * 3);
 
             // execute proposal
             await arcadeGSCCoreVoting.connect(signers[1]).execute(0, targetAddress, [pNoteCalldata]);
             // confirm with view function paused() that it is indeed paused
             expect(await promissoryNote.paused()).to.eq(true);
+        });
+
+        it("Try to add a new approved vault to GSC Core Voting", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
+            const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(signers[0].address, 50, signers[0].address);
+            await arcadeGSCVault.deployed();
+
+            const arcadeGSCCoreVotingFactory = await ethers.getContractFactory("ArcadeGSCCoreVoting");
+            const arcadeGSCCoreVoting = await arcadeGSCCoreVotingFactory.deploy(
+                signers[0].address, // admin
+                ethers.utils.parseEther("7"),
+                ethers.utils.parseEther("3"),
+                signers[0].address, // authorized user
+                [arcadeGSCVault.address],
+            );
+            await arcadeGSCCoreVoting.deployed();
+
+            await expect(
+                arcadeGSCCoreVoting.connect(signers[0]).changeVaultStatus(nftBoostVault.address, true),
+            ).to.be.revertedWith("new vaults not allowed");
+        });
+
+        it("Add a new approved vault to Arcade Core Voting", async () => {
+            const { signers, nftBoostVault } = ctxGovernance;
+
+            const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
+            const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(signers[0].address, 50, signers[0].address);
+            await arcadeGSCVault.deployed();
+
+            const arcadeCoreVotingFactory = await ethers.getContractFactory("ArcadeCoreVoting");
+            const arcadeCoreVoting = await arcadeCoreVotingFactory.deploy(
+                signers[0].address, // admin
+                ethers.utils.parseEther("7"),
+                ethers.utils.parseEther("3"),
+                signers[0].address, // authorized user
+                [nftBoostVault.address],
+                true,
+            );
+            await arcadeCoreVoting.deployed();
+
+            await arcadeCoreVoting.connect(signers[0]).changeVaultStatus(arcadeGSCVault.address, true);
+
+            expect(await arcadeCoreVoting.approvedVaults(arcadeGSCVault.address)).to.be.true;
         });
     });
 });

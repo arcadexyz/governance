@@ -8,13 +8,13 @@ import {
     ArcadeGSCVault,
     ArcadeToken,
     ArcadeTreasury,
-    CoreVoting,
     FeeController,
     LockingVault,
     MockERC1155,
     NFTBoostVault,
     PromissoryNote,
     Timelock,
+    ArcadeCoreVoting
 } from "../../src/types";
 import { CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./constants";
 import { deploy } from "./contracts";
@@ -29,7 +29,7 @@ export interface TestContextGovernance {
     vestingVotingVault: ARCDVestingVault;
     nftBoostVault: NFTBoostVault;
     arcadeGSCVault: ArcadeGSCVault;
-    coreVoting: CoreVoting;
+    coreVoting: ArcadeCoreVoting;
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     votingVaults: string[];
     timelock: Timelock;
@@ -103,17 +103,18 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         const MIN_VOTE_POWER = ethers.utils.parseEther("3");
         const DEFAULT_QUORUM = ethers.utils.parseEther("7");
 
-        // deploy coreVoting with following parameters:
+        // deploy ArcadeCoreVoting with following parameters:
         // for initial testing purposes, we are setting the default quorum to 7
         // min voting power needed for proposal submission is set to 3
         // GSC contract address is set to zero - GSC not used
         // array of voting vaults which will be used for voting
-        const coreVoting = <CoreVoting>await deploy("CoreVoting", signers[0], [
+        const coreVoting = <ArcadeCoreVoting>await deploy("ArcadeCoreVoting", signers[0], [
             signers[0].address, // deployer address at first, then ownership set to timelock contract
             DEFAULT_QUORUM, // base quorum / default quorum
             MIN_VOTE_POWER, // min voting power needed to submit a proposal
             ethers.constants.AddressZero, // GSC contract address
             votingVaults, // voting vaults array
+            true, // allow new vaults to be added
         ]);
         await coreVoting.deployed();
 
@@ -147,7 +148,11 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         // ================================== ARCADE GSC CORE VOTING ================================
 
+<<<<<<< HEAD
         const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>await deploy("CoreVoting", signers[0], [
+=======
+        const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>await deploy("ArcadeGSCCoreVoting", signers[0], [
+>>>>>>> 7df3858 (fix(c4-56-434): new ArcadeCoreVoting contract)
             signers[0].address, // deployer address at first, then ownership set to timelock contract
             3, // quorum
             1, // voting power needed to submit a proposal

@@ -1630,7 +1630,7 @@ describe("Vesting voting vault", function () {
             await coreVoting.connect(OTHER).vote([votingVaults[2]], ["0x"], 0, 0); // yes vote
 
             // increase blockNumber to exceed 3 day default lock duration set in coreVoting
-            await increaseBlockNumber(provider, 19488);
+            await increaseBlockNumber(provider, 7150 * 3);
 
             // proposal execution
             await coreVoting.connect(OTHER).execute(0, targetAddress, [feeContCalldata]);
