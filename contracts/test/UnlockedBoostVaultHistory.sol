@@ -84,7 +84,7 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
         uint256 staleBlockLag,
         address timelock,
         address manager
-    ) BaseVotingVault(token, staleBlockLag) {
+    ) BaseVotingVaultHistory(token, staleBlockLag) {
         if (timelock == address(0)) revert NBV_ZeroAddress("timelock");
         if (manager == address(0)) revert NBV_ZeroAddress("manager");
 

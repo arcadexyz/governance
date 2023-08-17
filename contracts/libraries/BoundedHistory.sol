@@ -7,6 +7,8 @@ pragma solidity 0.8.18;
 
 import "../external/council/libraries/Storage.sol";
 
+import "hardhat/console.sol";
+
 // This library is an assembly optimized storage library which is designed
 // to track timestamp history in a struct which uses hash derived pointers.
 // WARNING - Developers using it should not access the underlying storage
@@ -209,6 +211,7 @@ library BoundedHistory {
         // We explicitly revert on the reading of memory which is uninitialized
         require(length != 0, "uninitialized");
         // Do some correctness checks
+        console.log("SB BN", staleBlock, blocknumber);
         require(staleBlock <= blocknumber);
         require(startingMinIndex < length);
         // Load the bounds of our binary search
