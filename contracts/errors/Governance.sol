@@ -125,6 +125,11 @@ error FLV_WithdrawsFrozen();
 error AVV_InvalidSchedule();
 
 /**
+ * @notice The cliff block number cannot be less than the current block.
+ */
+error AVV_InvalidCliff();
+
+/**
  * @notice Cliff amount should be less than the grant amount.
  */
 error AVV_InvalidCliffAmount();
