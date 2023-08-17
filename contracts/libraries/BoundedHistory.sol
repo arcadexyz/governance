@@ -211,7 +211,6 @@ library BoundedHistory {
         // We explicitly revert on the reading of memory which is uninitialized
         require(length != 0, "uninitialized");
         // Do some correctness checks
-        console.log("SB BN", staleBlock, blocknumber);
         require(staleBlock <= blocknumber);
         require(startingMinIndex < length);
         // Load the bounds of our binary search
