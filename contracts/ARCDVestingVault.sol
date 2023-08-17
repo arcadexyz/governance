@@ -276,7 +276,7 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
         // update grant delgatee info
         grant.delegatee = to;
 
-        emit VoteChange(to, msg.sender, int256(uint256(grant.latestVotingPower)));
+        emit VoteChange(msg.sender, to, int256(uint256(grant.latestVotingPower)));
     }
 
     // ========================================= VIEW FUNCTIONS =========================================
