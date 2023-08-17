@@ -142,7 +142,10 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      *
      * @param _claimData        The claim data to update.
      */
-    function publishRoots(uint256[] calldata tokenIds, ClaimData[] calldata _claimData) external onlyRole(BADGE_MANAGER_ROLE) {
+    function publishRoots(
+        uint256[] calldata tokenIds,
+        ClaimData[] calldata _claimData
+    ) external onlyRole(BADGE_MANAGER_ROLE) {
         if (_claimData.length == 0) revert RB_NoClaimData();
         if (_claimData.length > 50) revert RB_ArrayTooLarge();
         if (tokenIds.length != _claimData.length) revert RB_ArrayMismatch();

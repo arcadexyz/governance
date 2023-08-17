@@ -191,7 +191,9 @@ describe("Reputation Badge", async () => {
         );
 
         // array length mismatch
-        await expect(reputationBadge.connect(manager).publishRoots([1, 2], [claimDataTokenId0])).to.be.revertedWith(`RB_ArrayMismatch()`);
+        await expect(reputationBadge.connect(manager).publishRoots([1, 2], [claimDataTokenId0])).to.be.revertedWith(
+            `RB_ArrayMismatch()`,
+        );
     });
 
     it("Invalid ClaimData", async () => {
@@ -209,7 +211,9 @@ describe("Reputation Badge", async () => {
             });
             tokenIds.push(i);
         }
-        await expect(reputationBadge.connect(manager).publishRoots(tokenIds, claimData)).to.be.revertedWith("RB_ArrayTooLarge()");
+        await expect(reputationBadge.connect(manager).publishRoots(tokenIds, claimData)).to.be.revertedWith(
+            "RB_ArrayTooLarge()",
+        );
 
         // invalid claim expiration
         const currentTime = await blockchainTime.secondsFromNow(0);
@@ -219,9 +223,9 @@ describe("Reputation Badge", async () => {
             mintPrice: 0,
         };
 
-        await expect(reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration])).to.be.revertedWith(
-            `RB_InvalidExpiration`,
-        );
+        await expect(
+            reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration]),
+        ).to.be.revertedWith(`RB_InvalidExpiration`);
 
         const claimDataInvalidExpiration2: ClaimData = {
             claimRoot: rootTokenId2,
@@ -229,9 +233,9 @@ describe("Reputation Badge", async () => {
             mintPrice: 0,
         };
 
-        await expect(reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration2])).to.be.revertedWith(
-            `RB_InvalidExpiration`,
-        );
+        await expect(
+            reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration2]),
+        ).to.be.revertedWith(`RB_InvalidExpiration`);
     });
 
     describe("Mint", async () => {
@@ -288,8 +292,6 @@ describe("Reputation Badge", async () => {
         });
 
         it("User sends to more than enough for a mint", async () => {
-            // get balance before
-            const balanceBefore = await ethers.provider.getBalance(manager.address);
             // mint
             await reputationBadge
                 .connect(user3)
@@ -306,7 +308,7 @@ describe("Reputation Badge", async () => {
                 claimExpiration: expiration,
                 mintPrice: 0,
             };
-            await reputationBadge.connect(manager).publishRoots([1],  [claimDataTokenId1]);
+            await reputationBadge.connect(manager).publishRoots([1], [claimDataTokenId1]);
 
             // invalid proof
             await expect(reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser2)).to.be.revertedWith(
