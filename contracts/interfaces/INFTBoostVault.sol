@@ -8,7 +8,7 @@ interface INFTBoostVault {
     /**
      * @notice Events
      */
-    event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier);
+    event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier, uint128 expiration);
     event WithdrawalsUnlocked();
     event AirdropContractUpdated(address newAirdropContract);
 
@@ -45,7 +45,7 @@ interface INFTBoostVault {
     /**
      * @notice Only Manager function
      */
-    function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) external;
+    function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue, uint128 expiration) external;
 
     /**
      * @notice Only Timelock function

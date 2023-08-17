@@ -27,7 +27,8 @@ import {
     NBV_AlreadyUnlocked,
     NBV_NotAirdrop,
     NBV_NoRegistration,
-    NBV_WrongDelegatee
+    NBV_WrongDelegatee,
+    NBV_InvalidExpiration
 } from "./errors/Governance.sol";
 
 /**
@@ -363,22 +364,30 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *         contract address. The provided multiplier value must be less than or equal to 1.5x
      *         and greater than or equal to 1x.
      *
-     * @param tokenAddress              ERC1155 token address to set the multiplier for.
-     * @param tokenId                   The token ID of the ERC1155 for which the multiplier is being set.
-     * @param multiplierValue           The multiplier value corresponding to the token address and ID.
-     *
+     * @param tokenAddress              The address of the ERC1155 token to set the
+     *                                  multiplier for.
+     * @param tokenId                   The token id of the ERC1155 for which the multiplier is being set.
+     * @param multiplierValue           The multiplier value corresponding to the token address and id.
+     * @param expiration                The block number at which the multiplier expires.
      */
-    function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
+    function setMultiplier(
+        address tokenAddress,
+        uint128 tokenId,
+        uint128 multiplierValue,
+        uint128 expiration
+    ) public override onlyManager {
         if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit("high");
         if (multiplierValue < 1e3) revert NBV_MultiplierLimit("low");
+        if (expiration <= block.number) revert NBV_InvalidExpiration();
 
         if (tokenAddress == address(0) || tokenId == 0) revert NBV_InvalidNft(tokenAddress, tokenId);
 
-        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
-        // set multiplier value
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+        // set multiplier data
         multiplierData.multiplier = multiplierValue;
+        multiplierData.expiration = expiration;
 
-        emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
+        emit MultiplierSet(tokenAddress, tokenId, multiplierValue, expiration);
     }
 
     /**
@@ -428,12 +437,35 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @return                          The token multiplier.
      */
     function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint128) {
+<<<<<<< HEAD
         // if NFT is not registered, return 1x multiplier
         if (tokenAddress == address(0) && tokenId == 0) return 1e3;
+=======
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+>>>>>>> 29338de (fix(boost-vault): add multiplier expiration)
 
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
+        // check if the multiplier has expired
+        if (multiplierData.expiration <= block.number) {
+            return 1e3;
+        }
+
         return multiplierData.multiplier;
+    }
+
+    /**
+     * @notice A function to access the storage of the nft's multiplier expiration.
+     *
+     * @param tokenAddress              The address of the token
+     * @param tokenId                   The token id
+     *
+     * @return                          The multiplier's expiration.
+     */
+    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view returns (uint128) {
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+
+        return multiplierData.expiration;
     }
 
     /**
@@ -476,9 +508,20 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address _tokenAddress,
         address _delegatee
     ) internal {
+<<<<<<< HEAD
         // check there is a multiplier associated with the ERC1155
         uint128 multiplier = getMultiplier(_tokenAddress, _tokenId);
         if (multiplier == 0) revert NBV_NoMultiplierSet();
+=======
+        uint128 multiplier = 1e3;
+
+        // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
+        if (_tokenAddress != address(0) && _tokenId != 0) {
+            if (IERC1155(_tokenAddress).balanceOf(user, _tokenId) == 0) revert NBV_DoesNotOwn();
+
+            multiplier = getMultiplier(_tokenAddress, _tokenId);
+        }
+>>>>>>> 29338de (fix(boost-vault): add multiplier expiration)
 
         // load this contract's balance storage
         Storage.Uint256 storage balance = _balance();
@@ -678,7 +721,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function _getMultipliers()
         internal
         pure
-        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.AddressUintUint)) storage)
+        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.MultiplierData)) storage)
     {
         // This call returns a storage mapping with a unique non overwrite-able storage layout.
         return NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers");

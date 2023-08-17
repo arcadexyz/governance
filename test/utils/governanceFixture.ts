@@ -206,15 +206,22 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         };
 
         const setMultipliers = async (): Promise<Multipliers> => {
+            // get current block number
+            const blockNumber = await ethers.provider.getBlockNumber();
+            // mulitplier expiration is set to 100 blocks
+            const multiplierExpiration = blockNumber + 100;
+
             // manager sets the value of the reputation NFT multiplier
-            const txA = await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1200);
+            const txA = await nftBoostVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft.address, 1, 1200, multiplierExpiration);
             const receiptA = await txA.wait();
 
             // get votingPower multiplier A
             let MULTIPLIER_A;
             if (receiptA && receiptA.events) {
                 const userMultiplier = new ethers.utils.Interface([
-                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier, uint128 expiration)",
                 ]);
                 const log = userMultiplier.parseLog(receiptA.events[receiptA.events.length - 1]);
                 MULTIPLIER_A = log.args.multiplier;
@@ -223,14 +230,16 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
             }
 
             // manager sets the value of the reputation NFT 2's multiplier
-            const txB = await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft2.address, 1, 1400);
+            const txB = await nftBoostVault
+                .connect(signers[0])
+                .setMultiplier(reputationNft2.address, 1, 1400, multiplierExpiration);
             const receiptB = await txB.wait();
 
             // get votingPower multiplier B
             let MULTIPLIER_B;
             if (receiptB && receiptB.events) {
                 const userMultiplier = new ethers.utils.Interface([
-                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier)",
+                    "event MultiplierSet(address tokenAddress, uint128 tokenId, uint128 multiplier, uint128 expiration)",
                 ]);
                 const log = userMultiplier.parseLog(receiptB.events[receiptB.events.length - 1]);
                 MULTIPLIER_B = log.args.multiplier;

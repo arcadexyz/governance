@@ -107,6 +107,11 @@ error NBV_NotAirdrop();
  */
 error NBV_WrongDelegatee(address newDelegate, address currentDelegate);
 
+/**
+ * @notice The provided expiration provided has already passed.
+ */
+error NBV_InvalidExpiration();
+
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
 
