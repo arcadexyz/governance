@@ -59,12 +59,17 @@ error RB_NoClaimData();
 error RB_ArrayTooLarge();
 
 /**
+ * @notice Thrown when two array lengths do not match.
+ */
+error RB_ArrayMismatch();
+
+/**
  * @notice Thrown when the claim expiration is invalid when publishing data.
  *
- * @param claimRoot              The merkle root for the claim.
- * @param tokenId                The tokenId for the claim.
+ * @param timeSent              The passed to function.
+ * @param currentTime           The current timestamp.
  */
-error RB_InvalidExpiration(bytes32 claimRoot, uint256 tokenId);
+error RB_InvalidExpiration(uint256 timeSent, uint256 currentTime);
 
 /**
  * @notice Thrown when user tries to mint tokenId of zero. Token ID zero is excluded

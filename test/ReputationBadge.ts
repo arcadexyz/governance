@@ -18,7 +18,6 @@ export interface Account {
 }
 
 export interface ClaimData {
-    tokenId: BigNumberish;
     claimRoot: string;
     claimExpiration: BigNumberish;
     mintPrice: BigNumberish;
@@ -155,19 +154,17 @@ describe("Reputation Badge", async () => {
         // manager publishes claim data to initiate minting
         expiration = await blockchainTime.secondsFromNow(3600); // 1 hour
         const claimDataTokenId1: ClaimData = {
-            tokenId: 1,
             claimRoot: rootTokenId1,
             claimExpiration: expiration,
             mintPrice: 0,
         };
         const claimDataTokenId2: ClaimData = {
-            tokenId: 2,
             claimRoot: rootTokenId2,
             claimExpiration: expiration,
             mintPrice: ethers.utils.parseEther("0.1"),
         };
 
-        await reputationBadge.connect(manager).publishRoots([claimDataTokenId1, claimDataTokenId2]);
+        await reputationBadge.connect(manager).publishRoots([1, 2], [claimDataTokenId1, claimDataTokenId2]);
     });
 
     it("Invalid constructor", async () => {
@@ -182,65 +179,58 @@ describe("Reputation Badge", async () => {
         ).to.be.revertedWith(`RB_ZeroAddress("descriptor")`);
     });
 
-    it("Validate published roots", async () => {
-        const root0 = await reputationBadge.claimRoots(1);
-        expect(root0).to.equal(rootTokenId1);
-
-        const root1 = await reputationBadge.claimRoots(2);
-        expect(root1).to.equal(rootTokenId2);
-    });
-
     it("Invalid publish root", async () => {
         // cannot publish root with zero tokenId
         const claimDataTokenId0: ClaimData = {
-            tokenId: 0,
             claimRoot: ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]),
             claimExpiration: expiration,
             mintPrice: 0,
         };
-        await expect(reputationBadge.connect(manager).publishRoots([claimDataTokenId0])).to.be.revertedWith(
+        await expect(reputationBadge.connect(manager).publishRoots([0], [claimDataTokenId0])).to.be.revertedWith(
             `RB_ZeroTokenId()`,
         );
+
+        // array length mismatch
+        await expect(reputationBadge.connect(manager).publishRoots([1, 2], [claimDataTokenId0])).to.be.revertedWith(`RB_ArrayMismatch()`);
     });
 
     it("Invalid ClaimData", async () => {
         // empty claim data
-        await expect(reputationBadge.connect(manager).publishRoots([])).to.be.revertedWith("RB_NoClaimData()");
+        await expect(reputationBadge.connect(manager).publishRoots([], [])).to.be.revertedWith("RB_NoClaimData()");
 
         // array with length greater than 50 elements
         const claimData: ClaimData[] = [];
+        const tokenIds = [];
         for (let i = 1; i < 52; i++) {
             claimData.push({
-                tokenId: i,
                 claimRoot: rootTokenId1,
                 claimExpiration: expiration,
                 mintPrice: 0,
             });
+            tokenIds.push(i);
         }
-        await expect(reputationBadge.connect(manager).publishRoots(claimData)).to.be.revertedWith("RB_ArrayTooLarge()");
+        await expect(reputationBadge.connect(manager).publishRoots(tokenIds, claimData)).to.be.revertedWith("RB_ArrayTooLarge()");
 
         // invalid claim expiration
         const currentTime = await blockchainTime.secondsFromNow(0);
         const claimDataInvalidExpiration: ClaimData = {
-            tokenId: 2,
             claimRoot: rootTokenId2,
             claimExpiration: currentTime + 1,
             mintPrice: 0,
         };
 
-        await expect(reputationBadge.connect(manager).publishRoots([claimDataInvalidExpiration])).to.be.revertedWith(
-            `RB_InvalidExpiration("${claimDataInvalidExpiration.claimRoot}", ${claimDataInvalidExpiration.tokenId})`,
+        await expect(reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration])).to.be.revertedWith(
+            `RB_InvalidExpiration`,
         );
 
         const claimDataInvalidExpiration2: ClaimData = {
-            tokenId: 2,
             claimRoot: rootTokenId2,
             claimExpiration: currentTime,
             mintPrice: 0,
         };
 
-        await expect(reputationBadge.connect(manager).publishRoots([claimDataInvalidExpiration2])).to.be.revertedWith(
-            `RB_InvalidExpiration("${claimDataInvalidExpiration2.claimRoot}", ${claimDataInvalidExpiration2.tokenId})`,
+        await expect(reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration2])).to.be.revertedWith(
+            `RB_InvalidExpiration`,
         );
     });
 
@@ -297,14 +287,26 @@ describe("Reputation Badge", async () => {
             );
         });
 
+        it("User sends to more than enough for a mint", async () => {
+            // get balance before
+            const balanceBefore = await ethers.provider.getBalance(manager.address);
+            // mint
+            await reputationBadge
+                .connect(user3)
+                .mint(user3.address, 2, 1, 1, proofUser3, { value: ethers.utils.parseEther("0.2") });
+
+            // check balances
+            expect(await reputationBadge.balanceOf(user3.address, 2)).to.equal(1);
+            expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(ethers.utils.parseEther("0.1"));
+        });
+
         it("Invalid proof", async () => {
             const claimDataTokenId1: ClaimData = {
-                tokenId: 1,
                 claimRoot: ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]),
                 claimExpiration: expiration,
                 mintPrice: 0,
             };
-            await reputationBadge.connect(manager).publishRoots([claimDataTokenId1]);
+            await reputationBadge.connect(manager).publishRoots([1],  [claimDataTokenId1]);
 
             // invalid proof
             await expect(reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser2)).to.be.revertedWith(
@@ -397,12 +399,11 @@ describe("Reputation Badge", async () => {
         it("Other users try to call protected functions", async () => {
             // try to set token claim data
             const claimDataTokenId0: ClaimData = {
-                tokenId: 0,
                 claimRoot: ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]),
                 claimExpiration: expiration,
                 mintPrice: 0,
             };
-            await expect(reputationBadge.connect(user1).publishRoots([claimDataTokenId0])).to.be.revertedWith(
+            await expect(reputationBadge.connect(user1).publishRoots([0], [claimDataTokenId0])).to.be.revertedWith(
                 `AccessControl: account ${user1.address.toLowerCase()} is missing role ${BADGE_MANAGER_ROLE}`,
             );
 
