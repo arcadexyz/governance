@@ -2,7 +2,6 @@ import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { BigNumber, constants } from "ethers";
 import { ethers, waffle } from "hardhat";
-import { Test } from "mocha";
 
 import { deploy } from "./utils/deploy";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
