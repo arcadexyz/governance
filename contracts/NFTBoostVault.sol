@@ -59,14 +59,15 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     // Bring History library into scope
     using History for History.HistoricalBalances;
 
-    // ======================================== STATE ==================================================
-
     /// @dev Determines the maximum multiplier for any given NFT.
     /* solhint-disable var-name-mixedcase */
     uint128 public constant MAX_MULTIPLIER = 1.5e3;
 
     /// @dev Precision of the multiplier.
     uint128 public constant MULTIPLIER_DENOMINATOR = 1e3;
+
+    /// @dev mapping to track deposits made by users
+    mapping(address => uint256) public override lastUserDeposit;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -223,6 +224,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function withdraw(uint128 amount) external override nonReentrant {
         if (getIsLocked() == 1) revert NBV_Locked();
         if (amount == 0) revert NBV_ZeroAmount();
+        if (lastUserDeposit[msg.sender] == block.number) revert NBV_SameBlock();
 
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
@@ -265,6 +267,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      */
     function addTokens(uint128 amount) external override nonReentrant {
         if (amount == 0) revert NBV_ZeroAmount();
+        if (lastUserDeposit[msg.sender] == block.number) revert NBV_SameBlock();
+
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -466,6 +470,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address _tokenAddress,
         address _delegatee
     ) internal {
+        // update the user's last deposit timestamp
+        lastUserDeposit[user] = block.number;
+
         uint128 multiplier = 1e3;
 
         // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
