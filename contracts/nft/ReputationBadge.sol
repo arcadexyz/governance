@@ -21,7 +21,8 @@ import {
     RB_ArrayTooLarge,
     RB_ArrayMismatch,
     RB_InvalidExpiration,
-    RB_ZeroTokenId
+    RB_ZeroTokenId,
+    RB_ZeroClaimAmount
 } from "../errors/Badge.sol";
 
 /**
@@ -104,6 +105,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
 
         // input validation
         if (tokenId == 0) revert RB_ZeroTokenId();
+        if (amount == 0) revert RB_ZeroClaimAmount();
         if (block.timestamp > claimExpiration) revert RB_ClaimingExpired(claimExpiration, uint48(block.timestamp));
         if (msg.value < mintPrice) revert RB_InvalidMintFee(mintPrice, msg.value);
 

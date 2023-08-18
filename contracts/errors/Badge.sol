@@ -76,3 +76,8 @@ error RB_InvalidExpiration(uint256 timeSent, uint256 currentTime);
  *         from receiving a multiplier in the NFTBoostVault.
  */
 error RB_ZeroTokenId();
+
+/**
+ * @notice Thrown when user passes zero as the amount to mint function.
+ */
+error RB_ZeroClaimAmount();

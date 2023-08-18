@@ -338,6 +338,12 @@ describe("Reputation Badge", async () => {
             await expect(tx).to.be.revertedWith(`RB_ZeroTokenId()`);
         });
 
+        it("Invalid claim amount", async () => {
+            // try to mint tokenId 0
+            const tx = reputationBadge.connect(user1).mint(user1.address, 1, 0, 1, proofUser1);
+            await expect(tx).to.be.revertedWith(`RB_ZeroClaimAmount()`);
+        });
+
         it("Try to mint tokenId without ClaimData set", async () => {
             // try to mint tokenId 5
             const tx = reputationBadge.connect(user1).mint(user1.address, 5, 1, 1, proofUser1);
