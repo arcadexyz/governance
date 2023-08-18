@@ -7,8 +7,6 @@ pragma solidity 0.8.18;
 
 import "../external/council/libraries/Storage.sol";
 
-import "hardhat/console.sol";
-
 // This library is an assembly optimized storage library which is designed
 // to track timestamp history in a struct which uses hash derived pointers.
 // WARNING - Developers using it should not access the underlying storage
