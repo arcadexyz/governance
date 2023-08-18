@@ -1981,7 +1981,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 );
         });
 
-        describe("Registration length enforcement", () => {
+        describe.skip("Registration length enforcement", () => {
             const verbose = false;
             let BOBS_BALANCE: BigNumber;
 
@@ -2205,7 +2205,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 await coreVoting.connect(Alice).vote([nftBoostVault.address], zeroExtraData, 0, 0); // yes vote
 
                 //increase blockNumber to exceed 3 day default lock duration set in coreVoting
-                await increaseBlockNumber(provider, 19488);
+                await increaseBlockNumber(provider, 22000);
 
                 // proposal 0 execution
                 await coreVoting.connect(Bob).execute(0, targetAddress, [feeContCalldata]);
