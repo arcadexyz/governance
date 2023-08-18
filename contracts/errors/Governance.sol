@@ -105,6 +105,11 @@ error NBV_NotAirdrop();
  */
 error NBV_WrongDelegatee(address newDelegate, address currentDelegate);
 
+/**
+ * @notice If a user adds tokens to their registration, they cannot withdraw in the same block.
+ */
+error NBV_SameBlock();
+
 // =================================== FROZEN LOCKING VAULT =====================================
 /// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
 

@@ -1389,6 +1389,32 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx = nftBoostVault.connect(signers[1]).unlock();
             await expect(tx).to.be.revertedWith("BVV_NotTimelock()");
         });
+
+        describe.only("Block Flash Loan withdraws", async () => {
+            it("Reverts if withdraw() is called in same block a registration is created", async () => {
+                const { arcdToken } = ctxToken;
+                const { signers, nftBoostVault, coreVoting } = ctxGovernance;
+
+                // deploy mock flash loan contract
+                const flVotingPowerFactory = await ethers.getContractFactory("FlashLoanVotingPower");
+                const flVotingPower = await flVotingPowerFactory.deploy(
+                    nftBoostVault.address,
+                    arcdToken.address,
+                    coreVoting.address,
+                );
+                await flVotingPower.deployed();
+
+                // send 100 arcdTokens to flVotingPower
+                await arcdToken.connect(signers[0]).transfer(flVotingPower.address, ethers.utils.parseEther("100"));
+
+                // call flash loan function
+                await expect(flVotingPower.createProposalNoReg()).to.be.revertedWith("NBV_SameBlock()");
+            });
+
+            it("Reverts if withdraw() is called in same block a registration is updated", async () => {
+
+            });
+        });
     });
 
     describe("Multiplier functionality", async () => {

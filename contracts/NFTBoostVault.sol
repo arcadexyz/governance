@@ -28,7 +28,8 @@ import {
     NBV_AlreadyUnlocked,
     NBV_NotAirdrop,
     NBV_NoRegistration,
-    NBV_WrongDelegatee
+    NBV_WrongDelegatee,
+    NBV_SameBlock
 } from "./errors/Governance.sol";
 
 /**
@@ -67,7 +68,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     uint128 public constant MULTIPLIER_DENOMINATOR = 1e3;
 
     /// @dev mapping to track deposits made by users
-    mapping(address => uint256) public override lastUserDeposit;
+    mapping(address => uint256) public lastUserDeposit;
 
     // ========================================== CONSTRUCTOR ===========================================
 
@@ -267,7 +268,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      */
     function addTokens(uint128 amount) external override nonReentrant {
         if (amount == 0) revert NBV_ZeroAmount();
-        if (lastUserDeposit[msg.sender] == block.number) revert NBV_SameBlock();
+        lastUserDeposit[msg.sender] == block.number;
 
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];

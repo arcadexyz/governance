@@ -1,6 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { constants } from "ethers";
 import { ethers } from "hardhat";
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
 import {
     ARCDVestingVault,
@@ -60,7 +61,8 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         const blockNumber = await ethers.provider.getBlockNumber();
         // staleBlockNum has to be a number in the past, lower than the current block number.
         // upon deployment, update staleBlockNum to be relevant in the realm of mainnet
-        const staleBlockNum = blockNumber - 5;
+        await mine(101);
+        const staleBlockNum = 100;
 
         // ================================= CORE VOTING VAULTS =================================
         // deploy locking vault

@@ -3,6 +3,8 @@ pragma solidity ^0.8.3;
 
 import "./Storage.sol";
 
+import "hardhat/console.sol";
+
 // This library is an assembly optimized storage library which is designed
 // to track timestamp history in a struct which uses hash derived pointers.
 // WARNING - Developers using it should not access the underlying storage
@@ -265,6 +267,9 @@ library History {
         // We load at the final index of the search
         (uint256 _pastBlock, uint256 _loadedData) =
             _loadAndUnpack(data, minIndex);
+
+        console.log("minIndex: %s", blocknumber);
+        console.log("pastBlock: %s", _pastBlock);
         // This will only be hit if a user has misconfigured the stale index and then
         // tried to load father into the past than has been preserved
         require(_pastBlock <= blocknumber, "Search Failure");

@@ -30,8 +30,8 @@ contract FlashLoanVotingPower {
         owner = msg.sender;
     }
 
-    /// @notice helper function to create a registration with 100 ARCD
-    function createRegistration(uint256 amount) public onlyOwner {
+    /// @notice helper function to create a registration with a specific token amount
+    function createRegistration(uint128 amount) public onlyOwner {
         // approve the boost vault to spend ARCD
         IERC20(arcdToken).approve(boostVault, amount);
 
@@ -39,31 +39,64 @@ contract FlashLoanVotingPower {
         INFTBoostVault(boostVault).addNftAndDelegate(amount, 0, address(0), address(this));
     }
 
-    /// @notice user without a registration can create a proposal if they take out
+    /// @notice user WITHOUT a registration can create a proposal if they take out
     /// a flash loan and add it to the boost vault. This function does not simulate
     /// the flash loan, it assumes the contract holds enough ARCD to create a proposal.
     function createProposalNoReg() public onlyOwner {
+        // vaults
+        address[] memory vaults = new address[](1);
+        vaults[0] = boostVault;
+
+        // vault data
+        bytes[] memory data = new bytes[](1);
+        data[0] = "0x";
+
+        // target address
+        address[] memory callAddress = new address[](1);
+        callAddress[0] = address(0);
+
+        // call data
+        bytes[] memory callData = new bytes[](1);
+        callData[0] = "0x";
+
         // create registration with 100 ARCD
         createRegistration(100 ether);
 
         // create proposal
         CoreVoting(coreVoting).proposal(
-            [_boostVault],
-            [0x],
-            [address(0)],
-            [0x],
-            block.number + 10000,
-            0
+            vaults,
+            data,
+            callAddress,
+            callData,
+            block.number + 100000,
+            CoreVoting.Ballot.YES
         );
 
         // withdraw ARCD from boost vault
         INFTBoostVault(boostVault).withdraw(100 ether);
     }
 
-    /// @notice user without a registration can create a proposal if they take out
+    /// @notice user WITH a registration can create a proposal if they take out
     /// a flash loan and add it to the boost vault. This function does not simulate
     /// the flash loan, it assumes the contract holds enough ARCD to create a proposal.
+    /// Call this function after calling createRegistration().
     function createProposalWithReg() public onlyOwner {
+        // vaults
+        address[] memory vaults = new address[](1);
+        vaults[0] = boostVault;
+
+        // vault data
+        bytes[] memory data = new bytes[](1);
+        data[0] = "0x";
+
+        // target address
+        address[] memory callAddress = new address[](1);
+        callAddress[0] = address(0);
+
+        // call data
+        bytes[] memory callData = new bytes[](1);
+        callData[0] = "0x";
+
         // approve the boost vault to spend ARCD
         IERC20(arcdToken).approve(boostVault, 100 ether);
 
@@ -72,15 +105,21 @@ contract FlashLoanVotingPower {
 
         // create proposal
         CoreVoting(coreVoting).proposal(
-            [_boostVault],
-            [0x],
-            [address(0)],
-            [0x],
+            vaults,
+            data,
+            callAddress,
+            callData,
             block.number + 10000,
-            0
+            CoreVoting.Ballot.YES
         );
 
         // withdraw ARCD from boost vault
         INFTBoostVault(boostVault).withdraw(100 ether);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "FlashLoanVotingPower: only owner");
+
+        _;
     }
 }
