@@ -13,7 +13,6 @@ import "./interfaces/INFTBoostVault.sol";
 import "./BaseVotingVault.sol";
 
 import {
-    NBV_DoesNotOwn,
     NBV_HasRegistration,
     NBV_AlreadyDelegated,
     NBV_InsufficientBalance,
@@ -122,7 +121,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         _registerAndDelegate(msg.sender, amount, tokenId, tokenAddress, delegatee);
 
         // transfer user ERC20 amount and ERC1155 nft into this contract
-        _lockTokens(msg.sender, uint256(amount), tokenAddress, tokenId, 1);
+        _lockTokens(msg.sender, uint256(amount), tokenAddress, tokenId);
     }
 
     /**
@@ -168,7 +167,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         }
 
         // transfer user ERC20 amount only into this contract
-        _lockTokens(msg.sender, uint256(amount), address(0), 0, 0);
+        _lockTokens(msg.sender, uint256(amount), address(0), 0);
     }
 
     /**
@@ -282,8 +281,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // update the delegatee's voting power
         _syncVotingPower(msg.sender, registration);
 
-        // transfer user ERC20 amount into this contract
-        _lockTokens(msg.sender, amount, address(0), 0, 0);
+        // transfer ERC20 amount into this contract
+        _lockTokens(msg.sender, amount, address(0), 0);
     }
 
     /**
@@ -298,6 +297,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @notice A function that allows a user's to change the ERC1155 nft they are using for
      *         accessing a voting power multiplier. Or if the users does not have a NFT
      *         registered, they can register one and their voting power will be updated.
+     *         The provided ERC1155 token must have an associated multiplier to register it.
      *
      * @param newTokenAddress            Address of the new ERC1155 token the user wants to use.
      * @param newTokenId                 Id of the new ERC1155 token the user wants to use.
@@ -305,7 +305,8 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function updateNft(uint128 newTokenId, address newTokenAddress) external override nonReentrant {
         if (newTokenAddress == address(0) || newTokenId == 0) revert NBV_InvalidNft(newTokenAddress, newTokenId);
 
-        if (IERC1155(newTokenAddress).balanceOf(msg.sender, newTokenId) == 0) revert NBV_DoesNotOwn();
+        // check there is a multiplier associated with the new NFT
+        if (getMultiplier(newTokenAddress, newTokenId) == 0) revert NBV_NoMultiplierSet();
 
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
@@ -314,7 +315,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         if (registration.delegatee == address(0)) revert NBV_NoRegistration();
 
         // if the user already has an ERC1155 registered, withdraw it
-        if (registration.tokenAddress != address(0) && registration.tokenId != 0) {
+        if (registration.tokenAddress != address(0)) {
             // withdraw the current ERC1155 from the registration
             _withdrawNft();
         }
@@ -323,7 +324,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         registration.tokenAddress = newTokenAddress;
         registration.tokenId = newTokenId;
 
-        _lockNft(msg.sender, newTokenAddress, newTokenId, 1);
+        _lockNft(msg.sender, newTokenAddress, newTokenId);
 
         // update the delegatee's voting power based on new ERC1155 nft's multiplier
         _syncVotingPower(msg.sender, registration);
@@ -352,17 +353,19 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /**
      * @notice An onlyManager function for setting the multiplier value associated with an ERC1155
-     *         contract address.
+     *         contract address. The provided multiplier value must be less than or equal to 1.5x
+     *         and greater than or equal to 1x.
      *
-     * @param tokenAddress              The address of the ERC1155 token to set the
-     *                                  multiplier for.
-     * @param tokenId                   The token id of the ERC1155 for which the multiplier is being set.
-     * @param multiplierValue           The multiplier value corresponding to the token address and id.
+     * @param tokenAddress              ERC1155 token address to set the multiplier for.
+     * @param tokenId                   The token ID of the ERC1155 for which the multiplier is being set.
+     * @param multiplierValue           The multiplier value corresponding to the token address and ID.
      *
      */
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
         if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit("high");
         if (multiplierValue < 1e3) revert NBV_MultiplierLimit("low");
+
+        if (tokenAddress == address(0) || tokenId == 0) revert NBV_InvalidNft(tokenAddress, tokenId);
 
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
@@ -408,22 +411,20 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
-     * @notice A function to access the storage of the nft's voting power multiplier.
+     * @notice A function to access a NFT's voting power multiplier. If the user does not provide
+     *         a token address and ID, the function returns the default 1x multiplier. This implies
+     *         that a registration without a token address and ID have a default 1x multiplier.
      *
-     * @param tokenAddress              The address of the ERC1155 token to set the
-     *                                  multiplier for.
-     * @param tokenId                   The token id of the ERC1155 for which the multiplier is being set.
+     * @param tokenAddress              ERC1155 token address to lookup.
+     * @param tokenId                   The token ID of the ERC1155 to lookup.
      *
      * @return                          The token multiplier.
      */
     function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint128) {
-        // if a user does not specify a ERC1155 nft, their multiplier is set to 1
-        if (tokenAddress == address(0) || tokenId == 0) return 1e3;
+        // if NFT is not registered, return 1x multiplier
+        if (tokenAddress == address(0) && tokenId == 0) return 1e3;
 
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
-
-        // if a user specifies a ERC1155 nft but no multiplier is set, their multiplier is set to 1
-        if (multiplierData.multiplier == 0) return 1e3;
 
         return multiplierData.multiplier;
     }
@@ -468,12 +469,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address _tokenAddress,
         address _delegatee
     ) internal {
-        // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
-        if (_tokenAddress != address(0) && _tokenId != 0) {
-            if (IERC1155(_tokenAddress).balanceOf(user, _tokenId) == 0) revert NBV_DoesNotOwn();
-        }
-
+        // check there is a multiplier associated with the ERC1155
         uint128 multiplier = getMultiplier(_tokenAddress, _tokenId);
+        if (multiplier == 0) revert NBV_NoMultiplierSet();
 
         // load this contract's balance storage
         Storage.Uint256 storage balance = _balance();
@@ -547,8 +545,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // load the registration
         NFTBoostVaultStorage.Registration storage registration = _getRegistrations()[msg.sender];
 
-        if (registration.tokenAddress == address(0) || registration.tokenId == 0)
+        if (registration.tokenAddress == address(0)) {
             revert NBV_InvalidNft(registration.tokenAddress, registration.tokenId);
+        }
 
         // transfer ERC1155 back to the user
         IERC1155(registration.tokenAddress).safeTransferFrom(
@@ -635,27 +634,20 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     }
 
     /**
-     * @dev A internal function for locking a user's ERC20 tokens in this contract
-     *         for participation in governance. Calls the _lockNft function if a user
-     *         has entered an ERC1155 token address and token id.
+     * @notice An internal function for locking a user's ERC20 tokens in this contract
+     *         for participation in governance. Calls _lockNft function if and ERC1155
+     *         token address and ID are specified.
      *
      * @param from                      Address tokens are transferred from.
      * @param amount                    Amount of ERC20 tokens being transferred.
      * @param tokenAddress              Address of the ERC1155 token being transferred.
-     * @param tokenId                   Id of the ERC1155 token being transferred.
-     * @param nftAmount                 Amount of the ERC1155 token being transferred.
+     * @param tokenId                   ID of the ERC1155 token being transferred.
      */
-    function _lockTokens(
-        address from,
-        uint256 amount,
-        address tokenAddress,
-        uint128 tokenId,
-        uint128 nftAmount
-    ) internal {
+    function _lockTokens(address from, uint256 amount, address tokenAddress, uint128 tokenId) internal {
         token.transferFrom(from, address(this), amount);
 
         if (tokenAddress != address(0) && tokenId != 0) {
-            _lockNft(from, tokenAddress, tokenId, nftAmount);
+            _lockNft(from, tokenAddress, tokenId);
         }
     }
 
@@ -666,10 +658,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @param from                      Address of owner token is transferred from.
      * @param tokenAddress              Address of the token being transferred.
      * @param tokenId                   Id of the token being transferred.
-     * @param nftAmount                 Amount of token being transferred.
      */
-    function _lockNft(address from, address tokenAddress, uint128 tokenId, uint128 nftAmount) internal {
-        IERC1155(tokenAddress).safeTransferFrom(from, address(this), tokenId, nftAmount, bytes(""));
+    function _lockNft(address from, address tokenAddress, uint128 tokenId) internal {
+        IERC1155(tokenAddress).safeTransferFrom(from, address(this), tokenId, 1, bytes(""));
     }
 
     /** @dev A single function endpoint for loading storage for multipliers.
