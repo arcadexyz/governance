@@ -19,7 +19,10 @@ import {
     RB_ClaimingExpired,
     RB_NoClaimData,
     RB_ArrayTooLarge,
-    RB_InvalidExpiration
+    RB_ArrayMismatch,
+    RB_InvalidExpiration,
+    RB_ZeroTokenId,
+    RB_ZeroClaimAmount
 } from "../errors/Badge.sol";
 
 /**
@@ -45,17 +48,11 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     bytes32 public constant BADGE_MANAGER_ROLE = keccak256("BADGE_MANAGER");
     bytes32 public constant RESOURCE_MANAGER_ROLE = keccak256("RESOURCE_MANAGER");
 
-    /// @notice recipient address to tokenId to amount claimed mapping
-    mapping(address => mapping(uint256 => uint256)) public amountClaimed;
+    /// @notice recipient address to claimRoot to amount claimed mapping
+    mapping(address => mapping(bytes32 => uint256)) public amountClaimed;
 
-    /// @notice Claim tree for each tokenId, with the leaf encoding [address, tokenId, totalClaimableAmount]
-    mapping(uint256 => bytes32) public claimRoots;
-
-    /// @notice Expiry date for each tokenId claim
-    mapping(uint256 => uint48) public claimExpirations;
-
-    /// @notice Mint price for each tokenId
-    mapping(uint256 => uint256) public mintPrices;
+    /// @notice tokenId to ClaimData mapping
+    mapping(uint256 => ClaimData) public claimData;
 
     /// @notice Event emitted when a new URI descriptor is set.
     event SetDescriptor(address indexed caller, address indexed descriptor);
@@ -102,21 +99,32 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         uint256 totalClaimable,
         bytes32[] calldata merkleProof
     ) external payable {
-        uint256 mintPrice = mintPrices[tokenId] * amount;
-        uint48 claimExpiration = claimExpirations[tokenId];
+        uint256 mintPrice = claimData[tokenId].mintPrice * amount;
+        uint48 claimExpiration = claimData[tokenId].claimExpiration;
+        bytes32 claimRoot = claimData[tokenId].claimRoot;
 
+        // input validation
+        if (tokenId == 0) revert RB_ZeroTokenId();
+        if (amount == 0) revert RB_ZeroClaimAmount();
         if (block.timestamp > claimExpiration) revert RB_ClaimingExpired(claimExpiration, uint48(block.timestamp));
         if (msg.value < mintPrice) revert RB_InvalidMintFee(mintPrice, msg.value);
-        if (!_verifyClaim(recipient, tokenId, totalClaimable, merkleProof)) revert RB_InvalidMerkleProof();
-        if (amountClaimed[recipient][tokenId] + amount > totalClaimable) {
+
+        // check if amount to claim is greater than total claimable
+        if (amountClaimed[recipient][claimRoot] + amount > totalClaimable) {
             revert RB_InvalidClaimAmount(amount, totalClaimable);
         }
 
+        // verify proof
+        if (!_verifyClaim(recipient, tokenId, totalClaimable, merkleProof)) revert RB_InvalidMerkleProof();
+
         // increment amount claimed
-        amountClaimed[recipient][tokenId] += amount;
+        amountClaimed[recipient][claimRoot] += amount;
 
         // mint to recipient
         _mint(recipient, tokenId, amount, "");
+
+        // refund excess ETH
+        if (msg.value > mintPrice) payable(msg.sender).transfer(msg.value - mintPrice);
     }
 
     /**
@@ -137,19 +145,23 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
      *
      * @param _claimData        The claim data to update.
      */
-    function publishRoots(ClaimData[] calldata _claimData) external onlyRole(BADGE_MANAGER_ROLE) {
+    function publishRoots(
+        uint256[] calldata tokenIds,
+        ClaimData[] calldata _claimData
+    ) external onlyRole(BADGE_MANAGER_ROLE) {
         if (_claimData.length == 0) revert RB_NoClaimData();
         if (_claimData.length > 50) revert RB_ArrayTooLarge();
+        if (tokenIds.length != _claimData.length) revert RB_ArrayMismatch();
 
         for (uint256 i = 0; i < _claimData.length; i++) {
             // expiration check
             if (_claimData[i].claimExpiration <= block.timestamp) {
-                revert RB_InvalidExpiration(_claimData[i].claimRoot, _claimData[i].tokenId);
+                revert RB_InvalidExpiration(_claimData[i].claimExpiration, block.timestamp);
             }
+            // cannot set root for tokenId 0
+            if (tokenIds[i] == 0) revert RB_ZeroTokenId();
 
-            claimRoots[_claimData[i].tokenId] = _claimData[i].claimRoot;
-            claimExpirations[_claimData[i].tokenId] = _claimData[i].claimExpiration;
-            mintPrices[_claimData[i].tokenId] = _claimData[i].mintPrice;
+            claimData[tokenIds[i]] = _claimData[i];
         }
 
         emit RootsPublished(_claimData);
@@ -207,7 +219,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         uint256 totalClaimable,
         bytes32[] calldata merkleProof
     ) internal view returns (bool) {
-        bytes32 rewardsRoot = claimRoots[tokenId];
+        bytes32 rewardsRoot = claimData[tokenId].claimRoot;
         bytes32 leafHash = keccak256(abi.encodePacked(recipient, tokenId, totalClaimable));
 
         return MerkleProof.verify(merkleProof, rewardsRoot, leafHash);

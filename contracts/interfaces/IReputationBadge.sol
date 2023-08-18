@@ -8,10 +8,9 @@ interface IReputationBadge is IERC1155 {
     // ========= Structs =========
 
     struct ClaimData {
-        uint256 tokenId;
+        uint256 mintPrice;
         bytes32 claimRoot;
         uint48 claimExpiration;
-        uint256 mintPrice;
     }
 
     // ========= Badge Operations =========
@@ -26,17 +25,11 @@ interface IReputationBadge is IERC1155 {
 
     function uri(uint256 tokenId) external view returns (string memory);
 
-    function publishRoots(ClaimData[] calldata _claimData) external;
+    function publishRoots(uint256[] calldata tokenIds, ClaimData[] calldata _claimData) external;
 
     function withdrawFees(address recipient) external;
 
     function setDescriptor(address _descriptor) external;
 
-    function amountClaimed(address, uint256) external view returns (uint256);
-
-    function claimRoots(uint256) external view returns (bytes32);
-
-    function claimExpirations(uint256) external view returns (uint48);
-
-    function mintPrices(uint256) external view returns (uint256);
+    function amountClaimed(address, bytes32) external view returns (uint256);
 }

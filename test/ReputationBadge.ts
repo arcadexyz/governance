@@ -1,4 +1,6 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
+import { BigNumberish } from "ethers";
 import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
@@ -16,7 +18,6 @@ export interface Account {
 }
 
 export interface ClaimData {
-    tokenId: BigNumberish;
     claimRoot: string;
     claimExpiration: BigNumberish;
     mintPrice: BigNumberish;
@@ -57,12 +58,12 @@ describe("Reputation Badge", async () => {
     let user3: Signer;
     let user4: Signer;
 
-    let merkleTrieTokenId0: MerkleTree;
     let merkleTrieTokenId1: MerkleTree;
-    let rootTokenId0: string;
+    let merkleTrieTokenId2: MerkleTree;
     let rootTokenId1: string;
-    let recipientsTokenId0: Account[];
+    let rootTokenId2: string;
     let recipientsTokenId1: Account[];
+    let recipientsTokenId2: Account[];
     let proofUser1: string[];
     let proofUser2: string[];
     let proofUser3: string[];
@@ -80,61 +81,61 @@ describe("Reputation Badge", async () => {
         user4 = signers[6];
 
         // tree data for two tokens
-        recipientsTokenId0 = [
+        recipientsTokenId1 = [
             {
                 address: user1.address,
-                tokenId: 0,
+                tokenId: 1,
                 amount: 1,
             },
             {
                 address: user2.address,
-                tokenId: 0,
+                tokenId: 1,
                 amount: 2,
             },
         ];
-        recipientsTokenId1 = [
+        recipientsTokenId2 = [
             {
                 address: user3.address,
-                tokenId: 1,
+                tokenId: 2,
                 amount: 1,
             },
             {
                 address: user4.address,
-                tokenId: 1,
+                tokenId: 2,
                 amount: 2,
             },
         ];
 
         // hash leaves for each token
-        merkleTrieTokenId0 = await getMerkleTree(recipientsTokenId0);
-        rootTokenId0 = merkleTrieTokenId0.getHexRoot();
-
         merkleTrieTokenId1 = await getMerkleTree(recipientsTokenId1);
         rootTokenId1 = merkleTrieTokenId1.getHexRoot();
 
+        merkleTrieTokenId2 = await getMerkleTree(recipientsTokenId2);
+        rootTokenId2 = merkleTrieTokenId2.getHexRoot();
+
         // create proofs for each user
-        proofUser1 = merkleTrieTokenId0.getHexProof(
-            ethers.utils.solidityKeccak256(
-                ["address", "uint256", "uint256"],
-                [recipientsTokenId0[0].address, recipientsTokenId0[0].tokenId, recipientsTokenId0[0].amount],
-            ),
-        );
-        proofUser2 = merkleTrieTokenId0.getHexProof(
-            ethers.utils.solidityKeccak256(
-                ["address", "uint256", "uint256"],
-                [recipientsTokenId0[1].address, recipientsTokenId0[1].tokenId, recipientsTokenId0[1].amount],
-            ),
-        );
-        proofUser3 = merkleTrieTokenId1.getHexProof(
+        proofUser1 = merkleTrieTokenId1.getHexProof(
             ethers.utils.solidityKeccak256(
                 ["address", "uint256", "uint256"],
                 [recipientsTokenId1[0].address, recipientsTokenId1[0].tokenId, recipientsTokenId1[0].amount],
             ),
         );
-        proofUser4 = merkleTrieTokenId1.getHexProof(
+        proofUser2 = merkleTrieTokenId1.getHexProof(
             ethers.utils.solidityKeccak256(
                 ["address", "uint256", "uint256"],
                 [recipientsTokenId1[1].address, recipientsTokenId1[1].tokenId, recipientsTokenId1[1].amount],
+            ),
+        );
+        proofUser3 = merkleTrieTokenId2.getHexProof(
+            ethers.utils.solidityKeccak256(
+                ["address", "uint256", "uint256"],
+                [recipientsTokenId2[0].address, recipientsTokenId2[0].tokenId, recipientsTokenId2[0].amount],
+            ),
+        );
+        proofUser4 = merkleTrieTokenId2.getHexProof(
+            ethers.utils.solidityKeccak256(
+                ["address", "uint256", "uint256"],
+                [recipientsTokenId2[1].address, recipientsTokenId2[1].tokenId, recipientsTokenId2[1].amount],
             ),
         );
 
@@ -152,20 +153,18 @@ describe("Reputation Badge", async () => {
 
         // manager publishes claim data to initiate minting
         expiration = await blockchainTime.secondsFromNow(3600); // 1 hour
-        const claimDataTokenId0: ClaimData = {
-            tokenId: 0,
-            claimRoot: rootTokenId0,
+        const claimDataTokenId1: ClaimData = {
+            claimRoot: rootTokenId1,
             claimExpiration: expiration,
             mintPrice: 0,
         };
-        const claimDataTokenId1: ClaimData = {
-            tokenId: 1,
-            claimRoot: rootTokenId1,
+        const claimDataTokenId2: ClaimData = {
+            claimRoot: rootTokenId2,
             claimExpiration: expiration,
             mintPrice: ethers.utils.parseEther("0.1"),
         };
 
-        await reputationBadge.connect(manager).publishRoots([claimDataTokenId0, claimDataTokenId1]);
+        await reputationBadge.connect(manager).publishRoots([1, 2], [claimDataTokenId1, claimDataTokenId2]);
     });
 
     it("Invalid constructor", async () => {
@@ -180,72 +179,82 @@ describe("Reputation Badge", async () => {
         ).to.be.revertedWith(`RB_ZeroAddress("descriptor")`);
     });
 
-    it("Validate published roots", async () => {
-        const root0 = await reputationBadge.claimRoots(0);
-        expect(root0).to.equal(rootTokenId0);
+    it("Invalid publish root", async () => {
+        // cannot publish root with zero tokenId
+        const claimDataTokenId0: ClaimData = {
+            claimRoot: ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]),
+            claimExpiration: expiration,
+            mintPrice: 0,
+        };
+        await expect(reputationBadge.connect(manager).publishRoots([0], [claimDataTokenId0])).to.be.revertedWith(
+            `RB_ZeroTokenId()`,
+        );
 
-        const root1 = await reputationBadge.claimRoots(1);
-        expect(root1).to.equal(rootTokenId1);
+        // array length mismatch
+        await expect(reputationBadge.connect(manager).publishRoots([1, 2], [claimDataTokenId0])).to.be.revertedWith(
+            `RB_ArrayMismatch()`,
+        );
     });
 
     it("Invalid ClaimData", async () => {
         // empty claim data
-        await expect(reputationBadge.connect(manager).publishRoots([])).to.be.revertedWith("RB_NoClaimData()");
+        await expect(reputationBadge.connect(manager).publishRoots([], [])).to.be.revertedWith("RB_NoClaimData()");
 
         // array with length greater than 50 elements
         const claimData: ClaimData[] = [];
-        for (let i = 0; i < 51; i++) {
+        const tokenIds = [];
+        for (let i = 1; i < 52; i++) {
             claimData.push({
-                tokenId: i,
-                claimRoot: rootTokenId0,
+                claimRoot: rootTokenId1,
                 claimExpiration: expiration,
                 mintPrice: 0,
             });
+            tokenIds.push(i);
         }
-        await expect(reputationBadge.connect(manager).publishRoots(claimData)).to.be.revertedWith("RB_ArrayTooLarge()");
+        await expect(reputationBadge.connect(manager).publishRoots(tokenIds, claimData)).to.be.revertedWith(
+            "RB_ArrayTooLarge()",
+        );
 
         // invalid claim expiration
         const currentTime = await blockchainTime.secondsFromNow(0);
         const claimDataInvalidExpiration: ClaimData = {
-            tokenId: 2,
-            claimRoot: rootTokenId0,
+            claimRoot: rootTokenId2,
             claimExpiration: currentTime + 1,
             mintPrice: 0,
         };
 
-        await expect(reputationBadge.connect(manager).publishRoots([claimDataInvalidExpiration])).to.be.revertedWith(
-            `RB_InvalidExpiration("${claimDataInvalidExpiration.claimRoot}", ${claimDataInvalidExpiration.tokenId})`,
-        );
+        await expect(
+            reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration]),
+        ).to.be.revertedWith(`RB_InvalidExpiration`);
 
         const claimDataInvalidExpiration2: ClaimData = {
-            tokenId: 2,
-            claimRoot: rootTokenId0,
+            claimRoot: rootTokenId2,
             claimExpiration: currentTime,
             mintPrice: 0,
         };
 
-        await expect(reputationBadge.connect(manager).publishRoots([claimDataInvalidExpiration2])).to.be.revertedWith(
-            `RB_InvalidExpiration("${claimDataInvalidExpiration2.claimRoot}", ${claimDataInvalidExpiration2.tokenId})`,
-        );
+        await expect(
+            reputationBadge.connect(manager).publishRoots([2], [claimDataInvalidExpiration2]),
+        ).to.be.revertedWith(`RB_InvalidExpiration`);
     });
 
     describe("Mint", async () => {
         it("Mint NFTs", async () => {
             // users mint
-            await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
-            await reputationBadge.connect(user1).mint(user2.address, 0, 2, 2, proofUser2);
+            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
+            await reputationBadge.connect(user2).mint(user2.address, 1, 2, 2, proofUser2);
 
             // check balances
-            expect(await reputationBadge.balanceOf(user1.address, 0)).to.equal(1);
-            expect(await reputationBadge.balanceOf(user2.address, 0)).to.equal(2);
+            expect(await reputationBadge.balanceOf(user1.address, 1)).to.equal(1);
+            expect(await reputationBadge.balanceOf(user2.address, 1)).to.equal(2);
 
             // user 1 tries to mint again
-            await expect(reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1)).to.be.revertedWith(
+            await expect(reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1)).to.be.revertedWith(
                 `RB_InvalidClaimAmount(1, 1)`,
             );
 
             // user 2 tries to mint again
-            await expect(reputationBadge.connect(user1).mint(user2.address, 0, 2, 2, proofUser2)).to.be.revertedWith(
+            await expect(reputationBadge.connect(user2).mint(user2.address, 1, 2, 2, proofUser2)).to.be.revertedWith(
                 `RB_InvalidClaimAmount(2, 2)`,
             );
         });
@@ -256,14 +265,14 @@ describe("Reputation Badge", async () => {
             // mint
             await reputationBadge
                 .connect(user3)
-                .mint(user3.address, 1, 1, 1, proofUser3, { value: ethers.utils.parseEther("0.1") });
+                .mint(user3.address, 2, 1, 1, proofUser3, { value: ethers.utils.parseEther("0.1") });
             await reputationBadge
                 .connect(user4)
-                .mint(user4.address, 1, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.2") });
+                .mint(user4.address, 2, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.2") });
 
             // check balances
-            expect(await reputationBadge.balanceOf(user3.address, 1)).to.equal(1);
-            expect(await reputationBadge.balanceOf(user4.address, 1)).to.equal(2);
+            expect(await reputationBadge.balanceOf(user3.address, 2)).to.equal(1);
+            expect(await reputationBadge.balanceOf(user4.address, 2)).to.equal(2);
             expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(ethers.utils.parseEther("0.3"));
 
             // tries to withdraw ETH with recipient address zero
@@ -282,35 +291,63 @@ describe("Reputation Badge", async () => {
             );
         });
 
+        it("User sends to more than enough for a mint", async () => {
+            // mint
+            await reputationBadge
+                .connect(user3)
+                .mint(user3.address, 2, 1, 1, proofUser3, { value: ethers.utils.parseEther("0.2") });
+
+            // check balances
+            expect(await reputationBadge.balanceOf(user3.address, 2)).to.equal(1);
+            expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(ethers.utils.parseEther("0.1"));
+        });
+
         it("Invalid proof", async () => {
-            const claimDataTokenId0: ClaimData = {
-                tokenId: 0,
+            const claimDataTokenId1: ClaimData = {
                 claimRoot: ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]),
                 claimExpiration: expiration,
                 mintPrice: 0,
             };
-            await reputationBadge.connect(manager).publishRoots([claimDataTokenId0]);
+            await reputationBadge.connect(manager).publishRoots([1], [claimDataTokenId1]);
 
             // invalid proof
-            await expect(reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser2)).to.be.revertedWith(
+            await expect(reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser2)).to.be.revertedWith(
                 "RB_InvalidMerkleProof()",
             );
         });
 
         it("Invalid mint fee", async () => {
             // mint 1 badge
-            await expect(reputationBadge.connect(user3).mint(user3.address, 1, 1, 1, proofUser3)).to.be.revertedWith(
+            await expect(reputationBadge.connect(user3).mint(user3.address, 2, 1, 1, proofUser3)).to.be.revertedWith(
                 `RB_InvalidMintFee(${ethers.utils.parseEther("0.1")}, ${ethers.utils.parseEther("0")})`,
             );
 
             // mint multiple badges
             await expect(
                 reputationBadge
-                    .connect(user3)
-                    .mint(user4.address, 1, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.1") }),
+                    .connect(user4)
+                    .mint(user4.address, 2, 2, 2, proofUser4, { value: ethers.utils.parseEther("0.1") }),
             ).to.be.revertedWith(
                 `RB_InvalidMintFee(${ethers.utils.parseEther("0.2")}, ${ethers.utils.parseEther("0.1")})`,
             );
+        });
+
+        it("Invalid tokenId", async () => {
+            // try to mint tokenId 0
+            const tx = reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
+            await expect(tx).to.be.revertedWith(`RB_ZeroTokenId()`);
+        });
+
+        it("Invalid claim amount", async () => {
+            // try to mint tokenId 0
+            const tx = reputationBadge.connect(user1).mint(user1.address, 1, 0, 1, proofUser1);
+            await expect(tx).to.be.revertedWith(`RB_ZeroClaimAmount()`);
+        });
+
+        it("Try to mint tokenId without ClaimData set", async () => {
+            // try to mint tokenId 5
+            const tx = reputationBadge.connect(user1).mint(user1.address, 5, 1, 1, proofUser1);
+            await expect(tx).to.be.revertedWith(`RB_ClaimingExpired`);
         });
 
         it("After expiration", async () => {
@@ -320,7 +357,7 @@ describe("Reputation Badge", async () => {
             // get current block time
             const timeNow = await blockchainTime.secondsFromNow(0);
             // mint
-            await expect(reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1)).to.be.revertedWith(
+            await expect(reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1)).to.be.revertedWith(
                 `RB_ClaimingExpired(${expiration}, ${timeNow + 1})`,
             );
         });
@@ -329,14 +366,17 @@ describe("Reputation Badge", async () => {
     describe("URI Descriptor", async () => {
         it("Gets tokenURI for specific value", async () => {
             // mint
-            await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
+            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
 
             // check tokenURI
-            expect(await reputationBadge.uri(0)).to.equal("https://www.domain.com/0");
+            expect(await reputationBadge.uri(1)).to.equal("https://www.domain.com/1");
         });
 
         it("Set new base URI", async () => {
             await descriptor.connect(admin).setBaseURI("https://www.arcade.xyz/");
+
+            // mint
+            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
 
             expect(await reputationBadge.connect(user1).uri(1)).to.equal("https://www.arcade.xyz/1");
         });
@@ -345,13 +385,13 @@ describe("Reputation Badge", async () => {
             await descriptor.connect(admin).setBaseURI("");
 
             // mint
-            await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
+            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
 
             // rug token URI
             await descriptor.connect(admin).setBaseURI("");
 
             // check tokenURI
-            expect(await reputationBadge.uri(0)).to.equal("");
+            expect(await reputationBadge.uri(1)).to.equal("");
         });
 
         it("Set new descriptor contract", async () => {
@@ -363,10 +403,10 @@ describe("Reputation Badge", async () => {
             await reputationBadge.connect(resourceManager).setDescriptor(descriptor2.address);
 
             // mint
-            await reputationBadge.connect(user1).mint(user1.address, 0, 1, 1, proofUser1);
+            await reputationBadge.connect(user1).mint(user1.address, 1, 1, 1, proofUser1);
 
             // check tokenURI
-            expect(await reputationBadge.uri(0)).to.equal("https://www.google.com/0");
+            expect(await reputationBadge.uri(1)).to.equal("https://www.google.com/1");
 
             // try to set descriptor to zero address
             await expect(
@@ -379,12 +419,11 @@ describe("Reputation Badge", async () => {
         it("Other users try to call protected functions", async () => {
             // try to set token claim data
             const claimDataTokenId0: ClaimData = {
-                tokenId: 0,
                 claimRoot: ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]),
                 claimExpiration: expiration,
                 mintPrice: 0,
             };
-            await expect(reputationBadge.connect(user1).publishRoots([claimDataTokenId0])).to.be.revertedWith(
+            await expect(reputationBadge.connect(user1).publishRoots([0], [claimDataTokenId0])).to.be.revertedWith(
                 `AccessControl: account ${user1.address.toLowerCase()} is missing role ${BADGE_MANAGER_ROLE}`,
             );
 
