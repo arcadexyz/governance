@@ -8,13 +8,13 @@ import "./external/council/libraries/History.sol";
 import "./external/council/libraries/Storage.sol";
 
 import "./libraries/ARCDVestingVaultStorage.sol";
-import "./libraries/HashedStorageReentrancyBlock.sol";
 
 import "./interfaces/IARCDVestingVault.sol";
 import "./BaseVotingVault.sol";
 
 import {
     AVV_InvalidSchedule,
+    AVV_InvalidCliff,
     AVV_InvalidCliffAmount,
     AVV_InsufficientBalance,
     AVV_HasGrant,
@@ -45,7 +45,7 @@ import {
  *      by this version of the VestingVault. When grants are added the contracts will not transfer
  *      in tokens on each add but rather check for solvency via state variables.
  */
-contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, BaseVotingVault {
+contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
     using History for History.HistoricalBalances;
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
@@ -81,34 +81,29 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
      * @param who                        The Grant recipient.
      * @param amount                     The total grant value.
      * @param cliffAmount                The amount of tokens that will be unlocked at the cliff.
-     * @param startTime                  Optionally set a start time in the future. If set to zero
-     *                                   then the start time will be made the block tx is in.
-     * @param expiration                 Timestamp when the grant ends - all tokens are unlocked and withdrawable.
-     * @param cliff                      Timestamp when the cliff ends. cliffAmount tokens are withdrawable when
-     *                                   this timestamp is reached.
+     * @param expiration                 Block number when the grant ends - all tokens are unlocked and withdrawable.
+     * @param cliff                      Block number when token withdrawals can start.
      * @param delegatee                  The address to delegate the voting power to
      */
     function addGrantAndDelegate(
         address who,
         uint128 amount,
         uint128 cliffAmount,
-        uint128 startTime,
-        uint128 expiration,
-        uint128 cliff,
+        uint64 expiration,
+        uint64 cliff,
         address delegatee
     ) external onlyManager {
         // input validation
         if (who == address(0)) revert AVV_ZeroAddress("who");
         if (amount == 0) revert AVV_InvalidAmount();
 
-        // if no custom start time is needed we use this block.
-        if (startTime == 0) {
-            startTime = uint128(block.number);
-        }
-        // grant schedule check
-        if (cliff >= expiration || cliff < startTime) revert AVV_InvalidSchedule();
+        // cliff must be in the future
+        if (cliff < block.number) revert AVV_InvalidCliff();
 
-        // cliff check
+        // cliff must be less than the expiration
+        if (cliff >= expiration) revert AVV_InvalidSchedule();
+
+        // check cliff unlock amount is less than the total grant amount
         if (cliffAmount >= amount) revert AVV_InvalidCliffAmount();
 
         Storage.Uint256 storage unassigned = _unassigned();
@@ -131,7 +126,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         grant.allocation = amount;
         grant.cliffAmount = cliffAmount;
         grant.withdrawn = 0;
-        grant.created = startTime;
         grant.expiration = expiration;
         grant.cliff = cliff;
         grant.latestVotingPower = newVotingPower;
@@ -161,15 +155,17 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // if the grant has already been removed or no grant available, revert
         if (grant.allocation == 0) revert AVV_NoGrantSet();
 
-        // get the amount of withdrawable tokens
+        // get the amount of withdrawable tokens and transfer to the grant recipient
         uint256 withdrawable = _getWithdrawableAmount(grant);
         grant.withdrawn += uint128(withdrawable);
         token.safeTransfer(who, withdrawable);
 
-        // transfer the remaining tokens to the vesting manager
+        // transfer any unvested tokens to the manager
         uint256 remaining = grant.allocation - grant.withdrawn;
-        grant.withdrawn += uint128(remaining);
-        token.safeTransfer(msg.sender, remaining);
+        if (remaining > 0) {
+            grant.withdrawn += uint128(remaining);
+            token.safeTransfer(msg.sender, remaining);
+        }
 
         // update the delegatee's voting power
         _syncVotingPower(who, grant);
@@ -178,7 +174,6 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         grant.allocation = 0;
         grant.cliffAmount = 0;
         grant.withdrawn = 0;
-        grant.created = 0;
         grant.expiration = 0;
         grant.cliff = 0;
         grant.latestVotingPower = 0;
@@ -261,6 +256,9 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         ARCDVestingVaultStorage.Grant storage grant = _grants()[msg.sender];
         if (to == grant.delegatee) revert AVV_AlreadyDelegated();
 
+        // check if the grant has been set
+        if (grant.allocation == 0) revert AVV_NoGrantSet();
+
         History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(grant.delegatee);
 
@@ -278,7 +276,7 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
         // update grant delgatee info
         grant.delegatee = to;
 
-        emit VoteChange(to, msg.sender, int256(uint256(grant.latestVotingPower)));
+        emit VoteChange(msg.sender, to, int256(uint256(grant.latestVotingPower)));
     }
 
     // ========================================= VIEW FUNCTIONS =========================================
@@ -308,14 +306,14 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
     // =========================================== HELPERS ==============================================
 
     /**
-     * @notice Calculates and returns how many tokens a grant owner can withdraw.
+     * @notice Calculates and returns how many tokens a grant recipient can withdraw.
      *
      * @param grant                    The memory location of the loaded grant.
      *
      * @return amount                  Number of tokens the grant owner can withdraw.
      */
     function _getWithdrawableAmount(ARCDVestingVaultStorage.Grant memory grant) internal view returns (uint256) {
-        // if before cliff or created date, no tokens have unlocked
+        // if before cliff, no tokens have unlocked
         if (block.number < grant.cliff) {
             return 0;
         }
@@ -360,8 +358,8 @@ contract ARCDVestingVault is IARCDVestingVault, HashedStorageReentrancyBlock, Ba
      * @notice A single function endpoint for loading grant storage. Returns a
      *         storage mapping which can be used to look up grant data.
      *
-     * @dev Only one Grant is allowed per address. Grants SHOULD NOT
-     *      be modified.
+     * @dev Only one Grant is allowed per address. If a grant is revoked, the
+     *      grant is deleted.
      *
      * @return grants                   Pointer to the grant storage mapping.
      */

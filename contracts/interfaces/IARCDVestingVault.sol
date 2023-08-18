@@ -23,9 +23,8 @@ interface IARCDVestingVault {
         address _who,
         uint128 _amount,
         uint128 _cliffAmount,
-        uint128 _startTime,
-        uint128 _expiration,
-        uint128 _cliff,
+        uint64 _expiration,
+        uint64 _cliff,
         address _delegatee
     ) external;
 

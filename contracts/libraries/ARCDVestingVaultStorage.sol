@@ -30,9 +30,8 @@ library ARCDVestingVaultStorage {
         uint128 allocation;
         uint128 cliffAmount;
         uint128 withdrawn;
-        uint128 created;
-        uint128 expiration;
-        uint128 cliff;
+        uint64 expiration;
+        uint64 cliff;
         uint256 latestVotingPower;
         address delegatee;
     }

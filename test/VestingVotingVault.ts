@@ -159,7 +159,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -170,7 +169,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -207,7 +205,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -234,7 +231,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -242,11 +238,10 @@ describe("Vesting voting vault", function () {
             await expect(tx).to.be.revertedWith("AVV_InsufficientBalance(0)");
         });
 
-        it("add grant with invalid cliff and start times", async () => {
+        it("add grant with invalid cliff and expiration times", async () => {
             const { signers, vestingVotingVault } = ctxGovernance;
             const { arcdToken, bootstrapVestingManager } = ctxToken;
             const MANAGER = signers[1];
-            const MANAGER_ADDRESS = signers[1].address;
             const OTHER_ADDRESS = signers[0].address;
 
             await bootstrapVestingManager();
@@ -260,42 +255,29 @@ describe("Vesting voting vault", function () {
             const currentTime = await ethers.provider.getBlock("latest");
             const currentBlock = currentTime.number;
             const grantCreatedBlock = currentBlock + 1; // 1 block in the future
-            const cliff = grantCreatedBlock + 100; // 100 blocks in the future
             const expiration = grantCreatedBlock + 200; // 200 blocks in the future
+
+            // try to add grant with cliff equal to expiration
             const tx = vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                expiration, // start time is after or equal to expiration
                 expiration,
-                cliff,
+                expiration, // cliff is equal to expiration
                 OTHER_ADDRESS, // voting power delegate
             );
             await expect(tx).to.be.revertedWith("AVV_InvalidSchedule()");
 
-            // try to add grant with cliff after expiration
-            const tx2 = vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
-                OTHER_ADDRESS, // recipient
-                ethers.utils.parseEther("100"), // grant amount
-                ethers.utils.parseEther("50"), // cliff unlock amount
-                grantCreatedBlock, // start time is current block
-                expiration,
-                expiration, // cliff is after expiration
-                OTHER_ADDRESS, // voting power delegate
-            );
-            await expect(tx2).to.be.revertedWith("AVV_InvalidSchedule()");
-
-            // try to add grant with cliff before start time
+            // try to add grant with cliff less than current block
             const tx3 = vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                grantCreatedBlock, // start time is current block
                 expiration,
-                grantCreatedBlock - 1, // cliff is before start time
+                grantCreatedBlock - 1, // cliff is less than current block
                 OTHER_ADDRESS, // voting power delegate
             );
-            await expect(tx3).to.be.revertedWith("AVV_InvalidSchedule()");
+            await expect(tx3).to.be.revertedWith("AVV_InvalidCliff()");
         });
 
         it("add grant with delegate as grant recipient", async () => {
@@ -322,7 +304,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is after or equal to expiration
                 expiration,
                 cliff,
                 ethers.constants.AddressZero, // pass in zero to delegate to grant recipient
@@ -357,7 +338,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -368,7 +348,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(ethers.utils.parseEther("0"));
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -400,7 +379,6 @@ describe("Vesting voting vault", function () {
                 ethers.constants.AddressZero, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                currentBlock, // start time is current block
                 expiration,
                 currentBlock + 100, // cliff is 100 blocks in the future
                 ethers.constants.AddressZero, // voting power delegate
@@ -430,7 +408,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 0, // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                currentBlock, // start time is current block
                 expiration,
                 currentBlock + 100, // cliff is 100 blocks in the future
                 ethers.constants.AddressZero, // voting power delegate
@@ -463,7 +440,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -475,7 +451,6 @@ describe("Vesting voting vault", function () {
                     OTHER_ADDRESS, // recipient
                     ethers.utils.parseEther("1000"), // grant amount
                     ethers.utils.parseEther("500"), // cliff unlock amount
-                    0, // start time is current block
                     expiration,
                     cliff,
                     OTHER_ADDRESS, // voting power delegate
@@ -507,7 +482,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("100.1"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -540,7 +514,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -556,7 +529,57 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(0);
             expect(grant.cliffAmount).to.equal(0);
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(0);
+            expect(grant.expiration).to.equal(0);
+            expect(grant.cliff).to.equal(0);
+            expect(grant.latestVotingPower).to.equal(0);
+            expect(grant.delegatee).to.equal(ethers.constants.AddressZero);
+        });
+
+        it("manager revokes grant after expiration, receives no tokens", async () => {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const { arcdToken, bootstrapVestingManager } = ctxToken;
+            const MANAGER = signers[1];
+            const MANAGER_ADDRESS = signers[1].address;
+            const OTHER_ADDRESS = signers[0].address;
+
+            await bootstrapVestingManager();
+
+            // manager deposits tokens
+            await arcdToken.connect(MANAGER).approve(vestingVotingVault.address, ethers.utils.parseEther("100"));
+            await vestingVotingVault.connect(MANAGER).deposit(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(vestingVotingVault.address)).to.equal(ethers.utils.parseEther("100"));
+
+            const managerBalanceBefore = await arcdToken.balanceOf(MANAGER_ADDRESS);
+
+            // add grant
+            const currentTime = await ethers.provider.getBlock("latest");
+            const currentBlock = currentTime.number;
+            const grantCreatedBlock = currentBlock + 1; // 1 block in the future
+            const cliff = grantCreatedBlock + 100; // 100 blocks in the future
+            const expiration = grantCreatedBlock + 200; // 200 blocks in the future
+            await vestingVotingVault.connect(MANAGER).addGrantAndDelegate(
+                OTHER_ADDRESS, // recipient
+                ethers.utils.parseEther("100"), // grant amount
+                ethers.utils.parseEther("50"), // cliff unlock amount
+                expiration,
+                cliff,
+                OTHER_ADDRESS, // voting power delegate
+            );
+
+            // increase 250 blocks past expiration
+            for (let i = 0; i < 250; i++) {
+                await ethers.provider.send("evm_mine", []);
+            }
+
+            // manager revokes grant before any tokens are claimed
+            await vestingVotingVault.connect(MANAGER).revokeGrant(OTHER_ADDRESS);
+            expect(await arcdToken.balanceOf(OTHER_ADDRESS)).to.equal(ethers.utils.parseEther("100"));
+            expect(await arcdToken.balanceOf(MANAGER_ADDRESS)).to.equal(managerBalanceBefore);
+
+            const grant = await vestingVotingVault.getGrant(OTHER_ADDRESS);
+            expect(grant.allocation).to.equal(0);
+            expect(grant.cliffAmount).to.equal(0);
+            expect(grant.withdrawn).to.equal(0);
             expect(grant.expiration).to.equal(0);
             expect(grant.cliff).to.equal(0);
             expect(grant.latestVotingPower).to.equal(0);
@@ -589,7 +612,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -613,7 +635,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(0);
             expect(grant2.cliffAmount).to.equal(0);
             expect(grant2.withdrawn).to.equal(0);
-            expect(grant2.created).to.equal(0);
             expect(grant2.expiration).to.equal(0);
             expect(grant2.cliff).to.equal(0);
             expect(grant2.latestVotingPower).to.equal(0);
@@ -656,7 +677,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -689,7 +709,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -746,7 +765,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -789,7 +807,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -831,7 +848,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -841,7 +857,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -860,7 +875,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(ethers.utils.parseEther("50"));
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("50"));
@@ -898,7 +912,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -908,7 +921,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -929,7 +941,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(claimable);
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(claimable));
@@ -967,7 +978,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -977,7 +987,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -998,7 +1007,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(claimable);
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("0"));
@@ -1036,7 +1044,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -1046,7 +1053,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -1065,7 +1071,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(ethers.utils.parseEther("50"));
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("50"));
@@ -1093,7 +1098,6 @@ describe("Vesting voting vault", function () {
             expect(grant3.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant3.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant3.withdrawn).to.equal(totalClaimed);
-            expect(grant3.created).to.equal(grantCreatedBlock);
             expect(grant3.expiration).to.equal(expiration);
             expect(grant3.cliff).to.equal(cliff);
             expect(grant3.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(totalClaimed));
@@ -1127,7 +1131,6 @@ describe("Vesting voting vault", function () {
             expect(grant4.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant4.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant4.withdrawn).to.equal(ethers.utils.parseEther("100"));
-            expect(grant4.created).to.equal(grantCreatedBlock);
             expect(grant4.expiration).to.equal(expiration);
             expect(grant4.cliff).to.equal(cliff);
             expect(grant4.latestVotingPower).to.equal(ethers.utils.parseEther("0"));
@@ -1165,7 +1168,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -1175,7 +1177,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -1194,7 +1195,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(ethers.utils.parseEther("50"));
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("50"));
@@ -1221,7 +1221,6 @@ describe("Vesting voting vault", function () {
             expect(grant3.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant3.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant3.withdrawn).to.equal(totalClaimed);
-            expect(grant3.created).to.equal(grantCreatedBlock);
             expect(grant3.expiration).to.equal(expiration);
             expect(grant3.cliff).to.equal(cliff);
             expect(grant3.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(totalClaimed));
@@ -1255,7 +1254,6 @@ describe("Vesting voting vault", function () {
             expect(grant4.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant4.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant4.withdrawn).to.equal(ethers.utils.parseEther("100"));
-            expect(grant4.created).to.equal(grantCreatedBlock);
             expect(grant4.expiration).to.equal(expiration);
             expect(grant4.cliff).to.equal(cliff);
             expect(grant4.latestVotingPower).to.equal(ethers.utils.parseEther("0"));
@@ -1292,7 +1290,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                grantCreatedBlock, // start time is current block
                 expiration,
                 grantCreatedBlock,
                 OTHER_ADDRESS, // voting power delegate
@@ -1302,7 +1299,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(grantCreatedBlock);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -1318,7 +1314,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(claimable);
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(grantCreatedBlock);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(claimable));
@@ -1345,7 +1340,6 @@ describe("Vesting voting vault", function () {
             expect(grant3.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant3.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant3.withdrawn).to.equal(claimable.add(claimable2));
-            expect(grant3.created).to.equal(grantCreatedBlock);
             expect(grant3.expiration).to.equal(expiration);
             expect(grant3.cliff).to.equal(grantCreatedBlock);
             expect(grant3.latestVotingPower).to.equal(0);
@@ -1381,7 +1375,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -1391,7 +1384,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -1412,7 +1404,6 @@ describe("Vesting voting vault", function () {
             expect(grant2.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant2.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant2.withdrawn).to.equal(claimable.div(2));
-            expect(grant2.created).to.equal(grantCreatedBlock);
             expect(grant2.expiration).to.equal(expiration);
             expect(grant2.cliff).to.equal(cliff);
             expect(grant2.latestVotingPower).to.equal(ethers.utils.parseEther("100").sub(claimable.div(2)));
@@ -1439,7 +1430,6 @@ describe("Vesting voting vault", function () {
             expect(grant3.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant3.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant3.withdrawn).to.equal(ethers.utils.parseEther("50"));
-            expect(grant3.created).to.equal(grantCreatedBlock);
             expect(grant3.expiration).to.equal(expiration);
             expect(grant3.cliff).to.equal(cliff);
             expect(grant3.latestVotingPower).to.equal(
@@ -1467,7 +1457,6 @@ describe("Vesting voting vault", function () {
             expect(grant4.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant4.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant4.withdrawn).to.equal(ethers.utils.parseEther("100"));
-            expect(grant4.created).to.equal(grantCreatedBlock);
             expect(grant4.expiration).to.equal(expiration);
             expect(grant4.cliff).to.equal(cliff);
             expect(grant4.latestVotingPower).to.equal(ethers.utils.parseEther("0"));
@@ -1507,7 +1496,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -1518,7 +1506,6 @@ describe("Vesting voting vault", function () {
             expect(grant.allocation).to.equal(ethers.utils.parseEther("100"));
             expect(grant.cliffAmount).to.equal(ethers.utils.parseEther("50"));
             expect(grant.withdrawn).to.equal(0);
-            expect(grant.created).to.equal(grantCreatedBlock);
             expect(grant.expiration).to.equal(expiration);
             expect(grant.cliff).to.equal(cliff);
             expect(grant.latestVotingPower).to.equal(ethers.utils.parseEther("100"));
@@ -1566,7 +1553,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -1575,6 +1561,16 @@ describe("Vesting voting vault", function () {
             // user changes vote delegation to same account already delegated to
             const tx2 = vestingVotingVault.connect(OTHER).delegate(OTHER_ADDRESS);
             await expect(tx2).to.be.revertedWith("AVV_AlreadyDelegated()");
+        });
+
+        it("Cannot call without an existing grant", async function () {
+            const { signers, vestingVotingVault } = ctxGovernance;
+            const MANAGER_ADDRESS = signers[1].address;
+            const OTHER = signers[0];
+
+            // user changes vote delegation to same account already delegated to
+            const tx2 = vestingVotingVault.connect(OTHER).delegate(MANAGER_ADDRESS);
+            await expect(tx2).to.be.revertedWith("AVV_NoGrantSet()");
         });
     });
 
@@ -1607,7 +1603,6 @@ describe("Vesting voting vault", function () {
                 OTHER_ADDRESS, // recipient
                 ethers.utils.parseEther("100"), // grant amount
                 ethers.utils.parseEther("50"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 OTHER_ADDRESS, // voting power delegate
@@ -1675,7 +1670,6 @@ describe("Vesting voting vault", function () {
                 signers[3].address, // recipient
                 ethers.utils.parseEther("1000000"), // grant amount
                 ethers.utils.parseEther("500000"), // cliff unlock amount
-                0, // start time is current block
                 expiration,
                 cliff,
                 signers[3].address, // voting power delegate

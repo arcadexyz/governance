@@ -61,7 +61,6 @@ describe("Immutable vesting vault", function () {
             OTHER_ADDRESS, // recipient
             ethers.utils.parseEther("100"), // grant amount
             ethers.utils.parseEther("50"), // cliff unlock amount
-            0, // start time is after or equal to expiration
             expiration,
             cliff,
             ethers.constants.AddressZero, // pass in zero to delegate to grant recipient
