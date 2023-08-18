@@ -366,7 +366,7 @@ contract UnlockedBoostVault is INFTBoostVault, BaseVotingVault {
      *
      */
     function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
-        if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit();
+        if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit("high");
 
         NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
         // set multiplier value
