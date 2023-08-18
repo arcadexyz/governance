@@ -4,6 +4,7 @@ import { ethers } from "hardhat";
 
 import {
     ARCDVestingVault,
+    ArcadeCoreVoting,
     ArcadeGSCCoreVoting,
     ArcadeGSCVault,
     ArcadeToken,
@@ -14,7 +15,6 @@ import {
     NFTBoostVault,
     PromissoryNote,
     Timelock,
-    ArcadeCoreVoting
 } from "../../src/types";
 import { CORE_VOTING_ROLE, GSC_CORE_VOTING_ROLE } from "./constants";
 import { deploy } from "./contracts";
@@ -148,11 +148,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
 
         // ================================== ARCADE GSC CORE VOTING ================================
 
-<<<<<<< HEAD
-        const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>await deploy("CoreVoting", signers[0], [
-=======
         const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>await deploy("ArcadeGSCCoreVoting", signers[0], [
->>>>>>> 7df3858 (fix(c4-56-434): new ArcadeCoreVoting contract)
             signers[0].address, // deployer address at first, then ownership set to timelock contract
             3, // quorum
             1, // voting power needed to submit a proposal
