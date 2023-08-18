@@ -396,7 +396,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 .connect(signers[1])
                 .addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address);
 
-            await expect(tx).to.be.revertedWith("ERC1155: insufficient balance for transfe");
+            await expect(tx).to.be.revertedWith("ERC1155: insufficient balance for transfer");
         });
 
         it("Reverts when user who has an existing registration tries to call addNftAndDelegate() again", async () => {
