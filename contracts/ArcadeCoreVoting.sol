@@ -2,7 +2,7 @@
 
 /* solhint-disable */
 
-pragma solidity ^0.8.3;
+pragma solidity 0.8.18;
 
 import "./external/council/interfaces/IVotingVault.sol";
 import "./external/council/libraries/Authorizable.sol";
@@ -34,7 +34,7 @@ contract ArcadeCoreVoting is Authorizable, ReentrancyBlock, ICoreVoting {
 
     // toggle to allow new voting vaults to be approved or not
     // can only be set upon deployment
-    bool public allowNewVotingVaults;
+    bool public immutable allowNewVotingVaults;
 
     // mapping of address and selector to quorum
     mapping(address => mapping(bytes4 => uint256)) private _quorums;
