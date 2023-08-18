@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
 import { deploy } from "../utils/deploy";
+import { Account, getMerkleTree } from "../utils/external/council/helpers/merkle";
 import { TestContextToken, tokenFixture } from "../utils/tokenFixture";
 
 const { loadFixture } = waffle;
@@ -551,8 +552,90 @@ describe("ArcadeToken", function () {
             ).to.be.revertedWith("NBV_HasRegistration()");
         });
 
-        it("user tries to delegate to address zero", async function () {
-            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie } = ctxToken;
+        it("user claims airdrop twice", async function () {
+            const {
+                arcdToken,
+                arcdDst,
+                arcdAirdrop,
+                deployer,
+                other,
+                recipients,
+                merkleTrie,
+                mockNFTBoostVault,
+                blockchainTime,
+            } = ctxToken;
+
+            await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+            expect(await arcdDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+
+            // claim and delegate to self
+            await expect(
+                arcdAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate voting power to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // merkle proof
+                ),
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
+
+            expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(recipients[0].value);
+            expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
+                ethers.utils.parseEther("10000000").sub(recipients[0].value),
+            );
+            expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
+
+            // set new root and expiration, then user claims again
+
+            // airdrop claims data
+            const recipients2: Account = [
+                {
+                    address: deployer.address,
+                    value: ethers.utils.parseEther("100"),
+                },
+                {
+                    address: other.address,
+                    value: ethers.utils.parseEther("200"),
+                },
+            ];
+
+            // hash leaves
+            const merkleTrie2 = await getMerkleTree(recipients2);
+            const root = merkleTrie2.getHexRoot();
+
+            // airdrop claim expiration is current unix stamp + 1 hour
+            const expiration = await blockchainTime.secondsFromNow(3600);
+
+            // owner resets merkle root and expiration
+            await expect(arcdAirdrop.connect(deployer).setMerkleRoot(root, expiration))
+                .to.emit(arcdAirdrop, "SetMerkleRoot")
+                .withArgs(root, expiration);
+
+            // create proof for deployer
+            const proofDeployer2 = merkleTrie2.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients2[0].address, recipients2[0].value]),
+            );
+
+            await expect(
+                arcdAirdrop.connect(deployer).claimAndDelegate(
+                    recipients2[0].address, // address to delegate voting power to
+                    recipients2[0].value, // total claimable amount
+                    proofDeployer2, // merkle proof
+                ),
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients2[0].value);
+        });
+
+        it("user claims airdrop and delegates to self using address(0)", async function () {
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
@@ -571,7 +654,9 @@ describe("ArcadeToken", function () {
                     recipients[0].value, // total claimable amount
                     proofDeployer, // merkle proof
                 ),
-            ).to.be.revertedWith(`AA_ZeroAddress("delegate")`);
+            )
+                .to.emit(arcdToken, "Transfer")
+                .withArgs(arcdAirdrop.address, mockNFTBoostVault.address, recipients[0].value);
         });
 
         it("user tries to claim airdrop with invalid proof", async function () {
@@ -596,7 +681,7 @@ describe("ArcadeToken", function () {
             ).to.be.revertedWith("AA_NonParticipant()");
         });
 
-        it("user tries to claim airdrop twice", async function () {
+        it("user tries to claim same airdrop twice", async function () {
             const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -837,24 +922,45 @@ describe("ArcadeToken", function () {
         });
 
         it("owner changes merkle root", async function () {
-            const { arcdAirdrop, deployer } = ctxToken;
+            const { arcdAirdrop, deployer, blockchainTime } = ctxToken;
 
             // owner changes merkle root
             const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
 
-            await expect(await arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot))
+            // create expiration timestamp
+            const expirationTime = await blockchainTime.secondsFromNow(100);
+
+            await expect(await arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot, expirationTime))
                 .to.emit(arcdAirdrop, "SetMerkleRoot")
-                .withArgs(newMerkleRoot);
+                .withArgs(newMerkleRoot, expirationTime);
 
             expect(await arcdAirdrop.rewardsRoot()).to.equal(newMerkleRoot);
+            expect(await arcdAirdrop.expiration()).to.equal(expirationTime);
+        });
+
+        it("owner tries to set invalid expiration time", async function () {
+            const { arcdAirdrop, deployer, blockchainTime } = ctxToken;
+
+            // owner changes merkle root
+            const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
+            // create expiration timestamp
+            const expirationTime = await blockchainTime.secondsFromNow(0);
+
+            // owner tries to set invalid expiration time
+            await expect(arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot, expirationTime)).to.be.revertedWith(
+                "AA_ClaimingExpired()",
+            );
         });
 
         it("non-owner tries to set a new merkle root", async function () {
-            const { arcdAirdrop, other } = ctxToken;
+            const { arcdAirdrop, other, blockchainTime } = ctxToken;
+
+            // create expiration timestamp
+            const expirationTime = await blockchainTime.secondsFromNow(100);
 
             // non-owner tries to change merkle root
             const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
-            await expect(arcdAirdrop.connect(other).setMerkleRoot(newMerkleRoot)).to.be.revertedWith(
+            await expect(arcdAirdrop.connect(other).setMerkleRoot(newMerkleRoot, expirationTime)).to.be.revertedWith(
                 "Sender not owner",
             );
         });

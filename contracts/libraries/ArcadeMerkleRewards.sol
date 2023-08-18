@@ -28,16 +28,17 @@ abstract contract ArcadeMerkleRewards {
 
     /// @notice the token to airdrop
     IERC20 public immutable token;
-    /// @notice the expiration of the airdrop
-    uint256 public immutable expiration;
 
     // ==================== Reward Claim State ======================
 
     /// @notice the merkle root with deposits encoded into it as hash [address, amount]
     bytes32 public rewardsRoot;
 
-    /// @notice past user claims
-    mapping(address => uint256) public claimed;
+    /// @notice the timestamp expiration of the rewards root
+    uint256 public expiration;
+
+    /// @notice user claim history by merkle root used to claim
+    mapping(address => mapping(bytes32 => uint256)) public claimed;
 
     /// @notice the voting vault vault which receives airdropped tokens
     INFTBoostVault public votingVault;
@@ -68,7 +69,10 @@ abstract contract ArcadeMerkleRewards {
     // ===================================== CLAIM FUNCTIONALITY ========================================
 
     /**
-     * @notice Claims an amount of tokens in the tree and delegates to governance.
+     * @notice Claims an amount of tokens in the tree and delegates to governance. If the user has
+     *         not received an airdrop, they can claim it and delegate to themselves by passing in
+     *         their address as the delegate or address(0). If a user has claimed before, they must
+     *         use the same delegate address they are already delegating to.
      *
      * @param delegate               The address the user will delegate to
      * @param totalGrant             The total amount of tokens the user was granted
@@ -77,8 +81,6 @@ abstract contract ArcadeMerkleRewards {
     function claimAndDelegate(address delegate, uint128 totalGrant, bytes32[] calldata merkleProof) external {
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();
-        // no delegating to zero address
-        if (delegate == address(0)) revert AA_ZeroAddress("delegate");
         // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
 
@@ -102,8 +104,8 @@ abstract contract ArcadeMerkleRewards {
         bytes32 leafHash = keccak256(abi.encodePacked(msg.sender, totalGrant));
         if (!MerkleProof.verify(merkleProof, rewardsRoot, leafHash)) revert AA_NonParticipant();
 
-        // ensure the user has not already claimed the airdrop
-        if (claimed[msg.sender] != 0) revert AA_AlreadyClaimed();
-        claimed[msg.sender] = totalGrant;
+        // ensure the user has not already claimed the airdrop for this merkle root
+        if (claimed[msg.sender][rewardsRoot] != 0) revert AA_AlreadyClaimed();
+        claimed[msg.sender][rewardsRoot] = totalGrant;
     }
 }
