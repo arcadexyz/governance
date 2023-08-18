@@ -103,6 +103,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
         bytes32 claimRoot = claimData[tokenId].claimRoot;
 
         // input validation
+        if (tokenId == 0) revert RB_ZeroTokenId();
         if (block.timestamp > claimExpiration) revert RB_ClaimingExpired(claimExpiration, uint48(block.timestamp));
         if (msg.value < mintPrice) revert RB_InvalidMintFee(mintPrice, msg.value);
 
