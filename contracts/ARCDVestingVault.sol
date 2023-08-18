@@ -4,7 +4,7 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "./external/council/libraries/History.sol";
+import "./libraries/BoundedHistory.sol";
 import "./external/council/libraries/Storage.sol";
 
 import "./libraries/ARCDVestingVaultStorage.sol";
@@ -46,7 +46,7 @@ import {
  *      in tokens on each add but rather check for solvency via state variables.
  */
 contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
-    using History for History.HistoricalBalances;
+    using BoundedHistory for BoundedHistory.HistoricalBalances;
     using ARCDVestingVaultStorage for ARCDVestingVaultStorage.Grant;
     using Storage for Storage.Address;
     using Storage for Storage.Uint256;
@@ -135,9 +135,9 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
         unassigned.data -= amount;
 
         // update the delegatee's voting power
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
         uint256 delegateeVotes = votingPower.loadTop(grant.delegatee);
-        votingPower.push(grant.delegatee, delegateeVotes + newVotingPower);
+        votingPower.push(grant.delegatee, delegateeVotes + newVotingPower, MAX_HISTORY_LENGTH);
 
         emit VoteChange(grant.delegatee, who, int256(uint256(newVotingPower)));
     }
@@ -259,11 +259,11 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
         // check if the grant has been set
         if (grant.allocation == 0) revert AVV_NoGrantSet();
 
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(grant.delegatee);
 
         // Remove old delegatee's voting power and emit event
-        votingPower.push(grant.delegatee, oldDelegateeVotes - grant.latestVotingPower);
+        votingPower.push(grant.delegatee, oldDelegateeVotes - grant.latestVotingPower, MAX_HISTORY_LENGTH);
         emit VoteChange(grant.delegatee, msg.sender, -1 * int256(grant.latestVotingPower));
 
         // Note - It is important that this is loaded here and not before the previous state change because if
@@ -271,7 +271,7 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
         uint256 newDelegateeVotes = votingPower.loadTop(to);
 
         // add voting power to the target delegatee and emit event
-        votingPower.push(to, newDelegateeVotes + grant.latestVotingPower);
+        votingPower.push(to, newDelegateeVotes + grant.latestVotingPower, MAX_HISTORY_LENGTH);
 
         // update grant delgatee info
         grant.delegatee = to;
@@ -337,7 +337,7 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
      * @param grant                     The storage pointer to the grant of that user.
      */
     function _syncVotingPower(address who, ARCDVestingVaultStorage.Grant storage grant) internal {
-        History.HistoricalBalances memory votingPower = _votingPower();
+        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
 
         uint256 delegateeVotes = votingPower.loadTop(grant.delegatee);
 
@@ -347,7 +347,7 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
         // since the sync is only called when tokens are claimed or grant revoked
         int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
         // we multiply by -1 to avoid underflow when casting
-        votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1));
+        votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1), MAX_HISTORY_LENGTH);
 
         grant.latestVotingPower = newVotingPower;
 
