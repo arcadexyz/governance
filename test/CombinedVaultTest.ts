@@ -146,7 +146,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             await coreVoting.connect(signers[1]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 0, 1); // no vote
 
             // increase blockNumber to exceed 3 day default lock duration set in coreVoting
-            await increaseBlockNumber(provider, 19488);
+            await increaseBlockNumber(provider, 7150 * 3);
 
             // proposal execution
             await coreVoting.connect(signers[0]).execute(0, targetAddress, [feeContCalldata]);
@@ -275,7 +275,7 @@ describe("Governance Operations with Locking and NFT Boost Vaults", async () => 
             await coreVoting.connect(signers[1]).vote([votingVaults[0], votingVaults[1]], zeroExtraData, 1, 1); // no vote on proposalId 1
 
             //increase blockNumber to exceed 3 day default lock duration set in coreVoting
-            await increaseBlockNumber(provider, 19488);
+            await increaseBlockNumber(provider, 7150 * 3);
 
             // execute proposalId #1
             await coreVoting.connect(signers[0]).execute(1, targetAddress, [feeContCalldata]);

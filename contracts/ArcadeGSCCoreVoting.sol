@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.18;
 
-import "./external/council/CoreVoting.sol";
+import "./ArcadeCoreVoting.sol";
 
 /**
  * @title ArcadeGSCCoreVoting
@@ -10,8 +10,11 @@ import "./external/council/CoreVoting.sol";
  *
  * The Arcade GSC Core Voting contract allows members of the GSC vault to vote on and execute proposals
  * in an instance of governance separate from general governance votes.
+ *
+ * The GSC version of the core voting contract is identical to the general core voting contract except
+ * that new vaults cannot be added after deployment.
  */
-contract ArcadeGSCCoreVoting is CoreVoting {
+contract ArcadeGSCCoreVoting is ArcadeCoreVoting {
     // ==================================== CONSTRUCTOR ================================================
 
     /**
@@ -29,5 +32,5 @@ contract ArcadeGSCCoreVoting is CoreVoting {
         uint256 minProposalPower,
         address gsc,
         address[] memory votingVaults
-    ) CoreVoting(timelock, baseQuorum, minProposalPower, gsc, votingVaults) {}
+    ) ArcadeCoreVoting(timelock, baseQuorum, minProposalPower, gsc, votingVaults, false) {}
 }
