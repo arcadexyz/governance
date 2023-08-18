@@ -1,7 +1,8 @@
 import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { constants } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { ethers, waffle } from "hardhat";
+import { Test } from "mocha";
 
 import { deploy } from "./utils/deploy";
 import { TestContextGovernance, governanceFixture } from "./utils/governanceFixture";
@@ -1984,18 +1985,17 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 );
         });
 
-        describe.only("Registration length enforcement", () => {
+        describe("Registration length enforcement", () => {
             const verbose = false;
-            const BOBS_BALANCE = ethers.utils.parseEther("100"); // enough to join GSC
+            let BOBS_BALANCE: BigNumber;
 
             const poisonHistory = async (NFTBoostVault: Contract, TestERC20: MockERC20, numEntries = 1000) => {
                 const signers = await ethers.getSigners();
-                const owner = signers[0];
-                const Alice = signers[1];
-                const Bob = signers[2];
+                const [owner, Alice, Bob] = signers;
 
                 // balance of each user in TestERC20 custom token
-                const ALICES_BALANCE = ethers.utils.parseEther("1000000000");
+                const ALICES_BALANCE = await TestERC20.balanceOf(Alice.address);
+                BOBS_BALANCE = await TestERC20.balanceOf(Bob.address);
 
                 // mine some block in the future to resemble mainnet state
                 await mine(1_000_000);
@@ -2017,10 +2017,6 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 // deploy ArcadeGSCCoreVoting with a single vault (NFTBoostVault) and set owner
                 const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
                 const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, 50, owner.address);
-
-                // mint TestERC20 to users so that they can stake them
-                await TestERC20.connect(Alice).mint(Alice.address, ALICES_BALANCE);
-                await TestERC20.connect(Bob).mint(Bob.address, BOBS_BALANCE);
 
                 // everyone approves TestERC20, so that they can stake
                 await TestERC20.connect(Alice).approve(NFTBoostVault.address, ALICES_BALANCE);
@@ -2088,6 +2084,10 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 const TestERC20Factory = await ethers.getContractFactory("MockERC20");
                 const TestERC20 = await TestERC20Factory.deploy();
 
+                // mint TestERC20 to users so that they can stake them
+                await TestERC20.connect(Alice).mint(Alice.address, ethers.utils.parseEther("1000"));
+                await TestERC20.connect(Bob).mint(Bob.address, ethers.utils.parseEther("100"));
+
                 // deploy NFTBoostVault with custom token (TestERC20) - we only need this token to provide some
                 // balance to users so that they can stake their tokens in the vault
                 const NFTBoostVaultFactory = await ethers.getContractFactory("UnlockedBoostVault");
@@ -2138,6 +2138,10 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 const TestERC20Factory = await ethers.getContractFactory("MockERC20");
                 const TestERC20 = await TestERC20Factory.deploy();
 
+                // mint TestERC20 to users so that they can stake them
+                await TestERC20.connect(Alice).mint(Alice.address, ethers.utils.parseEther("1000"));
+                await TestERC20.connect(Bob).mint(Bob.address, ethers.utils.parseEther("100"));
+
                 // deploy NFTBoostVault with custom token (TestERC20) - we only need this token to provide some
                 // balance to users so that they can stake their tokens in the vault
                 // This one uses an unbounded History storage, as opposed to one that prunes after a max length
@@ -2175,88 +2179,17 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 await expect(tx).to.be.revertedWith("contract call run out of gas");
             }).timeout(500000);
 
-            it.only("Can propose and vote with poisoned history", async () => {
+            it("Can propose and vote with poisoned history", async () => {
                 const { arcdToken } = ctxToken;
                 const { signers, coreVoting, increaseBlockNumber, nftBoostVault, feeController } = ctxGovernance;
-                const [owner, Alice, Bob] = signers;
-
-                const TestERC20Factory = await ethers.getContractFactory("MockERC20");
-                const TestERC20 = await TestERC20Factory.deploy();
-
-                // deploy NFTBoostVault with custom token (TestERC20) - we only need this token to provide some
-                // balance to users so that they can stake their tokens in the vault
-                // This one uses an unbounded History storage, as opposed to one that prunes after a max length
-                const NFTBoostVaultFactory = await ethers.getContractFactory("UnlockedBoostVaultHistory");
-                const NFTBoostVault = await NFTBoostVaultFactory.deploy(
-                    TestERC20.address,
-                    10,
-                    owner.address,
-                    owner.address,
-                );
-
-                console.log("HERE 0");
-
-                let { arcadeGSCVault } = await poisonHistory(NFTBoostVault, TestERC20);
-
-                console.log("HERE 1");
-
-                const testERC20CoreVoting = <CoreVoting>(
-                    await deploy("CoreVoting", owner, [
-                        owner.address,
-                        ethers.utils.parseEther("7"),
-                        ethers.utils.parseEther("0"),
-                        ethers.constants.AddressZero,
-                        [NFTBoostVault.address],
-                    ])
-                );
-
-                await testERC20CoreVoting.deployed();
-
-                // approve the voting vaults for the votingVaults array
-                await testERC20CoreVoting.changeVaultStatus(NFTBoostVault.address, true);
-
-                // Run the poison history attack
-                await poisonHistory(nftBoostVault, arcdToken);
-
-                // Have Bob make a proposal with poisoned history
-                // Have Bob withdraw enough tokens to be kickable, but not all
-                // Have Alice vote
-                // Have Bob vote
-
-                // proposal creation to update originationFee in FeeController
-                const newFee = 62;
-                const targetAddress = [feeController.address];
-                // create an interface to access feeController abi
-                const fcFactory = await ethers.getContractFactory("FeeController");
-                // encode function signature and new fee amount to pass in proposal execution if majority votes YES
-                const feeContCalldata = fcFactory.interface.encodeFunctionData("setOriginationFee", [newFee]);
-
-                // a signer that holds enough voting power for proposal creation, creates the proposal
-                // with a YES ballot
-                await testERC20CoreVoting
-                    .connect(Bob)
-                    .proposal([nftBoostVault.address], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
-
-                // pass proposal with YES majority
-                await coreVoting.connect(signers[2]).vote([nftBoostVault.address], zeroExtraData, 0, 0); // yes vote
-
-                //increase blockNumber to exceed 3 day default lock duration set in coreVoting
-                await increaseBlockNumber(provider, 19488);
-
-                // proposal 0 execution
-                await coreVoting.connect(Bob).execute(0, targetAddress, [feeContCalldata]);
-                const originationFee = await feeController.getOriginationFee();
-                expect(originationFee).to.equal(newFee);
-            });
-
-            it.skip("Kicking after history poisoning takes away voting power", async () => {
-                const { arcdToken } = ctxToken;
-                const { signers, coreVoting, increaseBlockNumber, nftBoostVault, feeController } = ctxGovernance;
-
-                // Run the poison history attack
-                await poisonHistory(nftBoostVault, arcdToken);
-
                 const [, Alice, Bob] = signers;
+
+                // timelock unlocks ERC20 withdrawals
+                await nftBoostVault.connect(signers[0]).unlock();
+
+                // Run the poison history attack and make blocks stale
+                await poisonHistory(nftBoostVault, arcdToken);
+                await mine(101);
 
                 // Have Bob make a proposal with poisoned history
                 // Have Bob withdraw enough tokens to be kickable, but not all
@@ -2278,16 +2211,16 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                     .proposal([nftBoostVault.address], zeroExtraData, targetAddress, [feeContCalldata], MAX, 0);
 
                 // pass proposal with YES majority
-                await coreVoting.connect(signers[2]).vote([nftBoostVault.address], zeroExtraData, 0, 0); // yes vote
+                await coreVoting.connect(Alice).vote([nftBoostVault.address], zeroExtraData, 0, 0); // yes vote
 
                 //increase blockNumber to exceed 3 day default lock duration set in coreVoting
                 await increaseBlockNumber(provider, 19488);
 
                 // proposal 0 execution
-                await coreVoting.connect(Alice).execute(0, targetAddress, [feeContCalldata]);
+                await coreVoting.connect(Bob).execute(0, targetAddress, [feeContCalldata]);
                 const originationFee = await feeController.getOriginationFee();
                 expect(originationFee).to.equal(newFee);
-            });
+            }).timeout(500000);
         });
     });
 });

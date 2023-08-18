@@ -158,6 +158,8 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         ]);
         await arcadeGSCCoreVoting.deployed();
 
+        await arcadeGSCCoreVoting.changeVaultStatus(arcadeGSCVault.address, true);
+
         // ===================================== TREASURY =====================================
 
         const arcadeTreasury = <ArcadeTreasury>await deploy("ArcadeTreasury", signers[0], [signers[1].address]);
