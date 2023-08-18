@@ -518,11 +518,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
         });
 
         it("cannot call delegate() when user is not registered", async () => {
-            const { arcdToken } = ctxToken;
             const { signers, nftBoostVault } = ctxGovernance;
-
-            // signers[1] approves tokens to voting vault
-            await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE);
 
             await expect(nftBoostVault.connect(signers[1]).delegate(signers[2].address)).to.be.revertedWith(
                 "NBV_NoRegistration()",
@@ -2190,11 +2186,6 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
                 // Run the poison history attack and make blocks stale
                 await poisonHistory(nftBoostVault, arcdToken);
                 await mine(101);
-
-                // Have Bob make a proposal with poisoned history
-                // Have Bob withdraw enough tokens to be kickable, but not all
-                // Have Alice vote
-                // Have Bob vote
 
                 // proposal creation to update originationFee in FeeController
                 const newFee = 62;
