@@ -44,14 +44,8 @@ import {
  * ERC1155 address and tokenId to a multiplier, they are able to delegate their voting
  * power for participation in governance.
  *
- * This contract is Simple Proxy upgradeable which is the upgradeability system used for voting
- * vaults in Council.
- *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
  *      addNftAndDelegate() are unrecoverable by this version of the NFTBoostVault.
- *
- *      This contract is a proxy so we use the custom state management system from
- *      storage and return the following as methods to isolate that call.
  */
 contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     using SafeERC20 for IERC20;
