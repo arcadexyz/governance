@@ -40,7 +40,7 @@ library NFTBoostVaultStorage {
         address delegatee;
     }
 
-    /// @dev represents 1 packed storage location with a compressed uint128 pair
+    /// @dev struct which represents 1 packed storage location (MultiplierData)
     struct MultiplierData {
         uint128 multiplier;
         uint128 expiration;
@@ -69,7 +69,7 @@ library NFTBoostVaultStorage {
      *
      * @return data                     The mapping pointer.
      */
-    function mappingAddressToPackedUintUint(
+    function mappingAddressToMultiplierData(
         string memory name
     ) internal pure returns (mapping(address => mapping(uint128 => MultiplierData)) storage data) {
         bytes32 offset = keccak256(abi.encodePacked(MULTIPLIER_TYPEHASH, name));

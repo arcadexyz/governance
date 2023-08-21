@@ -108,7 +108,7 @@ error NBV_NotAirdrop();
 error NBV_WrongDelegatee(address newDelegate, address currentDelegate);
 
 /**
- * @notice The provided expiration provided has already passed.
+ * @notice The multiplier expiration provided has already passed.
  */
 error NBV_InvalidExpiration();
 
