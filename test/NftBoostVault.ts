@@ -449,6 +449,25 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             ).to.be.revertedWith("NBV_ZeroAmount");
         });
 
+        it("Reverts when user tries to register using NFT without a multiplier", async () => {
+            const { arcdToken } = ctxToken;
+            const { signers, nftBoostVault, reputationNft, mintNfts } = ctxGovernance;
+
+            // mint users some ERC1155 nfts
+            await mintNfts();
+
+            // no multipliers set
+
+            // signers[1] approves tokens to voting vault
+            await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE);
+            await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVault.address, true);
+
+            // signers[1] registers
+            await expect(
+                nftBoostVault.connect(signers[1]).addNftAndDelegate(ONE, 1, reputationNft.address, signers[1].address),
+            ).to.be.revertedWith("NBV_NoMultiplierSet");
+        });
+
         it("Allows user to self-delegate", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
@@ -1164,6 +1183,41 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             );
         });
 
+        it("User with no badge registered calls updateNft()", async () => {
+            const { arcdToken } = ctxToken;
+            const {
+                signers,
+                nftBoostVault,
+                reputationNft2,
+                mintNfts,
+                setMultipliers,
+            } = ctxGovernance;
+
+            // mint users some reputation nfts
+            await mintNfts();
+
+            // manager sets the value of the reputation NFT multiplier
+            const { MULTIPLIER_B } = await setMultipliers();
+
+            // signers[0] approves tokens
+            await arcdToken.approve(nftBoostVault.address, ONE);
+
+            // signers[0] registers reputation NFT, deposits tokens and delegates to signers[1]
+            const tx = await nftBoostVault.addNftAndDelegate(ONE, 0, ethers.constants.AddressZero, signers[0].address);
+
+            const votingPower = await nftBoostVault.queryVotePowerView(signers[0].address, tx.blockNumber);
+            expect(votingPower).to.be.eq(ONE);
+
+            // signers[0] approves reputation nft 2 to voting vault
+            await reputationNft2.setApprovalForAll(nftBoostVault.address, true);
+
+            // signers[0] updates their reputation nft to reputationNft2 which is associated with MULTIPLIER_B
+            const tx2 = await nftBoostVault.updateNft(1, reputationNft2.address);
+
+            const votingPower2 = await nftBoostVault.queryVotePowerView(signers[0].address, tx2.blockNumber);
+            expect(votingPower2).to.be.eq(ONE.mul(MULTIPLIER_B).div(MULTIPLIER_DENOMINATOR));
+        });
+
         it("Reverts if user calls updateNft() with invalid token address", async () => {
             const { arcdToken } = ctxToken;
             const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
@@ -1263,27 +1317,22 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             );
         });
 
-        it("Reverts if user calls updateNft() with ERC1155 that does not have a multiplier", async () => {
-            const { arcdToken } = ctxToken;
+        it("Reverts if user calls updateNft() using NFT with no multiplier", async () => {
             const { signers, nftBoostVault, reputationNft, mintNfts, setMultipliers } = ctxGovernance;
 
             // mint users some ERC1155 nfts
             await mintNfts();
 
-            await setMultipliers();
+            // multipliers are not set
 
-            // signers[1] approves ERC20 tokens and reputationNft to voting vault
-            await arcdToken.connect(signers[1]).approve(nftBoostVault.address, ONE);
-            await reputationNft.connect(signers[1]).setApprovalForAll(nftBoostVault.address, true);
+            // confirm that signers[1] owns reputationNft id 1
+            const userBal = await reputationNft.balanceOf(signers[1].address, 1);
+            expect(userBal).to.be.eq(1);
 
-            // signers[1] deposits ERC20 tokens, reputationNft and delegates to signers[3]
-            await nftBoostVault
-                .connect(signers[1])
-                .addNftAndDelegate(ONE, 1, reputationNft.address, signers[3].address);
-
-            // signers[1] tries to update ERC1155 in their registration that does not have a multplier
-            const tx = nftBoostVault.connect(signers[1]).updateNft(5, reputationNft.address);
-            await expect(tx).to.be.revertedWith(`NBV_NoMultiplierSet()`);
+            // signers[1] tries to add NFT without prior registration
+            await expect(nftBoostVault.connect(signers[1]).updateNft(1, reputationNft.address)).to.be.revertedWith(
+                "NBV_NoMultiplierSet()",
+            );
         });
 
         it("Returns ZERO when _getWithdrawableAmount() is triggered for a non-registration", async () => {
@@ -1435,23 +1484,28 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const multiplierExpiration = blockNumber + 100;
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value higher than limit
-            const tx = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1501);
+            const tx = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1501, multiplierExpiration);
             await expect(tx).to.be.revertedWith(`NBV_MultiplierLimit("high")`);
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value lower than limit
-            const tx2 = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 999);
+            const tx2 = nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 999, multiplierExpiration);
             await expect(tx2).to.be.revertedWith(`NBV_MultiplierLimit("low")`);
         });
 
         it("Reverts if setMultiplier() is called with either token address or id being zero", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
+            // get current block number
+            const blockNumber = await ethers.provider.getBlockNumber();
+            // mulitplier expiration is set to 100 blocks
+            const multiplierExpiration = blockNumber + 100;
+
             await expect(
-                nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 0, 1200),
+                nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 0, 1200, multiplierExpiration),
             ).to.be.revertedWith(`NBV_InvalidNft("${reputationNft.address}", 0)`);
 
             await expect(
-                nftBoostVault.connect(signers[0]).setMultiplier(constants.AddressZero, 1, 1200),
+                nftBoostVault.connect(signers[0]).setMultiplier(constants.AddressZero, 1, 1200, multiplierExpiration),
             ).to.be.revertedWith(`NBV_InvalidNft("${constants.AddressZero}", 1)`);
         });
 
@@ -1516,7 +1570,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(await nftBoostVault.manager()).to.be.eq(signers[5].address);
         });
 
-        it("Correctly updates the value of multiplier", async () => {
+        it("Cannot update NFT multiplier", async () => {
             const { signers, nftBoostVault, reputationNft } = ctxGovernance;
 
             // get current block number
@@ -1532,14 +1586,11 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             await expect(multiplier).to.eq(1200);
 
             // manager updates the value of the multiplier
-            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1400, multiplierExpiration);
-
-            // get new multiplier value
-            const newMultiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(newMultiplier).to.eq(1400);
+            await expect(nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1400, multiplierExpiration))
+                .to.be.revertedWith(`NBV_MultiplierSet(${multiplier}, ${multiplierExpiration})`);
         });
 
-        it("Returns 1e3 if getMultiplier() is called on a token that does not have a multiplier", async () => {
+        it("Returns ZERO if getMultiplier() is called on a token that does not have a multiplier", async () => {
             const { nftBoostVault, reputationNft } = ctxGovernance;
 
             // no multiplier has been set for NFT
@@ -1547,38 +1598,11 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const tx1 = await nftBoostVault.getMultiplier(reputationNft.address, 1);
             expect(tx1).to.eq(0);
 
-            const tx2 = await nftBoostVault.getMultiplier(reputationNft.address, 0);
+            const tx2 = await nftBoostVault.getMultiplier(reputationNft.address, 2);
             expect(tx2).to.eq(0);
 
-            const tx3 = await nftBoostVault.getMultiplier(ethers.constants.AddressZero, 1);
+            const tx3 = await nftBoostVault.getMultiplier(ethers.constants.AddressZero, 3);
             expect(tx3).to.eq(0);
-        });
-
-        it("call to addNftAndDelegate() with a token that does not have a multiplier", async () => {
-            const { arcdToken } = ctxToken;
-            const { signers, nftBoostVault, reputationNft, mintNfts } = ctxGovernance;
-
-            // get current block number
-            const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
-            const multiplierExpiration = blockNumber + 100;
-
-            // manager updates the value of the ERC1155 token multiplier
-            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1200, multiplierExpiration);
-
-            // get new multiplier value
-            const multiplierVal = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            expect(multiplierVal).to.eq(1200);
-
-            // advance past the multiplier expiration
-            for (let i = 0; i < 101; i++) {
-                await ethers.provider.send("evm_mine", []);
-            }
-
-            // no multiplier has been set for reputationNft.address
-            // get reputationNft.address multiplier
-            const multiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(multiplier).to.eq(1000);
         });
 
         it("Call getMultiplierExpiration", async () => {
@@ -1650,17 +1674,14 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             const multiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
             await expect(multiplier).to.eq(1200);
 
-            // get current block number
-            const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
-            const multiplierExpiration = blockNumber + 100;
-
-            // manager updates the value of the multiplier
-            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1400, multiplierExpiration);
+            // advance past multiplier expiration
+            for (let i = 0; i < 101; i++) {
+                await ethers.provider.send("evm_mine", []);
+            }
 
             // get new multiplier value
             const newMultiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(newMultiplier).to.eq(1400);
+            await expect(newMultiplier).to.eq(1000);
 
             const nowBlock = await ethers.provider.getBlock("latest");
 
@@ -1680,12 +1701,9 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
             );
             expect(votingPower1AfterUpdateVP).to.eq(ONE.mul(newMultiplier).div(MULTIPLIER_DENOMINATOR));
 
-            // manager updates the value of the multiplier again, this time reducing it
-            await nftBoostVault.connect(signers[0]).setMultiplier(reputationNft.address, 1, 1100, multiplierExpiration);
-
             // get new multiplier value
             const reducedMultiplier = await nftBoostVault.getMultiplier(reputationNft.address, 1);
-            await expect(reducedMultiplier).to.eq(1100);
+            await expect(reducedMultiplier).to.eq(1000);
 
             // signers[3] voting power value is still the same as pre multiplier updates
             const votingPower3After = await nftBoostVault.queryVotePowerView(signers[3].address, nowBlock.number);

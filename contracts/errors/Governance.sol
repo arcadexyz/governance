@@ -56,6 +56,11 @@ error NBV_MultiplierLimit(string limitType);
 error NBV_NoMultiplierSet();
 
 /**
+ * @notice Multiplier has already been set for the specified ERC1155 token.
+ */
+error NBV_MultiplierSet(uint128 multiplier, uint128 expiration);
+
+/**
  * @notice The provided token address and token id are invalid.
  *
  * @param tokenAddress              The token address provided.

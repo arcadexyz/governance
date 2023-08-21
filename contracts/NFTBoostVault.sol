@@ -28,7 +28,8 @@ import {
     NBV_NotAirdrop,
     NBV_NoRegistration,
     NBV_WrongDelegatee,
-    NBV_InvalidExpiration
+    NBV_InvalidExpiration,
+    NBV_MultiplierSet
 } from "./errors/Governance.sol";
 
 /**
@@ -386,7 +387,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         // cannot modify multiplier or expiration if it is already set
-        if (multiplierData.multiplier != 0 || multiplierData.expiration != 0) revert NBV_NoMultiplierSet();
+        if (multiplierData.multiplier != 0) {
+            revert NBV_MultiplierSet(multiplierData.multiplier, multiplierData.expiration);
+        }
 
         // set multiplier data
         multiplierData.multiplier = multiplierValue;
@@ -446,6 +449,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         if (tokenAddress == address(0) && tokenId == 0) return 1e3;
 
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+
+        // if multiplier is not set, return 0
+        if (multiplierData.expiration == 0) return 0;
 
         // if multiplier is expired, return 1x multiplier
         if (multiplierData.expiration <= block.number) return 1e3;
