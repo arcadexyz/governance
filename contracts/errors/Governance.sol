@@ -16,12 +16,6 @@ pragma solidity 0.8.18;
 /// @notice All errors prefixed with NBV_, to separate from other contracts in governance.
 
 /**
- * @notice Ensure caller ERC1155 token ownership for NFTBoostVault operations.
- *
- */
-error NBV_DoesNotOwn();
-
-/**
  * @notice Ensure caller has not already registered.
  */
 error NBV_HasRegistration();

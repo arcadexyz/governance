@@ -442,30 +442,13 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      * @return                          The token multiplier.
      */
     function getMultiplier(address tokenAddress, uint128 tokenId) public view override returns (uint128) {
-<<<<<<< HEAD
-<<<<<<< HEAD
         // if NFT is not registered, return 1x multiplier
         if (tokenAddress == address(0) && tokenId == 0) return 1e3;
-=======
-=======
-        // if no NFT is registered, return 1x multiplier
-        if (tokenAddress == address(0) && tokenId == 0) return 1e3;
 
->>>>>>> b42b863 (fix: multiplier expirations)
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
->>>>>>> 29338de (fix(boost-vault): add multiplier expiration)
 
-<<<<<<< HEAD
-        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
-
-        // check if the multiplier has expired
-        if (multiplierData.expiration <= block.number) {
-            return 1e3;
-        }
-=======
         // if multiplier is expired, return 1x multiplier
         if (multiplierData.expiration <= block.number) return 1e3;
->>>>>>> b42b863 (fix: multiplier expirations)
 
         return multiplierData.multiplier;
     }
@@ -524,26 +507,9 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         address _tokenAddress,
         address _delegatee
     ) internal {
-<<<<<<< HEAD
-<<<<<<< HEAD
         // check there is a multiplier associated with the ERC1155
         uint128 multiplier = getMultiplier(_tokenAddress, _tokenId);
         if (multiplier == 0) revert NBV_NoMultiplierSet();
-=======
-        uint128 multiplier = 1e3;
-
-        // confirm that the user is a holder of the tokenId and that a multiplier is set for this token
-        if (_tokenAddress != address(0) && _tokenId != 0) {
-            if (IERC1155(_tokenAddress).balanceOf(user, _tokenId) == 0) revert NBV_DoesNotOwn();
-
-            multiplier = getMultiplier(_tokenAddress, _tokenId);
-        }
->>>>>>> 29338de (fix(boost-vault): add multiplier expiration)
-=======
-        // check there is a multiplier associated with the ERC1155
-        uint128 multiplier = getMultiplier(_tokenAddress, _tokenId);
-        if (multiplier == 0) revert NBV_NoMultiplierSet();
->>>>>>> b42b863 (fix: multiplier expirations)
 
         // load this contract's balance storage
         Storage.Uint256 storage balance = _balance();
