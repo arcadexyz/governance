@@ -1153,7 +1153,9 @@ describe("Arcade Treasury", async () => {
                 .connect(MOCK_TIMELOCK)
                 .batchCalls([arcdToken.address, arcdToken.address], [tokenCalldata, tokenCalldata2]);
 
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25489000"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(
+                treasuryAmount.sub(ethers.utils.parseEther("10000")).sub(ethers.utils.parseEther("1000")),
+            );
             expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("10000"));
             expect(await arcdToken.balanceOf(signers[3].address)).to.eq(ethers.utils.parseEther("1000"));
         });
@@ -1175,7 +1177,7 @@ describe("Arcade Treasury", async () => {
                 "T_ArrayLengthMismatch()",
             );
 
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(treasuryAmount);
             expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
         });
 
@@ -1194,7 +1196,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]),
             ).to.be.revertedWith("T_CallFailed()");
 
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(treasuryAmount);
             expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
         });
 
@@ -1215,7 +1217,7 @@ describe("Arcade Treasury", async () => {
                 arcadeTreasury.connect(MOCK_TIMELOCK).batchCalls([arcdToken.address], [tokenCalldata]),
             ).to.be.revertedWith(`T_InvalidTarget("${arcdToken.address}")`);
 
-            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(ethers.utils.parseEther("25500000"));
+            expect(await arcdToken.balanceOf(arcadeTreasury.address)).to.eq(treasuryAmount);
             expect(await arcdToken.balanceOf(MOCK_TIMELOCK.address)).to.eq(ethers.utils.parseEther("0"));
         });
     });

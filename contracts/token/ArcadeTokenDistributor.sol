@@ -13,12 +13,11 @@ import { AT_AlreadySent, AT_ZeroAddress, AT_TokenAlreadySet } from "../errors/To
  * @title Arcade Token Distributor
  * @author Non-Fungible Technologies, Inc.
  *
- * A contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
- * launch partners, community rewards pool, community airdrop contract, the Arcade treasury,
- * and the token's development partner. Once each transfer function has been called, the
- * corresponding flag is set to true and the function cannot be called again. Once all of the
- * flags are set to true, the Arcade Token Distributor contract is no longer needed and should
- * not hold any tokens.
+ * A contract that is responsible for distributing Arcade Tokens (ARCD). Each recipient address
+ * is provided at the time of the distribution function call. Once each distribution function has
+ * been called, the corresponding flag is set to true and the function cannot be called again. Once
+ * all of the flags are set to true, the Arcade Token Distributor contract is no longer needed
+ * and should not hold any tokens.
  */
 contract ArcadeTokenDistributor is Ownable {
     using SafeERC20 for IArcadeToken;
@@ -91,7 +90,7 @@ contract ArcadeTokenDistributor is Ownable {
      *
      * @param _foundationTreasury      The address of the foundation treasury.
      */
-    function toFoundationTreasury(address _foundationTreasury) external onlyOwner {
+    function toFoundationTreasury(address _foundationTreasury) external onlyOwner whenTokenSet {
         if (foundationTreasurySent) revert AT_AlreadySent();
         if (_foundationTreasury == address(0)) revert AT_ZeroAddress("foundationTreasury");
 

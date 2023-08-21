@@ -373,7 +373,13 @@ describe("ArcadeToken", function () {
             await arcdDst.deployed();
 
             // call all the distribution functions
-            await expect(arcdDst.toTreasury(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
+            await expect(arcdDst.toGovernanceTreasury(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toFoundationTreasury(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
 
             await expect(arcdDst.toDevPartner(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
 
@@ -406,6 +412,9 @@ describe("ArcadeToken", function () {
             } = ctxToken;
 
             await expect(arcdDst.connect(other).toGovernanceTreasury(govTreasury.address)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
+            );
+            await expect(arcdDst.connect(other).toFoundationTreasury(govTreasury.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
             await expect(arcdDst.connect(other).toDevPartner(devPartner.address)).to.be.revertedWith(
@@ -609,7 +618,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -630,7 +639,7 @@ describe("ArcadeToken", function () {
 
             expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(recipients[0].value);
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value),
+                totalAirdropAmount.sub(recipients[0].value),
             );
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
 
