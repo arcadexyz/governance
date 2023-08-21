@@ -79,7 +79,7 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
         uint256 staleBlockLag,
         address timelock,
         address manager
-    ) BaseVotingVault(token, staleBlockLag) {
+    ) BaseVotingVaultHistory(token, staleBlockLag) {
         if (timelock == address(0)) revert NBV_ZeroAddress("timelock");
         if (manager == address(0)) revert NBV_ZeroAddress("manager");
 
@@ -185,15 +185,11 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
         // If to address is already the delegate, don't send the tx
         if (to == registration.delegatee) revert NBV_AlreadyDelegated();
 
-        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
+        History.HistoricalBalances memory votingPower = _votingPower();
         uint256 oldDelegateeVotes = votingPower.loadTop(registration.delegatee);
 
         // Remove voting power from old delegatee and emit event
-        votingPower.push(
-            registration.delegatee,
-            oldDelegateeVotes - registration.latestVotingPower,
-            MAX_HISTORY_LENGTH
-        );
+        votingPower.push(registration.delegatee, oldDelegateeVotes - registration.latestVotingPower);
         emit VoteChange(msg.sender, registration.delegatee, -1 * int256(uint256(registration.latestVotingPower)));
 
         // Note - It is important that this is loaded here and not before the previous state change because if
@@ -204,7 +200,7 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
         uint256 addedVotingPower = _currentVotingPower(registration);
 
         // add voting power to the target delegatee and emit event
-        votingPower.push(to, newDelegateeVotes + addedVotingPower, MAX_HISTORY_LENGTH);
+        votingPower.push(to, newDelegateeVotes + addedVotingPower);
 
         // update registration properties
         registration.latestVotingPower = uint128(addedVotingPower);
@@ -554,13 +550,13 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
      */
     function _grantVotingPower(address delegatee, uint128 newVotingPower) internal {
         // update the delegatee's voting power
-        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
+        History.HistoricalBalances memory votingPower = _votingPower();
 
         // loads the most recent timestamp of voting power for this delegate
         uint256 delegateeVotes = votingPower.loadTop(delegatee);
 
         // add block stamp indexed delegation power for this delegate to historical data array
-        votingPower.push(delegatee, delegateeVotes + newVotingPower, MAX_HISTORY_LENGTH);
+        votingPower.push(delegatee, delegateeVotes + newVotingPower);
     }
 
     /**
@@ -612,7 +608,7 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
      * @param registration               The storage pointer to the registration of that user.
      */
     function _syncVotingPower(address who, NFTBoostVaultStorage.Registration storage registration) internal {
-        BoundedHistory.HistoricalBalances memory votingPower = _votingPower();
+        History.HistoricalBalances memory votingPower = _votingPower();
         uint256 delegateeVotes = votingPower.loadTop(registration.delegatee);
 
         uint256 newVotingPower = _currentVotingPower(registration);
@@ -622,10 +618,10 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
         // do nothing if there is no change
         if (change == 0) return;
         if (change > 0) {
-            votingPower.push(registration.delegatee, delegateeVotes + uint256(change), MAX_HISTORY_LENGTH);
+            votingPower.push(registration.delegatee, delegateeVotes + uint256(change));
         } else {
             // if the change is negative, we multiply by -1 to avoid underflow when casting
-            votingPower.push(registration.delegatee, delegateeVotes - uint256(change * -1), MAX_HISTORY_LENGTH);
+            votingPower.push(registration.delegatee, delegateeVotes - uint256(change * -1));
         }
 
         registration.latestVotingPower = uint128(newVotingPower);
