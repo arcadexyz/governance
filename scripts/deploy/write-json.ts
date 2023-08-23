@@ -109,14 +109,20 @@ export async function createInfo(
             BASE_QUORUM,
             MIN_PROPOSAL_POWER_CORE_VOTING,
             ethers.constants.AddressZero,
-            [],
+            [teamVestingVaultAddress, partnerVestingVaultAddress, nftBoostVaultAddress],
             true,
         ],
     };
 
     contractInfo["ArcadeGSCCoreVoting"] = {
         contractAddress: arcadeGSCCoreVotingAddress,
-        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM_GSC, MIN_PROPOSAL_POWER_GSC, ethers.constants.AddressZero, []],
+        constructorArgs: [
+            ADMIN_ADDRESS,
+            BASE_QUORUM_GSC,
+            MIN_PROPOSAL_POWER_GSC,
+            ethers.constants.AddressZero,
+            [arcadeGSCVaultAddress],
+        ],
     };
 
     contractInfo["Timelock"] = {

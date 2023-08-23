@@ -116,6 +116,10 @@ export async function main(
     const tx5 = await arcadeToken.setMinter(arcadeCoreVoting.address);
     await tx5.wait();
 
+    // set spend thresholds in ArcadeTreasury
+    console.log("Setting spend thresholds in ArcadeTreasury...");
+    // TODO: set spend thresholds
+
     // change min lock time for GSC proposals from 3 days to 8 hours
     console.log("Changing min lock time for GSC proposals from 3 days to 8 hours...");
     const tx6 = await arcadeGSCCoreVoting.setLockDuration(GSC_MIN_LOCK_DURATION);

@@ -275,6 +275,7 @@ describe("Deployment", function () {
         for (let contractName of Object.keys(deployment)) {
             const contractData = deployment[contractName];
 
+            if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "ArcadeCoreVoting";
             if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
 
             const artifact = await artifacts.readArtifact(contractName);
