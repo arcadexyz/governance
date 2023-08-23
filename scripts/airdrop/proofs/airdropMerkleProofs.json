@@ -1,0 +1,16 @@
+[
+  {
+    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+    "value": 10000,
+    "proof": [
+      "0xda291ff0136e178fe21d7112108acf8488ff34f8ac96c884a9d77f2fc031d02a"
+    ]
+  },
+  {
+    "address": "0x0734d56DA60852A03e2Aafae8a36FFd8c12B32f1",
+    "value": 1000,
+    "proof": [
+      "0x42d71c24abce7363614ca26c14ac23ae91f834d22dad4a71e1fe0e08a65f375e"
+    ]
+  }
+]
