@@ -1,18 +1,14 @@
 [
-  {
-    "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-    "value": 1,
-    "tokenId": 1,
-    "proof": [
-      "0x83ac908ab1830261bf6dd3b1f0c2ad7b926f62722d5d51bb50ebc9a61b45c7bc"
-    ]
-  },
-  {
-    "address": "0x0734d56DA60852A03e2Aafae8a36FFd8c12B32f1",
-    "value": 1,
-    "tokenId": 1,
-    "proof": [
-      "0x3c8d7dcecdfdd13700b73f8be57f7c974b35ce3d8ae2a816c8fb011b9b09fd6e"
-    ]
-  }
+    {
+        "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        "value": 1,
+        "tokenId": 1,
+        "proof": ["0x83ac908ab1830261bf6dd3b1f0c2ad7b926f62722d5d51bb50ebc9a61b45c7bc"]
+    },
+    {
+        "address": "0x0734d56DA60852A03e2Aafae8a36FFd8c12B32f1",
+        "value": 1,
+        "tokenId": 1,
+        "proof": ["0x3c8d7dcecdfdd13700b73f8be57f7c974b35ce3d8ae2a816c8fb011b9b09fd6e"]
+    }
 ]

@@ -47,7 +47,10 @@ export async function main() {
     const proofs = await Promise.all(
         repBadgeData.map(async account => {
             const proof = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256", "uint256"], [account.address, account.tokenId, account.amount]),
+                ethers.utils.solidityKeccak256(
+                    ["address", "uint256", "uint256"],
+                    [account.address, account.tokenId, account.amount],
+                ),
             );
 
             return {
