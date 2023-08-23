@@ -53,9 +53,13 @@ export const APPROVE_LARGE_SPEND_QUORUM = CV_HIGH_QUORUM;
 
 // TreasuryTimelock?
 
-// NFTBoostVault - unlock?
+// NFTBoostVault - unlock
+export const UNLOCK = "0xa69df4b5";
+export const UNLOCK_QUORUM = CV_HIGH_QUORUM;
 
-// NFTBoostVault - setAirdropContract?
+// NFTBoostVault - setAirdropContract
+export const SET_AIRDROP_CONTRACT = "0x6f011538";
+export const SET_AIRDROP_CONTRACT_QUORUM = CV_HIGH_QUORUM;
 
 /////// V3 Lending Protocol ///////
 
@@ -67,9 +71,6 @@ export const LOAN_CORE_ADDR = "0x8a2E4795B395B6eE9A04284a6074539753bfAbF8";
 // LoanCore - pause
 export const PAUSE = "0x8456cb59";
 export const PAUSE_QUORUM = GSC_HIGH_QUORUM;
-// LoanCore - unpause
-export const UNPAUSE = "0x3f4ba83a";
-export const UNPAUSE_QUORUM = GSC_HIGH_QUORUM;
 
 // OriginationController - setAllowedVerifiers - UPDATE FUNCTION SELECTOR ONCE DEPLOYED!!
 export const SET_ALLOWED_VERIFIERS = "0x04b86147";

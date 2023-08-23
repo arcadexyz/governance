@@ -1,17 +1,17 @@
 import assert from "assert";
 import { expect } from "chai";
 import { execSync } from "child_process";
-import { ethers, artifacts } from "hardhat";
+import { artifacts, ethers } from "hardhat";
 
 import {
     ARCDVestingVault,
     ArcadeAirdrop,
+    ArcadeCoreVoting,
     ArcadeGSCCoreVoting,
     ArcadeGSCVault,
     ArcadeToken,
     ArcadeTokenDistributor,
     ArcadeTreasury,
-    ArcadeCoreVoting,
     ImmutableVestingVault,
     NFTBoostVault,
     ReputationBadge,
@@ -28,8 +28,6 @@ import {
     ORIGINATION_CONTROLLER_ADDR,
     PAUSE,
     PAUSE_QUORUM,
-    UNPAUSE,
-    UNPAUSE_QUORUM,
     SET_ALLOWED_PAYABLE_CURRENCIES,
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     SET_ALLOWED_VERIFIERS,
@@ -51,7 +49,7 @@ import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI }
  * Note: Against normal conventions, these tests are interdependent and meant
  * to run sequentially. Each subsequent test relies on the state of the previous.
  *
- * To run these this script use:
+ * To run this script use:
  * `yarn clean && yarn compile && npx hardhat test scripts/deploy/test/e2e.ts --network <networkName>`
  */
 assert(NETWORK !== "hardhat", "Must use a long-lived network!");
@@ -143,7 +141,7 @@ describe("Deployment", function () {
         /**
          * Verify all the governance setup transactions were executed properly
          */
-        console.log("Verifying governance setup...")
+        console.log("Verifying governance setup...");
 
         const arcadeTokenDistributor = <ArcadeTokenDistributor>(
             await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
@@ -158,17 +156,8 @@ describe("Deployment", function () {
             await ethers.getContractAt("ArcadeGSCCoreVoting", deployment["ArcadeGSCCoreVoting"].contractAddress)
         );
         const timelock = <Timelock>await ethers.getContractAt("Timelock", deployment["Timelock"].contractAddress);
-        const teamVestingVault = <ARCDVestingVault>(
-            await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
-        );
-        const partnerVestingVault = <ImmutableVestingVault>(
-            await ethers.getContractAt("ImmutableVestingVault", deployment["ImmutableVestingVault"].contractAddress)
-        );
         const nftBoostVault = <NFTBoostVault>(
             await ethers.getContractAt("NFTBoostVault", deployment["NFTBoostVault"].contractAddress)
-        );
-        const arcadeGSCVault = <ArcadeGSCVault>(
-            await ethers.getContractAt("ArcadeGSCVault", deployment["ArcadeGSCVault"].contractAddress)
         );
         const arcadeTreasury = <ArcadeTreasury>(
             await ethers.getContractAt("ArcadeTreasury", deployment["ArcadeTreasury"].contractAddress)
@@ -182,7 +171,7 @@ describe("Deployment", function () {
 
         // ArcadeAirdrop
         expect(await arcadeAirdrop.rewardsRoot()).to.equal(AIRDROP_MERKLE_ROOT);
-        expect(await arcadeAirdrop.expiration).to.equal(AIRDROP_EXPIRATION);
+        expect(await arcadeAirdrop.expiration()).to.equal(AIRDROP_EXPIRATION);
 
         // NFTBoostVault
         expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
@@ -199,38 +188,23 @@ describe("Deployment", function () {
         // ArcadeTokenDistributor
         expect(await arcadeTokenDistributor.arcadeToken()).to.equal(arcadeToken.address);
 
-        // CoreVoting approved voting vaults
-        expect(await arcadeCoreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);
-        expect(await arcadeCoreVoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
-        expect(await arcadeCoreVoting.approvedVaults(nftBoostVault.address)).to.equal(true);
-
-        // ArcadeGSCCoreVoting approved voting vaults
-        expect(await arcadeGSCCoreVoting.approvedVaults(arcadeGSCVault.address)).to.equal(true);
-
         // GSCCoreVoting minimum lock duration
         expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);
 
-        // CoreVoting custom quorums
-        expect(await arcadeCoreVoting.quorums(arcadeToken.address, MINT_TOKENS)).to.equal(
-            ethers.utils.parseEther(MINT_TOKENS_QUORUM),
-        );
-        expect(await arcadeCoreVoting.quorums(arcadeToken.address, SET_MINTER)).to.equal(
-            ethers.utils.parseEther(SET_MINTER_QUORUM),
-        );
-        expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, MEDIUM_SPEND)).to.equal(
-            ethers.utils.parseEther(MEDIUM_SPEND_QUORUM),
-        );
-        expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, LARGE_SPEND)).to.equal(
-            ethers.utils.parseEther(LARGE_SPEND_QUORUM),
-        );
+        // ArcadeCoreVoting custom quorums
+        expect(await arcadeCoreVoting.quorums(arcadeToken.address, MINT_TOKENS)).to.equal(MINT_TOKENS_QUORUM);
+        expect(await arcadeCoreVoting.quorums(arcadeToken.address, SET_MINTER)).to.equal(SET_MINTER_QUORUM);
+        expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, MEDIUM_SPEND)).to.equal(MEDIUM_SPEND_QUORUM);
+        expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, LARGE_SPEND)).to.equal(LARGE_SPEND_QUORUM);
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIERS)).to.equal(
-            ethers.utils.parseEther(SET_ALLOWED_VERIFIERS_QUORUM),
+            SET_ALLOWED_VERIFIERS_QUORUM,
         );
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
-            ethers.utils.parseEther(SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM),
+            SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
         );
-        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(ethers.utils.parseEther(PAUSE_QUORUM));
-        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, UNPAUSE)).to.equal(ethers.utils.parseEther(UNPAUSE_QUORUM));
+
+        // ArcadeGSCCoreVoting custom quorums
+        expect(await arcadeGSCCoreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(PAUSE_QUORUM);
 
         // CoreVoting authorized address
         expect(await arcadeCoreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
@@ -255,9 +229,9 @@ describe("Deployment", function () {
         ).to.equal(true);
 
         // ArcadeTreasury CORE_VOTING_ROLE
-        expect(await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), arcadeCoreVoting.address)).to.equal(
-            true,
-        );
+        expect(
+            await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), arcadeCoreVoting.address),
+        ).to.equal(true);
 
         // ArcadeTreasury ADMIN_ROLE
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address)).to.equal(true);
@@ -279,9 +253,7 @@ describe("Deployment", function () {
         ).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), timelock.address)).to.equal(
-            true,
-        );
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), timelock.address)).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE was renounced by deployer
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
@@ -303,7 +275,6 @@ describe("Deployment", function () {
         for (let contractName of Object.keys(deployment)) {
             const contractData = deployment[contractName];
 
-            if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "ArcadeCoreVoting";
             if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
 
             const artifact = await artifacts.readArtifact(contractName);

@@ -96,7 +96,6 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "test": "hardhat test",
     "test-deploy": "hardhat clean && hardhat compile && hardhat test scripts/deploy/test/e2e.ts",
-    "test-distribute": "hardhat test scripts/deploy/test/distribute.ts",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
     "prepare": "husky install"
   },

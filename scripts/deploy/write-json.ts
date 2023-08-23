@@ -1,8 +1,8 @@
 import { BigNumberish } from "ethers";
 import fs from "fs";
 import hre from "hardhat";
-import path from "path";
 import { ethers } from "hardhat";
+import path from "path";
 
 import {
     ADMIN_ADDRESS,
@@ -21,7 +21,7 @@ import {
 
 export interface ContractData {
     contractAddress: string;
-    constructorArgs: BigNumberish[];
+    constructorArgs: any[];
 }
 
 export interface DeploymentData {
@@ -36,7 +36,7 @@ export async function writeJson(
     timelockAddress: string,
     teamVestingVaultAddress: string,
     partnerVestingVaultAddress: string,
-    NFTBoostVaultAddress: string,
+    nftBoostVaultAddress: string,
     arcadeGSCVaultAddress: string,
     arcadeTreasuryAddress: string,
     arcadeAirdropAddress: string,
@@ -62,7 +62,7 @@ export async function writeJson(
         timelockAddress,
         teamVestingVaultAddress,
         partnerVestingVaultAddress,
-        NFTBoostVaultAddress,
+        nftBoostVaultAddress,
         arcadeGSCVaultAddress,
         arcadeTreasuryAddress,
         arcadeAirdropAddress,
@@ -83,7 +83,7 @@ export async function createInfo(
     timelockAddress: string,
     teamVestingVaultAddress: string,
     partnerVestingVaultAddress: string,
-    NFTBoostVaultAddress: string,
+    nftBoostVaultAddress: string,
     arcadeGSCVaultAddress: string,
     arcadeTreasuryAddress: string,
     arcadeAirdropAddress: string,
@@ -104,7 +104,14 @@ export async function createInfo(
 
     contractInfo["ArcadeCoreVoting"] = {
         contractAddress: arcadeCoreVotingAddress,
-        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM, MIN_PROPOSAL_POWER_CORE_VOTING, ethers.constants.AddressZero, [], 1],
+        constructorArgs: [
+            ADMIN_ADDRESS,
+            BASE_QUORUM,
+            MIN_PROPOSAL_POWER_CORE_VOTING,
+            ethers.constants.AddressZero,
+            [],
+            true,
+        ],
     };
 
     contractInfo["ArcadeGSCCoreVoting"] = {
@@ -128,7 +135,7 @@ export async function createInfo(
     };
 
     contractInfo["NFTBoostVault"] = {
-        contractAddress: NFTBoostVaultAddress,
+        contractAddress: nftBoostVaultAddress,
         constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, timelockAddress, NFT_BOOST_VAULT_MANAGER],
     };
 
@@ -149,7 +156,7 @@ export async function createInfo(
             ethers.constants.HashZero,
             arcadeTokenAddress,
             AIRDROP_EXPIRATION,
-            NFTBoostVaultAddress,
+            nftBoostVaultAddress,
         ],
     };
 

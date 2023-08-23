@@ -2,6 +2,11 @@ import { ethers } from "hardhat";
 
 import { SECTION_SEPARATOR, getLatestDeployment } from "./test/utils";
 
+/**
+ * To run this script use:
+ * `yarn clean && yarn compile && npx hardhat test scripts/deploy/distribute-tokens.ts --network <networkName>`
+ */
+
 export async function main() {
     console.log(SECTION_SEPARATOR);
 

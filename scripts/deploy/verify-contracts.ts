@@ -12,11 +12,11 @@ async function verifyArtifacts(contractName: string, contractAddress: string, co
     const address = contractAddress;
 
     try {
-        if (contractName === "CoreVoting") {
+        if (contractName === "ArcadeCoreVoting") {
             await hre.run("verify:verify", {
                 address,
                 constructorArguments: constructorArgs,
-                contract: `contracts/external/council/CoreVoting.sol:CoreVoting`,
+                contract: `contracts/ArcadeCoreVoting.sol:ArcadeCoreVoting`,
             });
         }
         if (contractName === "ArcadeGSCCoreVoting") {
