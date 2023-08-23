@@ -2,6 +2,7 @@ import { BigNumberish } from "ethers";
 import fs from "fs";
 import hre from "hardhat";
 import path from "path";
+import { ethers } from "hardhat";
 
 import {
     ADMIN_ADDRESS,
@@ -13,7 +14,6 @@ import {
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
     NFT_BOOST_VAULT_MANAGER,
-    REPUTATION_BADGE_ADMIN,
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
@@ -31,7 +31,7 @@ export interface DeploymentData {
 export async function writeJson(
     arcadeTokenDistributorAddress: string,
     arcadeTokenAddress: string,
-    coreVotingAddress: string,
+    arcadeCoreVotingAddress: string,
     arcadeGSCCoreVotingAddress: string,
     timelockAddress: string,
     teamVestingVaultAddress: string,
@@ -57,7 +57,7 @@ export async function writeJson(
     const contractInfo = await createInfo(
         arcadeTokenDistributorAddress,
         arcadeTokenAddress,
-        coreVotingAddress,
+        arcadeCoreVotingAddress,
         arcadeGSCCoreVotingAddress,
         timelockAddress,
         teamVestingVaultAddress,
@@ -78,7 +78,7 @@ export async function writeJson(
 export async function createInfo(
     arcadeTokenDistributorAddress: string,
     arcadeTokenAddress: string,
-    coreVotingAddress: string,
+    arcadeCoreVotingAddress: string,
     arcadeGSCCoreVotingAddress: string,
     timelockAddress: string,
     teamVestingVaultAddress: string,
@@ -102,9 +102,9 @@ export async function createInfo(
         constructorArgs: [ADMIN_ADDRESS, arcadeTokenDistributorAddress],
     };
 
-    contractInfo["CoreVoting"] = {
-        contractAddress: coreVotingAddress,
-        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM, MIN_PROPOSAL_POWER_CORE_VOTING, ethers.constants.AddressZero, []],
+    contractInfo["ArcadeCoreVoting"] = {
+        contractAddress: arcadeCoreVotingAddress,
+        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM, MIN_PROPOSAL_POWER_CORE_VOTING, ethers.constants.AddressZero, [], 1],
     };
 
     contractInfo["ArcadeGSCCoreVoting"] = {
@@ -134,7 +134,7 @@ export async function createInfo(
 
     contractInfo["ArcadeGSCVault"] = {
         contractAddress: arcadeGSCVaultAddress,
-        constructorArgs: [coreVotingAddress, GSC_THRESHOLD, timelockAddress],
+        constructorArgs: [arcadeCoreVotingAddress, GSC_THRESHOLD, timelockAddress],
     };
 
     contractInfo["ArcadeTreasury"] = {
@@ -160,7 +160,7 @@ export async function createInfo(
 
     contractInfo["ReputationBadge"] = {
         contractAddress: reputationBadgeAddress,
-        constructorArgs: [REPUTATION_BADGE_ADMIN, badgeDescriptorAddress],
+        constructorArgs: [ADMIN_ADDRESS, badgeDescriptorAddress],
     };
 
     return contractInfo;

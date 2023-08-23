@@ -1,7 +1,7 @@
 import assert from "assert";
 import { expect } from "chai";
 import { execSync } from "child_process";
-import { ethers } from "hardhat";
+import { ethers, artifacts } from "hardhat";
 
 import {
     ARCDVestingVault,
@@ -11,19 +11,13 @@ import {
     ArcadeToken,
     ArcadeTokenDistributor,
     ArcadeTreasury,
-    CoreVoting,
+    ArcadeCoreVoting,
     ImmutableVestingVault,
     NFTBoostVault,
     ReputationBadge,
     Timelock,
-} from "../../../typechain";
+} from "../../../src/types";
 import {
-    ADD_APPROVAL,
-    ADD_APPROVAL_QUORUM,
-    ADD_CALL,
-    ADD_CALL_QUORUM,
-    CALL_WHITELIST_ADDR,
-    CALL_WHITELIST_APPROVALS_ADDR,
     LARGE_SPEND,
     LARGE_SPEND_QUORUM,
     LOAN_CORE_ADDR,
@@ -34,28 +28,22 @@ import {
     ORIGINATION_CONTROLLER_ADDR,
     PAUSE,
     PAUSE_QUORUM,
+    UNPAUSE,
+    UNPAUSE_QUORUM,
     SET_ALLOWED_PAYABLE_CURRENCIES,
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
-    SET_ALLOWED_VERIFIER,
-    SET_ALLOWED_VERIFIER_BATCH,
-    SET_ALLOWED_VERIFIER_BATCH_QUORUM,
-    SET_ALLOWED_VERIFIER_QUORUM,
-    SET_FEE_CONTROLLER,
-    SET_FEE_CONTROLLER_QUORUM,
+    SET_ALLOWED_VERIFIERS,
+    SET_ALLOWED_VERIFIERS_QUORUM,
     SET_MINTER,
     SET_MINTER_QUORUM,
 } from "../custom-quorum-params";
 import {
     ADMIN_ADDRESS,
+    AIRDROP_EXPIRATION,
     AIRDROP_MERKLE_ROOT,
-    BASE_QUORUM,
-    BASE_QUORUM_GSC,
     GSC_MIN_LOCK_DURATION,
-    MIN_PROPOSAL_POWER_CORE_VOTING,
-    REPUTATION_BADGE_ADMIN,
     REPUTATION_BADGE_MANAGER,
     REPUTATION_BADGE_RESOURCE_MANAGER,
-    STALE_BLOCK_LAG,
 } from "../deployment-params";
 import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI } from "./utils";
 
@@ -91,9 +79,9 @@ describe("Deployment", function () {
         expect(deployment["ArcadeToken"].contractAddress).to.exist;
         expect(deployment["ArcadeToken"].constructorArgs.length).to.eq(2);
 
-        expect(deployment["CoreVoting"]).to.exist;
-        expect(deployment["CoreVoting"].contractAddress).to.exist;
-        expect(deployment["CoreVoting"].constructorArgs.length).to.eq(5);
+        expect(deployment["ArcadeCoreVoting"]).to.exist;
+        expect(deployment["ArcadeCoreVoting"].contractAddress).to.exist;
+        expect(deployment["ArcadeCoreVoting"].constructorArgs.length).to.eq(6);
 
         expect(deployment["ArcadeGSCCoreVoting"]).to.exist;
         expect(deployment["ArcadeGSCCoreVoting"].contractAddress).to.exist;
@@ -155,14 +143,16 @@ describe("Deployment", function () {
         /**
          * Verify all the governance setup transactions were executed properly
          */
+        console.log("Verifying governance setup...")
+
         const arcadeTokenDistributor = <ArcadeTokenDistributor>(
             await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
         );
         const arcadeToken = <ArcadeToken>(
             await ethers.getContractAt("ArcadeToken", deployment["ArcadeToken"].contractAddress)
         );
-        const coreVoting = <CoreVoting>(
-            await ethers.getContractAt("CoreVoting", deployment["CoreVoting"].contractAddress)
+        const arcadeCoreVoting = <ArcadeCoreVoting>(
+            await ethers.getContractAt("ArcadeCoreVoting", deployment["ArcadeCoreVoting"].contractAddress)
         );
         const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>(
             await ethers.getContractAt("ArcadeGSCCoreVoting", deployment["ArcadeGSCCoreVoting"].contractAddress)
@@ -190,100 +180,97 @@ describe("Deployment", function () {
             await ethers.getContractAt("ReputationBadge", deployment["ReputationBadge"].contractAddress)
         );
 
-        // check ArcadeAirdrop merkle root
+        // ArcadeAirdrop
         expect(await arcadeAirdrop.rewardsRoot()).to.equal(AIRDROP_MERKLE_ROOT);
+        expect(await arcadeAirdrop.expiration).to.equal(AIRDROP_EXPIRATION);
 
-        // make sure the nftBoostVault has the correct airdrop contract set
-        expect(await nftBoostVault.getAirdropContract()).to.equal(deployment["ArcadeAirdrop"].contractAddress);
+        // NFTBoostVault
+        expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
 
-        // Make sure ArcadeTokenDistributor has the correct token for distribution set
-        expect(await arcadeTokenDistributor.arcadeToken()).to.equal(deployment["ArcadeToken"].contractAddress);
+        // ArcadeGSCVault
+        expect(await arcadeTokenDistributor.arcadeToken()).to.equal(arcadeToken.address);
 
-        // ArcadeToken has the correct minter address
-        expect(await arcadeToken.minter()).to.equal(deployment["CoreVoting"].contractAddress);
-
-        // check the arcade token distributed the initial supply to the distributor
+        // ArcadeToken
+        expect(await arcadeToken.minter()).to.equal(arcadeCoreVoting.address);
         expect(await arcadeToken.balanceOf(arcadeTokenDistributor.address)).to.equal(
             ethers.utils.parseEther("100000000"),
         );
 
-        // verify correct voting vaults for CoreVoting
-        expect(await coreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);
-        expect(await coreVoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
-        expect(await coreVoting.approvedVaults(nftBoostVault.address)).to.equal(true);
+        // ArcadeTokenDistributor
+        expect(await arcadeTokenDistributor.arcadeToken()).to.equal(arcadeToken.address);
 
-        // verify correct voting vaults for ArcadeGSCCoreVoting
+        // CoreVoting approved voting vaults
+        expect(await arcadeCoreVoting.approvedVaults(teamVestingVault.address)).to.equal(true);
+        expect(await arcadeCoreVoting.approvedVaults(partnerVestingVault.address)).to.equal(true);
+        expect(await arcadeCoreVoting.approvedVaults(nftBoostVault.address)).to.equal(true);
+
+        // ArcadeGSCCoreVoting approved voting vaults
         expect(await arcadeGSCCoreVoting.approvedVaults(arcadeGSCVault.address)).to.equal(true);
 
-        // verify GSCCoreVoting has the correct minimum lock duration
+        // GSCCoreVoting minimum lock duration
         expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);
 
-        // check custom quorums in CoreVoting
-        expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, MINT_TOKENS)).to.equal(
-            MINT_TOKENS_QUORUM,
+        // CoreVoting custom quorums
+        expect(await arcadeCoreVoting.quorums(arcadeToken.address, MINT_TOKENS)).to.equal(
+            ethers.utils.parseEther(MINT_TOKENS_QUORUM),
         );
-        expect(await coreVoting.quorums(deployment["ArcadeToken"].contractAddress, SET_MINTER)).to.equal(
-            SET_MINTER_QUORUM,
+        expect(await arcadeCoreVoting.quorums(arcadeToken.address, SET_MINTER)).to.equal(
+            ethers.utils.parseEther(SET_MINTER_QUORUM),
         );
-        expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, MEDIUM_SPEND)).to.equal(
-            MEDIUM_SPEND_QUORUM,
+        expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, MEDIUM_SPEND)).to.equal(
+            ethers.utils.parseEther(MEDIUM_SPEND_QUORUM),
         );
-        expect(await coreVoting.quorums(deployment["ArcadeTreasury"].contractAddress, LARGE_SPEND)).to.equal(
-            LARGE_SPEND_QUORUM,
+        expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, LARGE_SPEND)).to.equal(
+            ethers.utils.parseEther(LARGE_SPEND_QUORUM),
         );
-        expect(await coreVoting.quorums(CALL_WHITELIST_ADDR, ADD_CALL)).to.equal(ADD_CALL_QUORUM);
-        expect(await coreVoting.quorums(CALL_WHITELIST_APPROVALS_ADDR, ADD_APPROVAL)).to.equal(ADD_APPROVAL_QUORUM);
-        expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIER)).to.equal(
-            SET_ALLOWED_VERIFIER_QUORUM,
+        expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIERS)).to.equal(
+            ethers.utils.parseEther(SET_ALLOWED_VERIFIERS_QUORUM),
         );
-        expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIER_BATCH)).to.equal(
-            SET_ALLOWED_VERIFIER_BATCH_QUORUM,
+        expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
+            ethers.utils.parseEther(SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM),
         );
-        expect(await coreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
-            SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
-        );
-        expect(await coreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(PAUSE_QUORUM);
-        expect(await coreVoting.quorums(LOAN_CORE_ADDR, SET_FEE_CONTROLLER)).to.equal(SET_FEE_CONTROLLER_QUORUM);
+        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(ethers.utils.parseEther(PAUSE_QUORUM));
+        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, UNPAUSE)).to.equal(ethers.utils.parseEther(UNPAUSE_QUORUM));
 
-        // check authorized addresses in CoreVoting
-        expect(await coreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
-        expect(await coreVoting.authorized(deployment["ArcadeGSCCoreVoting"].contractAddress)).to.equal(true);
+        // CoreVoting authorized address
+        expect(await arcadeCoreVoting.authorized(ADMIN_ADDRESS)).to.equal(false);
+        expect(await arcadeCoreVoting.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
 
-        // check CoreVoting owner
-        expect(await coreVoting.owner()).to.equal(timelock.address);
+        // CoreVoting owner
+        expect(await arcadeCoreVoting.owner()).to.equal(timelock.address);
 
-        // Make sure Timelock has the correct owner
-        expect(await timelock.owner()).to.equal(coreVoting.address);
+        // Timelock owner
+        expect(await timelock.owner()).to.equal(arcadeCoreVoting.address);
 
-        // check authorized addresses in Timelock
+        // Timelock authorized address
         expect(await timelock.authorized(ADMIN_ADDRESS)).to.equal(false);
         expect(await timelock.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
 
-        // check ArcadeGSCCoreVoting owner
+        // ArcadeGSCCoreVoting owner
         expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
 
-        // check ArcadeTreasury GSC_CORE_VOTING_ROLE
+        // ArcadeTreasury GSC_CORE_VOTING_ROLE
         expect(
             await arcadeTreasury.hasRole(await arcadeTreasury.GSC_CORE_VOTING_ROLE(), arcadeGSCCoreVoting.address),
         ).to.equal(true);
 
-        // check ArcadeTreasury CORE_VOTING_ROLE
-        expect(await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address)).to.equal(
+        // ArcadeTreasury CORE_VOTING_ROLE
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.CORE_VOTING_ROLE(), arcadeCoreVoting.address)).to.equal(
             true,
         );
 
-        // check ArcadeTreasury ADMIN_ROLE
+        // ArcadeTreasury ADMIN_ROLE
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address)).to.equal(true);
 
-        // check ArcadeTreasury ADMIN_ROLE was renounced by deployer
+        // ArcadeTreasury ADMIN_ROLE was renounced by deployer
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
 
-        // check the ReputationBadge has the correct BADGE_MANAGER_ROLE
+        // ReputationBadge BADGE_MANAGER_ROLE
         expect(
             await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER),
         ).to.equal(true);
 
-        // check the ReputationBadge has the correct RESOURCE_MANAGER_ROLE
+        // ReputationBadge RESOURCE_MANAGER_ROLE
         expect(
             await reputationBadge.hasRole(
                 await reputationBadge.RESOURCE_MANAGER_ROLE(),
@@ -291,12 +278,12 @@ describe("Deployment", function () {
             ),
         ).to.equal(true);
 
-        // check the ReputationBadge has the correct ADMIN_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN)).to.equal(
+        // ReputationBadge ADMIN_ROLE
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), timelock.address)).to.equal(
             true,
         );
 
-        // check the ReputationBadge ADMIN_ROLE was renounced by deployer
+        // ReputationBadge ADMIN_ROLE was renounced by deployer
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS)).to.equal(false);
     });
 
@@ -316,7 +303,7 @@ describe("Deployment", function () {
         for (let contractName of Object.keys(deployment)) {
             const contractData = deployment[contractName];
 
-            if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "CoreVoting";
+            if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "ArcadeCoreVoting";
             if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
 
             const artifact = await artifacts.readArtifact(contractName);

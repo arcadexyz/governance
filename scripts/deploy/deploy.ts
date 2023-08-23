@@ -7,13 +7,14 @@ import {
     ArcadeToken,
     ArcadeTokenDistributor,
     BadgeDescriptor,
-    CoreVoting,
+    ArcadeCoreVoting,
+    ArcadeGSCCoreVoting,
     ImmutableVestingVault,
     NFTBoostVault,
     ReputationBadge,
     Timelock,
-    Treasury,
-} from "../../typechain";
+    ArcadeTreasury,
+} from "../../src/types";
 import {
     ADMIN_ADDRESS,
     AIRDROP_EXPIRATION,
@@ -24,7 +25,6 @@ import {
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
     NFT_BOOST_VAULT_MANAGER,
-    REPUTATION_BADGE_ADMIN,
     STALE_BLOCK_LAG,
     TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
@@ -35,14 +35,14 @@ import { writeJson } from "./write-json";
 export interface DeployedResources {
     arcadeTokenDistributor: ArcadeTokenDistributor;
     arcadeToken: ArcadeToken;
-    coreVoting: CoreVoting;
-    arcadeGSCCoreVoting: CoreVoting;
+    arcadeCoreVoting: ArcadeCoreVoting;
+    arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     timelock: Timelock;
     teamVestingVault: ARCDVestingVault;
     partnerVestingVault: ImmutableVestingVault;
     NFTBoostVault: NFTBoostVault;
     arcadeGSCVault: ArcadeGSCVault;
-    ArcadeTreasury: Treasury;
+    arcadeTreasury: ArcadeTreasury;
     arcadeAirdrop: ArcadeAirdrop;
     badgeDescriptor: BadgeDescriptor;
     reputationBadge: ReputationBadge;
@@ -83,17 +83,18 @@ export async function main(): Promise<DeployedResources> {
     // // ======= CORE VOTING =======
 
     // core voting
-    const CoreVotingFactory = await ethers.getContractFactory("CoreVoting");
-    const coreVoting = await CoreVotingFactory.deploy(
+    const ArcadeCoreVotingFactory = await ethers.getContractFactory("ArcadeCoreVoting");
+    const arcadeCoreVoting = await ArcadeCoreVotingFactory.deploy(
         ADMIN_ADDRESS,
         BASE_QUORUM,
         MIN_PROPOSAL_POWER_CORE_VOTING,
         ethers.constants.AddressZero,
         [],
+        true
     );
-    await coreVoting.deployed();
-    const coreVotingAddress = coreVoting.address;
-    console.log("CoreVoting deployed to:", coreVotingAddress);
+    await arcadeCoreVoting.deployed();
+    const arcadeCoreVotingAddress = arcadeCoreVoting.address;
+    console.log("ArcadeCoreVoting deployed to:", arcadeCoreVotingAddress);
     console.log(SUBSECTION_SEPARATOR);
 
     // GSC cote voting
@@ -161,7 +162,11 @@ export async function main(): Promise<DeployedResources> {
 
     // GSC vault
     const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
-    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, GSC_THRESHOLD, timelock.address);
+    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(
+        arcadeCoreVoting.address,
+        GSC_THRESHOLD,
+        timelock.address
+    );
     await arcadeGSCVault.deployed();
     const arcadeGSCVaultAddress = arcadeGSCVault.address;
     console.log("ArcadeGSCVault deployed to:", arcadeGSCVaultAddress);
@@ -184,13 +189,12 @@ export async function main(): Promise<DeployedResources> {
 
     // airdrop
     const ArcadeAirdropFactory = await ethers.getContractFactory("ArcadeAirdrop");
-    // deploy with high gas limit
     const arcadeAirdrop = await ArcadeAirdropFactory.deploy(
         ADMIN_ADDRESS,
         ethers.constants.HashZero,
-        arcadeTokenAddress,
+        arcadeToken.address,
         AIRDROP_EXPIRATION,
-        NFTBoostVaultAddress,
+        NFTBoostVault.address,
     );
     await arcadeAirdrop.deployed();
     const arcadeAirdropAddress = arcadeAirdrop.address;
@@ -217,7 +221,7 @@ export async function main(): Promise<DeployedResources> {
     await writeJson(
         arcadeTokenDistributorAddress,
         arcadeTokenAddress,
-        coreVotingAddress,
+        arcadeCoreVotingAddress,
         arcadeGSCCoreVotingAddress,
         timelockAddress,
         teamVestingVaultAddress,
@@ -235,7 +239,7 @@ export async function main(): Promise<DeployedResources> {
     return {
         arcadeTokenDistributor,
         arcadeToken,
-        coreVoting,
+        arcadeCoreVoting,
         arcadeGSCCoreVoting,
         timelock,
         teamVestingVault,
