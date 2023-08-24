@@ -208,7 +208,7 @@ export const governanceFixture = (arcdToken: ArcadeToken): (() => Promise<TestCo
         const setMultipliers = async (): Promise<Multipliers> => {
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // manager sets the value of the reputation NFT multiplier

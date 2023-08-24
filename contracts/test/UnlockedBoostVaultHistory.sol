@@ -452,8 +452,8 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
     /**
      * @notice A function to access the storage of the nft's multiplier expiration.
      *
-     * @param tokenAddress              The address of the token
-     * @param tokenId                   The token id
+     * @param tokenAddress              The address of the token.
+     * @param tokenId                   The token ID.
      *
      * @return                          The multiplier's expiration.
      */
@@ -669,7 +669,7 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
 
     /**
      * @notice An internal function for locking a user's ERC20 tokens in this contract
-     *         for participation in governance. Calls _lockNft function if and ERC1155
+     *         for participation in governance. Calls _lockNft function if an ERC1155
      *         token address and ID are specified.
      *
      * @param from                      Address tokens are transferred from.

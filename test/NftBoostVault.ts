@@ -1018,7 +1018,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // manager sets the value of the reputation NFT multiplier
@@ -1458,7 +1458,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // manager updates the value of the ERC1155 token multiplier
@@ -1474,7 +1474,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value higher than limit
@@ -1495,7 +1495,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             await expect(
@@ -1512,7 +1512,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to current block
+            // multiplier expiration is set to current block
             const multiplierExpiration = blockNumber;
 
             // manager tries to update the value of the ERC1155 token multiplier w/ value higher than limit
@@ -1527,7 +1527,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // manager sets the value of the multiplier for ERC1155's token id 1
@@ -1550,7 +1550,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // non-manager account to try to update the value of the token address multiplier
@@ -1573,7 +1573,7 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
 
             // get current block number
             const blockNumber = await ethers.provider.getBlockNumber();
-            // mulitplier expiration is set to 100 blocks
+            // multiplier expiration is set to 100 blocks
             const multiplierExpiration = blockNumber + 100;
 
             // manager sets the value of the token address multiplier

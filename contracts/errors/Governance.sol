@@ -111,14 +111,6 @@ error NBV_WrongDelegatee(address newDelegate, address currentDelegate);
  */
 error NBV_InvalidExpiration();
 
-// =================================== FROZEN LOCKING VAULT =====================================
-/// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
-
-/**
- * @notice Withdraws from vault are frozen.
- */
-error FLV_WithdrawsFrozen();
-
 // ==================================== VESTING VOTING VAULT ======================================
 /// @notice All errors prefixed with AVV_, to separate from other contracts in governance.
 
@@ -180,7 +172,8 @@ error AVV_InvalidAmount();
  */
 error AVV_ZeroAddress(string addressType);
 
-// ==================================== IMMUTABLE VESTING VAULT ======================================
+// =================================== IMMUTABLE VESTING VAULT ===================================
+/// @notice All errors prefixed with IVV_, to separate from other contracts in governance.
 
 /**
  * @notice Grants cannot be revoked from the immutable vesting vault.
@@ -188,6 +181,7 @@ error AVV_ZeroAddress(string addressType);
 error IVV_ImmutableGrants();
 
 // ====================================== BASE VOTING VAULT ======================================
+/// @notice All errors prefixed with BVV_, to separate from other contracts in governance.
 
 /**
  * @notice Caller is not the manager.
