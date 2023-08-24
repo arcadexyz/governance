@@ -21,6 +21,8 @@ interface INFTBoostVault {
 
     function getMultiplier(address tokenAddress, uint128 tokenId) external view returns (uint128);
 
+    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view returns (uint128);
+
     function getAirdropContract() external view returns (address);
 
     /**
