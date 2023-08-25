@@ -16,12 +16,6 @@ pragma solidity 0.8.18;
 /// @notice All errors prefixed with NBV_, to separate from other contracts in governance.
 
 /**
- * @notice Ensure caller ERC1155 token ownership for NFTBoostVault operations.
- *
- */
-error NBV_DoesNotOwn();
-
-/**
  * @notice Ensure caller has not already registered.
  */
 error NBV_HasRegistration();
@@ -60,6 +54,11 @@ error NBV_MultiplierLimit(string limitType);
  * @notice No multiplier has been set for the specified ERC1155 token.
  */
 error NBV_NoMultiplierSet();
+
+/**
+ * @notice Multiplier has already been set for the specified ERC1155 token.
+ */
+error NBV_MultiplierSet(uint128 multiplier, uint128 expiration);
 
 /**
  * @notice The provided token address and token id are invalid.
@@ -107,13 +106,10 @@ error NBV_NotAirdrop();
  */
 error NBV_WrongDelegatee(address newDelegate, address currentDelegate);
 
-// =================================== FROZEN LOCKING VAULT =====================================
-/// @notice All errors prefixed with FLV_, to separate from other contracts in governance.
-
 /**
- * @notice Withdraws from vault are frozen.
+ * @notice The multiplier expiration provided has already passed.
  */
-error FLV_WithdrawsFrozen();
+error NBV_InvalidExpiration();
 
 // ==================================== VESTING VOTING VAULT ======================================
 /// @notice All errors prefixed with AVV_, to separate from other contracts in governance.
@@ -176,7 +172,8 @@ error AVV_InvalidAmount();
  */
 error AVV_ZeroAddress(string addressType);
 
-// ==================================== IMMUTABLE VESTING VAULT ======================================
+// =================================== IMMUTABLE VESTING VAULT ===================================
+/// @notice All errors prefixed with IVV_, to separate from other contracts in governance.
 
 /**
  * @notice Grants cannot be revoked from the immutable vesting vault.
@@ -184,6 +181,7 @@ error AVV_ZeroAddress(string addressType);
 error IVV_ImmutableGrants();
 
 // ====================================== BASE VOTING VAULT ======================================
+/// @notice All errors prefixed with BVV_, to separate from other contracts in governance.
 
 /**
  * @notice Caller is not the manager.

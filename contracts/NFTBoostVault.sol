@@ -27,7 +27,9 @@ import {
     NBV_AlreadyUnlocked,
     NBV_NotAirdrop,
     NBV_NoRegistration,
-    NBV_WrongDelegatee
+    NBV_WrongDelegatee,
+    NBV_InvalidExpiration,
+    NBV_MultiplierSet
 } from "./errors/Governance.sol";
 
 /**
@@ -42,14 +44,8 @@ import {
  * ERC1155 address and tokenId to a multiplier, they are able to delegate their voting
  * power for participation in governance.
  *
- * This contract is Simple Proxy upgradeable which is the upgradeability system used for voting
- * vaults in Council.
- *
  * @dev There is no emergency withdrawal in this contract, any funds not sent via
  *      addNftAndDelegate() are unrecoverable by this version of the NFTBoostVault.
- *
- *      This contract is a proxy so we use the custom state management system from
- *      storage and return the following as methods to isolate that call.
  */
 contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     using SafeERC20 for IERC20;
@@ -361,24 +357,39 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     /**
      * @notice An onlyManager function for setting the multiplier value associated with an ERC1155
      *         contract address. The provided multiplier value must be less than or equal to 1.5x
-     *         and greater than or equal to 1x.
+     *         and greater than or equal to 1x. Every multiplier value has an associated expiration
+     *         timestamp. Once a multiplier expires, the multiplier for the ERC1155 returns 1x.
+     *         Once a multiplier is set, it cannot be modified.
      *
      * @param tokenAddress              ERC1155 token address to set the multiplier for.
      * @param tokenId                   The token ID of the ERC1155 for which the multiplier is being set.
      * @param multiplierValue           The multiplier value corresponding to the token address and ID.
-     *
+     * @param expiration                The timestamp at which the multiplier expires.
      */
-    function setMultiplier(address tokenAddress, uint128 tokenId, uint128 multiplierValue) public override onlyManager {
+    function setMultiplier(
+        address tokenAddress,
+        uint128 tokenId,
+        uint128 multiplierValue,
+        uint128 expiration
+    ) public override onlyManager {
         if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit("high");
         if (multiplierValue < 1e3) revert NBV_MultiplierLimit("low");
+        if (expiration <= block.timestamp) revert NBV_InvalidExpiration();
 
         if (tokenAddress == address(0) || tokenId == 0) revert NBV_InvalidNft(tokenAddress, tokenId);
 
-        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
-        // set multiplier value
-        multiplierData.multiplier = multiplierValue;
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
-        emit MultiplierSet(tokenAddress, tokenId, multiplierValue);
+        // cannot modify multiplier data if it is already set
+        if (multiplierData.multiplier != 0) {
+            revert NBV_MultiplierSet(multiplierData.multiplier, multiplierData.expiration);
+        }
+
+        // set multiplier data
+        multiplierData.multiplier = multiplierValue;
+        multiplierData.expiration = expiration;
+
+        emit MultiplierSet(tokenAddress, tokenId, multiplierValue, expiration);
     }
 
     /**
@@ -431,9 +442,29 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         // if NFT is not registered, return 1x multiplier
         if (tokenAddress == address(0) && tokenId == 0) return 1e3;
 
-        NFTBoostVaultStorage.AddressUintUint storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+
+        // if multiplier is not set, return 0
+        if (multiplierData.expiration == 0) return 0;
+
+        // if multiplier has expired, return 1x multiplier
+        if (multiplierData.expiration <= block.timestamp) return 1e3;
 
         return multiplierData.multiplier;
+    }
+
+    /**
+     * @notice A function to access the storage of the nft's multiplier expiration.
+     *
+     * @param tokenAddress              The address of the token.
+     * @param tokenId                   The token ID.
+     *
+     * @return                          The multiplier's expiration.
+     */
+    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view override returns (uint128) {
+        NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
+
+        return multiplierData.expiration;
     }
 
     /**
@@ -642,7 +673,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
     /**
      * @notice An internal function for locking a user's ERC20 tokens in this contract
-     *         for participation in governance. Calls _lockNft function if and ERC1155
+     *         for participation in governance. Calls _lockNft function if an ERC1155
      *         token address and ID are specified.
      *
      * @param from                      Address tokens are transferred from.
@@ -678,10 +709,10 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
     function _getMultipliers()
         internal
         pure
-        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.AddressUintUint)) storage)
+        returns (mapping(address => mapping(uint128 => NFTBoostVaultStorage.MultiplierData)) storage)
     {
         // This call returns a storage mapping with a unique non overwrite-able storage layout.
-        return NFTBoostVaultStorage.mappingAddressToPackedUintUint("multipliers");
+        return NFTBoostVaultStorage.mappingAddressToMultiplierData("multipliers");
     }
 
     /** @dev A function to handles the receipt of a single ERC1155 token. This function is called
