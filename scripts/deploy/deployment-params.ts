@@ -1,10 +1,11 @@
 import { ethers } from "hardhat";
 
-export const ADMIN_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // deployer wallet
+export const DEPLOYER_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1";
 
-export const DISTRIBUTION_MULTISIG = ADMIN_ADDRESS;
-export const TEAM_VESTING_VAULT_MANAGER = ADMIN_ADDRESS;
-export const NFT_BOOST_VAULT_MANAGER = ADMIN_ADDRESS;
+export const MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
+export const FOUNDATION_MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
+export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
+export const NFT_BOOST_VAULT_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 
 export const TIMELOCK_WAIT_TIME = 19488; // ~3 days in blocks (3 days allows for a grace period that is longer than a weekend)
 export const GSC_MIN_LOCK_DURATION = 2165; // ~8 hours in blocks
@@ -22,6 +23,3 @@ export const AIRDROP_EXPIRATION = 1695501783; // ~3 months, unix timestamp for a
 export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero; // change to actual merkle root
 
 export const BADGE_DESCRIPTOR_BASE_URI = "https://arcade.xyz/"; // base uri for badge descriptors
-
-export const REPUTATION_BADGE_MANAGER = ADMIN_ADDRESS;
-export const REPUTATION_BADGE_RESOURCE_MANAGER = ADMIN_ADDRESS;

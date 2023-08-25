@@ -12,6 +12,13 @@ async function verifyArtifacts(contractName: string, contractAddress: string, co
     const address = contractAddress;
 
     try {
+        if (contractName === "NFTBoostVault") {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+                contract: `contracts/NFTBoostVault.sol:NFTBoostVault`,
+            });
+        }
         if (contractName === "ArcadeCoreVoting") {
             await hre.run("verify:verify", {
                 address,

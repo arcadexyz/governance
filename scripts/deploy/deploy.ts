@@ -16,18 +16,18 @@ import {
     Timelock,
 } from "../../src/types";
 import {
-    ADMIN_ADDRESS,
     AIRDROP_EXPIRATION,
     BADGE_DESCRIPTOR_BASE_URI,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
+    DEPLOYER_ADDRESS,
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
     NFT_BOOST_VAULT_MANAGER,
     STALE_BLOCK_LAG,
-    TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
+    VESTING_MANAGER,
 } from "./deployment-params";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { writeJson } from "./write-json";
@@ -57,22 +57,20 @@ export async function main(): Promise<DeployedResources> {
     // ================= TOKEN + AIRDROP =================
 
     console.log(SECTION_SEPARATOR);
-    console.log("Deploying ARCD token and Distributor contracts...");
+    console.log("Deploying ARCD token and ArcadeTokenDistributor contracts...");
 
     // token distributor
     const ArcadeTokenDistributorFactory = await ethers.getContractFactory("ArcadeTokenDistributor");
     const arcadeTokenDistributor = <ArcadeTokenDistributor>await ArcadeTokenDistributorFactory.deploy();
     await arcadeTokenDistributor.deployed();
-    const arcadeTokenDistributorAddress = arcadeTokenDistributor.address;
-    console.log("ArcadeTokenDistributor deployed to:", arcadeTokenDistributorAddress);
+    console.log("ArcadeTokenDistributor deployed to:", arcadeTokenDistributor.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // token
     const ArcadeTokenFactory = await ethers.getContractFactory("ArcadeToken");
-    const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(ADMIN_ADDRESS, arcadeTokenDistributor.address);
+    const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(DEPLOYER_ADDRESS, arcadeTokenDistributor.address);
     await arcadeToken.deployed();
-    const arcadeTokenAddress = arcadeToken.address;
-    console.log("ArcadeToken deployed to:", arcadeTokenAddress);
+    console.log("ArcadeToken deployed to:", arcadeToken.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ================= GOVERNANCE =================
@@ -84,10 +82,9 @@ export async function main(): Promise<DeployedResources> {
 
     // timelock
     const TimelockFactory = await ethers.getContractFactory("Timelock");
-    const timelock = await TimelockFactory.deploy(TIMELOCK_WAIT_TIME, ADMIN_ADDRESS, ADMIN_ADDRESS);
+    const timelock = await TimelockFactory.deploy(TIMELOCK_WAIT_TIME, DEPLOYER_ADDRESS, DEPLOYER_ADDRESS);
     await timelock.deployed();
-    const timelockAddress = timelock.address;
-    console.log("Timelock deployed to:", timelockAddress);
+    console.log("Timelock deployed to:", timelock.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ======= VAULTS =======
@@ -97,12 +94,11 @@ export async function main(): Promise<DeployedResources> {
     const teamVestingVault = await TeamVestingVaultFactory.deploy(
         arcadeToken.address,
         STALE_BLOCK_LAG,
-        TEAM_VESTING_VAULT_MANAGER,
+        VESTING_MANAGER,
         timelock.address,
     );
     await teamVestingVault.deployed();
-    const teamVestingVaultAddress = teamVestingVault.address;
-    console.log("ARCDVestingVault deployed to:", teamVestingVaultAddress);
+    console.log("ARCDVestingVault deployed to:", teamVestingVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ImmutableVestingVault
@@ -110,12 +106,11 @@ export async function main(): Promise<DeployedResources> {
     const partnerVestingVault = await PartnerVestingVaultFactory.deploy(
         arcadeToken.address,
         STALE_BLOCK_LAG,
-        TEAM_VESTING_VAULT_MANAGER,
+        VESTING_MANAGER,
         timelock.address,
     );
     await partnerVestingVault.deployed();
-    const partnerVestingVaultAddress = partnerVestingVault.address;
-    console.log("ImmutableVestingVault deployed to:", partnerVestingVaultAddress);
+    console.log("ImmutableVestingVault deployed to:", partnerVestingVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // NFTBoostVault
@@ -123,12 +118,11 @@ export async function main(): Promise<DeployedResources> {
     const nftBoostVault = await NFTBoostVaultFactory.deploy(
         arcadeToken.address,
         STALE_BLOCK_LAG,
-        timelock.address,
-        NFT_BOOST_VAULT_MANAGER,
+        DEPLOYER_ADDRESS,
+        DEPLOYER_ADDRESS,
     );
     await nftBoostVault.deployed();
-    const nftBoostVaultAddress = nftBoostVault.address;
-    console.log("NFTBoostVault deployed to:", nftBoostVaultAddress);
+    console.log("NFTBoostVault deployed to:", nftBoostVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ======= ARCADE CORE VOTING =======
@@ -136,7 +130,7 @@ export async function main(): Promise<DeployedResources> {
     // arcade core voting
     const ArcadeCoreVotingFactory = await ethers.getContractFactory("ArcadeCoreVoting");
     const arcadeCoreVoting = await ArcadeCoreVotingFactory.deploy(
-        ADMIN_ADDRESS,
+        DEPLOYER_ADDRESS,
         BASE_QUORUM,
         MIN_PROPOSAL_POWER_CORE_VOTING,
         ethers.constants.AddressZero,
@@ -144,8 +138,7 @@ export async function main(): Promise<DeployedResources> {
         true,
     );
     await arcadeCoreVoting.deployed();
-    const arcadeCoreVotingAddress = arcadeCoreVoting.address;
-    console.log("ArcadeCoreVoting deployed to:", arcadeCoreVotingAddress);
+    console.log("ArcadeCoreVoting deployed to:", arcadeCoreVoting.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ======= ARCADE GSC CORE VOTING =======
@@ -158,84 +151,79 @@ export async function main(): Promise<DeployedResources> {
         timelock.address,
     );
     await arcadeGSCVault.deployed();
-    const arcadeGSCVaultAddress = arcadeGSCVault.address;
-    console.log("ArcadeGSCVault deployed to:", arcadeGSCVaultAddress);
+    console.log("ArcadeGSCVault deployed to:", arcadeGSCVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // GSC cote voting
     const ArcadeGSCCoreVotingFactory = await ethers.getContractFactory("ArcadeGSCCoreVoting");
     const arcadeGSCCoreVoting = await ArcadeGSCCoreVotingFactory.deploy(
-        ADMIN_ADDRESS,
+        DEPLOYER_ADDRESS,
         BASE_QUORUM_GSC,
         MIN_PROPOSAL_POWER_GSC,
         ethers.constants.AddressZero,
         [arcadeGSCVault.address],
     );
     await arcadeGSCCoreVoting.deployed();
-    const arcadeGSCCoreVotingAddress = arcadeGSCCoreVoting.address;
-    console.log("ArcadeGSCCoreVoting deployed to:", arcadeGSCCoreVotingAddress);
+    console.log("ArcadeGSCCoreVoting deployed to:", arcadeGSCCoreVoting.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ================= TREASURY =================
 
     // treasury
     const ArcadeTreasuryFactory = await ethers.getContractFactory("ArcadeTreasury");
-    const arcadeTreasury = await ArcadeTreasuryFactory.deploy(ADMIN_ADDRESS);
+    const arcadeTreasury = await ArcadeTreasuryFactory.deploy(DEPLOYER_ADDRESS);
     await arcadeTreasury.deployed();
-    const arcadeTreasuryAddress = arcadeTreasury.address;
-    console.log("ArcadeTreasury deployed to:", arcadeTreasuryAddress);
+    console.log("ArcadeTreasury deployed to:", arcadeTreasury.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ================== AIRDROP ==================
 
     console.log(SECTION_SEPARATOR);
-    console.log("Deploying Airdrop...");
+    console.log("Deploying Airdrop contract...");
 
     // airdrop
     const ArcadeAirdropFactory = await ethers.getContractFactory("ArcadeAirdrop");
     const arcadeAirdrop = await ArcadeAirdropFactory.deploy(
-        ADMIN_ADDRESS,
+        DEPLOYER_ADDRESS,
         ethers.constants.HashZero,
         arcadeToken.address,
         AIRDROP_EXPIRATION,
         nftBoostVault.address,
     );
     await arcadeAirdrop.deployed();
-    const arcadeAirdropAddress = arcadeAirdrop.address;
-    console.log("ArcadeAirdrop deployed to:", arcadeAirdropAddress);
-    console.log(SECTION_SEPARATOR);
+    console.log("ArcadeAirdrop deployed to:", arcadeAirdrop.address);
 
     // =============== REPUTATION BADGE ===============
+    console.log(SECTION_SEPARATOR);
+    console.log("Deploying ReputationBadge contracts...");
 
     const BadgeDescriptorFactory = await ethers.getContractFactory("BadgeDescriptor");
     const badgeDescriptor = await BadgeDescriptorFactory.deploy(BADGE_DESCRIPTOR_BASE_URI);
     await badgeDescriptor.deployed();
-    const badgeDescriptorAddress = badgeDescriptor.address;
-    console.log("BadgeDescriptor deployed to:", badgeDescriptorAddress);
+    console.log("BadgeDescriptor deployed to:", badgeDescriptor.address);
 
     const ReputationBadgeFactory = await ethers.getContractFactory("ReputationBadge");
-    const reputationBadge = await ReputationBadgeFactory.deploy(ADMIN_ADDRESS, badgeDescriptorAddress);
+    const reputationBadge = await ReputationBadgeFactory.deploy(DEPLOYER_ADDRESS, badgeDescriptor.address);
     await reputationBadge.deployed();
-    const reputationBadgeAddress = reputationBadge.address;
-    console.log("ReputationBadge deployed to:", reputationBadgeAddress);
+    console.log("ReputationBadge deployed to:", reputationBadge.address);
+    console.log(SECTION_SEPARATOR);
 
     // ================= SAVE ARTIFACTS =================
 
-    console.log("Writing deployment artifacts...");
     await writeJson(
-        arcadeTokenDistributorAddress,
-        arcadeTokenAddress,
-        arcadeCoreVotingAddress,
-        arcadeGSCCoreVotingAddress,
-        timelockAddress,
-        teamVestingVaultAddress,
-        partnerVestingVaultAddress,
-        nftBoostVaultAddress,
-        arcadeGSCVaultAddress,
-        arcadeTreasuryAddress,
-        arcadeAirdropAddress,
-        badgeDescriptorAddress,
-        reputationBadgeAddress,
+        arcadeTokenDistributor.address,
+        arcadeToken.address,
+        arcadeCoreVoting.address,
+        arcadeGSCCoreVoting.address,
+        timelock.address,
+        teamVestingVault.address,
+        partnerVestingVault.address,
+        nftBoostVault.address,
+        arcadeGSCVault.address,
+        arcadeTreasury.address,
+        arcadeAirdrop.address,
+        badgeDescriptor.address,
+        reputationBadge.address,
     );
 
     console.log(SECTION_SEPARATOR);
