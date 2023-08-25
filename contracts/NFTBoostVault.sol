@@ -380,7 +380,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
 
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
-        // cannot modify multiplier or expiration if it is already set
+        // cannot modify multiplier data if it is already set
         if (multiplierData.multiplier != 0) {
             revert NBV_MultiplierSet(multiplierData.multiplier, multiplierData.expiration);
         }
@@ -461,7 +461,7 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
      *
      * @return                          The multiplier's expiration.
      */
-    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view returns (uint128) {
+    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view override returns (uint128) {
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         return multiplierData.expiration;

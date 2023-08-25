@@ -354,13 +354,13 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
      * @notice An onlyManager function for setting the multiplier value associated with an ERC1155
      *         contract address. The provided multiplier value must be less than or equal to 1.5x
      *         and greater than or equal to 1x. Every multiplier value has an associated expiration
-     *         block number. Once a multiplier expires, the multiplier for the ERC1155 returns 1x.
+     *         timestamp. Once a multiplier expires, the multiplier for the ERC1155 returns 1x.
      *         Once a multiplier is set, it cannot be modified.
      *
      * @param tokenAddress              ERC1155 token address to set the multiplier for.
      * @param tokenId                   The token ID of the ERC1155 for which the multiplier is being set.
      * @param multiplierValue           The multiplier value corresponding to the token address and ID.
-     * @param expiration                The block number at which the multiplier expires.
+     * @param expiration                The timestamp at which the multiplier expires.
      */
     function setMultiplier(
         address tokenAddress,
@@ -370,13 +370,13 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
     ) public override onlyManager {
         if (multiplierValue > MAX_MULTIPLIER) revert NBV_MultiplierLimit("high");
         if (multiplierValue < 1e3) revert NBV_MultiplierLimit("low");
-        if (expiration <= block.number) revert NBV_InvalidExpiration();
+        if (expiration <= block.timestamp) revert NBV_InvalidExpiration();
 
         if (tokenAddress == address(0) || tokenId == 0) revert NBV_InvalidNft(tokenAddress, tokenId);
 
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
-        // cannot modify multiplier or expiration if it is already set
+        // cannot modify multiplier data if it is already set
         if (multiplierData.multiplier != 0) {
             revert NBV_MultiplierSet(multiplierData.multiplier, multiplierData.expiration);
         }
@@ -443,8 +443,8 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
         // if multiplier is not set, return 0
         if (multiplierData.expiration == 0) return 0;
 
-        // if multiplier is expired, return 1x multiplier
-        if (multiplierData.expiration <= block.number) return 1e3;
+        // if multiplier has expired, return 1x multiplier
+        if (multiplierData.expiration <= block.timestamp) return 1e3;
 
         return multiplierData.multiplier;
     }
@@ -457,7 +457,7 @@ contract UnlockedBoostVaultHistory is INFTBoostVault, BaseVotingVaultHistory {
      *
      * @return                          The multiplier's expiration.
      */
-    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view returns (uint128) {
+    function getMultiplierExpiration(address tokenAddress, uint128 tokenId) external view override returns (uint128) {
         NFTBoostVaultStorage.MultiplierData storage multiplierData = _getMultipliers()[tokenAddress][tokenId];
 
         return multiplierData.expiration;
