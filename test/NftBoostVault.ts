@@ -28,9 +28,10 @@ describe("Governance Operations with NFT Boost Voting Vault", async () => {
         const { signers } = ctxGovernance;
 
         // mint tokens take tokens from the distributor for use in tests
+        const partnerVestingAmount = await arcdDst.vestingPartnerAmount();
         await expect(await arcdDst.connect(deployer).toPartnerVesting(signers[0].address))
             .to.emit(arcdDst, "Distribute")
-            .withArgs(arcdToken.address, signers[0].address, ethers.utils.parseEther("32700000"));
+            .withArgs(arcdToken.address, signers[0].address, partnerVestingAmount);
         expect(await arcdDst.vestingPartnerSent()).to.be.true;
 
         // transfer tokens to signers and approve locking vault to spend

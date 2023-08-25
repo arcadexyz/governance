@@ -13,12 +13,11 @@ import { AT_AlreadySent, AT_ZeroAddress, AT_TokenAlreadySet } from "../errors/To
  * @title Arcade Token Distributor
  * @author Non-Fungible Technologies, Inc.
  *
- * A contract that is responsible for the distribution of Arcade Tokens to the Arcade team,
- * launch partners, community rewards pool, community airdrop contract, the Arcade treasury,
- * and the token's development partner. Once each transfer function has been called, the
- * corresponding flag is set to true and the function cannot be called again. Once all of the
- * flags are set to true, the Arcade Token Distributor contract is no longer needed and should
- * not hold any tokens.
+ * A contract that is responsible for distributing Arcade Tokens (ARCD). Each recipient address
+ * is provided at the time of the distribution function call. Once each distribution function has
+ * been called, the corresponding flag is set to true and the function cannot be called again. Once
+ * all of the flags are set to true, the Arcade Token Distributor contract is no longer needed
+ * and should not hold any tokens.
  */
 contract ArcadeTokenDistributor is Ownable {
     using SafeERC20 for IArcadeToken;
@@ -28,34 +27,39 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice The Arcade Token contract to be used in token distribution.
     IArcadeToken public arcadeToken;
 
-    /// @notice 25.5% of initial distribution is for the treasury
-    uint256 public constant treasuryAmount = 25_500_000 ether;
-    /// @notice A flag to indicate if the treasury has already been transferred to
-    bool public treasurySent;
+    /// @notice 25.1% of initial distribution is for the governance treasury
+    uint256 public constant governanceTreasuryAmount = 25_100_000 ether;
+    /// @notice A flag to indicate if the governance treasury has already been transferred to
+    bool public governanceTreasurySent;
 
-    /// @notice 0.6% of initial distribution is for the token development partner
-    uint256 public constant devPartnerAmount = 600_000 ether;
+    /// @notice 10% of initial distribution is for the foundation treasury
+    uint256 public constant foundationTreasuryAmount = 10_000_000 ether;
+    /// @notice A flag to indicate if the foundation treasury has already been transferred to
+    bool public foundationTreasurySent;
+
+    /// @notice 1.081284% of initial distribution is for the token development partner
+    uint256 public constant devPartnerAmount = 1_081_284 ether;
     /// @notice A flag to indicate if the token development partner has already been transferred to.
     bool public devPartnerSent;
 
-    /// @notice 15% of initial distribution is for the community rewards pool
-    uint256 public constant communityRewardsAmount = 15_000_000 ether;
+    /// @notice 9% of initial distribution is for the community rewards pool
+    uint256 public constant communityRewardsAmount = 9_000_000 ether;
     /// @notice A flag to indicate if the community rewards pool has already been transferred to
     bool public communityRewardsSent;
 
-    /// @notice 10% of initial distribution is for the community airdrop contract
-    uint256 public constant communityAirdropAmount = 10_000_000 ether;
+    /// @notice 6% of initial distribution is for the community airdrop contract
+    uint256 public constant communityAirdropAmount = 6_000_000 ether;
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
-    /// @notice 16.2% of initial distribution is for the Arcade team
-    uint256 public constant vestingTeamAmount = 16_200_000 ether;
-    /// @notice A flag to indicate if the launch partners have already been transferred to
+    /// @notice 15.61262% of initial distribution is for the Arcade team vesting
+    uint256 public constant vestingTeamAmount = 15_612_620 ether;
+    /// @notice A flag to indicate if the Arcade team vesting have already been transferred to
     bool public vestingTeamSent;
 
-    /// @notice 32.7% of initial distribution is for Arcade's launch partners
-    uint256 public constant vestingPartnerAmount = 32_700_000 ether;
-    /// @notice A flag to indicate if the Arcade team has already been transferred to
+    /// @notice 33.206096% of initial distribution is for Arcade's launch partner vesting
+    uint256 public constant vestingPartnerAmount = 33_206_096 ether;
+    /// @notice A flag to indicate if Arcade's launch partner vesting has already been transferred to
     bool public vestingPartnerSent;
 
     // ============================================ EVENTS ==============================================
@@ -66,19 +70,35 @@ contract ArcadeTokenDistributor is Ownable {
     // ======================================== DISTRIBUTION OPS ========================================
 
     /**
-     * @notice Transfers a predetermined amount of Arcade Tokens to the treasury.
+     * @notice Transfers a predetermined amount of Arcade Tokens to the governance treasury.
      *
-     * @param _treasury                The address of the Arcade treasury.
+     * @param _governanceTreasury                The address of the Arcade governance treasury.
      */
-    function toTreasury(address _treasury) external onlyOwner whenTokenSet {
-        if (treasurySent) revert AT_AlreadySent();
-        if (_treasury == address(0)) revert AT_ZeroAddress("treasury");
+    function toGovernanceTreasury(address _governanceTreasury) external onlyOwner whenTokenSet {
+        if (governanceTreasurySent) revert AT_AlreadySent();
+        if (_governanceTreasury == address(0)) revert AT_ZeroAddress("govTreasury");
 
-        treasurySent = true;
+        governanceTreasurySent = true;
 
-        arcadeToken.safeTransfer(_treasury, treasuryAmount);
+        arcadeToken.safeTransfer(_governanceTreasury, governanceTreasuryAmount);
 
-        emit Distribute(address(arcadeToken), _treasury, treasuryAmount);
+        emit Distribute(address(arcadeToken), _governanceTreasury, governanceTreasuryAmount);
+    }
+
+    /**
+     * @notice Transfers a predetermined amount of Arcade Tokens to the foundation treasury.
+     *
+     * @param _foundationTreasury      The address of the foundation treasury.
+     */
+    function toFoundationTreasury(address _foundationTreasury) external onlyOwner whenTokenSet {
+        if (foundationTreasurySent) revert AT_AlreadySent();
+        if (_foundationTreasury == address(0)) revert AT_ZeroAddress("foundationTreasury");
+
+        foundationTreasurySent = true;
+
+        arcadeToken.safeTransfer(_foundationTreasury, foundationTreasuryAmount);
+
+        emit Distribute(address(arcadeToken), _foundationTreasury, foundationTreasuryAmount);
     }
 
     /**

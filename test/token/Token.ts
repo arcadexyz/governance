@@ -12,6 +12,7 @@ const { loadFixture } = waffle;
 describe("ArcadeToken", function () {
     let ctxToken: TestContextToken;
     let fixtureToken: () => Promise<TestContextToken>;
+    const totalAirdropAmount = ethers.utils.parseEther("6000000");
 
     beforeEach(async function () {
         fixtureToken = await loadFixture(tokenFixture);
@@ -29,7 +30,8 @@ describe("ArcadeToken", function () {
         it("Check the initial state of the transfer booleans", async () => {
             const { arcdDst } = ctxToken;
 
-            expect(await arcdDst.treasurySent()).to.be.false;
+            expect(await arcdDst.governanceTreasurySent()).to.be.false;
+            expect(await arcdDst.foundationTreasurySent()).to.be.false;
             expect(await arcdDst.devPartnerSent()).to.be.false;
             expect(await arcdDst.communityRewardsSent()).to.be.false;
             expect(await arcdDst.communityAirdropSent()).to.be.false;
@@ -275,7 +277,8 @@ describe("ArcadeToken", function () {
                 arcdToken,
                 arcdDst,
                 deployer,
-                treasury,
+                govTreasury,
+                foundationTreasury,
                 devPartner,
                 communityRewardsPool,
                 arcdAirdrop,
@@ -283,41 +286,46 @@ describe("ArcadeToken", function () {
                 vestingPartner,
             } = ctxToken;
 
-            await expect(await arcdDst.connect(deployer).toTreasury(treasury.address))
+            await expect(await arcdDst.connect(deployer).toGovernanceTreasury(govTreasury.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, treasury.address, ethers.utils.parseEther("25500000"));
+                .withArgs(arcdToken.address, govTreasury.address, ethers.utils.parseEther("25100000"));
+            await expect(await arcdDst.connect(deployer).toFoundationTreasury(foundationTreasury.address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, foundationTreasury.address, ethers.utils.parseEther("10000000"));
             await expect(await arcdDst.connect(deployer).toDevPartner(devPartner.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, devPartner.address, ethers.utils.parseEther("600000"));
+                .withArgs(arcdToken.address, devPartner.address, ethers.utils.parseEther("1081284"));
             await expect(await arcdDst.connect(deployer).toCommunityRewards(communityRewardsPool.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, communityRewardsPool.address, ethers.utils.parseEther("15000000"));
+                .withArgs(arcdToken.address, communityRewardsPool.address, ethers.utils.parseEther("9000000"));
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("6000000"));
             await expect(await arcdDst.connect(deployer).toPartnerVesting(vestingPartner.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, vestingPartner.address, ethers.utils.parseEther("32700000"));
+                .withArgs(arcdToken.address, vestingPartner.address, ethers.utils.parseEther("33206096"));
             await expect(await arcdDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, vestingTeamMultisig.address, ethers.utils.parseEther("16200000"));
+                .withArgs(arcdToken.address, vestingTeamMultisig.address, ethers.utils.parseEther("15612620"));
 
-            expect(await arcdDst.treasurySent()).to.be.true;
+            expect(await arcdDst.governanceTreasurySent()).to.be.true;
+            expect(await arcdDst.foundationTreasurySent()).to.be.true;
             expect(await arcdDst.devPartnerSent()).to.be.true;
             expect(await arcdDst.communityRewardsSent()).to.be.true;
             expect(await arcdDst.communityAirdropSent()).to.be.true;
             expect(await arcdDst.vestingTeamSent()).to.be.true;
             expect(await arcdDst.vestingPartnerSent()).to.be.true;
 
-            expect(await arcdToken.balanceOf(treasury.address)).to.equal(ethers.utils.parseEther("25500000"));
-            expect(await arcdToken.balanceOf(devPartner.address)).to.equal(ethers.utils.parseEther("600000"));
+            expect(await arcdToken.balanceOf(govTreasury.address)).to.equal(ethers.utils.parseEther("25100000"));
+            expect(await arcdToken.balanceOf(foundationTreasury.address)).to.equal(ethers.utils.parseEther("10000000"));
+            expect(await arcdToken.balanceOf(devPartner.address)).to.equal(ethers.utils.parseEther("1081284"));
             expect(await arcdToken.balanceOf(communityRewardsPool.address)).to.equal(
-                ethers.utils.parseEther("15000000"),
+                ethers.utils.parseEther("9000000"),
             );
-            expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(ethers.utils.parseEther("10000000"));
-            expect(await arcdToken.balanceOf(vestingPartner.address)).to.equal(ethers.utils.parseEther("32700000"));
+            expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(ethers.utils.parseEther("6000000"));
+            expect(await arcdToken.balanceOf(vestingPartner.address)).to.equal(ethers.utils.parseEther("33206096"));
             expect(await arcdToken.balanceOf(vestingTeamMultisig.address)).to.equal(
-                ethers.utils.parseEther("16200000"),
+                ethers.utils.parseEther("15612620"),
             );
 
             expect(await arcdToken.balanceOf(arcdDst.address)).to.equal(0);
@@ -328,9 +336,12 @@ describe("ArcadeToken", function () {
         it("Cannot distribute to the zero address", async () => {
             const { arcdDst, deployer } = ctxToken;
 
-            await expect(arcdDst.connect(deployer).toTreasury(ethers.constants.AddressZero)).to.be.revertedWith(
-                `AT_ZeroAddress("treasury")`,
-            );
+            await expect(
+                arcdDst.connect(deployer).toGovernanceTreasury(ethers.constants.AddressZero),
+            ).to.be.revertedWith(`AT_ZeroAddress("govTreasury")`);
+            await expect(
+                arcdDst.connect(deployer).toFoundationTreasury(ethers.constants.AddressZero),
+            ).to.be.revertedWith(`AT_ZeroAddress("foundationTreasury")`);
             await expect(arcdDst.connect(deployer).toDevPartner(ethers.constants.AddressZero)).to.be.revertedWith(
                 `AT_ZeroAddress("devPartner")`,
             );
@@ -362,7 +373,13 @@ describe("ArcadeToken", function () {
             await arcdDst.deployed();
 
             // call all the distribution functions
-            await expect(arcdDst.toTreasury(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
+            await expect(arcdDst.toGovernanceTreasury(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
+
+            await expect(arcdDst.toFoundationTreasury(deployer.address)).to.be.revertedWith(
+                `AT_ZeroAddress("arcadeToken")`,
+            );
 
             await expect(arcdDst.toDevPartner(deployer.address)).to.be.revertedWith(`AT_ZeroAddress("arcadeToken")`);
 
@@ -386,7 +403,8 @@ describe("ArcadeToken", function () {
                 arcdToken,
                 arcdDst,
                 other,
-                treasury,
+                govTreasury,
+                foundationTreasury,
                 devPartner,
                 communityRewardsPool,
                 arcdAirdrop,
@@ -394,7 +412,10 @@ describe("ArcadeToken", function () {
                 vestingPartner,
             } = ctxToken;
 
-            await expect(arcdDst.connect(other).toTreasury(treasury.address)).to.be.revertedWith(
+            await expect(arcdDst.connect(other).toGovernanceTreasury(govTreasury.address)).to.be.revertedWith(
+                "Ownable: caller is not the owner",
+            );
+            await expect(arcdDst.connect(other).toFoundationTreasury(foundationTreasury.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
             await expect(arcdDst.connect(other).toDevPartner(devPartner.address)).to.be.revertedWith(
@@ -423,7 +444,8 @@ describe("ArcadeToken", function () {
             const {
                 arcdDst,
                 deployer,
-                treasury,
+                govTreasury,
+                foundationTreasury,
                 devPartner,
                 communityRewardsPool,
                 arcdAirdrop,
@@ -431,14 +453,20 @@ describe("ArcadeToken", function () {
                 vestingPartner,
             } = ctxToken;
 
-            await arcdDst.connect(deployer).toTreasury(treasury.address);
+            await arcdDst.connect(deployer).toGovernanceTreasury(govTreasury.address);
+            await arcdDst.connect(deployer).toFoundationTreasury(foundationTreasury.address);
             await arcdDst.connect(deployer).toDevPartner(devPartner.address);
             await arcdDst.connect(deployer).toCommunityRewards(communityRewardsPool.address);
             await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address);
             await arcdDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address);
             await arcdDst.connect(deployer).toPartnerVesting(vestingPartner.address);
 
-            await expect(arcdDst.connect(deployer).toTreasury(treasury.address)).to.be.revertedWith("AT_AlreadySent()");
+            await expect(arcdDst.connect(deployer).toGovernanceTreasury(govTreasury.address)).to.be.revertedWith(
+                "AT_AlreadySent()",
+            );
+            await expect(arcdDst.connect(deployer).toFoundationTreasury(foundationTreasury.address)).to.be.revertedWith(
+                "AT_AlreadySent()",
+            );
             await expect(arcdDst.connect(deployer).toDevPartner(devPartner.address)).to.be.revertedWith(
                 "AT_AlreadySent()",
             );
@@ -481,7 +509,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -529,11 +557,7 @@ describe("ArcadeToken", function () {
                 recipients[0].value.add(recipients[1].value).add(recipients[2].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils
-                    .parseEther("10000000")
-                    .sub(recipients[0].value)
-                    .sub(recipients[1].value)
-                    .sub(recipients[2].value),
+                totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value).sub(recipients[2].value),
             );
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
         });
@@ -543,7 +567,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -564,7 +588,7 @@ describe("ArcadeToken", function () {
 
             expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(recipients[0].value);
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value),
+                totalAirdropAmount.sub(recipients[0].value),
             );
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
 
@@ -595,7 +619,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -616,7 +640,7 @@ describe("ArcadeToken", function () {
 
             expect(await arcdToken.balanceOf(mockNFTBoostVault.address)).to.equal(recipients[0].value);
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value),
+                totalAirdropAmount.sub(recipients[0].value),
             );
             expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
 
@@ -667,7 +691,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -692,7 +716,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -714,7 +738,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // create proof for deployer and other
@@ -748,7 +772,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // fast forward to after the end of the airdrop claim period
@@ -757,7 +781,7 @@ describe("ArcadeToken", function () {
             // owner reclaims tokens
             await expect(await arcdAirdrop.connect(deployer).reclaim(deployer.address))
                 .to.emit(arcdToken, "Transfer")
-                .withArgs(arcdAirdrop.address, deployer.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdAirdrop.address, deployer.address, totalAirdropAmount);
 
             // create proof for deployer
             const proofDeployer = merkleTrie.getHexProof(
@@ -789,7 +813,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
 
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
@@ -828,7 +852,7 @@ describe("ArcadeToken", function () {
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+                totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value),
             );
 
             // advance time past claiming period
@@ -840,11 +864,11 @@ describe("ArcadeToken", function () {
                 .withArgs(
                     arcdAirdrop.address,
                     deployer.address,
-                    ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+                    totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value),
                 );
 
             expect(await arcdToken.balanceOf(deployer.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+                totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value),
             );
         });
 
@@ -863,7 +887,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
 
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
@@ -902,7 +926,7 @@ describe("ArcadeToken", function () {
                 recipients[0].value.add(recipients[1].value),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(
-                ethers.utils.parseEther("10000000").sub(recipients[0].value).sub(recipients[1].value),
+                totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value),
             );
 
             // advance time past claiming period
@@ -919,7 +943,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // fast forward to after the end of the airdrop claim period
@@ -934,7 +958,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("10000000"));
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
             expect(await arcdDst.communityAirdropSent()).to.be.true;
 
             // get airdrop expiration time
