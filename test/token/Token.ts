@@ -404,6 +404,7 @@ describe("ArcadeToken", function () {
                 arcdDst,
                 other,
                 govTreasury,
+                foundationTreasury,
                 devPartner,
                 communityRewardsPool,
                 arcdAirdrop,
@@ -414,7 +415,7 @@ describe("ArcadeToken", function () {
             await expect(arcdDst.connect(other).toGovernanceTreasury(govTreasury.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
-            await expect(arcdDst.connect(other).toFoundationTreasury(govTreasury.address)).to.be.revertedWith(
+            await expect(arcdDst.connect(other).toFoundationTreasury(foundationTreasury.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner",
             );
             await expect(arcdDst.connect(other).toDevPartner(devPartner.address)).to.be.revertedWith(
