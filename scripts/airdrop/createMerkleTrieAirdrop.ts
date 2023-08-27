@@ -45,9 +45,17 @@ export async function main() {
     const proofs = await Promise.all(
         airdropData.map(async account => {
             const amount = ethers.utils.parseEther(account.value.toString());
-            const proof = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(["address", "uint256"], [account.address, amount]),
-            );
+
+            const leaf = ethers.utils.solidityKeccak256(["address", "uint256"], [account.address, amount]);
+
+            const proof = merkleTrie.getHexProof(leaf);
+
+            // validate the proof data
+            const isValid = merkleTrie.verify(proof, leaf, root);
+            if (!isValid) {
+                console.log("Invalid proof for account: ", account);
+                throw new Error("Invalid proof");
+            }
 
             return {
                 address: account.address,
@@ -57,10 +65,10 @@ export async function main() {
         }),
     );
 
-    fs.writeFileSync("scripts/airdrop/proofs/airdropMerkleProofs.json", JSON.stringify(proofs, null, 2));
+    fs.writeFileSync("./scripts/airdrop/proofs/airdropMerkleProofs.json", JSON.stringify(proofs, null, 2));
 
     console.log("Merkle Root: ", root);
-    console.log("Proofs written to scripts/airdrop/proofs/airdropMerkleProofs.json");
+    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs.json");
 }
 
 main()

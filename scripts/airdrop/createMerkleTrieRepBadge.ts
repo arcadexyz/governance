@@ -5,7 +5,6 @@ import { MerkleTree } from "merkletreejs";
 import repBadgeData from "./data/repBadgeData.json";
 
 /**
- * /**
  * This script creates a merkle tree from repBadgeData.json file and writes the merkle proofs to a file.
  * The merkle root for these proofs is printed to the console.
  *
@@ -23,7 +22,7 @@ async function getMerkleTree(accounts: Account[]) {
         accounts.map(account =>
             ethers.utils.solidityKeccak256(
                 ["address", "uint256", "uint256"],
-                [account.address, account.tokenId, account.amount],
+                [account.address, account.tokenId.toString(), account.amount.toString()],
             ),
         ),
     );
@@ -46,12 +45,19 @@ export async function main() {
 
     const proofs = await Promise.all(
         repBadgeData.map(async account => {
-            const proof = merkleTrie.getHexProof(
-                ethers.utils.solidityKeccak256(
-                    ["address", "uint256", "uint256"],
-                    [account.address, account.tokenId, account.amount],
-                ),
+            const leaf = ethers.utils.solidityKeccak256(
+                ["address", "uint256", "uint256"],
+                [account.address, account.tokenId.toString(), account.amount.toString()],
             );
+
+            const proof = merkleTrie.getHexProof(leaf);
+
+            // validate the proof data
+            const isValid = merkleTrie.verify(proof, leaf, root);
+            if (!isValid) {
+                console.log("Invalid proof for account: ", account);
+                throw new Error("Invalid proof");
+            }
 
             return {
                 address: account.address,
@@ -62,10 +68,10 @@ export async function main() {
         }),
     );
 
-    fs.writeFileSync("scripts/airdrop/proofs/repBadgeMerkleProofs.json", JSON.stringify(proofs, null, 2));
+    fs.writeFileSync("./scripts/airdrop/proofs/repBadgeMerkleProofs.json", JSON.stringify(proofs, null, 2));
 
     console.log("Merkle Root: ", root);
-    console.log("Proofs written to scripts/airdrop/proofs/repBadgeMerkleProofs.json");
+    console.log("Proofs written to ./scripts/airdrop/proofs/repBadgeMerkleProofs.json");
 }
 
 main()
