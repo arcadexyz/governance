@@ -43,7 +43,7 @@ import {
     SET_WAIT_TIME_QUORUM,
     UNLOCK,
     UNLOCK_QUORUM,
-} from "../custom-quorum-params";
+} from "../config/custom-quorum-params";
 import {
     AIRDROP_EXPIRATION,
     AIRDROP_MERKLE_ROOT,
@@ -51,7 +51,7 @@ import {
     FOUNDATION_MULTISIG,
     GSC_MIN_LOCK_DURATION,
     MULTISIG,
-} from "../deployment-params";
+} from "../config/deployment-params";
 import {
     APE_ADDRESS,
     APE_LARGE,
@@ -84,10 +84,13 @@ import {
     WETH_LARGE,
     WETH_MEDIUM,
     WETH_SMALL,
-} from "../treasury-thresholds";
+} from "../config/treasury-thresholds";
 import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI } from "./utils";
 
 /**
+ * This script deploys all governance contracts, sets up decentralization, and
+ * verifies all contracts on Etherscan.
+ *
  * Note: Against normal conventions, these tests are interdependent and meant
  * to run sequentially. Each subsequent test relies on the state of the previous.
  *
@@ -102,15 +105,13 @@ describe("Deployment", function () {
 
     it("deploys contracts and creates deployment artifacts", async () => {
         if (process.env.EXEC) {
-            // Deploy everything, via command-line
             console.log(); // whitespace
             execSync(`npx hardhat --network ${NETWORK} run scripts/deploy/deploy.ts`, { stdio: "inherit" });
         }
 
-        // Make sure JSON file exists
+        // Make sure deployment artifacts exist and have all the correct contracts specified
         const deployment = getLatestDeployment();
 
-        // Make sure deployment artifacts has all the correct contracts specified
         expect(deployment["ArcadeTokenDistributor"]).to.exist;
         expect(deployment["ArcadeTokenDistributor"].contractAddress).to.exist;
         expect(deployment["ArcadeTokenDistributor"].constructorArgs.length).to.eq(0);

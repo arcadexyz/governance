@@ -1,11 +1,10 @@
 import { ethers } from "hardhat";
 
-export const DEPLOYER_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1";
+export const DEPLOYER_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // account used in .env
 
 export const MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 export const FOUNDATION_MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
-export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
-export const NFT_BOOST_VAULT_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
+export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // addGrantAndDelegate, deposit, withdraw
 
 export const TIMELOCK_WAIT_TIME = 19488; // ~3 days in blocks (3 days allows for a grace period that is longer than a weekend)
 export const GSC_MIN_LOCK_DURATION = 2165; // ~8 hours in blocks
@@ -13,13 +12,13 @@ export const GSC_MIN_LOCK_DURATION = 2165; // ~8 hours in blocks
 export const BASE_QUORUM = ethers.utils.parseEther("1500000"); // default quorum for a vote to pass through standard core voting contract
 export const MIN_PROPOSAL_POWER_CORE_VOTING = ethers.utils.parseEther("20000"); // minimum proposal power
 
-export const BASE_QUORUM_GSC = 3; // default GSC quorum for a vote to pass, each GSC member has 1 vote
+export const BASE_QUORUM_GSC = 3; // default GSC quorum for a vote to pass
 export const MIN_PROPOSAL_POWER_GSC = 1; // minimum GSC proposal power, this is 1 so any GSC member can propose
 export const GSC_THRESHOLD = ethers.utils.parseEther("150000"); // GSC threshold, (minimum voting power needed to be a GSC member)
 
-export const STALE_BLOCK_LAG = 200000; // number of blocks before voting power is pruned. 200000 blocks is ~1 month. Needs to be more than a standard voting period.
+export const STALE_BLOCK_LAG = 200000; // number of blocks before voting power is pruned. 200000 blocks is ~1 month. Needs to be more than a typical voting period.
 
 export const AIRDROP_EXPIRATION = 1695501783; // ~3 months, unix timestamp for airdrop expiration
-export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero; // change to actual merkle root
+export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
 
-export const BADGE_DESCRIPTOR_BASE_URI = "https://arcade.xyz/"; // base uri for badge descriptors
+export const BADGE_DESCRIPTOR_BASE_URI = "https://arcade.xyz/";

@@ -24,11 +24,10 @@ import {
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
-    NFT_BOOST_VAULT_MANAGER,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
     VESTING_MANAGER,
-} from "./deployment-params";
+} from "./config/deployment-params";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { writeJson } from "./write-json";
 
@@ -54,7 +53,7 @@ export async function main(): Promise<DeployedResources> {
     // to make sure everything is compiled
     // await run("compile");
 
-    // ================= TOKEN + AIRDROP =================
+    // ================= TOKEN + DISTRIBUTOR =================
 
     console.log(SECTION_SEPARATOR);
     console.log("Deploying ARCD token and ArcadeTokenDistributor contracts...");

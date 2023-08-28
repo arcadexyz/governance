@@ -51,12 +51,9 @@ export const APPROVE_MEDIUM_SPEND_QUORUM = CV_MEDIUM_QUORUM;
 export const APPROVE_LARGE_SPEND = "0x321d7e02";
 export const APPROVE_LARGE_SPEND_QUORUM = CV_HIGH_QUORUM;
 
-// TreasuryTimelock?
-
 // NFTBoostVault - unlock
 export const UNLOCK = "0xa69df4b5";
 export const UNLOCK_QUORUM = CV_HIGH_QUORUM;
-
 // NFTBoostVault - setAirdropContract
 export const SET_AIRDROP_CONTRACT = "0x6f011538";
 export const SET_AIRDROP_CONTRACT_QUORUM = CV_HIGH_QUORUM;

@@ -18,22 +18,19 @@ async function verifyArtifacts(contractName: string, contractAddress: string, co
                 constructorArguments: constructorArgs,
                 contract: `contracts/NFTBoostVault.sol:NFTBoostVault`,
             });
-        }
-        if (contractName === "ArcadeCoreVoting") {
+        } else if (contractName === "ArcadeCoreVoting") {
             await hre.run("verify:verify", {
                 address,
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeCoreVoting.sol:ArcadeCoreVoting`,
             });
-        }
-        if (contractName === "ArcadeGSCCoreVoting") {
+        } else if (contractName === "ArcadeGSCCoreVoting") {
             await hre.run("verify:verify", {
                 address,
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCCoreVoting.sol:ArcadeGSCCoreVoting`,
             });
-        }
-        if (contractName === "ArcadeGSCVault") {
+        } else if (contractName === "ArcadeGSCVault") {
             await hre.run("verify:verify", {
                 address,
                 constructorArguments: constructorArgs,

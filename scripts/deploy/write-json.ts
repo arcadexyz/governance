@@ -12,11 +12,10 @@ import {
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
-    NFT_BOOST_VAULT_MANAGER,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
     VESTING_MANAGER,
-} from "./deployment-params";
+} from "./config/deployment-params";
 
 export interface ContractData {
     contractAddress: string;

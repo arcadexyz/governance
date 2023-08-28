@@ -33,7 +33,7 @@ import {
     SET_WAIT_TIME_QUORUM,
     UNLOCK,
     UNLOCK_QUORUM,
-} from "./custom-quorum-params";
+} from "./config/custom-quorum-params";
 import {
     AIRDROP_EXPIRATION,
     AIRDROP_MERKLE_ROOT,
@@ -42,8 +42,7 @@ import {
     GSC_MIN_LOCK_DURATION,
     MULTISIG,
     VESTING_MANAGER,
-} from "./deployment-params";
-import { SECTION_SEPARATOR } from "./test/utils";
+} from "./config/deployment-params";
 import {
     APE_ADDRESS,
     APE_LARGE,
@@ -76,7 +75,8 @@ import {
     WETH_LARGE,
     WETH_MEDIUM,
     WETH_SMALL,
-} from "./treasury-thresholds";
+} from "./config/treasury-thresholds";
+import { SECTION_SEPARATOR } from "./test/utils";
 
 const jsonContracts: { [key: string]: string } = {
     ArcadeTokenDistributor: "arcadeTokenDistributor",
