@@ -7,6 +7,11 @@ export interface SnapshotDeployedResources {
     balanceQuery: BalanceQuery;
 }
 
+/**
+ * To run this script use:
+ * `FORK_MAINNET=true npx hardhat run scripts/deploy/balance-query.ts --network <networkName>`
+ */
+
 export async function main(): Promise<SnapshotDeployedResources> {
     console.log(SECTION_SEPARATOR);
     console.log("Deploying BalanceQuery contract...");
