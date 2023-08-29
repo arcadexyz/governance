@@ -8,7 +8,6 @@ import {
     BADGE_DESCRIPTOR_BASE_URI,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
-    DEPLOYER_ADDRESS,
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
@@ -88,6 +87,8 @@ export async function createInfo(
     badgeDescriptorAddress: string,
     reputationBadgeAddress: string,
 ): Promise<DeploymentData> {
+    const [deployer] = await ethers.getSigners();
+
     const contractInfo: DeploymentData = {};
 
     contractInfo["ArcadeTokenDistributor"] = {
@@ -97,12 +98,12 @@ export async function createInfo(
 
     contractInfo["ArcadeToken"] = {
         contractAddress: arcadeTokenAddress,
-        constructorArgs: [DEPLOYER_ADDRESS, arcadeTokenDistributorAddress],
+        constructorArgs: [deployer.address, arcadeTokenDistributorAddress],
     };
 
     contractInfo["Timelock"] = {
         contractAddress: timelockAddress,
-        constructorArgs: [TIMELOCK_WAIT_TIME, DEPLOYER_ADDRESS, DEPLOYER_ADDRESS],
+        constructorArgs: [TIMELOCK_WAIT_TIME, deployer.address, deployer.address],
     };
 
     contractInfo["ARCDVestingVault"] = {
@@ -117,13 +118,13 @@ export async function createInfo(
 
     contractInfo["NFTBoostVault"] = {
         contractAddress: nftBoostVaultAddress,
-        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, DEPLOYER_ADDRESS, DEPLOYER_ADDRESS],
+        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, deployer.address, deployer.address],
     };
 
     contractInfo["ArcadeCoreVoting"] = {
         contractAddress: arcadeCoreVotingAddress,
         constructorArgs: [
-            DEPLOYER_ADDRESS,
+            deployer.address,
             BASE_QUORUM,
             MIN_PROPOSAL_POWER_CORE_VOTING,
             ethers.constants.AddressZero,
@@ -140,7 +141,7 @@ export async function createInfo(
     contractInfo["ArcadeGSCCoreVoting"] = {
         contractAddress: arcadeGSCCoreVotingAddress,
         constructorArgs: [
-            DEPLOYER_ADDRESS,
+            deployer.address,
             BASE_QUORUM_GSC,
             MIN_PROPOSAL_POWER_GSC,
             ethers.constants.AddressZero,
@@ -150,13 +151,12 @@ export async function createInfo(
 
     contractInfo["ArcadeTreasury"] = {
         contractAddress: arcadeTreasuryAddress,
-        constructorArgs: [DEPLOYER_ADDRESS],
+        constructorArgs: [deployer.address],
     };
 
     contractInfo["ArcadeAirdrop"] = {
         contractAddress: arcadeAirdropAddress,
         constructorArgs: [
-            DEPLOYER_ADDRESS,
             ethers.constants.HashZero,
             arcadeTokenAddress,
             AIRDROP_EXPIRATION,
@@ -171,7 +171,7 @@ export async function createInfo(
 
     contractInfo["ReputationBadge"] = {
         contractAddress: reputationBadgeAddress,
-        constructorArgs: [DEPLOYER_ADDRESS, badgeDescriptorAddress],
+        constructorArgs: [deployer.address, badgeDescriptorAddress],
     };
 
     return contractInfo;

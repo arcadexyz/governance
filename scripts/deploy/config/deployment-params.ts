@@ -1,7 +1,5 @@
 import { ethers } from "hardhat";
 
-export const DEPLOYER_ADDRESS = "0x0a606524006a48C4D93662aA935AEC203CaC98C1"; // account used in .env
-
 export const MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 export const FOUNDATION_MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // addGrantAndDelegate, deposit, withdraw

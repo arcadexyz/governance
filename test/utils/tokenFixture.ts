@@ -112,7 +112,6 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
 
         // deploy airdrop contract
         const arcdAirdrop = <ArcadeAirdrop>await deploy("ArcadeAirdrop", signers[0], [
-            signers[0].address, // in production this is to be the governance timelock address
             root,
             arcdToken.address,
             expiration,

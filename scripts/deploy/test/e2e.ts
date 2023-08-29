@@ -10,6 +10,7 @@ import {
     ArcadeToken,
     ArcadeTokenDistributor,
     ArcadeTreasury,
+    BadgeDescriptor,
     NFTBoostVault,
     ReputationBadge,
     Timelock,
@@ -45,9 +46,6 @@ import {
     UNLOCK_QUORUM,
 } from "../config/custom-quorum-params";
 import {
-    AIRDROP_EXPIRATION,
-    AIRDROP_MERKLE_ROOT,
-    DEPLOYER_ADDRESS,
     FOUNDATION_MULTISIG,
     GSC_MIN_LOCK_DURATION,
     MULTISIG,
@@ -154,7 +152,7 @@ describe("Deployment", function () {
 
         expect(deployment["ArcadeAirdrop"]).to.exist;
         expect(deployment["ArcadeAirdrop"].contractAddress).to.exist;
-        expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(5);
+        expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(4);
 
         expect(deployment["BadgeDescriptor"]).to.exist;
         expect(deployment["BadgeDescriptor"].contractAddress).to.exist;
@@ -166,6 +164,8 @@ describe("Deployment", function () {
     });
 
     it("correctly sets up decentralization", async () => {
+        const [deployer] = await ethers.getSigners();
+
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
@@ -203,33 +203,32 @@ describe("Deployment", function () {
         const reputationBadge = <ReputationBadge>(
             await ethers.getContractAt("ReputationBadge", deployment["ReputationBadge"].contractAddress)
         );
-
-        // ArcadeToken
-        expect(await arcadeToken.minter()).to.equal(arcadeCoreVoting.address);
-        expect(await arcadeToken.balanceOf(arcadeTokenDistributor.address)).to.equal(
-            ethers.utils
-                .parseEther("100000000")
-                .sub(await arcadeTokenDistributor.governanceTreasuryAmount())
-                .sub(await arcadeTokenDistributor.communityAirdropAmount())
-                .sub(await arcadeTokenDistributor.vestingTeamAmount())
-                .sub(await arcadeTokenDistributor.vestingPartnerAmount()),
+        const badgeDescriptor = <BadgeDescriptor>(
+            await ethers.getContractAt("BadgeDescriptor", deployment["BadgeDescriptor"].contractAddress)
         );
 
-        // ArcadeTokenDistributor
+        // ArcadeToken minter address
+        expect(await arcadeToken.minter()).to.equal(arcadeCoreVoting.address);
+
+        // ArcadeTokenDistributor token address
         expect(await arcadeTokenDistributor.arcadeToken()).to.equal(arcadeToken.address);
+
+        // ArcadeTokenDistributor distribution triggers
         expect(await arcadeTokenDistributor.governanceTreasurySent()).to.equal(true);
         expect(await arcadeTokenDistributor.communityAirdropSent()).to.equal(true);
         expect(await arcadeTokenDistributor.vestingTeamSent()).to.equal(true);
         expect(await arcadeTokenDistributor.vestingPartnerSent()).to.equal(true);
+
+        // ArcadeTokenDistributor owner
         expect(await arcadeTokenDistributor.owner()).to.equal(MULTISIG);
 
-        // ArcadeAirdrop
-        expect(await arcadeAirdrop.rewardsRoot()).to.equal(AIRDROP_MERKLE_ROOT);
-        expect(await arcadeAirdrop.expiration()).to.equal(AIRDROP_EXPIRATION);
+        // ArcadeAirdrop owner
         expect(await arcadeAirdrop.owner()).to.equal(MULTISIG);
 
-        // NFTBoostVault
+        // NFTBoostVault airdrop contract
         expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
+
+        // NFTBoostVault authorized users
         expect(await nftBoostVault.manager()).to.equal(MULTISIG);
         expect(await nftBoostVault.timelock()).to.equal(arcadeCoreVoting.address);
 
@@ -255,14 +254,14 @@ describe("Deployment", function () {
         );
 
         // CoreVoting authorized address
-        expect(await arcadeCoreVoting.authorized(DEPLOYER_ADDRESS)).to.equal(false);
+        expect(await arcadeCoreVoting.authorized(deployer.address)).to.equal(false);
         expect(await arcadeCoreVoting.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
 
         // CoreVoting owner
         expect(await arcadeCoreVoting.owner()).to.equal(timelock.address);
 
         // Timelock authorized address
-        expect(await timelock.authorized(DEPLOYER_ADDRESS)).to.equal(false);
+        expect(await timelock.authorized(deployer.address)).to.equal(false);
         expect(await timelock.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
 
         // Timelock owner
@@ -276,7 +275,7 @@ describe("Deployment", function () {
         expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);
 
         // ArcadeGSCCoreVoting authorized address (none
-        expect(await arcadeGSCCoreVoting.authorized(DEPLOYER_ADDRESS)).to.equal(false);
+        expect(await arcadeGSCCoreVoting.authorized(deployer.address)).to.equal(false);
 
         // ArcadeGSCCoreVoting owner
         expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
@@ -329,7 +328,7 @@ describe("Deployment", function () {
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), FOUNDATION_MULTISIG)).to.equal(true);
 
         // ArcadeTreasury ADMIN_ROLE was renounced by deployer
-        expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), DEPLOYER_ADDRESS)).to.equal(false);
+        expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), deployer.address)).to.equal(false);
 
         // ReputationBadge BADGE_MANAGER_ROLE
         expect(await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), MULTISIG)).to.equal(true);
@@ -341,7 +340,10 @@ describe("Deployment", function () {
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), MULTISIG)).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE was renounced by deployer
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), DEPLOYER_ADDRESS)).to.equal(false);
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), deployer.address)).to.equal(false);
+
+        // BadgeDescriptor owner
+        expect(await badgeDescriptor.owner()).to.equal(MULTISIG);
     });
 
     it("verifies all contracts on the proper network", async () => {

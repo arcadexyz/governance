@@ -47,13 +47,12 @@ describe("ArcadeToken", function () {
             expect(await arcdToken.minter()).to.equal(deployer.address);
         });
 
-        it("Verify the governance address assigned in constructor is Owner of ArcadeAirdrop", async () => {
+        it("Verify the deployer is the owner of ArcadeAirdrop", async () => {
             const { arcdToken, deployer, merkleTrie, expiration, other } = ctxToken;
 
             const governanceAddress = other.address;
 
             const arcadeAirdropContract = await deploy("ArcadeAirdrop", deployer, [
-                governanceAddress, // address to be assigned as owner of arcadeAirdrop
                 merkleTrie.getHexRoot(),
                 arcdToken.address,
                 expiration,
@@ -64,7 +63,16 @@ describe("ArcadeToken", function () {
             const arcadeAirdropOwner = await arcadeAirdropContract.owner();
 
             // confirm that the returned owner is the address assigned in the constructor
-            expect(arcadeAirdropOwner).to.equal(governanceAddress);
+            expect(arcadeAirdropOwner).to.equal(deployer.address);
+
+            // deployer transfers ownership to governance address
+            await arcadeAirdropContract.setOwner(governanceAddress);
+
+            // query owner of arcadeAirdrop
+            const arcadeAirdropOwnerAfterTransfer = await arcadeAirdropContract.owner();
+
+            // confirm that the returned owner is governance address
+            expect(arcadeAirdropOwnerAfterTransfer).to.equal(governanceAddress);
         });
 
         it("Invalid ArcadeAirdrop deployment parameters", async () => {
@@ -75,17 +83,6 @@ describe("ArcadeToken", function () {
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
-                    ethers.constants.AddressZero,
-                    merkleTrie.getHexRoot(),
-                    arcdToken.address,
-                    expiration,
-                    deployer.address,
-                ]),
-            ).to.be.revertedWith(`AA_ZeroAddress("governance")`);
-
-            await expect(
-                deploy("ArcadeAirdrop", deployer, [
-                    deployer.address,
                     merkleTrie.getHexRoot(),
                     arcdToken.address,
                     expiration,
@@ -95,7 +92,6 @@ describe("ArcadeToken", function () {
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
-                    deployer.address,
                     merkleTrie.getHexRoot(),
                     ethers.constants.AddressZero,
                     expiration,
@@ -105,7 +101,6 @@ describe("ArcadeToken", function () {
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
-                    deployer.address,
                     merkleTrie.getHexRoot(),
                     arcdToken.address,
                     currentBlock,
@@ -115,7 +110,6 @@ describe("ArcadeToken", function () {
 
             await expect(
                 deploy("ArcadeAirdrop", deployer, [
-                    deployer.address,
                     merkleTrie.getHexRoot(),
                     arcdToken.address,
                     currentBlock - 5,
