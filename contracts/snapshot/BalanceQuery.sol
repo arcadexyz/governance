@@ -13,12 +13,13 @@ contract BalanceQuery is Authorizable, IVotingVaultView {
     IVotingVaultView[] public vaults;
 
     /**
-     * @notice Constructs this contract and stores needed data
+     * @notice Constructs this contract and stores needed data. Sets the deployer as the owner
+     *         and authorizes the _vaultManager to be able to add/remove vaults.
      *
-     * @param _owner                The contract owner authorized to remove vaults
+     * @param _vaultManager         User authorized to add/remove vaults
      * @param votingVaults          An array of the vaults to query balances from
      */
-    constructor(address _owner, address[] memory votingVaults) {
+    constructor(address _vaultManager, address[] memory votingVaults) {
         // create a new array of voting vaults
         vaults = new IVotingVaultView[](votingVaults.length);
         // populate array with each vault passed into constructor
@@ -26,8 +27,8 @@ contract BalanceQuery is Authorizable, IVotingVaultView {
             vaults[i] = IVotingVaultView(votingVaults[i]);
         }
 
-        // authorize the owner address to be able to add/remove vaults
-        _authorize(_owner);
+        // authorize the _vaultManager to be able to add/remove vaults
+        _authorize(_vaultManager);
     }
 
     /**

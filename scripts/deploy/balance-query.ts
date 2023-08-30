@@ -9,7 +9,7 @@ export interface SnapshotDeployedResources {
 
 /**
  * To run this script use:
- * `FORK_MAINNET=true npx hardhat run scripts/deploy/balance-query.ts --network <networkName>`
+ * `npx hardhat run scripts/deploy/balance-query.ts --network <networkName>`
  */
 
 export async function main(): Promise<SnapshotDeployedResources> {
@@ -31,12 +31,26 @@ export async function main(): Promise<SnapshotDeployedResources> {
             IMM_VESTINGVAULT_ADD,
             ARCADE_GSCVAULT_ADD,
         ])
-    ); // owner, nftboostvault, vestingVault, immutablevestingvault, gscvault addresses
+    );
     await balanceQuery.deployed();
     const balanceQueryAddress = balanceQuery.address;
 
     console.log("BalanceQuery deployed to:", balanceQueryAddress);
     console.log(SUBSECTION_SEPARATOR);
+
+    // timeout for 3 seconds to wait for etherscan to index the contract
+    await new Promise(r => setTimeout(r, 3000));
+
+    console.log("Verifying BalanceQuery contract...");
+    await hre.run("verify:verify", {
+        address: balanceQueryAddress,
+        constructorArguments: [
+            OWNER_ADD,
+            [NFTBOOSTVAULT_ADD, ARCD_VESTINGVAULT_ADD, IMM_VESTINGVAULT_ADD, ARCADE_GSCVAULT_ADD],
+        ],
+    });
+
+    console.log(SECTION_SEPARATOR);
 
     return {
         balanceQuery,
