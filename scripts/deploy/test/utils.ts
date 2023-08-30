@@ -1,9 +1,42 @@
 import { expect } from "chai";
 import fs from "fs";
-import hre from "hardhat";
+import hre, { ethers } from "hardhat";
+import { Contract } from "ethers";
 import fetch from "node-fetch";
 import path from "path";
 import { URLSearchParams } from "url";
+
+import {
+    ARCDVestingVault,
+    ArcadeAirdrop,
+    ArcadeCoreVoting,
+    ArcadeGSCCoreVoting,
+    ArcadeGSCVault,
+    ArcadeToken,
+    ArcadeTokenDistributor,
+    ArcadeTreasury,
+    BadgeDescriptor,
+    ImmutableVestingVault,
+    NFTBoostVault,
+    ReputationBadge,
+    Timelock,
+} from "../../../src/types";
+
+export interface DeployedResources {
+    arcadeTokenDistributor: ArcadeTokenDistributor;
+    arcadeToken: ArcadeToken;
+    arcadeCoreVoting: ArcadeCoreVoting;
+    arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
+    timelock: Timelock;
+    teamVestingVault: ARCDVestingVault;
+    partnerVestingVault: ImmutableVestingVault;
+    nftBoostVault: NFTBoostVault;
+    arcadeGSCVault: ArcadeGSCVault;
+    arcadeTreasury: ArcadeTreasury;
+    arcadeAirdrop: ArcadeAirdrop;
+    badgeDescriptor: BadgeDescriptor;
+    reputationBadge: ReputationBadge;
+}
 
 export const NETWORK = hre.network.name;
 export const ROOT_DIR = path.join(__dirname, "../../../");
@@ -11,6 +44,22 @@ export const DEPLOYMENTS_DIR = path.join(ROOT_DIR, ".deployments", NETWORK);
 
 export const SECTION_SEPARATOR = "\n" + "=".repeat(80) + "\n";
 export const SUBSECTION_SEPARATOR = "-".repeat(10);
+
+export const jsonContracts: { [key: string]: string } = {
+    ArcadeTokenDistributor: "arcadeTokenDistributor",
+    ArcadeToken: "arcadeToken",
+    ArcadeCoreVoting: "arcadeCoreVoting",
+    ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
+    Timelock: "timelock",
+    ARCDVestingVault: "teamVestingVault",
+    ImmutableVestingVault: "partnerVestingVault",
+    NFTBoostVault: "nftBoostVault",
+    ArcadeGSCVault: "arcadeGSCVault",
+    ArcadeTreasury: "arcadeTreasury",
+    ArcadeAirdrop: "arcadeAirdrop",
+    BadgeDescriptor: "badgeDescriptor",
+    ReputationBadge: "reputationBadge",
+};
 
 export const getLatestDeploymentFile = (): string => {
     // Make sure JSON file exists
@@ -64,4 +113,23 @@ export const getVerifiedABI = async (address: string): Promise<any> => {
     const { result } = await res.json();
 
     return JSON.parse(result);
+};
+
+export async function loadContracts(jsonFile: string): Promise<DeployedResources> {
+    const readData = fs.readFileSync(jsonFile, 'utf-8');
+    const jsonData = JSON.parse(readData);
+    const contracts: { [key: string]: Contract } = {};
+
+    for await (const key of Object.keys(jsonData)) {
+        if (!(key in jsonContracts)) continue;
+
+        const argKey = jsonContracts[key];
+        console.log(`Key: ${key}, address: ${jsonData[key]["contractAddress"]}`);
+
+        const contract: Contract = await ethers.getContractAt(key, jsonData[key]["contractAddress"]);
+
+        contracts[argKey] = contract;
+    }
+
+    return contracts as unknown as DeployedResources;
 };

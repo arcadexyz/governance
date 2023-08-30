@@ -4,6 +4,12 @@ export const MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 export const FOUNDATION_MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // addGrantAndDelegate, deposit, withdraw
 
+export const ADMIN_ROLE = ethers.utils.id("ADMIN");
+export const CORE_VOTING_ROLE = ethers.utils.id("CORE_VOTING");
+export const GSC_CORE_VOTING_ROLE = ethers.utils.id("GSC_CORE_VOTING");
+export const BADGE_MANAGER_ROLE = ethers.utils.id("BADGE_MANAGER");
+export const RESOURCE_MANAGER_ROLE = ethers.utils.id("RESOURCE_MANAGER");
+
 export const TIMELOCK_WAIT_TIME = 19488; // ~3 days in blocks (3 days allows for a grace period that is longer than a weekend)
 export const GSC_MIN_LOCK_DURATION = 2165; // ~8 hours in blocks
 

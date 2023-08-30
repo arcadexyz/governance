@@ -1,5 +1,4 @@
 import { Contract } from "ethers";
-import fs from "fs";
 import { ethers } from "hardhat";
 
 import {
@@ -35,9 +34,14 @@ import {
     UNLOCK_QUORUM,
 } from "./config/custom-quorum-params";
 import {
+    ADMIN_ROLE,
+    BADGE_MANAGER_ROLE,
+    CORE_VOTING_ROLE,
     FOUNDATION_MULTISIG,
+    GSC_CORE_VOTING_ROLE,
     GSC_MIN_LOCK_DURATION,
     MULTISIG,
+    RESOURCE_MANAGER_ROLE,
     VESTING_MANAGER,
 } from "./config/deployment-params";
 import {
@@ -73,39 +77,9 @@ import {
     WETH_MEDIUM,
     WETH_SMALL,
 } from "./config/treasury-thresholds";
+import { DeployedResources, loadContracts } from "./test/utils";
 import { SECTION_SEPARATOR } from "./test/utils";
 
-const jsonContracts: { [key: string]: string } = {
-    ArcadeTokenDistributor: "arcadeTokenDistributor",
-    ArcadeToken: "arcadeToken",
-    ArcadeCoreVoting: "arcadeCoreVoting",
-    ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
-    Timelock: "timelock",
-    ARCDVestingVault: "teamVestingVault",
-    ImmutableVestingVault: "partnerVestingVault",
-    NFTBoostVault: "nftBoostVault",
-    ArcadeGSCVault: "arcadeGSCVault",
-    ArcadeTreasury: "arcadeTreasury",
-    ArcadeAirdrop: "arcadeAirdrop",
-    BadgeDescriptor: "badgeDescriptor",
-    ReputationBadge: "reputationBadge",
-};
-
-type ContractArgs = {
-    arcadeTokenDistributor: Contract;
-    arcadeToken: Contract;
-    arcadeCoreVoting: Contract;
-    arcadeGSCCoreVoting: Contract;
-    timelock: Contract;
-    teamVestingVault: Contract;
-    partnerVestingVault: Contract;
-    nftBoostVault: Contract;
-    arcadeGSCVault: Contract;
-    arcadeTreasury: Contract;
-    arcadeAirdrop: Contract;
-    badgeDescriptor: Contract;
-    reputationBadge: Contract;
-};
 
 export async function main(
     arcadeTokenDistributor: Contract,
@@ -301,58 +275,48 @@ export async function main(
     await tx40.wait();
 
     console.log("Grant ArcadeTreasury permissions to foundation multisig...");
-    const tx41 = await arcadeTreasury.grantRole(await arcadeTreasury.GSC_CORE_VOTING_ROLE(), FOUNDATION_MULTISIG);
+    const tx41 = await arcadeTreasury.grantRole(GSC_CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
     await tx41.wait();
-    const tx42 = await arcadeTreasury.grantRole(await arcadeTreasury.CORE_VOTING_ROLE(), FOUNDATION_MULTISIG);
+    const tx42 = await arcadeTreasury.grantRole(CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
     await tx42.wait();
-    const tx43 = await arcadeTreasury.grantRole(await arcadeTreasury.ADMIN_ROLE(), FOUNDATION_MULTISIG);
+    const tx43 = await arcadeTreasury.grantRole(ADMIN_ROLE, FOUNDATION_MULTISIG);
     await tx43.wait();
-    const tx44 = await arcadeTreasury.renounceRole(await arcadeTreasury.ADMIN_ROLE(), deployer.address);
+    const tx44 = await arcadeTreasury.renounceRole(ADMIN_ROLE, deployer.address);
     await tx44.wait();
 
     // ================= ReputationBadge =================
-    console.log("Setup ReputationBadge  roles...");
-    const tx45 = await reputationBadge.grantRole(await reputationBadge.BADGE_MANAGER_ROLE(), MULTISIG);
+    console.log("Setup ReputationBadge roles...");
+    const tx45 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, MULTISIG);
     await tx45.wait();
-    const tx46 = await reputationBadge.grantRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), MULTISIG);
+    const tx46 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, MULTISIG);
     await tx46.wait();
-    const tx47 = await reputationBadge.grantRole(await reputationBadge.ADMIN_ROLE(), MULTISIG);
+    const tx47 = await reputationBadge.grantRole(ADMIN_ROLE, MULTISIG);
     await tx47.wait();
-    const tx48 = await reputationBadge.renounceRole(await reputationBadge.ADMIN_ROLE(), deployer.address);
+    const tx48 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
     await tx48.wait();
 
     // ================ Badge Descriptor ==================
-    console.log("Setup BadgeDescriptor ownership...");
+    console.log("Transfer BadgeDescriptor ownership to multisig...");
     const tx49 = await badgeDescriptor.transferOwnership(MULTISIG);
     await tx49.wait();
-}
 
-async function attachAddresses(jsonFile: string): Promise<ContractArgs> {
-    const readData = fs.readFileSync(jsonFile, "utf-8");
-    const jsonData = JSON.parse(readData);
-    const contracts: { [key: string]: Contract } = {};
-
-    for await (const key of Object.keys(jsonData)) {
-        if (!(key in jsonContracts)) continue;
-
-        const argKey = jsonContracts[key];
-
-        const contract: Contract = await ethers.getContractAt(key, jsonData[key]["contractAddress"]);
-
-        contracts[argKey] = contract;
-    }
-
-    return contracts as ContractArgs;
+    console.log(SECTION_SEPARATOR);
+    console.log("✅ Setup complete.");
+    console.log(SECTION_SEPARATOR);
 }
 
 if (require.main === module) {
-    // retrieve command line args array
-    const [, , file] = process.argv;
+    let file = "";
+    if (process.env.DEPLOYMENT_FILE) {
+        file = process.env.DEPLOYMENT_FILE;
+    } else {
+        [, , file] = process.argv;
+    }
 
     console.log("File:", file);
 
     // assemble args to access the relevant deployment json in .deployment
-    void attachAddresses(file).then((res: ContractArgs) => {
+    void loadContracts(file).then((res: DeployedResources) => {
         const {
             arcadeTokenDistributor,
             arcadeToken,

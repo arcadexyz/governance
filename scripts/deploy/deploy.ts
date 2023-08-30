@@ -28,24 +28,9 @@ import {
     VESTING_MANAGER,
     AIRDROP_MERKLE_ROOT,
 } from "./config/deployment-params";
+import { DeployedResources } from "./test/utils";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { writeJson } from "./write-json";
-
-export interface DeployedResources {
-    arcadeTokenDistributor: ArcadeTokenDistributor;
-    arcadeToken: ArcadeToken;
-    arcadeCoreVoting: ArcadeCoreVoting;
-    arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
-    timelock: Timelock;
-    teamVestingVault: ARCDVestingVault;
-    partnerVestingVault: ImmutableVestingVault;
-    nftBoostVault: NFTBoostVault;
-    arcadeGSCVault: ArcadeGSCVault;
-    arcadeTreasury: ArcadeTreasury;
-    arcadeAirdrop: ArcadeAirdrop;
-    badgeDescriptor: BadgeDescriptor;
-    reputationBadge: ReputationBadge;
-}
 
 export async function main(): Promise<DeployedResources> {
     // Hardhat always runs the compile task when running scripts through it.
@@ -206,6 +191,9 @@ export async function main(): Promise<DeployedResources> {
     const reputationBadge = await ReputationBadgeFactory.deploy(deployer.address, badgeDescriptor.address);
     await reputationBadge.deployed();
     console.log("ReputationBadge deployed to:", reputationBadge.address);
+    console.log(SECTION_SEPARATOR);
+
+    console.log("✅ Deployment complete.");
     console.log(SECTION_SEPARATOR);
 
     // ================= SAVE ARTIFACTS =================
