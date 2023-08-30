@@ -156,12 +156,7 @@ export async function createInfo(
 
     contractInfo["ArcadeAirdrop"] = {
         contractAddress: arcadeAirdropAddress,
-        constructorArgs: [
-            ethers.constants.HashZero,
-            arcadeTokenAddress,
-            AIRDROP_EXPIRATION,
-            nftBoostVaultAddress,
-        ],
+        constructorArgs: [ethers.constants.HashZero, arcadeTokenAddress, AIRDROP_EXPIRATION, nftBoostVaultAddress],
     };
 
     contractInfo["BadgeDescriptor"] = {

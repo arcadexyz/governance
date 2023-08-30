@@ -80,7 +80,6 @@ import {
 import { DeployedResources, loadContracts } from "./test/utils";
 import { SECTION_SEPARATOR } from "./test/utils";
 
-
 export async function main(
     arcadeTokenDistributor: Contract,
     arcadeToken: Contract,

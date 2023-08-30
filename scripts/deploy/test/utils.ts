@@ -1,7 +1,7 @@
 import { expect } from "chai";
+import { Contract } from "ethers";
 import fs from "fs";
 import hre, { ethers } from "hardhat";
-import { Contract } from "ethers";
 import fetch from "node-fetch";
 import path from "path";
 import { URLSearchParams } from "url";
@@ -116,7 +116,7 @@ export const getVerifiedABI = async (address: string): Promise<any> => {
 };
 
 export async function loadContracts(jsonFile: string): Promise<DeployedResources> {
-    const readData = fs.readFileSync(jsonFile, 'utf-8');
+    const readData = fs.readFileSync(jsonFile, "utf-8");
     const jsonData = JSON.parse(readData);
     const contracts: { [key: string]: Contract } = {};
 
@@ -132,4 +132,4 @@ export async function loadContracts(jsonFile: string): Promise<DeployedResources
     }
 
     return contracts as unknown as DeployedResources;
-};
+}

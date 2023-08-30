@@ -45,11 +45,7 @@ import {
     UNLOCK,
     UNLOCK_QUORUM,
 } from "../config/custom-quorum-params";
-import {
-    FOUNDATION_MULTISIG,
-    GSC_MIN_LOCK_DURATION,
-    MULTISIG,
-} from "../config/deployment-params";
+import { FOUNDATION_MULTISIG, GSC_MIN_LOCK_DURATION, MULTISIG } from "../config/deployment-params";
 import {
     APE_ADDRESS,
     APE_LARGE,
