@@ -45,7 +45,22 @@ import {
     UNLOCK,
     UNLOCK_QUORUM,
 } from "../config/custom-quorum-params";
-import { FOUNDATION_MULTISIG, GSC_MIN_LOCK_DURATION, MULTISIG } from "../config/deployment-params";
+import {
+    AIRDROP_EXPIRATION,
+    AIRDROP_MERKLE_ROOT,
+    BADGE_DESCRIPTOR_BASE_URI,
+    BASE_QUORUM,
+    BASE_QUORUM_GSC,
+    FOUNDATION_MULTISIG,
+    GSC_MIN_LOCK_DURATION,
+    GSC_THRESHOLD,
+    MIN_PROPOSAL_POWER_CORE_VOTING,
+    MIN_PROPOSAL_POWER_GSC,
+    MULTISIG,
+    STALE_BLOCK_LAG,
+    TIMELOCK_WAIT_TIME,
+    VESTING_MANAGER,
+} from "../config/deployment-params";
 import {
     APE_ADDRESS,
     APE_LARGE,
@@ -98,6 +113,8 @@ describe("Deployment", function () {
     this.bail();
 
     it("deploys contracts and creates deployment artifacts", async () => {
+        const [deployer] = await ethers.getSigners();
+
         if (process.env.EXEC) {
             console.log(); // whitespace
             execSync(`npx hardhat --network ${NETWORK} run scripts/deploy/deploy.ts`, { stdio: "inherit" });
@@ -113,66 +130,119 @@ describe("Deployment", function () {
         expect(deployment["ArcadeToken"]).to.exist;
         expect(deployment["ArcadeToken"].contractAddress).to.exist;
         expect(deployment["ArcadeToken"].constructorArgs.length).to.eq(2);
+        expect(deployment["ArcadeToken"].constructorArgs[0]).to.equal(deployer.address);
+        expect(deployment["ArcadeToken"].constructorArgs[1]).to.equal(
+            deployment["ArcadeTokenDistributor"].contractAddress,
+        );
 
         expect(deployment["Timelock"]).to.exist;
         expect(deployment["Timelock"].contractAddress).to.exist;
         expect(deployment["Timelock"].constructorArgs.length).to.eq(3);
+        expect(deployment["Timelock"].constructorArgs[0]).to.equal(TIMELOCK_WAIT_TIME);
+        expect(deployment["Timelock"].constructorArgs[1]).to.equal(deployer.address);
+        expect(deployment["Timelock"].constructorArgs[2]).to.equal(deployer.address);
 
         expect(deployment["ARCDVestingVault"]).to.exist;
         expect(deployment["ARCDVestingVault"].contractAddress).to.exist;
         expect(deployment["ARCDVestingVault"].constructorArgs.length).to.eq(4);
+        expect(deployment["ARCDVestingVault"].constructorArgs[0]).to.equal(deployment["ArcadeToken"].contractAddress);
+        expect(deployment["ARCDVestingVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
+        expect(deployment["ARCDVestingVault"].constructorArgs[2]).to.equal(VESTING_MANAGER);
+        expect(deployment["ARCDVestingVault"].constructorArgs[3]).to.equal(deployment["Timelock"].contractAddress);
 
         expect(deployment["ImmutableVestingVault"]).to.exist;
         expect(deployment["ImmutableVestingVault"].contractAddress).to.exist;
         expect(deployment["ImmutableVestingVault"].constructorArgs.length).to.eq(4);
+        expect(deployment["ImmutableVestingVault"].constructorArgs[0]).to.equal(
+            deployment["ArcadeToken"].contractAddress,
+        );
+        expect(deployment["ImmutableVestingVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
+        expect(deployment["ImmutableVestingVault"].constructorArgs[2]).to.equal(VESTING_MANAGER);
+        expect(deployment["ImmutableVestingVault"].constructorArgs[3]).to.equal(deployment["Timelock"].contractAddress);
 
         expect(deployment["NFTBoostVault"]).to.exist;
         expect(deployment["NFTBoostVault"].contractAddress).to.exist;
         expect(deployment["NFTBoostVault"].constructorArgs.length).to.eq(4);
+        expect(deployment["NFTBoostVault"].constructorArgs[0]).to.equal(deployment["ArcadeToken"].contractAddress);
+        expect(deployment["NFTBoostVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
+        expect(deployment["NFTBoostVault"].constructorArgs[2]).to.equal(deployer.address);
+        expect(deployment["NFTBoostVault"].constructorArgs[3]).to.equal(deployer.address);
 
         expect(deployment["ArcadeCoreVoting"]).to.exist;
         expect(deployment["ArcadeCoreVoting"].contractAddress).to.exist;
         expect(deployment["ArcadeCoreVoting"].constructorArgs.length).to.eq(6);
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[0]).to.equal(deployer.address);
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[1]).to.equal(BASE_QUORUM);
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[2]).to.equal(MIN_PROPOSAL_POWER_CORE_VOTING);
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[3]).to.equal(ethers.constants.AddressZero);
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[4].length).to.eq(3);
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[4][0]).to.equal(
+            deployment["ARCDVestingVault"].contractAddress,
+        );
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[4][1]).to.equal(
+            deployment["ImmutableVestingVault"].contractAddress,
+        );
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[4][2]).to.equal(
+            deployment["NFTBoostVault"].contractAddress,
+        );
+        expect(deployment["ArcadeCoreVoting"].constructorArgs[5]).to.equal(true);
 
         expect(deployment["ArcadeGSCVault"]).to.exist;
         expect(deployment["ArcadeGSCVault"].contractAddress).to.exist;
         expect(deployment["ArcadeGSCVault"].constructorArgs.length).to.eq(3);
+        expect(deployment["ArcadeGSCVault"].constructorArgs[0]).to.equal(
+            deployment["ArcadeCoreVoting"].contractAddress,
+        );
+        expect(deployment["ArcadeGSCVault"].constructorArgs[1]).to.equal(GSC_THRESHOLD);
+        expect(deployment["ArcadeGSCVault"].constructorArgs[2]).to.equal(deployment["Timelock"].contractAddress);
 
         expect(deployment["ArcadeGSCCoreVoting"]).to.exist;
         expect(deployment["ArcadeGSCCoreVoting"].contractAddress).to.exist;
         expect(deployment["ArcadeGSCCoreVoting"].constructorArgs.length).to.eq(5);
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs[0]).to.equal(deployer.address);
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs[1]).to.equal(BASE_QUORUM_GSC);
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs[2]).to.equal(MIN_PROPOSAL_POWER_GSC);
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs[3]).to.equal(ethers.constants.AddressZero);
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs[4].length).to.equal(1);
+        expect(deployment["ArcadeGSCCoreVoting"].constructorArgs[4][0]).to.equal(
+            deployment["ArcadeGSCVault"].contractAddress,
+        );
 
         expect(deployment["ArcadeTreasury"]).to.exist;
         expect(deployment["ArcadeTreasury"].contractAddress).to.exist;
         expect(deployment["ArcadeTreasury"].constructorArgs.length).to.eq(1);
+        expect(deployment["ArcadeTreasury"].constructorArgs[0]).to.eq(deployer.address);
 
         expect(deployment["ArcadeAirdrop"]).to.exist;
         expect(deployment["ArcadeAirdrop"].contractAddress).to.exist;
         expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(4);
+        expect(deployment["ArcadeAirdrop"].constructorArgs[0]).to.eq(AIRDROP_MERKLE_ROOT);
+        expect(deployment["ArcadeAirdrop"].constructorArgs[1]).to.eq(deployment["ArcadeToken"].contractAddress);
+        expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.eq(AIRDROP_EXPIRATION);
+        expect(deployment["ArcadeAirdrop"].constructorArgs[3]).to.eq(deployment["NFTBoostVault"].contractAddress);
 
         expect(deployment["BadgeDescriptor"]).to.exist;
         expect(deployment["BadgeDescriptor"].contractAddress).to.exist;
         expect(deployment["BadgeDescriptor"].constructorArgs.length).to.eq(1);
+        expect(deployment["BadgeDescriptor"].constructorArgs[0]).to.eq(BADGE_DESCRIPTOR_BASE_URI);
 
         expect(deployment["ReputationBadge"]).to.exist;
         expect(deployment["ReputationBadge"].contractAddress).to.exist;
         expect(deployment["ReputationBadge"].constructorArgs.length).to.eq(2);
+        expect(deployment["ReputationBadge"].constructorArgs[0]).to.eq(deployer.address);
+        expect(deployment["ReputationBadge"].constructorArgs[1]).to.eq(deployment["BadgeDescriptor"].contractAddress);
     });
 
     it("correctly sets up decentralization", async () => {
-        const [deployer] = await ethers.getSigners();
-
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
+        const [deployer] = await ethers.getSigners();
 
         if (process.env.EXEC) {
             // Run setup, via command-line
             console.log(); // whitespace
             execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: "inherit" });
         }
-
-        // Verify all the governance setup transactions were executed properly
-        console.log("Verifying governance setup...");
 
         const arcadeTokenDistributor = <ArcadeTokenDistributor>(
             await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)

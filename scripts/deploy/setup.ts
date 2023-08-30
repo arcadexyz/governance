@@ -1,4 +1,3 @@
-import { Contract } from "ethers";
 import { ethers } from "hardhat";
 
 import {
@@ -77,28 +76,27 @@ import {
     WETH_MEDIUM,
     WETH_SMALL,
 } from "./config/treasury-thresholds";
-import { DeployedResources, loadContracts } from "./test/utils";
+import { DeployedResources, SUBSECTION_SEPARATOR, loadContracts } from "./test/utils";
 import { SECTION_SEPARATOR } from "./test/utils";
 
-export async function main(
-    arcadeTokenDistributor: Contract,
-    arcadeToken: Contract,
-    arcadeCoreVoting: Contract,
-    arcadeGSCCoreVoting: Contract,
-    timelock: Contract,
-    teamVestingVault: Contract,
-    partnerVestingVault: Contract,
-    nftBoostVault: Contract,
-    arcadeGSCVault: Contract,
-    arcadeTreasury: Contract,
-    arcadeAirdrop: Contract,
-    badgeDescriptor: Contract,
-    reputationBadge: Contract,
-): Promise<void> {
+export async function setupRoles(resources: DeployedResources): Promise<void> {
     const [deployer] = await ethers.getSigners();
+    const {
+        arcadeToken,
+        arcadeTokenDistributor,
+        arcadeCoreVoting,
+        timelock,
+        nftBoostVault,
+        arcadeGSCCoreVoting,
+        arcadeTreasury,
+        arcadeAirdrop,
+        badgeDescriptor,
+        reputationBadge,
+    } = resources;
 
     console.log(SECTION_SEPARATOR);
-    console.log("Setup contract permissions and state variables...");
+    console.log("Setup contract permissions and state variables");
+    console.log(SUBSECTION_SEPARATOR);
 
     // ================= ArcadeToken =================
     console.log("Setting ArcadeToken minter as CoreVoting...");
@@ -125,7 +123,7 @@ export async function main(
     await tx7.wait();
 
     // ================= ArcadeAirdrop =================
-    console.log("Transfer airdrop contract ownership to multisig...");
+    console.log("Transferring airdrop contract ownership to multisig...");
     const tx8 = await arcadeAirdrop.setOwner(MULTISIG);
     await tx8.wait();
 
@@ -133,10 +131,10 @@ export async function main(
     console.log("Setting airdrop contract in nftBoostVault...");
     const tx9 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
     await tx9.wait();
-    console.log("Transfer nftBoostVault manager role to multisig...");
+    console.log("Transferring nftBoostVault manager role to multisig...");
     const tx10 = await nftBoostVault.setManager(MULTISIG);
     await tx10.wait();
-    console.log("Transfer nftBoostVault timelock role to ArcadeCoreVoting...");
+    console.log("Transferring nftBoostVault timelock role to ArcadeCoreVoting...");
     const tx11 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
     await tx11.wait();
 
@@ -295,7 +293,7 @@ export async function main(
     await tx48.wait();
 
     // ================ Badge Descriptor ==================
-    console.log("Transfer BadgeDescriptor ownership to multisig...");
+    console.log("Transferring BadgeDescriptor ownership to multisig...");
     const tx49 = await badgeDescriptor.transferOwnership(MULTISIG);
     await tx49.wait();
 
@@ -305,52 +303,22 @@ export async function main(
 }
 
 if (require.main === module) {
-    let file = "";
-    if (process.env.DEPLOYMENT_FILE) {
-        file = process.env.DEPLOYMENT_FILE;
-    } else {
-        [, , file] = process.argv;
+    // retrieve command line args array
+    const file = process.env.DEPLOYMENT_FILE;
+
+    // if file not in .env, exit
+    if (!file) {
+        console.error("No deployment file provided");
+        process.exit(1);
     }
 
     console.log("File:", file);
 
-    // assemble args to access the relevant deployment json in .deployment
-    void loadContracts(file).then((res: DeployedResources) => {
-        const {
-            arcadeTokenDistributor,
-            arcadeToken,
-            arcadeCoreVoting,
-            arcadeGSCCoreVoting,
-            timelock,
-            teamVestingVault,
-            partnerVestingVault,
-            nftBoostVault,
-            arcadeGSCVault,
-            arcadeTreasury,
-            arcadeAirdrop,
-            badgeDescriptor,
-            reputationBadge,
-        } = res;
-
-        main(
-            arcadeTokenDistributor,
-            arcadeToken,
-            arcadeCoreVoting,
-            arcadeGSCCoreVoting,
-            timelock,
-            teamVestingVault,
-            partnerVestingVault,
-            nftBoostVault,
-            arcadeGSCVault,
-            arcadeTreasury,
-            arcadeAirdrop,
-            badgeDescriptor,
-            reputationBadge,
-        )
-            .then(() => process.exit(0))
-            .catch((error: Error) => {
-                console.error(error);
-                process.exit(1);
-            });
-    });
+    void loadContracts(file)
+        .then(setupRoles)
+        .then(() => process.exit(0))
+        .catch((error: Error) => {
+            console.error(error);
+            process.exit(1);
+        });
 }

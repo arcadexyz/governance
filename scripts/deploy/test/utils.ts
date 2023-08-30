@@ -25,13 +25,13 @@ import {
 export interface DeployedResources {
     arcadeTokenDistributor: ArcadeTokenDistributor;
     arcadeToken: ArcadeToken;
-    arcadeCoreVoting: ArcadeCoreVoting;
-    arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     timelock: Timelock;
     teamVestingVault: ARCDVestingVault;
     partnerVestingVault: ImmutableVestingVault;
     nftBoostVault: NFTBoostVault;
+    arcadeCoreVoting: ArcadeCoreVoting;
     arcadeGSCVault: ArcadeGSCVault;
+    arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     arcadeTreasury: ArcadeTreasury;
     arcadeAirdrop: ArcadeAirdrop;
     badgeDescriptor: BadgeDescriptor;
@@ -48,13 +48,13 @@ export const SUBSECTION_SEPARATOR = "-".repeat(10);
 export const jsonContracts: { [key: string]: string } = {
     ArcadeTokenDistributor: "arcadeTokenDistributor",
     ArcadeToken: "arcadeToken",
-    ArcadeCoreVoting: "arcadeCoreVoting",
-    ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
     Timelock: "timelock",
     ARCDVestingVault: "teamVestingVault",
     ImmutableVestingVault: "partnerVestingVault",
     NFTBoostVault: "nftBoostVault",
+    ArcadeCoreVoting: "arcadeCoreVoting",
     ArcadeGSCVault: "arcadeGSCVault",
+    ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
     ArcadeTreasury: "arcadeTreasury",
     ArcadeAirdrop: "arcadeAirdrop",
     BadgeDescriptor: "badgeDescriptor",
@@ -115,7 +115,7 @@ export const getVerifiedABI = async (address: string): Promise<any> => {
     return JSON.parse(result);
 };
 
-export async function loadContracts(jsonFile: string): Promise<DeployedResources> {
+export const loadContracts = async (jsonFile: string): Promise<DeployedResources> => {
     const readData = fs.readFileSync(jsonFile, "utf-8");
     const jsonData = JSON.parse(readData);
     const contracts: { [key: string]: Contract } = {};
@@ -132,4 +132,4 @@ export async function loadContracts(jsonFile: string): Promise<DeployedResources
     }
 
     return contracts as unknown as DeployedResources;
-}
+};

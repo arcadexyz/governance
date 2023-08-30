@@ -1,8 +1,8 @@
 import { ethers } from "hardhat";
 
-export const MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
-export const FOUNDATION_MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
-export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // addGrantAndDelegate, deposit, withdraw
+export const MULTISIG = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e";
+export const FOUNDATION_MULTISIG = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // UPDATE!!!
+export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // UPDATE!!!
 
 export const ADMIN_ROLE = ethers.utils.id("ADMIN");
 export const CORE_VOTING_ROLE = ethers.utils.id("CORE_VOTING");

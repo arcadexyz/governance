@@ -56,11 +56,13 @@ async function verifyArtifacts(contractName: string, contractAddress: string, co
 
 // get data from deployments json to run verify artifacts
 export async function main(): Promise<void> {
-    let file = "";
-    if (process.env.DEPLOYMENT_FILE) {
-        file = process.env.DEPLOYMENT_FILE;
-    } else {
-        [, , file] = process.argv;
+    // retrieve command line args array
+    const file = process.env.DEPLOYMENT_FILE;
+
+    // if file not in .env, exit
+    if (!file) {
+        console.error("No deployment file provided");
+        process.exit(1);
     }
 
     console.log("File:", file);

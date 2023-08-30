@@ -61,17 +61,17 @@ export const SET_AIRDROP_CONTRACT_QUORUM = CV_HIGH_QUORUM;
 /////// V3 Lending Protocol ///////
 
 // OriginationController
-export const ORIGINATION_CONTROLLER_ADDR = "0xDD4C612c843Ff593eB29C6cBF1D7CE4c880558f2";
+export const ORIGINATION_CONTROLLER_ADDR = "0xB7BFcca7D7ff0f371867B770856FAc184B185878";
 // LoanCore
-export const LOAN_CORE_ADDR = "0x8a2E4795B395B6eE9A04284a6074539753bfAbF8";
+export const LOAN_CORE_ADDR = "0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF";
 
 // LoanCore - pause
-export const PAUSE = "0x8456cb59";
+export const PAUSE = "0xfc0e74d1";
 export const PAUSE_QUORUM = GSC_HIGH_QUORUM;
 
-// OriginationController - setAllowedVerifiers - UPDATE FUNCTION SELECTOR ONCE DEPLOYED!!
-export const SET_ALLOWED_VERIFIERS = "0x04b86147";
+// OriginationController - setAllowedVerifiers
+export const SET_ALLOWED_VERIFIERS = "0x34d95a51";
 export const SET_ALLOWED_VERIFIERS_QUORUM = CV_HIGH_QUORUM;
 // OriginationController - setAllowedPayableCurrencies
-export const SET_ALLOWED_PAYABLE_CURRENCIES = "0xded30f49";
+export const SET_ALLOWED_PAYABLE_CURRENCIES = "0x6db75724";
 export const SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM = CV_HIGH_QUORUM;

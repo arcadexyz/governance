@@ -195,43 +195,56 @@ export async function main(): Promise<DeployedResources> {
 
     // ================= SAVE ARTIFACTS =================
 
-    await writeJson(
-        arcadeTokenDistributor.address,
-        arcadeToken.address,
-        arcadeCoreVoting.address,
-        arcadeGSCCoreVoting.address,
-        timelock.address,
-        teamVestingVault.address,
-        partnerVestingVault.address,
-        nftBoostVault.address,
-        arcadeGSCVault.address,
-        arcadeTreasury.address,
-        arcadeAirdrop.address,
-        badgeDescriptor.address,
-        reputationBadge.address,
-    );
-
-    console.log(SECTION_SEPARATOR);
-
-    return {
+    const resources: DeployedResources = {
         arcadeTokenDistributor,
         arcadeToken,
-        arcadeCoreVoting,
-        arcadeGSCCoreVoting,
         timelock,
         teamVestingVault,
         partnerVestingVault,
         nftBoostVault,
+        arcadeCoreVoting,
         arcadeGSCVault,
+        arcadeGSCCoreVoting,
         arcadeTreasury,
         arcadeAirdrop,
         badgeDescriptor,
         reputationBadge,
     };
+
+    await writeJson(resources, {
+        arcadeTokenDistributor: [],
+        arcadeToken: [deployer.address, arcadeTokenDistributor.address],
+        timelock: [TIMELOCK_WAIT_TIME, deployer.address, deployer.address],
+        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER, timelock.address],
+        partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER, timelock.address],
+        nftBoostVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
+        arcadeCoreVoting: [
+            deployer.address,
+            BASE_QUORUM,
+            MIN_PROPOSAL_POWER_CORE_VOTING,
+            ethers.constants.AddressZero,
+            [teamVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
+            true,
+        ],
+        arcadeGSCVault: [arcadeCoreVoting.address, GSC_THRESHOLD, timelock.address],
+        arcadeGSCCoreVoting: [
+            deployer.address,
+            BASE_QUORUM_GSC,
+            MIN_PROPOSAL_POWER_GSC,
+            ethers.constants.AddressZero,
+            [arcadeGSCVault.address],
+        ],
+        arcadeTreasury: [deployer.address],
+        arcadeAirdrop: [AIRDROP_MERKLE_ROOT, arcadeToken.address, AIRDROP_EXPIRATION, nftBoostVault.address],
+        badgeDescriptor: [BADGE_DESCRIPTOR_BASE_URI],
+        reputationBadge: [deployer.address, badgeDescriptor.address],
+    });
+
+    console.log(SECTION_SEPARATOR);
+
+    return resources;
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 if (require.main === module) {
     main()
         .then(() => process.exit(0))
