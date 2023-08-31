@@ -39,7 +39,7 @@ import {
     FOUNDATION_MULTISIG,
     GSC_CORE_VOTING_ROLE,
     GSC_MIN_LOCK_DURATION,
-    MULTISIG,
+    LAUNCH_PARTNER_MULTISIG,
     RESOURCE_MANAGER_ROLE,
     VESTING_MANAGER,
 } from "./config/deployment-params";
@@ -119,12 +119,12 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     await tx6.wait();
 
     console.log("Transferring ownership of ArcadeTokenDistributor to multisig...");
-    const tx7 = await arcadeTokenDistributor.transferOwnership(MULTISIG);
+    const tx7 = await arcadeTokenDistributor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
     await tx7.wait();
 
     // ================= ArcadeAirdrop =================
     console.log("Transferring airdrop contract ownership to multisig...");
-    const tx8 = await arcadeAirdrop.setOwner(MULTISIG);
+    const tx8 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
     await tx8.wait();
 
     // ================= NFTBoostVault =================
@@ -132,7 +132,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const tx9 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
     await tx9.wait();
     console.log("Transferring nftBoostVault manager role to multisig...");
-    const tx10 = await nftBoostVault.setManager(MULTISIG);
+    const tx10 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);
     await tx10.wait();
     console.log("Transferring nftBoostVault timelock role to ArcadeCoreVoting...");
     const tx11 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
@@ -283,18 +283,18 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
 
     // ================= ReputationBadge =================
     console.log("Setup ReputationBadge roles...");
-    const tx45 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, MULTISIG);
+    const tx45 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx45.wait();
-    const tx46 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, MULTISIG);
+    const tx46 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx46.wait();
-    const tx47 = await reputationBadge.grantRole(ADMIN_ROLE, MULTISIG);
+    const tx47 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx47.wait();
     const tx48 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
     await tx48.wait();
 
     // ================ Badge Descriptor ==================
     console.log("Transferring BadgeDescriptor ownership to multisig...");
-    const tx49 = await badgeDescriptor.transferOwnership(MULTISIG);
+    const tx49 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
     await tx49.wait();
 
     console.log(SECTION_SEPARATOR);

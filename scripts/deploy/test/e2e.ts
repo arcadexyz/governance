@@ -56,7 +56,7 @@ import {
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
-    MULTISIG,
+    LAUNCH_PARTNER_MULTISIG,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
     VESTING_MANAGER,
@@ -286,16 +286,16 @@ describe("Deployment", function () {
         expect(await arcadeTokenDistributor.vestingPartnerSent()).to.equal(true);
 
         // ArcadeTokenDistributor owner
-        expect(await arcadeTokenDistributor.owner()).to.equal(MULTISIG);
+        expect(await arcadeTokenDistributor.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
 
         // ArcadeAirdrop owner
-        expect(await arcadeAirdrop.owner()).to.equal(MULTISIG);
+        expect(await arcadeAirdrop.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
 
         // NFTBoostVault airdrop contract
         expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
 
         // NFTBoostVault authorized users
-        expect(await nftBoostVault.manager()).to.equal(MULTISIG);
+        expect(await nftBoostVault.manager()).to.equal(LAUNCH_PARTNER_MULTISIG);
         expect(await nftBoostVault.timelock()).to.equal(arcadeCoreVoting.address);
 
         // ArcadeCoreVoting custom quorums
@@ -397,19 +397,19 @@ describe("Deployment", function () {
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), deployer.address)).to.equal(false);
 
         // ReputationBadge BADGE_MANAGER_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), MULTISIG)).to.equal(true);
+        expect(await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
         // ReputationBadge RESOURCE_MANAGER_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), MULTISIG)).to.equal(true);
+        expect(await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), MULTISIG)).to.equal(true);
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE was renounced by deployer
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), deployer.address)).to.equal(false);
 
         // BadgeDescriptor owner
-        expect(await badgeDescriptor.owner()).to.equal(MULTISIG);
+        expect(await badgeDescriptor.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
     });
 
     it("verifies all contracts on the proper network", async () => {
