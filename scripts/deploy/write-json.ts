@@ -86,6 +86,11 @@ export async function createInfo(
         constructorArgs: constructorArgs.arcadeGSCCoreVoting,
     };
 
+    contractInfo["ArcadeTreasuryTimelock"] = {
+        contractAddress: resources.arcadeTreasuryTimelock.address,
+        constructorArgs: constructorArgs.arcadeTreasuryTimelock,
+    };
+
     contractInfo["ArcadeTreasury"] = {
         contractAddress: resources.arcadeTreasury.address,
         constructorArgs: constructorArgs.arcadeTreasury,

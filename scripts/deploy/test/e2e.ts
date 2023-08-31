@@ -12,6 +12,7 @@ import {
     ArcadeToken,
     ArcadeTokenDistributor,
     ArcadeTreasury,
+    ArcadeTreasuryTimelock,
     BadgeDescriptor,
     ImmutableVestingVault,
     NFTBoostVault,
@@ -57,6 +58,7 @@ import {
     BASE_QUORUM,
     BASE_QUORUM_GSC,
     CORE_VOTING_ROLE,
+    FEE_CLAIMER_ROLE,
     FOUNDATION_MULTISIG,
     GSC_CORE_VOTING_ROLE,
     GSC_MIN_LOCK_DURATION,
@@ -216,6 +218,15 @@ describe("Deployment", function () {
             deployment["ArcadeGSCVault"].contractAddress,
         );
 
+        expect(deployment["TreasuryTimelock"]).to.exist;
+        expect(deployment["TreasuryTimelock"].contractAddress).to.exist;
+        expect(deployment["TreasuryTimelock"].constructorArgs.length).to.eq(3);
+        expect(deployment["TreasuryTimelock"].constructorArgs[0]).to.equal(TIMELOCK_WAIT_TIME);
+        expect(deployment["TreasuryTimelock"].constructorArgs[1]).to.equal(FOUNDATION_MULTISIG);
+        expect(deployment["TreasuryTimelock"].constructorArgs[2]).to.equal(
+            deployment["ArcadeGSCCoreVoting"].contractAddress,
+        );
+
         expect(deployment["ArcadeTreasury"]).to.exist;
         expect(deployment["ArcadeTreasury"].contractAddress).to.exist;
         expect(deployment["ArcadeTreasury"].constructorArgs.length).to.eq(1);
@@ -259,7 +270,9 @@ describe("Deployment", function () {
             await ethers.getContractAt("ArcadeToken", deployment["ArcadeToken"].contractAddress)
         );
         const timelock = <Timelock>await ethers.getContractAt("Timelock", deployment["Timelock"].contractAddress);
-        const teamVestingVault = <ARCDVestingVault>await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress);
+        const teamVestingVault = <ARCDVestingVault>(
+            await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
+        );
         const partnerVestingVault = <ImmutableVestingVault>(
             await ethers.getContractAt("ImmutableVestingVault", deployment["ImmutableVestingVault"].contractAddress)
         );
@@ -274,6 +287,9 @@ describe("Deployment", function () {
         );
         const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>(
             await ethers.getContractAt("ArcadeGSCCoreVoting", deployment["ArcadeGSCCoreVoting"].contractAddress)
+        );
+        const arcadeTreasuryTimelock = <ArcadeTreasuryTimelock>(
+            await ethers.getContractAt("ArcadeTreasuryTimelock", deployment["ArcadeTreasuryTimelock"].contractAddress)
         );
         const arcadeTreasury = <ArcadeTreasury>(
             await ethers.getContractAt("ArcadeTreasury", deployment["ArcadeTreasury"].contractAddress)
@@ -381,6 +397,13 @@ describe("Deployment", function () {
         // ArcadeGSCVault coreVoting address
         expect(await arcadeGSCVault.coreVoting()).to.equal(arcadeCoreVoting.address);
 
+        // TreasuryTimelock authorized address
+        expect(await arcadeTreasuryTimelock.authorized(deployer.address)).to.equal(false);
+        expect(await arcadeTreasuryTimelock.authorized(arcadeGSCCoreVoting.address)).to.equal(true);
+
+        // Timelock owner
+        expect(await arcadeTreasuryTimelock.owner()).to.equal(FOUNDATION_MULTISIG);
+
         // ArcadeTreasury spend thresholds
         const thresholdsARCD = await arcadeTreasury.spendThresholds(arcadeToken.address);
         expect(thresholdsARCD.small).to.equal(ARCD_SMALL);
@@ -442,6 +465,9 @@ describe("Deployment", function () {
         // ReputationBadge RESOURCE_MANAGER_ROLE
         expect(await reputationBadge.hasRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
+        // ReputationBadge FEE_CLAIMER_ROLE
+        expect(await reputationBadge.hasRole(FEE_CLAIMER_ROLE, arcadeTreasury.address)).to.equal(true);
+
         // ReputationBadge ADMIN_ROLE
         expect(await reputationBadge.hasRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
@@ -451,6 +477,7 @@ describe("Deployment", function () {
         // ReputationBadge total members in each role
         expect(await reputationBadge.getRoleMemberCount(BADGE_MANAGER_ROLE)).to.equal(1);
         expect(await reputationBadge.getRoleMemberCount(RESOURCE_MANAGER_ROLE)).to.equal(1);
+        expect(await reputationBadge.getRoleMemberCount(FEE_CLAIMER_ROLE)).to.equal(1);
         expect(await reputationBadge.getRoleMemberCount(ADMIN_ROLE)).to.equal(1);
 
         // BadgeDescriptor owner

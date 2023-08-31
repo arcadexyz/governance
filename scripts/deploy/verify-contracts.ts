@@ -36,6 +36,18 @@ async function verifyArtifacts(contractName: string, contractAddress: string, co
                 constructorArguments: constructorArgs,
                 contract: `contracts/ArcadeGSCVault.sol:ArcadeGSCVault`,
             });
+        } else if (contractName === "Timelock") {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+                contract: `contracts/external/council/features/Timelock.sol:Timelock`,
+            });
+        } else if (contractName === "ArcadeTreasuryTimelock") {
+            await hre.run("verify:verify", {
+                address,
+                constructorArguments: constructorArgs,
+                contract: `contracts/ArcadeTreasuryTimelock.sol:ArcadeTreasuryTimelock`,
+            });
         } else {
             await hre.run("verify:verify", {
                 address,

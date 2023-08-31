@@ -32,6 +32,7 @@ export interface DeployedResources {
     arcadeCoreVoting: ArcadeCoreVoting;
     arcadeGSCVault: ArcadeGSCVault;
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
+    arcadeTreasuryTimelock: Timelock;
     arcadeTreasury: ArcadeTreasury;
     arcadeAirdrop: ArcadeAirdrop;
     badgeDescriptor: BadgeDescriptor;
@@ -55,6 +56,7 @@ export const jsonContracts: { [key: string]: string } = {
     ArcadeCoreVoting: "arcadeCoreVoting",
     ArcadeGSCVault: "arcadeGSCVault",
     ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
+    ArcadeTreasuryTimelock: "arcadeTreasuryTimelock",
     ArcadeTreasury: "arcadeTreasury",
     ArcadeAirdrop: "arcadeAirdrop",
     BadgeDescriptor: "badgeDescriptor",

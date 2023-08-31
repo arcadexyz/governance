@@ -36,6 +36,7 @@ import {
     ADMIN_ROLE,
     BADGE_MANAGER_ROLE,
     CORE_VOTING_ROLE,
+    FEE_CLAIMER_ROLE,
     FOUNDATION_MULTISIG,
     GSC_CORE_VOTING_ROLE,
     GSC_MIN_LOCK_DURATION,
@@ -287,15 +288,17 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     await tx45.wait();
     const tx46 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx46.wait();
-    const tx47 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
+    const tx47 = await reputationBadge.grantRole(FEE_CLAIMER_ROLE, arcadeTreasury.address);
     await tx47.wait();
-    const tx48 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
+    const tx48 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx48.wait();
+    const tx49 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
+    await tx49.wait();
 
     // ================ Badge Descriptor ==================
     console.log("Transferring BadgeDescriptor ownership to multisig...");
-    const tx49 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
-    await tx49.wait();
+    const tx50 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
+    await tx50.wait();
 
     console.log(SECTION_SEPARATOR);
     console.log("✅ Setup complete.");

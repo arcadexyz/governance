@@ -9,6 +9,7 @@ export const CORE_VOTING_ROLE = ethers.utils.id("CORE_VOTING");
 export const GSC_CORE_VOTING_ROLE = ethers.utils.id("GSC_CORE_VOTING");
 export const BADGE_MANAGER_ROLE = ethers.utils.id("BADGE_MANAGER");
 export const RESOURCE_MANAGER_ROLE = ethers.utils.id("RESOURCE_MANAGER");
+export const FEE_CLAIMER_ROLE = ethers.utils.id("FEE_CLAIMER");
 
 export const TIMELOCK_WAIT_TIME = 19488; // ~3 days in blocks (3 days allows for a grace period that is longer than a weekend)
 export const GSC_MIN_LOCK_DURATION = 2165; // ~8 hours in blocks

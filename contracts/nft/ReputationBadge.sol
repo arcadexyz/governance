@@ -47,6 +47,7 @@ contract ReputationBadge is ERC1155, AccessControlEnumerable, ERC1155Burnable, I
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN");
     bytes32 public constant BADGE_MANAGER_ROLE = keccak256("BADGE_MANAGER");
     bytes32 public constant RESOURCE_MANAGER_ROLE = keccak256("RESOURCE_MANAGER");
+    bytes32 public constant FEE_CLAIMER_ROLE = keccak256("FEE_CLAIMER");
 
     /// @notice recipient address to claimRoot to amount claimed mapping
     mapping(address => mapping(bytes32 => uint256)) public amountClaimed;
@@ -77,6 +78,7 @@ contract ReputationBadge is ERC1155, AccessControlEnumerable, ERC1155Burnable, I
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(BADGE_MANAGER_ROLE, ADMIN_ROLE);
         _setRoleAdmin(RESOURCE_MANAGER_ROLE, ADMIN_ROLE);
+        _setRoleAdmin(FEE_CLAIMER_ROLE, ADMIN_ROLE);
 
         descriptor = IBadgeDescriptor(_descriptor);
     }
@@ -172,7 +174,7 @@ contract ReputationBadge is ERC1155, AccessControlEnumerable, ERC1155Burnable, I
      *
      * @param recipient        The address to withdraw the fees to.
      */
-    function withdrawFees(address recipient) external onlyRole(BADGE_MANAGER_ROLE) {
+    function withdrawFees(address recipient) external onlyRole(FEE_CLAIMER_ROLE) {
         if (recipient == address(0)) revert RB_ZeroAddress("recipient");
 
         // get contract balance

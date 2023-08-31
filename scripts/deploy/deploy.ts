@@ -9,6 +9,7 @@ import {
     ArcadeToken,
     ArcadeTokenDistributor,
     ArcadeTreasury,
+    ArcadeTreasuryTimelock,
     BadgeDescriptor,
     ImmutableVestingVault,
     NFTBoostVault,
@@ -21,6 +22,7 @@ import {
     BADGE_DESCRIPTOR_BASE_URI,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
+    FOUNDATION_MULTISIG,
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
@@ -148,6 +150,15 @@ export async function main(): Promise<DeployedResources> {
 
     // ================= TREASURY =================
 
+    // treasury timelock
+    const ArcadeTreasuryTimelockFactory = await ethers.getContractFactory("ArcadeTreasuryTimelock");
+    const arcadeTreasuryTimelock = <ArcadeTreasuryTimelock>(
+        await ArcadeTreasuryTimelockFactory.deploy(TIMELOCK_WAIT_TIME, FOUNDATION_MULTISIG, arcadeGSCCoreVoting.address)
+    );
+    await arcadeTreasuryTimelock.deployed();
+    console.log("ArcadeTreasuryTimelock deployed to:", arcadeTreasuryTimelock.address);
+    console.log(SUBSECTION_SEPARATOR);
+
     // treasury
     const ArcadeTreasuryFactory = await ethers.getContractFactory("ArcadeTreasury");
     const arcadeTreasury = <ArcadeTreasury>await ArcadeTreasuryFactory.deploy(deployer.address);
@@ -205,6 +216,7 @@ export async function main(): Promise<DeployedResources> {
         arcadeCoreVoting,
         arcadeGSCVault,
         arcadeGSCCoreVoting,
+        arcadeTreasuryTimelock,
         arcadeTreasury,
         arcadeAirdrop,
         badgeDescriptor,
@@ -234,6 +246,7 @@ export async function main(): Promise<DeployedResources> {
             ethers.constants.AddressZero,
             [arcadeGSCVault.address],
         ],
+        arcadeTreasuryTimelock: [TIMELOCK_WAIT_TIME, FOUNDATION_MULTISIG, arcadeGSCCoreVoting.address],
         arcadeTreasury: [deployer.address],
         arcadeAirdrop: [AIRDROP_MERKLE_ROOT, arcadeToken.address, AIRDROP_EXPIRATION, nftBoostVault.address],
         badgeDescriptor: [BADGE_DESCRIPTOR_BASE_URI],
