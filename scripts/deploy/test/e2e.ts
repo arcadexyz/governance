@@ -54,9 +54,9 @@ import {
     FOUNDATION_MULTISIG,
     GSC_MIN_LOCK_DURATION,
     GSC_THRESHOLD,
+    LAUNCH_PARTNER_MULTISIG,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
-    LAUNCH_PARTNER_MULTISIG,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
     VESTING_MANAGER,
@@ -397,13 +397,19 @@ describe("Deployment", function () {
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), deployer.address)).to.equal(false);
 
         // ReputationBadge BADGE_MANAGER_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(true);
+        expect(
+            await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG),
+        ).to.equal(true);
 
         // ReputationBadge RESOURCE_MANAGER_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(true);
+        expect(
+            await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG),
+        ).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(true);
+        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(
+            true,
+        );
 
         // ReputationBadge ADMIN_ROLE was renounced by deployer
         expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), deployer.address)).to.equal(false);
