@@ -5,7 +5,7 @@ pragma solidity 0.8.18;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import "../interfaces/IReputationBadge.sol";
@@ -39,7 +39,7 @@ import {
  * Only the manager of the contract can update the merkle roots and claim expirations. Additionally,
  * there is an optional mint price which can be set and claimed by the manager.
  */
-contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputationBadge {
+contract ReputationBadge is ERC1155, AccessControlEnumerable, ERC1155Burnable, IReputationBadge {
     /// @dev Contract for returning tokenURI resources.
     IBadgeDescriptor public descriptor;
 
@@ -228,7 +228,7 @@ contract ReputationBadge is ERC1155, AccessControl, ERC1155Burnable, IReputation
     /// @notice function override
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(ERC1155, AccessControl, IERC165) returns (bool) {
+    ) public view override(ERC1155, AccessControlEnumerable, IERC165) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

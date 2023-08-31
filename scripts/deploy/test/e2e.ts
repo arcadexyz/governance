@@ -4,13 +4,16 @@ import { execSync } from "child_process";
 import { artifacts, ethers } from "hardhat";
 
 import {
+    ARCDVestingVault,
     ArcadeAirdrop,
     ArcadeCoreVoting,
     ArcadeGSCCoreVoting,
+    ArcadeGSCVault,
     ArcadeToken,
     ArcadeTokenDistributor,
     ArcadeTreasury,
     BadgeDescriptor,
+    ImmutableVestingVault,
     NFTBoostVault,
     ReputationBadge,
     Timelock,
@@ -46,17 +49,22 @@ import {
     UNLOCK_QUORUM,
 } from "../config/custom-quorum-params";
 import {
+    ADMIN_ROLE,
     AIRDROP_EXPIRATION,
     AIRDROP_MERKLE_ROOT,
     BADGE_DESCRIPTOR_BASE_URI,
+    BADGE_MANAGER_ROLE,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
+    CORE_VOTING_ROLE,
     FOUNDATION_MULTISIG,
+    GSC_CORE_VOTING_ROLE,
     GSC_MIN_LOCK_DURATION,
     GSC_THRESHOLD,
     LAUNCH_PARTNER_MULTISIG,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
+    RESOURCE_MANAGER_ROLE,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
     VESTING_MANAGER,
@@ -251,11 +259,18 @@ describe("Deployment", function () {
             await ethers.getContractAt("ArcadeToken", deployment["ArcadeToken"].contractAddress)
         );
         const timelock = <Timelock>await ethers.getContractAt("Timelock", deployment["Timelock"].contractAddress);
+        const teamVestingVault = <ARCDVestingVault>await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress);
+        const partnerVestingVault = <ImmutableVestingVault>(
+            await ethers.getContractAt("ImmutableVestingVault", deployment["ImmutableVestingVault"].contractAddress)
+        );
         const nftBoostVault = <NFTBoostVault>(
             await ethers.getContractAt("NFTBoostVault", deployment["NFTBoostVault"].contractAddress)
         );
         const arcadeCoreVoting = <ArcadeCoreVoting>(
             await ethers.getContractAt("ArcadeCoreVoting", deployment["ArcadeCoreVoting"].contractAddress)
+        );
+        const arcadeGSCVault = <ArcadeGSCVault>(
+            await ethers.getContractAt("ArcadeGSCVault", deployment["ArcadeGSCVault"].contractAddress)
         );
         const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>(
             await ethers.getContractAt("ArcadeGSCCoreVoting", deployment["ArcadeGSCCoreVoting"].contractAddress)
@@ -290,6 +305,15 @@ describe("Deployment", function () {
 
         // ArcadeAirdrop owner
         expect(await arcadeAirdrop.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
+        expect(await arcadeAirdrop.isAuthorized(deployer.address)).to.equal(false);
+
+        // ARCDVestingVault manager and timelock
+        expect(await teamVestingVault.manager()).to.equal(VESTING_MANAGER);
+        expect(await teamVestingVault.timelock()).to.equal(timelock.address);
+
+        // ImmutableVestingVault manager and timelock
+        expect(await partnerVestingVault.timelock()).to.equal(timelock.address);
+        expect(await partnerVestingVault.manager()).to.equal(VESTING_MANAGER);
 
         // NFTBoostVault airdrop contract
         expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
@@ -340,11 +364,22 @@ describe("Deployment", function () {
         // ArcadeGSCCoreVoting minimum lock duration
         expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);
 
-        // ArcadeGSCCoreVoting authorized address (none
+        // ArcadeGSCCoreVoting authorized address
         expect(await arcadeGSCCoreVoting.authorized(deployer.address)).to.equal(false);
+        expect(await arcadeGSCCoreVoting.authorized(arcadeCoreVoting.address)).to.equal(false);
 
         // ArcadeGSCCoreVoting owner
         expect(await arcadeGSCCoreVoting.owner()).to.equal(timelock.address);
+
+        // ArcadeGSCVault
+        expect(await arcadeGSCVault.isAuthorized(deployer.address)).to.equal(false);
+        expect(await arcadeGSCVault.isAuthorized(arcadeCoreVoting.address)).to.equal(false);
+
+        // ArcadeGSCVault owner
+        expect(await arcadeGSCVault.owner()).to.equal(timelock.address);
+
+        // ArcadeGSCVault coreVoting address
+        expect(await arcadeGSCVault.coreVoting()).to.equal(arcadeCoreVoting.address);
 
         // ArcadeTreasury spend thresholds
         const thresholdsARCD = await arcadeTreasury.spendThresholds(arcadeToken.address);
@@ -396,23 +431,27 @@ describe("Deployment", function () {
         // ArcadeTreasury ADMIN_ROLE was renounced by deployer
         expect(await arcadeTreasury.hasRole(await arcadeTreasury.ADMIN_ROLE(), deployer.address)).to.equal(false);
 
+        // ArcadeTreasury total members in each role
+        expect(await arcadeTreasury.getRoleMemberCount(GSC_CORE_VOTING_ROLE)).to.equal(1);
+        expect(await arcadeTreasury.getRoleMemberCount(CORE_VOTING_ROLE)).to.equal(1);
+        expect(await arcadeTreasury.getRoleMemberCount(ADMIN_ROLE)).to.equal(1);
+
         // ReputationBadge BADGE_MANAGER_ROLE
-        expect(
-            await reputationBadge.hasRole(await reputationBadge.BADGE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG),
-        ).to.equal(true);
+        expect(await reputationBadge.hasRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
         // ReputationBadge RESOURCE_MANAGER_ROLE
-        expect(
-            await reputationBadge.hasRole(await reputationBadge.RESOURCE_MANAGER_ROLE(), LAUNCH_PARTNER_MULTISIG),
-        ).to.equal(true);
+        expect(await reputationBadge.hasRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), LAUNCH_PARTNER_MULTISIG)).to.equal(
-            true,
-        );
+        expect(await reputationBadge.hasRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG)).to.equal(true);
 
         // ReputationBadge ADMIN_ROLE was renounced by deployer
-        expect(await reputationBadge.hasRole(await reputationBadge.ADMIN_ROLE(), deployer.address)).to.equal(false);
+        expect(await reputationBadge.hasRole(ADMIN_ROLE, deployer.address)).to.equal(false);
+
+        // ReputationBadge total members in each role
+        expect(await reputationBadge.getRoleMemberCount(BADGE_MANAGER_ROLE)).to.equal(1);
+        expect(await reputationBadge.getRoleMemberCount(RESOURCE_MANAGER_ROLE)).to.equal(1);
+        expect(await reputationBadge.getRoleMemberCount(ADMIN_ROLE)).to.equal(1);
 
         // BadgeDescriptor owner
         expect(await badgeDescriptor.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
