@@ -65,9 +65,9 @@ export const ORIGINATION_CONTROLLER_ADDR = "0xB7BFcca7D7ff0f371867B770856FAc184B
 // LoanCore
 export const LOAN_CORE_ADDR = "0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF";
 
-// LoanCore - pause
-export const PAUSE = "0xfc0e74d1";
-export const PAUSE_QUORUM = GSC_HIGH_QUORUM;
+// LoanCore - shutdown
+export const SHUTDOWN = "0xfc0e74d1";
+export const SHUTDOWN_QUORUM = GSC_HIGH_QUORUM;
 
 // OriginationController - setAllowedVerifiers
 export const SET_ALLOWED_VERIFIERS = "0x34d95a51";

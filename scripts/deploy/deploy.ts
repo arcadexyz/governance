@@ -28,7 +28,6 @@ import {
     MIN_PROPOSAL_POWER_GSC,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
-    VESTING_MANAGER,
 } from "./config/deployment-params";
 import { DeployedResources } from "./test/utils";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
@@ -80,7 +79,7 @@ export async function main(): Promise<DeployedResources> {
     // ARCDVestingVault
     const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
     const teamVestingVault = <ARCDVestingVault>(
-        await TeamVestingVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER, timelock.address)
+        await TeamVestingVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address)
     );
     await teamVestingVault.deployed();
     console.log("ARCDVestingVault deployed to:", teamVestingVault.address);
@@ -89,7 +88,12 @@ export async function main(): Promise<DeployedResources> {
     // ImmutableVestingVault
     const PartnerVestingVaultFactory = await ethers.getContractFactory("ImmutableVestingVault");
     const partnerVestingVault = <ImmutableVestingVault>(
-        await PartnerVestingVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER, timelock.address)
+        await PartnerVestingVaultFactory.deploy(
+            arcadeToken.address,
+            STALE_BLOCK_LAG,
+            deployer.address,
+            deployer.address,
+        )
     );
     await partnerVestingVault.deployed();
     console.log("ImmutableVestingVault deployed to:", partnerVestingVault.address);
@@ -227,8 +231,8 @@ export async function main(): Promise<DeployedResources> {
         arcadeTokenDistributor: [],
         arcadeToken: [deployer.address, arcadeTokenDistributor.address],
         timelock: [TIMELOCK_WAIT_TIME, deployer.address, deployer.address],
-        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER, timelock.address],
-        partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER, timelock.address],
+        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
+        partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
         nftBoostVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
         arcadeCoreVoting: [
             deployer.address,

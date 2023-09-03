@@ -34,8 +34,6 @@ import {
     MINT_TOKENS,
     MINT_TOKENS_QUORUM,
     ORIGINATION_CONTROLLER_ADDR,
-    PAUSE,
-    PAUSE_QUORUM,
     REGISTER_CALL,
     REGISTER_CALL_QUORUM,
     SET_ALLOWED_PAYABLE_CURRENCIES,
@@ -46,6 +44,8 @@ import {
     SET_MINTER_QUORUM,
     SET_WAIT_TIME,
     SET_WAIT_TIME_QUORUM,
+    SHUTDOWN,
+    SHUTDOWN_QUORUM,
     UNLOCK,
     UNLOCK_QUORUM,
 } from "../config/custom-quorum-params";
@@ -157,8 +157,8 @@ describe("Deployment", function () {
         expect(deployment["ARCDVestingVault"].constructorArgs.length).to.eq(4);
         expect(deployment["ARCDVestingVault"].constructorArgs[0]).to.equal(deployment["ArcadeToken"].contractAddress);
         expect(deployment["ARCDVestingVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
-        expect(deployment["ARCDVestingVault"].constructorArgs[2]).to.equal(VESTING_MANAGER);
-        expect(deployment["ARCDVestingVault"].constructorArgs[3]).to.equal(deployment["Timelock"].contractAddress);
+        expect(deployment["ARCDVestingVault"].constructorArgs[2]).to.equal(deployer.address);
+        expect(deployment["ARCDVestingVault"].constructorArgs[3]).to.equal(deployer.address);
 
         expect(deployment["ImmutableVestingVault"]).to.exist;
         expect(deployment["ImmutableVestingVault"].contractAddress).to.exist;
@@ -167,8 +167,8 @@ describe("Deployment", function () {
             deployment["ArcadeToken"].contractAddress,
         );
         expect(deployment["ImmutableVestingVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
-        expect(deployment["ImmutableVestingVault"].constructorArgs[2]).to.equal(VESTING_MANAGER);
-        expect(deployment["ImmutableVestingVault"].constructorArgs[3]).to.equal(deployment["Timelock"].contractAddress);
+        expect(deployment["ImmutableVestingVault"].constructorArgs[2]).to.equal(deployer.address);
+        expect(deployment["ImmutableVestingVault"].constructorArgs[3]).to.equal(deployer.address);
 
         expect(deployment["NFTBoostVault"]).to.exist;
         expect(deployment["NFTBoostVault"].contractAddress).to.exist;
@@ -218,12 +218,12 @@ describe("Deployment", function () {
             deployment["ArcadeGSCVault"].contractAddress,
         );
 
-        expect(deployment["TreasuryTimelock"]).to.exist;
-        expect(deployment["TreasuryTimelock"].contractAddress).to.exist;
-        expect(deployment["TreasuryTimelock"].constructorArgs.length).to.eq(3);
-        expect(deployment["TreasuryTimelock"].constructorArgs[0]).to.equal(TIMELOCK_WAIT_TIME);
-        expect(deployment["TreasuryTimelock"].constructorArgs[1]).to.equal(FOUNDATION_MULTISIG);
-        expect(deployment["TreasuryTimelock"].constructorArgs[2]).to.equal(
+        expect(deployment["ArcadeTreasuryTimelock"]).to.exist;
+        expect(deployment["ArcadeTreasuryTimelock"].contractAddress).to.exist;
+        expect(deployment["ArcadeTreasuryTimelock"].constructorArgs.length).to.eq(3);
+        expect(deployment["ArcadeTreasuryTimelock"].constructorArgs[0]).to.equal(TIMELOCK_WAIT_TIME);
+        expect(deployment["ArcadeTreasuryTimelock"].constructorArgs[1]).to.equal(FOUNDATION_MULTISIG);
+        expect(deployment["ArcadeTreasuryTimelock"].constructorArgs[2]).to.equal(
             deployment["ArcadeGSCCoreVoting"].contractAddress,
         );
 
@@ -328,8 +328,8 @@ describe("Deployment", function () {
         expect(await teamVestingVault.timelock()).to.equal(timelock.address);
 
         // ImmutableVestingVault manager and timelock
-        expect(await partnerVestingVault.timelock()).to.equal(timelock.address);
         expect(await partnerVestingVault.manager()).to.equal(VESTING_MANAGER);
+        expect(await partnerVestingVault.timelock()).to.equal(timelock.address);
 
         // NFTBoostVault airdrop contract
         expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
@@ -375,7 +375,7 @@ describe("Deployment", function () {
 
         // ArcadeGSCCoreVoting custom quorums
         expect(await arcadeGSCCoreVoting.quorums(timelock.address, INCREASE_TIME)).to.equal(INCREASE_TIME_QUORUM);
-        expect(await arcadeGSCCoreVoting.quorums(LOAN_CORE_ADDR, PAUSE)).to.equal(PAUSE_QUORUM);
+        expect(await arcadeGSCCoreVoting.quorums(LOAN_CORE_ADDR, SHUTDOWN)).to.equal(SHUTDOWN_QUORUM);
 
         // ArcadeGSCCoreVoting minimum lock duration
         expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);
@@ -502,6 +502,7 @@ describe("Deployment", function () {
 
             if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "ArcadeCoreVoting";
             if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
+            if (contractName.includes("ArcadeTreasuryTimelock")) contractName = "Timelock";
 
             const artifact = await artifacts.readArtifact(contractName);
 

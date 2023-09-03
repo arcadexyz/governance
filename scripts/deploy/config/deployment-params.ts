@@ -27,3 +27,5 @@ export const AIRDROP_EXPIRATION = 1695501783; // ~3 months, unix timestamp for a
 export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
 
 export const BADGE_DESCRIPTOR_BASE_URI = ""; // UPDATE!!!
+
+export const BALANCE_QUERY_OWNER = LAUNCH_PARTNER_MULTISIG; // contract used for snapshot voting

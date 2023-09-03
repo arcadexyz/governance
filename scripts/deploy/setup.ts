@@ -15,8 +15,6 @@ import {
     MINT_TOKENS,
     MINT_TOKENS_QUORUM,
     ORIGINATION_CONTROLLER_ADDR,
-    PAUSE,
-    PAUSE_QUORUM,
     REGISTER_CALL,
     REGISTER_CALL_QUORUM,
     SET_AIRDROP_CONTRACT,
@@ -29,6 +27,8 @@ import {
     SET_MINTER_QUORUM,
     SET_WAIT_TIME,
     SET_WAIT_TIME_QUORUM,
+    SHUTDOWN,
+    SHUTDOWN_QUORUM,
     UNLOCK,
     UNLOCK_QUORUM,
 } from "./config/custom-quorum-params";
@@ -42,7 +42,6 @@ import {
     GSC_MIN_LOCK_DURATION,
     LAUNCH_PARTNER_MULTISIG,
     RESOURCE_MANAGER_ROLE,
-    VESTING_MANAGER,
 } from "./config/deployment-params";
 import {
     APE_ADDRESS,
@@ -84,7 +83,6 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const [deployer] = await ethers.getSigners();
     const {
         arcadeToken,
-        arcadeTokenDistributor,
         arcadeCoreVoting,
         timelock,
         nftBoostVault,
@@ -104,209 +102,190 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const tx1 = await arcadeToken.setMinter(arcadeCoreVoting.address);
     await tx1.wait();
 
-    // ================= ArcadeTokenDistributor =================
-    console.log("SettingArcadeToken in ArcadeTokenDistributor...");
-    const tx2 = await arcadeTokenDistributor.setToken(arcadeToken.address);
-    await tx2.wait();
-
-    console.log("Distributing ARCD to treasury, airdrop contract, and vesting manager...");
-    const tx3 = await arcadeTokenDistributor.toGovernanceTreasury(arcadeTreasury.address);
-    await tx3.wait();
-    const tx4 = await arcadeTokenDistributor.toCommunityAirdrop(arcadeAirdrop.address);
-    await tx4.wait();
-    const tx5 = await arcadeTokenDistributor.toTeamVesting(VESTING_MANAGER);
-    await tx5.wait();
-    const tx6 = await arcadeTokenDistributor.toPartnerVesting(VESTING_MANAGER);
-    await tx6.wait();
-
-    console.log("Transferring ownership of ArcadeTokenDistributor to multisig...");
-    const tx7 = await arcadeTokenDistributor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
-    await tx7.wait();
-
     // ================= ArcadeAirdrop =================
     console.log("Transferring airdrop contract ownership to multisig...");
-    const tx8 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
-    await tx8.wait();
+    const tx2 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
+    await tx2.wait();
 
     // ================= NFTBoostVault =================
     console.log("Setting airdrop contract in nftBoostVault...");
-    const tx9 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
-    await tx9.wait();
+    const tx3 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
+    await tx3.wait();
     console.log("Transferring nftBoostVault manager role to multisig...");
-    const tx10 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);
-    await tx10.wait();
+    const tx4 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);
+    await tx4.wait();
     console.log("Transferring nftBoostVault timelock role to ArcadeCoreVoting...");
-    const tx11 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
-    await tx11.wait();
+    const tx5 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
+    await tx5.wait();
 
     // ================== ArcadeCoteVoting ==================
     console.log("Setting custom quorum thresholds in CoreVoting...");
     // ArcadeToken
-    const tx12 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, MINT_TOKENS, MINT_TOKENS_QUORUM);
-    await tx12.wait();
-    const tx13 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, SET_MINTER, SET_MINTER_QUORUM);
-    await tx13.wait();
+    const tx6 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, MINT_TOKENS, MINT_TOKENS_QUORUM);
+    await tx6.wait();
+    const tx7 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, SET_MINTER, SET_MINTER_QUORUM);
+    await tx7.wait();
     // NFTBoostVault
-    const tx14 = await arcadeCoreVoting.setCustomQuorum(
+    const tx8 = await arcadeCoreVoting.setCustomQuorum(
         nftBoostVault.address,
         SET_AIRDROP_CONTRACT,
         SET_AIRDROP_CONTRACT_QUORUM,
     );
-    await tx14.wait();
-    const tx15 = await arcadeCoreVoting.setCustomQuorum(nftBoostVault.address, UNLOCK, UNLOCK_QUORUM);
-    await tx15.wait();
+    await tx8.wait();
+    const tx9 = await arcadeCoreVoting.setCustomQuorum(nftBoostVault.address, UNLOCK, UNLOCK_QUORUM);
+    await tx9.wait();
     // Timelock
-    const tx16 = await arcadeCoreVoting.setCustomQuorum(timelock.address, REGISTER_CALL, REGISTER_CALL_QUORUM);
-    await tx16.wait();
-    const tx17 = await arcadeCoreVoting.setCustomQuorum(timelock.address, SET_WAIT_TIME, SET_WAIT_TIME_QUORUM);
-    await tx17.wait();
+    const tx10 = await arcadeCoreVoting.setCustomQuorum(timelock.address, REGISTER_CALL, REGISTER_CALL_QUORUM);
+    await tx10.wait();
+    const tx11 = await arcadeCoreVoting.setCustomQuorum(timelock.address, SET_WAIT_TIME, SET_WAIT_TIME_QUORUM);
+    await tx11.wait();
     // ArcadeTreasury
-    const tx18 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, MEDIUM_SPEND, MEDIUM_SPEND_QUORUM);
-    await tx18.wait();
-    const tx19 = await arcadeCoreVoting.setCustomQuorum(
+    const tx12 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, MEDIUM_SPEND, MEDIUM_SPEND_QUORUM);
+    await tx12.wait();
+    const tx13 = await arcadeCoreVoting.setCustomQuorum(
         arcadeTreasury.address,
         APPROVE_MEDIUM_SPEND,
         APPROVE_MEDIUM_SPEND_QUORUM,
     );
-    await tx19.wait();
-    const tx20 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, LARGE_SPEND, LARGE_SPEND_QUORUM);
-    await tx20.wait();
-    const tx21 = await arcadeCoreVoting.setCustomQuorum(
+    await tx13.wait();
+    const tx14 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, LARGE_SPEND, LARGE_SPEND_QUORUM);
+    await tx14.wait();
+    const tx15 = await arcadeCoreVoting.setCustomQuorum(
         arcadeTreasury.address,
         APPROVE_LARGE_SPEND,
         APPROVE_LARGE_SPEND_QUORUM,
     );
-    await tx21.wait();
+    await tx15.wait();
     // OriginationController
-    const tx22 = await arcadeCoreVoting.setCustomQuorum(
+    const tx16 = await arcadeCoreVoting.setCustomQuorum(
         ORIGINATION_CONTROLLER_ADDR,
         SET_ALLOWED_VERIFIERS,
         SET_ALLOWED_VERIFIERS_QUORUM,
     );
-    await tx22.wait();
-    const tx23 = await arcadeCoreVoting.setCustomQuorum(
+    await tx16.wait();
+    const tx17 = await arcadeCoreVoting.setCustomQuorum(
         ORIGINATION_CONTROLLER_ADDR,
         SET_ALLOWED_PAYABLE_CURRENCIES,
         SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     );
-    await tx23.wait();
+    await tx17.wait();
 
     console.log("Decentralize ArcadeCoreVoting...");
-    const tx24 = await arcadeCoreVoting.authorize(arcadeGSCCoreVoting.address);
-    await tx24.wait();
-    const tx25 = await arcadeCoreVoting.setOwner(timelock.address);
-    await tx25.wait();
+    const tx18 = await arcadeCoreVoting.authorize(arcadeGSCCoreVoting.address);
+    await tx18.wait();
+    const tx19 = await arcadeCoreVoting.setOwner(timelock.address);
+    await tx19.wait();
 
     // ================= Timelock =================
     console.log("Decentralize Timelock...");
-    const tx26 = await timelock.deauthorize(deployer.address);
-    await tx26.wait();
-    const tx27 = await timelock.authorize(arcadeGSCCoreVoting.address);
-    await tx27.wait();
-    const tx28 = await timelock.setOwner(arcadeCoreVoting.address);
-    await tx28.wait();
+    const tx20 = await timelock.deauthorize(deployer.address);
+    await tx20.wait();
+    const tx21 = await timelock.authorize(arcadeGSCCoreVoting.address);
+    await tx21.wait();
+    const tx22 = await timelock.setOwner(arcadeCoreVoting.address);
+    await tx22.wait();
 
     // ================= ArcadeGSCCoreVoting =================
     console.log("Setting custom quorum thresholds in ArcadeGSCCoreVoting...");
     // LoanCore
-    const tx29 = await arcadeGSCCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, PAUSE, PAUSE_QUORUM);
-    await tx29.wait();
+    const tx23 = await arcadeGSCCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, SHUTDOWN, SHUTDOWN_QUORUM);
+    await tx23.wait();
     // timelock
-    const tx30 = await arcadeGSCCoreVoting.setCustomQuorum(timelock.address, INCREASE_TIME, INCREASE_TIME_QUORUM);
-    await tx30.wait();
+    const tx24 = await arcadeGSCCoreVoting.setCustomQuorum(timelock.address, INCREASE_TIME, INCREASE_TIME_QUORUM);
+    await tx24.wait();
     console.log("Changing min lock time for GSC proposals from 3 days to 8 hours...");
-    const tx31 = await arcadeGSCCoreVoting.setLockDuration(GSC_MIN_LOCK_DURATION);
-    await tx31.wait();
+    const tx25 = await arcadeGSCCoreVoting.setLockDuration(GSC_MIN_LOCK_DURATION);
+    await tx25.wait();
     console.log("Decentralize ArcadeGSCCoreVoting...");
-    const tx32 = await arcadeGSCCoreVoting.setOwner(timelock.address);
-    await tx32.wait();
+    const tx26 = await arcadeGSCCoreVoting.setOwner(timelock.address);
+    await tx26.wait();
 
     // ================= ArcadeTreasury =================
     console.log("Setting spend thresholds in ArcadeTreasury...");
-    const tx33 = await arcadeTreasury.setThreshold(arcadeToken.address, {
+    const tx27 = await arcadeTreasury.setThreshold(arcadeToken.address, {
         small: ARCD_SMALL,
         medium: ARCD_MEDIUM,
         large: ARCD_LARGE,
     });
-    await tx33.wait();
-    const tx34 = await arcadeTreasury.setThreshold(ETH_ADDRESS, {
+    await tx27.wait();
+    const tx28 = await arcadeTreasury.setThreshold(ETH_ADDRESS, {
         small: ETH_SMALL,
         medium: ETH_MEDIUM,
         large: ETH_LARGE,
     });
-    await tx34.wait();
-    const tx35 = await arcadeTreasury.setThreshold(WETH_ADDRESS, {
+    await tx28.wait();
+    const tx29 = await arcadeTreasury.setThreshold(WETH_ADDRESS, {
         small: WETH_SMALL,
         medium: WETH_MEDIUM,
         large: WETH_LARGE,
     });
-    await tx35.wait();
-    const tx36 = await arcadeTreasury.setThreshold(USDC_ADDRESS, {
+    await tx29.wait();
+    const tx30 = await arcadeTreasury.setThreshold(USDC_ADDRESS, {
         small: USDC_SMALL,
         medium: USDC_MEDIUM,
         large: USDC_LARGE,
     });
-    await tx36.wait();
-    const tx37 = await arcadeTreasury.setThreshold(USDT_ADDRESS, {
+    await tx30.wait();
+    const tx31 = await arcadeTreasury.setThreshold(USDT_ADDRESS, {
         small: USDT_SMALL,
         medium: USDT_MEDIUM,
         large: USDT_LARGE,
     });
-    await tx37.wait();
-    const tx38 = await arcadeTreasury.setThreshold(DAI_ADDRESS, {
+    await tx31.wait();
+    const tx32 = await arcadeTreasury.setThreshold(DAI_ADDRESS, {
         small: DAI_SMALL,
         medium: DAI_MEDIUM,
         large: DAI_LARGE,
     });
-    await tx38.wait();
-    const tx39 = await arcadeTreasury.setThreshold(WBTC_ADDRESS, {
+    await tx32.wait();
+    const tx33 = await arcadeTreasury.setThreshold(WBTC_ADDRESS, {
         small: WBTC_SMALL,
         medium: WBTC_MEDIUM,
         large: WBTC_LARGE,
     });
-    await tx39.wait();
-    const tx40 = await arcadeTreasury.setThreshold(APE_ADDRESS, {
+    await tx33.wait();
+    const tx34 = await arcadeTreasury.setThreshold(APE_ADDRESS, {
         small: APE_SMALL,
         medium: APE_MEDIUM,
         large: APE_LARGE,
     });
-    await tx40.wait();
+    await tx34.wait();
 
     console.log("Grant ArcadeTreasury permissions to foundation multisig...");
-    const tx41 = await arcadeTreasury.grantRole(GSC_CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
-    await tx41.wait();
-    const tx42 = await arcadeTreasury.grantRole(CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
-    await tx42.wait();
-    const tx43 = await arcadeTreasury.grantRole(ADMIN_ROLE, FOUNDATION_MULTISIG);
-    await tx43.wait();
-    const tx44 = await arcadeTreasury.renounceRole(ADMIN_ROLE, deployer.address);
-    await tx44.wait();
+    const tx35 = await arcadeTreasury.grantRole(GSC_CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
+    await tx35.wait();
+    const tx36 = await arcadeTreasury.grantRole(CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
+    await tx36.wait();
+    const tx37 = await arcadeTreasury.grantRole(ADMIN_ROLE, FOUNDATION_MULTISIG);
+    await tx37.wait();
+    const tx38 = await arcadeTreasury.renounceRole(ADMIN_ROLE, deployer.address);
+    await tx38.wait();
 
     // ================= ReputationBadge =================
     console.log("Setup ReputationBadge roles...");
-    const tx45 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
-    await tx45.wait();
-    const tx46 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
-    await tx46.wait();
-    const tx47 = await reputationBadge.grantRole(FEE_CLAIMER_ROLE, arcadeTreasury.address);
-    await tx47.wait();
-    const tx48 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
-    await tx48.wait();
-    const tx49 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
-    await tx49.wait();
+    const tx39 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
+    await tx39.wait();
+    const tx40 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
+    await tx40.wait();
+    const tx41 = await reputationBadge.grantRole(FEE_CLAIMER_ROLE, arcadeTreasury.address);
+    await tx41.wait();
+    const tx42 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
+    await tx42.wait();
+    const tx43 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
+    await tx43.wait();
 
     // ================ Badge Descriptor ==================
     console.log("Transferring BadgeDescriptor ownership to multisig...");
-    const tx50 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
-    await tx50.wait();
+    const tx44 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
+    await tx44.wait();
 
     console.log(SECTION_SEPARATOR);
-    console.log("✅ Setup complete.");
+    console.log("✅ Decentralization complete.");
     console.log(SECTION_SEPARATOR);
 }
 
 if (require.main === module) {
-    // retrieve command line args array
+    // retrieve deployments file from .env
     const file = process.env.DEPLOYMENT_FILE;
 
     // if file not in .env, exit
