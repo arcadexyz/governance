@@ -19,11 +19,11 @@ export const MIN_PROPOSAL_POWER_CORE_VOTING = ethers.utils.parseEther("20000"); 
 
 export const BASE_QUORUM_GSC = 3; // default GSC quorum for a vote to pass
 export const MIN_PROPOSAL_POWER_GSC = 1; // minimum GSC proposal power, this is 1 so any GSC member can propose
-export const GSC_THRESHOLD = ethers.utils.parseEther("150000"); // GSC threshold, (minimum voting power needed to be a GSC member)
+export const GSC_THRESHOLD = ethers.utils.parseEther("600000"); // GSC threshold, (minimum voting power needed to be a GSC member)
 
 export const STALE_BLOCK_LAG = 200000; // number of blocks before voting power is pruned. 200000 blocks is ~1 month. Needs to be more than a typical voting period.
 
-export const AIRDROP_EXPIRATION = 1695501783; // ~3 months, unix timestamp for airdrop expiration
+export const AIRDROP_EXPIRATION = Math.floor(Date.now() / 1000) + 15552000; // ~6 months, unix timestamp for airdrop expiration
 export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
 
 export const BADGE_DESCRIPTOR_BASE_URI = ""; // UPDATE!!!

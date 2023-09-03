@@ -5,7 +5,7 @@ import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
 import { IBadgeDescriptor, IReputationBadge } from "../src/types";
-import { BADGE_MANAGER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
+import { BADGE_MANAGER_ROLE, FEE_CLAIMER_ROLE, RESOURCE_MANAGER_ROLE } from "./utils/constants";
 import { deploy } from "./utils/deploy";
 import { BlockchainTime } from "./utils/time";
 
@@ -52,6 +52,7 @@ describe("Reputation Badge", async () => {
     let admin: Signer;
     let manager: Signer;
     let resourceManager: Signer;
+    let feeClaimer: Signer;
 
     let user1: Signer;
     let user2: Signer;
@@ -75,10 +76,11 @@ describe("Reputation Badge", async () => {
         admin = signers[0];
         manager = signers[1];
         resourceManager = signers[2];
-        user1 = signers[3];
-        user2 = signers[4];
-        user3 = signers[5];
-        user4 = signers[6];
+        feeClaimer = signers[3];
+        user1 = signers[4];
+        user2 = signers[5];
+        user3 = signers[6];
+        user4 = signers[7];
 
         // tree data for two tokens
         recipientsTokenId1 = [
@@ -150,6 +152,7 @@ describe("Reputation Badge", async () => {
         // setup access roles
         await reputationBadge.connect(admin).grantRole(BADGE_MANAGER_ROLE, manager.address);
         await reputationBadge.connect(admin).grantRole(RESOURCE_MANAGER_ROLE, resourceManager.address);
+        await reputationBadge.connect(admin).grantRole(FEE_CLAIMER_ROLE, manager.address);
 
         // manager publishes claim data to initiate minting
         expiration = await blockchainTime.secondsFromNow(3600); // 1 hour
@@ -277,16 +280,16 @@ describe("Reputation Badge", async () => {
 
             // tries to withdraw ETH with recipient address zero
             await expect(
-                reputationBadge.connect(manager).withdrawFees(ethers.constants.AddressZero),
+                reputationBadge.connect(feeClaimer).withdrawFees(ethers.constants.AddressZero),
             ).to.be.revertedWith(`RB_ZeroAddress("recipient")`);
 
             // manager withdraws ETH
-            const res = await reputationBadge.connect(manager).withdrawFees(manager.address);
+            const res = await reputationBadge.connect(feeClaimer).withdrawFees(manager.address);
             const gas = (await res.wait()).gasUsed.mul(res.gasPrice);
 
             // check balance
             expect(await ethers.provider.getBalance(reputationBadge.address)).to.equal(0);
-            expect(await ethers.provider.getBalance(manager.address)).to.equal(
+            expect(await ethers.provider.getBalance(feeClaimer.address)).to.equal(
                 balanceBefore.add(ethers.utils.parseEther("0.3")).sub(gas),
             );
         });
@@ -429,7 +432,7 @@ describe("Reputation Badge", async () => {
 
             // try to withdraw fees
             await expect(reputationBadge.connect(user1).withdrawFees(user1.address)).to.be.revertedWith(
-                `AccessControl: account ${user1.address.toLowerCase()} is missing role ${BADGE_MANAGER_ROLE}`,
+                `AccessControl: account ${user1.address.toLowerCase()} is missing role ${FEE_CLAIMER_ROLE}`,
             );
 
             // try to set baseURI

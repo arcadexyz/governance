@@ -6,3 +6,4 @@ export const CORE_VOTING_ROLE = ethers.utils.id("CORE_VOTING");
 export const BADGE_MANAGER_ROLE = ethers.utils.id("BADGE_MANAGER");
 export const MINTER_ROLE = ethers.utils.id("MINTER");
 export const RESOURCE_MANAGER_ROLE = ethers.utils.id("RESOURCE_MANAGER");
+export const FEE_CLAIMER_ROLE = ethers.utils.id("FEE_CLAIMER");

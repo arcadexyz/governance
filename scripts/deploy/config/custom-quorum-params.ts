@@ -5,13 +5,11 @@ import { ethers } from "hardhat";
 ///////////////////////////////
 
 // ArcadeCoreVoting
-export const CV_DEFAULT_QUORUM = ethers.utils.parseEther("1500000");
 export const CV_MEDIUM_QUORUM = ethers.utils.parseEther("3000000");
 export const CV_HIGH_QUORUM = ethers.utils.parseEther("6000000");
 export const CV_VERY_HIGH_QUORUM = ethers.utils.parseEther("25000000");
 
 // ArcadeGSCCoreVoting
-export const GSC_DEFAULT_QUORUM = "3";
 export const GSC_MEDIUM_QUORUM = "6";
 export const GSC_HIGH_QUORUM = "12";
 
