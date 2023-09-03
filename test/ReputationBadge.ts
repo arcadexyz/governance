@@ -152,7 +152,7 @@ describe("Reputation Badge", async () => {
         // setup access roles
         await reputationBadge.connect(admin).grantRole(BADGE_MANAGER_ROLE, manager.address);
         await reputationBadge.connect(admin).grantRole(RESOURCE_MANAGER_ROLE, resourceManager.address);
-        await reputationBadge.connect(admin).grantRole(FEE_CLAIMER_ROLE, manager.address);
+        await reputationBadge.connect(admin).grantRole(FEE_CLAIMER_ROLE, feeClaimer.address);
 
         // manager publishes claim data to initiate minting
         expiration = await blockchainTime.secondsFromNow(3600); // 1 hour
@@ -264,7 +264,7 @@ describe("Reputation Badge", async () => {
 
         it("Cost to mint and manager withdraws ETH", async () => {
             // get balance before
-            const balanceBefore = await ethers.provider.getBalance(manager.address);
+            const balanceBefore = await ethers.provider.getBalance(feeClaimer.address);
             // mint
             await reputationBadge
                 .connect(user3)
@@ -284,7 +284,7 @@ describe("Reputation Badge", async () => {
             ).to.be.revertedWith(`RB_ZeroAddress("recipient")`);
 
             // manager withdraws ETH
-            const res = await reputationBadge.connect(feeClaimer).withdrawFees(manager.address);
+            const res = await reputationBadge.connect(feeClaimer).withdrawFees(feeClaimer.address);
             const gas = (await res.wait()).gasUsed.mul(res.gasPrice);
 
             // check balance
