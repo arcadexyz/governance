@@ -118,7 +118,7 @@ import { NETWORK, getLatestDeployment, getLatestDeploymentFile, getVerifiedABI }
  */
 assert(NETWORK !== "hardhat", "Must use a long-lived network!");
 
-describe("Deployment", function () {
+describe("Governance Deployment", function () {
     this.timeout(0);
     this.bail();
 
@@ -237,7 +237,9 @@ describe("Deployment", function () {
         expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(4);
         expect(deployment["ArcadeAirdrop"].constructorArgs[0]).to.eq(AIRDROP_MERKLE_ROOT);
         expect(deployment["ArcadeAirdrop"].constructorArgs[1]).to.eq(deployment["ArcadeToken"].contractAddress);
-        expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.eq(AIRDROP_EXPIRATION);
+        expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.be.lt(
+            Math.floor(Date.now() / 1000) + AIRDROP_EXPIRATION,
+        ); // cannot use global AIRDROP_EXPIRATION because time has passed
         expect(deployment["ArcadeAirdrop"].constructorArgs[3]).to.eq(deployment["NFTBoostVault"].contractAddress);
 
         expect(deployment["BadgeDescriptor"]).to.exist;

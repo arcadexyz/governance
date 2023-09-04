@@ -1,14 +1,12 @@
 import { ethers } from "hardhat";
 
-import { VESTING_MANAGER } from "./config/deployment-params";
+import { VESTING_DURATION } from "./config/deployment-params";
 import investorVestingData from "./config/vesting-data/investor-vesting-data.json";
 import teamVestingData from "./config/vesting-data/team-vesting-data.json";
 import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContracts } from "./test/utils";
 
 /**
  * This script uses the deployer wallet to initialize all vesting grants for the team and early investors.
- * After all grants are initialized, the deployer wallet is removed from the vesting manager role and the
- * timelock contract is set as the timelock role for both vesting vaults.
  *
  * To run this script use:
  * `npx hardhat run scripts/deploy/create-vesting-grants.ts --network <networkName>`
@@ -34,7 +32,7 @@ export async function createVestingGrants(resources: DeployedResources) {
     console.log(SECTION_SEPARATOR);
 
     // global vesting parameters
-    const grantDurationInBlocks = 5229850; // (3600*24*365*2) / 12.06; // ~2 years in blocks
+    const grantDurationInBlocks = VESTING_DURATION;
     const currentBlock = await ethers.provider.getBlockNumber();
     const grantCliffBlock = currentBlock + grantDurationInBlocks / 2;
     const expirationBlock = currentBlock + grantDurationInBlocks;
@@ -74,21 +72,6 @@ export async function createVestingGrants(resources: DeployedResources) {
         await tx.wait();
         console.log("Grant created for early investor: ", grant.address);
     }
-    console.log("All early investor grants created.");
-
-    console.log(SECTION_SEPARATOR);
-    console.log("Transferring team vesting vault manager role...");
-    const tx5 = await resources.teamVestingVault.setManager(VESTING_MANAGER);
-    await tx5.wait();
-    console.log("Transferring team vesting vault timelock role...");
-    const tx6 = await resources.teamVestingVault.setTimelock(resources.timelock.address);
-    await tx6.wait();
-    console.log("Transferring early investor vesting vault manager role...");
-    const tx7 = await resources.partnerVestingVault.setManager(VESTING_MANAGER);
-    await tx7.wait();
-    console.log("Transferring early investor vesting vault timelock role...");
-    const tx8 = await resources.partnerVestingVault.setTimelock(resources.timelock.address);
-    await tx8.wait();
 
     console.log(SECTION_SEPARATOR);
     console.log("✅ All vesting grants have been set up.");

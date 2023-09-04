@@ -23,7 +23,10 @@ export const GSC_THRESHOLD = ethers.utils.parseEther("600000"); // GSC threshold
 
 export const STALE_BLOCK_LAG = 200000; // number of blocks before voting power is pruned. 200000 blocks is ~1 month. Needs to be more than a typical voting period.
 
-export const AIRDROP_EXPIRATION = Math.floor(Date.now() / 1000) + 15552000; // ~6 months, unix timestamp for airdrop expiration
+export const VESTING_DURATION = 5229850; // (3600*24*365*2) / 12.06; // ~2 years in blocks
+
+export const AIRDROP_DURATION = 15552000; // ~6 months in seconds
+export const AIRDROP_EXPIRATION = Math.floor(Date.now() / 1000) + AIRDROP_DURATION;
 export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
 
 export const BADGE_DESCRIPTOR_BASE_URI = ""; // UPDATE!!!
