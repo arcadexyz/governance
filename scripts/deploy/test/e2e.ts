@@ -240,6 +240,7 @@ describe("Governance Deployment", function () {
         expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.be.lt(
             Math.floor(Date.now() / 1000) + AIRDROP_EXPIRATION,
         ); // cannot use global AIRDROP_EXPIRATION because time has passed
+        expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.not.eq(0);
         expect(deployment["ArcadeAirdrop"].constructorArgs[3]).to.eq(deployment["NFTBoostVault"].contractAddress);
 
         expect(deployment["BadgeDescriptor"]).to.exist;
