@@ -1,17 +1,38 @@
 import {
+    ADD,
+    ADD_QUORUM,
     APPROVE_LARGE_SPEND,
     APPROVE_LARGE_SPEND_QUORUM,
     APPROVE_MEDIUM_SPEND,
     APPROVE_MEDIUM_SPEND_QUORUM,
+    CALL_WHITELIST_ALL_EXTENSIONS,
+    CWA_GRANT_ROLE,
+    CWA_GRANT_ROLE_QUORUM,
+    CWA_RENOUNCE_ROLE,
+    CWA_RENOUNCE_ROLE_QUORUM,
+    CWA_REVOKE_ROLE,
+    CWA_REVOKE_ROLE_QUORUM,
     INCREASE_TIME,
     INCREASE_TIME_QUORUM,
     LARGE_SPEND,
     LARGE_SPEND_QUORUM,
+    LC_GRANT_ROLE,
+    LC_GRANT_ROLE_QUORUM,
+    LC_RENOUNCE_ROLE,
+    LC_RENOUNCE_ROLE_QUORUM,
+    LC_REVOKE_ROLE,
+    LC_REVOKE_ROLE_QUORUM,
     LOAN_CORE_ADDR,
     MEDIUM_SPEND,
     MEDIUM_SPEND_QUORUM,
     MINT_TOKENS,
     MINT_TOKENS_QUORUM,
+    OC_GRANT_ROLE,
+    OC_GRANT_ROLE_QUORUM,
+    OC_RENOUNCE_ROLE,
+    OC_RENOUNCE_ROLE_QUORUM,
+    OC_REVOKE_ROLE,
+    OC_REVOKE_ROLE_QUORUM,
     ORIGINATION_CONTROLLER_ADDR,
     REGISTER_CALL,
     REGISTER_CALL_QUORUM,
@@ -21,8 +42,12 @@ import {
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     SET_ALLOWED_VERIFIERS,
     SET_ALLOWED_VERIFIERS_QUORUM,
+    SET_APPROVAL,
+    SET_APPROVAL_QUORUM,
     SET_MINTER,
     SET_MINTER_QUORUM,
+    SET_REGISTRY,
+    SET_REGISTRY_QUORUM,
     SET_WAIT_TIME,
     SET_WAIT_TIME_QUORUM,
     SHUTDOWN,
@@ -83,30 +108,88 @@ export async function setCustomQuorums(resources: DeployedResources) {
         APPROVE_LARGE_SPEND_QUORUM,
     );
     await tx10.wait();
+    // V3 CallWhitelistAllExtensions
+    const tx11 = await arcadeCoreVoting.setCustomQuorum(CALL_WHITELIST_ALL_EXTENSIONS, ADD, ADD_QUORUM);
+    await tx11.wait();
+    const tx12 = await arcadeCoreVoting.setCustomQuorum(
+        CALL_WHITELIST_ALL_EXTENSIONS,
+        SET_APPROVAL,
+        SET_APPROVAL_QUORUM,
+    );
+    await tx12.wait();
+    const tx13 = await arcadeCoreVoting.setCustomQuorum(
+        CALL_WHITELIST_ALL_EXTENSIONS,
+        SET_REGISTRY,
+        SET_REGISTRY_QUORUM,
+    );
+    await tx13.wait();
+    const tx14 = await arcadeCoreVoting.setCustomQuorum(
+        CALL_WHITELIST_ALL_EXTENSIONS,
+        CWA_GRANT_ROLE,
+        CWA_GRANT_ROLE_QUORUM,
+    );
+    await tx14.wait();
+    const tx15 = await arcadeCoreVoting.setCustomQuorum(
+        CALL_WHITELIST_ALL_EXTENSIONS,
+        CWA_REVOKE_ROLE,
+        CWA_REVOKE_ROLE_QUORUM,
+    );
+    await tx15.wait();
+    const tx16 = await arcadeCoreVoting.setCustomQuorum(
+        CALL_WHITELIST_ALL_EXTENSIONS,
+        CWA_RENOUNCE_ROLE,
+        CWA_RENOUNCE_ROLE_QUORUM,
+    );
+    await tx16.wait();
+    // V3 LoanCore
+    const tx17 = await arcadeCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, LC_GRANT_ROLE, LC_GRANT_ROLE_QUORUM);
+    await tx17.wait();
+    const tx18 = await arcadeCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, LC_REVOKE_ROLE, LC_REVOKE_ROLE_QUORUM);
+    await tx18.wait();
+    const tx19 = await arcadeCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, LC_RENOUNCE_ROLE, LC_RENOUNCE_ROLE_QUORUM);
+    await tx19.wait();
     // V3 OriginationController
-    const tx11 = await arcadeCoreVoting.setCustomQuorum(
+    const tx20 = await arcadeCoreVoting.setCustomQuorum(
         ORIGINATION_CONTROLLER_ADDR,
         SET_ALLOWED_VERIFIERS,
         SET_ALLOWED_VERIFIERS_QUORUM,
     );
-    await tx11.wait();
-    const tx12 = await arcadeCoreVoting.setCustomQuorum(
+    await tx20.wait();
+    const tx21 = await arcadeCoreVoting.setCustomQuorum(
         ORIGINATION_CONTROLLER_ADDR,
         SET_ALLOWED_PAYABLE_CURRENCIES,
         SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     );
-    await tx12.wait();
+    await tx21.wait();
+    const tx22 = await arcadeCoreVoting.setCustomQuorum(
+        ORIGINATION_CONTROLLER_ADDR,
+        OC_GRANT_ROLE,
+        OC_GRANT_ROLE_QUORUM,
+    );
+    await tx22.wait();
+    const tx23 = await arcadeCoreVoting.setCustomQuorum(
+        ORIGINATION_CONTROLLER_ADDR,
+        OC_REVOKE_ROLE,
+        OC_REVOKE_ROLE_QUORUM,
+    );
+    await tx23.wait();
+    const tx24 = await arcadeCoreVoting.setCustomQuorum(
+        ORIGINATION_CONTROLLER_ADDR,
+        OC_RENOUNCE_ROLE,
+        OC_RENOUNCE_ROLE_QUORUM,
+    );
+    await tx24.wait();
 
     console.log(SUBSECTION_SEPARATOR);
 
     // ============= ArcadeGSCCoreVoting =============
     console.log("Setting custom quorum thresholds in ArcadeGSCCoreVoting...");
     // V3 LoanCore
-    const tx13 = await arcadeGSCCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, SHUTDOWN, SHUTDOWN_QUORUM);
-    await tx13.wait();
+    const tx25 = await arcadeGSCCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, SHUTDOWN, SHUTDOWN_QUORUM);
+    await tx25.wait();
     // timelock
-    const tx14 = await arcadeGSCCoreVoting.setCustomQuorum(timelock.address, INCREASE_TIME, INCREASE_TIME_QUORUM);
-    await tx14.wait();
+    const tx26 = await arcadeGSCCoreVoting.setCustomQuorum(timelock.address, INCREASE_TIME, INCREASE_TIME_QUORUM);
+    await tx26.wait();
 
     console.log(SECTION_SEPARATOR);
     console.log("✅ All custom quorums have been set.");

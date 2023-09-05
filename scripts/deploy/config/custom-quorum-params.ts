@@ -58,14 +58,44 @@ export const SET_AIRDROP_CONTRACT_QUORUM = CV_HIGH_QUORUM;
 
 /////// V3 Lending Protocol ///////
 
+// CallWhitelistAllExtensions
+export const CALL_WHITELIST_ALL_EXTENSIONS = "0x28992ca7BA49a83f3bc391E9312730dE78Bf51Ca"; // mainnet
 // OriginationController
-export const ORIGINATION_CONTROLLER_ADDR = "0xB7BFcca7D7ff0f371867B770856FAc184B185878";
+export const ORIGINATION_CONTROLLER_ADDR = "0xB7BFcca7D7ff0f371867B770856FAc184B185878"; // mainnet
 // LoanCore
-export const LOAN_CORE_ADDR = "0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF";
+export const LOAN_CORE_ADDR = "0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF"; // mainnet
+
+// CallWhitelistAllExtensions - add
+export const ADD = "0x2dba161f";
+export const ADD_QUORUM = CV_MEDIUM_QUORUM;
+// CallWhitelistAllExtensions - setApproval
+export const SET_APPROVAL = "0xb048ea08";
+export const SET_APPROVAL_QUORUM = CV_MEDIUM_QUORUM;
+// CallWhitelistAllExtensions - setRegistry
+export const SET_REGISTRY = "0xa91ee0dc";
+export const SET_REGISTRY_QUORUM = CV_MEDIUM_QUORUM;
+// CallWhitelistAllExtensions - grantRole
+export const CWA_GRANT_ROLE = "0x2f2ff15d";
+export const CWA_GRANT_ROLE_QUORUM = CV_HIGH_QUORUM;
+// CallWhitelistAllExtensions - revokeRole
+export const CWA_REVOKE_ROLE = "0xd547741f";
+export const CWA_REVOKE_ROLE_QUORUM = CV_HIGH_QUORUM;
+// CallWhitelistAllExtensions - renounceRole
+export const CWA_RENOUNCE_ROLE = "0x36568abe";
+export const CWA_RENOUNCE_ROLE_QUORUM = CV_HIGH_QUORUM;
 
 // LoanCore - shutdown
 export const SHUTDOWN = "0xfc0e74d1";
 export const SHUTDOWN_QUORUM = GSC_HIGH_QUORUM;
+// LoanCore - grantRole
+export const LC_GRANT_ROLE = "0x2f2ff15d";
+export const LC_GRANT_ROLE_QUORUM = CV_VERY_HIGH_QUORUM;
+// LoanCore - revokeRole
+export const LC_REVOKE_ROLE = "0xd547741f";
+export const LC_REVOKE_ROLE_QUORUM = CV_VERY_HIGH_QUORUM;
+// LoanCore - renounceRole
+export const LC_RENOUNCE_ROLE = "0x36568abe";
+export const LC_RENOUNCE_ROLE_QUORUM = CV_VERY_HIGH_QUORUM;
 
 // OriginationController - setAllowedVerifiers
 export const SET_ALLOWED_VERIFIERS = "0x34d95a51";
@@ -73,3 +103,12 @@ export const SET_ALLOWED_VERIFIERS_QUORUM = CV_HIGH_QUORUM;
 // OriginationController - setAllowedPayableCurrencies
 export const SET_ALLOWED_PAYABLE_CURRENCIES = "0x6db75724";
 export const SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM = CV_HIGH_QUORUM;
+// OriginationController - grantRole
+export const OC_GRANT_ROLE = "0x2f2ff15d";
+export const OC_GRANT_ROLE_QUORUM = CV_HIGH_QUORUM;
+// OriginationController - revokeRole
+export const OC_REVOKE_ROLE = "0xd547741f";
+export const OC_REVOKE_ROLE_QUORUM = CV_HIGH_QUORUM;
+// OriginationController - renounceRole
+export const OC_RENOUNCE_ROLE = "0x36568abe";
+export const OC_RENOUNCE_ROLE_QUORUM = CV_HIGH_QUORUM;
