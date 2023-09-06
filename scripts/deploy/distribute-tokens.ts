@@ -37,10 +37,6 @@ export async function distributeTokens(resources: DeployedResources) {
     await tx5.wait();
     console.log(SUBSECTION_SEPARATOR);
 
-    console.log("Transferring ownership of ArcadeTokenDistributor to launch partner multisig...");
-    const tx6 = await arcadeTokenDistributor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
-    await tx6.wait();
-
     console.log(SECTION_SEPARATOR);
     console.log("✅ Distribution complete.");
     console.log(SECTION_SEPARATOR);

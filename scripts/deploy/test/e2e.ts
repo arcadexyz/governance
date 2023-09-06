@@ -20,34 +20,56 @@ import {
     Timelock,
 } from "../../../src/types";
 import {
+    ADD,
+    ADD_QUORUM,
     APPROVE_LARGE_SPEND,
     APPROVE_LARGE_SPEND_QUORUM,
     APPROVE_MEDIUM_SPEND,
     APPROVE_MEDIUM_SPEND_QUORUM,
+    CALL_WHITELIST_ALL_EXTENSIONS_ADDR,
+    CWA_GRANT_ROLE_QUORUM,
+    CWA_RENOUNCE_ROLE_QUORUM,
+    CWA_REVOKE_ROLE_QUORUM,
+    FEE_CONTROLLER_ADDR,
+    GRANT_ROLE,
     INCREASE_TIME,
     INCREASE_TIME_QUORUM,
     LARGE_SPEND,
     LARGE_SPEND_QUORUM,
+    LC_GRANT_ROLE_QUORUM,
+    LC_REVOKE_ROLE_QUORUM,
     LOAN_CORE_ADDR,
     MEDIUM_SPEND,
     MEDIUM_SPEND_QUORUM,
     MINT_TOKENS,
     MINT_TOKENS_QUORUM,
+    OC_GRANT_ROLE_QUORUM,
+    OC_RENOUNCE_ROLE_QUORUM,
+    OC_REVOKE_ROLE_QUORUM,
     ORIGINATION_CONTROLLER_ADDR,
     REGISTER_CALL,
     REGISTER_CALL_QUORUM,
+    RENOUNCE_ROLE,
+    REVOKE_ROLE,
     SET_ALLOWED_PAYABLE_CURRENCIES,
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     SET_ALLOWED_VERIFIERS,
     SET_ALLOWED_VERIFIERS_QUORUM,
+    SET_APPROVAL,
+    SET_APPROVAL_QUORUM,
     SET_MINTER,
     SET_MINTER_QUORUM,
+    SET_REGISTRY,
+    SET_REGISTRY_QUORUM,
     SET_WAIT_TIME,
     SET_WAIT_TIME_QUORUM,
     SHUTDOWN,
     SHUTDOWN_QUORUM,
-    UNLOCK,
-    UNLOCK_QUORUM,
+    TRANSFER_OWNERSHIP,
+    TRANSFER_OWNERSHIP_QUORUM,
+    VAULT_FACTORY_ADDR,
+    VF_GRANT_ROLE_QUORUM,
+    VF_REVOKE_ROLE_QUORUM,
 } from "../config/custom-quorum-params";
 import {
     ADMIN_ROLE,
@@ -266,13 +288,15 @@ describe("Governance Deployment", function () {
             execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: "inherit" });
         }
 
-        const arcadeTokenDistributor = <ArcadeTokenDistributor>(
-            await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
-        );
         const arcadeToken = <ArcadeToken>(
             await ethers.getContractAt("ArcadeToken", deployment["ArcadeToken"].contractAddress)
         );
-        const timelock = <Timelock>await ethers.getContractAt("Timelock", deployment["Timelock"].contractAddress);
+        const arcadeTokenDistributor = <ArcadeTokenDistributor>(
+            await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
+        );
+        const arcadeAirdrop = <ArcadeAirdrop>(
+            await ethers.getContractAt("ArcadeAirdrop", deployment["ArcadeAirdrop"].contractAddress)
+        );
         const teamVestingVault = <ARCDVestingVault>(
             await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
         );
@@ -282,6 +306,7 @@ describe("Governance Deployment", function () {
         const nftBoostVault = <NFTBoostVault>(
             await ethers.getContractAt("NFTBoostVault", deployment["NFTBoostVault"].contractAddress)
         );
+        const timelock = <Timelock>await ethers.getContractAt("Timelock", deployment["Timelock"].contractAddress);
         const arcadeCoreVoting = <ArcadeCoreVoting>(
             await ethers.getContractAt("ArcadeCoreVoting", deployment["ArcadeCoreVoting"].contractAddress)
         );
@@ -296,9 +321,6 @@ describe("Governance Deployment", function () {
         );
         const arcadeTreasury = <ArcadeTreasury>(
             await ethers.getContractAt("ArcadeTreasury", deployment["ArcadeTreasury"].contractAddress)
-        );
-        const arcadeAirdrop = <ArcadeAirdrop>(
-            await ethers.getContractAt("ArcadeAirdrop", deployment["ArcadeAirdrop"].contractAddress)
         );
         const reputationBadge = <ReputationBadge>(
             await ethers.getContractAt("ReputationBadge", deployment["ReputationBadge"].contractAddress)
@@ -344,7 +366,6 @@ describe("Governance Deployment", function () {
         // ArcadeCoreVoting custom quorums
         expect(await arcadeCoreVoting.quorums(arcadeToken.address, MINT_TOKENS)).to.equal(MINT_TOKENS_QUORUM);
         expect(await arcadeCoreVoting.quorums(arcadeToken.address, SET_MINTER)).to.equal(SET_MINTER_QUORUM);
-        expect(await arcadeCoreVoting.quorums(nftBoostVault.address, UNLOCK)).to.equal(UNLOCK_QUORUM);
         expect(await arcadeCoreVoting.quorums(timelock.address, REGISTER_CALL)).to.equal(REGISTER_CALL_QUORUM);
         expect(await arcadeCoreVoting.quorums(timelock.address, SET_WAIT_TIME)).to.equal(SET_WAIT_TIME_QUORUM);
         expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, MEDIUM_SPEND)).to.equal(MEDIUM_SPEND_QUORUM);
@@ -355,11 +376,42 @@ describe("Governance Deployment", function () {
         expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, APPROVE_LARGE_SPEND)).to.equal(
             APPROVE_LARGE_SPEND_QUORUM,
         );
+        expect(await arcadeCoreVoting.quorums(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, ADD)).to.equal(ADD_QUORUM);
+        expect(await arcadeCoreVoting.quorums(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, SET_APPROVAL)).to.equal(
+            SET_APPROVAL_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, SET_REGISTRY)).to.equal(
+            SET_REGISTRY_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, GRANT_ROLE)).to.equal(
+            CWA_GRANT_ROLE_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, REVOKE_ROLE)).to.equal(
+            CWA_REVOKE_ROLE_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, RENOUNCE_ROLE)).to.equal(
+            CWA_RENOUNCE_ROLE_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(VAULT_FACTORY_ADDR, GRANT_ROLE)).to.equal(VF_GRANT_ROLE_QUORUM);
+        expect(await arcadeCoreVoting.quorums(VAULT_FACTORY_ADDR, REVOKE_ROLE)).to.equal(VF_REVOKE_ROLE_QUORUM);
+        expect(await arcadeCoreVoting.quorums(FEE_CONTROLLER_ADDR, TRANSFER_OWNERSHIP)).to.equal(
+            TRANSFER_OWNERSHIP_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, GRANT_ROLE)).to.equal(LC_GRANT_ROLE_QUORUM);
+        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, REVOKE_ROLE)).to.equal(LC_REVOKE_ROLE_QUORUM);
+        expect(await arcadeCoreVoting.quorums(LOAN_CORE_ADDR, RENOUNCE_ROLE)).to.equal(LC_REVOKE_ROLE_QUORUM);
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_VERIFIERS)).to.equal(
             SET_ALLOWED_VERIFIERS_QUORUM,
         );
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
             SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, GRANT_ROLE)).to.equal(OC_GRANT_ROLE_QUORUM);
+        expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, REVOKE_ROLE)).to.equal(
+            OC_REVOKE_ROLE_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, RENOUNCE_ROLE)).to.equal(
+            OC_RENOUNCE_ROLE_QUORUM,
         );
 
         // CoreVoting authorized address
@@ -377,8 +429,8 @@ describe("Governance Deployment", function () {
         expect(await timelock.owner()).to.equal(arcadeCoreVoting.address);
 
         // ArcadeGSCCoreVoting custom quorums
-        expect(await arcadeGSCCoreVoting.quorums(timelock.address, INCREASE_TIME)).to.equal(INCREASE_TIME_QUORUM);
         expect(await arcadeGSCCoreVoting.quorums(LOAN_CORE_ADDR, SHUTDOWN)).to.equal(SHUTDOWN_QUORUM);
+        expect(await arcadeGSCCoreVoting.quorums(timelock.address, INCREASE_TIME)).to.equal(INCREASE_TIME_QUORUM);
 
         // ArcadeGSCCoreVoting minimum lock duration
         expect(await arcadeGSCCoreVoting.lockDuration()).to.equal(GSC_MIN_LOCK_DURATION);

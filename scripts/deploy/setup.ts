@@ -18,6 +18,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const [deployer] = await ethers.getSigners();
     const {
         arcadeToken,
+        arcadeTokenDistributor,
         arcadeCoreVoting,
         timelock,
         teamVestingVault,
@@ -39,87 +40,92 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const tx1 = await arcadeToken.setMinter(arcadeCoreVoting.address);
     await tx1.wait();
 
+    // ============= ArcadeTokenDistributor ============
+    console.log("Transferring ownership of ArcadeTokenDistributor to launch partner multisig...");
+    const tx2 = await arcadeTokenDistributor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
+    await tx2.wait();
+
     // ================= ArcadeAirdrop =================
     console.log("Transferring airdrop contract ownership to multisig...");
-    const tx2 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
-    await tx2.wait();
+    const tx3 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
+    await tx3.wait();
 
     // ================= ARCDVestingVault =================
     console.log("Transferring team vesting vault manager role...");
-    const tx3 = await teamVestingVault.setManager(VESTING_MANAGER);
-    await tx3.wait();
-    console.log("Transferring team vesting vault timelock role...");
-    const tx4 = await teamVestingVault.setTimelock(timelock.address);
+    const tx4 = await teamVestingVault.setManager(VESTING_MANAGER);
     await tx4.wait();
+    console.log("Transferring team vesting vault timelock role...");
+    const tx5 = await teamVestingVault.setTimelock(timelock.address);
+    await tx5.wait();
 
     // ================= ImmutableVestingVault =================
     console.log("Transferring early investor vesting vault manager role...");
-    const tx5 = await partnerVestingVault.setManager(VESTING_MANAGER);
-    await tx5.wait();
-    console.log("Transferring early investor vesting vault timelock role...");
-    const tx6 = await partnerVestingVault.setTimelock(timelock.address);
+    const tx6 = await partnerVestingVault.setManager(VESTING_MANAGER);
     await tx6.wait();
+    console.log("Transferring early investor vesting vault timelock role...");
+    const tx7 = await partnerVestingVault.setTimelock(timelock.address);
+    await tx7.wait();
 
     // ================= NFTBoostVault =================
     console.log("Setting airdrop contract in nftBoostVault...");
-    const tx7 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
-    await tx7.wait();
-    console.log("Transferring nftBoostVault manager role to multisig...");
-    const tx8 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);
+    const tx8 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
     await tx8.wait();
-    console.log("Transferring nftBoostVault timelock role to ArcadeCoreVoting...");
-    const tx9 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
+    console.log("Transferring nftBoostVault manager role to multisig...");
+    const tx9 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);
     await tx9.wait();
+    console.log("Transferring nftBoostVault timelock role to ArcadeCoreVoting...");
+    const tx10 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
+    await tx10.wait();
 
     // ================== ArcadeCoteVoting ==================
     console.log("Decentralize ArcadeCoreVoting...");
-    const tx10 = await arcadeCoreVoting.authorize(arcadeGSCCoreVoting.address);
-    await tx10.wait();
-    const tx11 = await arcadeCoreVoting.setOwner(timelock.address);
+    const tx11 = await arcadeCoreVoting.authorize(arcadeGSCCoreVoting.address);
     await tx11.wait();
+    const tx12 = await arcadeCoreVoting.setOwner(timelock.address);
+    await tx12.wait();
 
     // ================= Timelock =================
     console.log("Decentralize Timelock...");
-    const tx12 = await timelock.deauthorize(deployer.address);
-    await tx12.wait();
-    const tx13 = await timelock.authorize(arcadeGSCCoreVoting.address);
+    const tx13 = await timelock.deauthorize(deployer.address);
     await tx13.wait();
-    const tx14 = await timelock.setOwner(arcadeCoreVoting.address);
+    const tx14 = await timelock.authorize(arcadeGSCCoreVoting.address);
     await tx14.wait();
+    const tx15 = await timelock.setOwner(arcadeCoreVoting.address);
+    await tx15.wait();
 
     // ================= ArcadeGSCCoreVoting =================
     console.log("Decentralize ArcadeGSCCoreVoting...");
-    const tx15 = await arcadeGSCCoreVoting.setOwner(timelock.address);
-    await tx15.wait();
+    const tx16 = await arcadeGSCCoreVoting.setOwner(timelock.address);
+    await tx16.wait();
 
     // ================= ArcadeTreasury =================
     console.log("Grant ArcadeTreasury permissions to foundation multisig...");
-    const tx16 = await arcadeTreasury.grantRole(GSC_CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
-    await tx16.wait();
-    const tx17 = await arcadeTreasury.grantRole(CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
+    const tx17 = await arcadeTreasury.grantRole(GSC_CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
     await tx17.wait();
-    const tx18 = await arcadeTreasury.grantRole(ADMIN_ROLE, FOUNDATION_MULTISIG);
+    const tx18 = await arcadeTreasury.grantRole(CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
     await tx18.wait();
-    const tx19 = await arcadeTreasury.renounceRole(ADMIN_ROLE, deployer.address);
+    const tx19 = await arcadeTreasury.grantRole(ADMIN_ROLE, FOUNDATION_MULTISIG);
     await tx19.wait();
+    const tx20 = await arcadeTreasury.renounceRole(ADMIN_ROLE, deployer.address);
+    await tx20.wait();
 
     // ================= ReputationBadge =================
     console.log("Setup ReputationBadge roles...");
-    const tx20 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
-    await tx20.wait();
-    const tx21 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
+    const tx21 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx21.wait();
-    const tx22 = await reputationBadge.grantRole(FEE_CLAIMER_ROLE, arcadeTreasury.address);
+    const tx22 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx22.wait();
-    const tx23 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
+    const tx23 = await reputationBadge.grantRole(FEE_CLAIMER_ROLE, arcadeTreasury.address);
     await tx23.wait();
-    const tx24 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
+    const tx24 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx24.wait();
+    const tx25 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
+    await tx25.wait();
 
     // ================ Badge Descriptor ==================
     console.log("Transferring BadgeDescriptor ownership to multisig...");
-    const tx25 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
-    await tx25.wait();
+    const tx26 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
+    await tx26.wait();
 
     console.log(SECTION_SEPARATOR);
     console.log("✅ Decentralization complete.");
