@@ -282,7 +282,7 @@ describe("ArcadeToken", function () {
 
             await expect(await arcdDst.connect(deployer).toGovernanceTreasury(govTreasury.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, govTreasury.address, ethers.utils.parseEther("25100000"));
+                .withArgs(arcdToken.address, govTreasury.address, ethers.utils.parseEther("25499484"));
             await expect(await arcdDst.connect(deployer).toFoundationTreasury(foundationTreasury.address))
                 .to.emit(arcdDst, "Distribute")
                 .withArgs(arcdToken.address, foundationTreasury.address, ethers.utils.parseEther("10000000"));
@@ -297,10 +297,10 @@ describe("ArcadeToken", function () {
                 .withArgs(arcdToken.address, arcdAirdrop.address, ethers.utils.parseEther("6000000"));
             await expect(await arcdDst.connect(deployer).toPartnerVesting(vestingPartner.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, vestingPartner.address, ethers.utils.parseEther("33206096"));
+                .withArgs(arcdToken.address, vestingPartner.address, ethers.utils.parseEther("32872762"));
             await expect(await arcdDst.connect(deployer).toTeamVesting(vestingTeamMultisig.address))
                 .to.emit(arcdDst, "Distribute")
-                .withArgs(arcdToken.address, vestingTeamMultisig.address, ethers.utils.parseEther("15612620"));
+                .withArgs(arcdToken.address, vestingTeamMultisig.address, ethers.utils.parseEther("15546470"));
 
             expect(await arcdDst.governanceTreasurySent()).to.be.true;
             expect(await arcdDst.foundationTreasurySent()).to.be.true;
@@ -310,16 +310,16 @@ describe("ArcadeToken", function () {
             expect(await arcdDst.vestingTeamSent()).to.be.true;
             expect(await arcdDst.vestingPartnerSent()).to.be.true;
 
-            expect(await arcdToken.balanceOf(govTreasury.address)).to.equal(ethers.utils.parseEther("25100000"));
+            expect(await arcdToken.balanceOf(govTreasury.address)).to.equal(ethers.utils.parseEther("25499484"));
             expect(await arcdToken.balanceOf(foundationTreasury.address)).to.equal(ethers.utils.parseEther("10000000"));
             expect(await arcdToken.balanceOf(devPartner.address)).to.equal(ethers.utils.parseEther("1081284"));
             expect(await arcdToken.balanceOf(communityRewardsPool.address)).to.equal(
                 ethers.utils.parseEther("9000000"),
             );
             expect(await arcdToken.balanceOf(arcdAirdrop.address)).to.equal(ethers.utils.parseEther("6000000"));
-            expect(await arcdToken.balanceOf(vestingPartner.address)).to.equal(ethers.utils.parseEther("33206096"));
+            expect(await arcdToken.balanceOf(vestingPartner.address)).to.equal(ethers.utils.parseEther("32872762"));
             expect(await arcdToken.balanceOf(vestingTeamMultisig.address)).to.equal(
-                ethers.utils.parseEther("15612620"),
+                ethers.utils.parseEther("15546470"),
             );
 
             expect(await arcdToken.balanceOf(arcdDst.address)).to.equal(0);
