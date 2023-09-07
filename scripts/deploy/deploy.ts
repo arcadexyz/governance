@@ -28,6 +28,7 @@ import {
     MIN_PROPOSAL_POWER_GSC,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
+    VESTING_MANAGER_MULTISIG,
 } from "./config/deployment-params";
 import { DeployedResources } from "./test/utils";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
@@ -79,7 +80,7 @@ export async function main(): Promise<DeployedResources> {
     // ARCDVestingVault
     const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
     const teamVestingVault = <ARCDVestingVault>(
-        await TeamVestingVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address)
+        await TeamVestingVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address)
     );
     await teamVestingVault.deployed();
     console.log("ARCDVestingVault deployed to:", teamVestingVault.address);
@@ -91,7 +92,7 @@ export async function main(): Promise<DeployedResources> {
         await PartnerVestingVaultFactory.deploy(
             arcadeToken.address,
             STALE_BLOCK_LAG,
-            deployer.address,
+            VESTING_MANAGER_MULTISIG,
             deployer.address,
         )
     );

@@ -1,6 +1,4 @@
-import { ethers } from "hardhat";
-
-import { LAUNCH_PARTNER_MULTISIG } from "./config/deployment-params";
+import { VESTING_MANAGER_MULTISIG } from "./config/deployment-params";
 import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContracts } from "./test/utils";
 
 /**
@@ -15,7 +13,6 @@ import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContrac
 
 export async function distributeTokens(resources: DeployedResources) {
     console.log(SECTION_SEPARATOR);
-    const [deployer] = await ethers.getSigners();
     const { arcadeTokenDistributor, arcadeToken, arcadeTreasury, arcadeAirdrop } = resources;
 
     console.log("Setting ArcadeToken in ArcadeTokenDistributor...");
@@ -29,11 +26,11 @@ export async function distributeTokens(resources: DeployedResources) {
     console.log("Distributing ARCD to ArcadeAirdrop...");
     const tx3 = await arcadeTokenDistributor.toCommunityAirdrop(arcadeAirdrop.address);
     await tx3.wait();
-    console.log("Distributing ARCD to deployer for team vesting setup...");
-    const tx4 = await arcadeTokenDistributor.toTeamVesting(deployer.address);
+    console.log("Distributing ARCD to vesting multisig for team vesting...");
+    const tx4 = await arcadeTokenDistributor.toTeamVesting(VESTING_MANAGER_MULTISIG);
     await tx4.wait();
-    console.log("Distributing ARCD to deployer for early investor vesting setup...");
-    const tx5 = await arcadeTokenDistributor.toPartnerVesting(deployer.address);
+    console.log("Distributing ARCD to vesting multisig for early investor vesting...");
+    const tx5 = await arcadeTokenDistributor.toPartnerVesting(VESTING_MANAGER_MULTISIG);
     await tx5.wait();
     console.log(SUBSECTION_SEPARATOR);
 

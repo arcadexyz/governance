@@ -51,17 +51,11 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     await tx3.wait();
 
     // ================= ARCDVestingVault =================
-    console.log("Transferring team vesting vault manager role...");
-    const tx4 = await teamVestingVault.setManager(VESTING_MANAGER);
-    await tx4.wait();
     console.log("Transferring team vesting vault timelock role...");
     const tx5 = await teamVestingVault.setTimelock(timelock.address);
     await tx5.wait();
 
     // ================= ImmutableVestingVault =================
-    console.log("Transferring early investor vesting vault manager role...");
-    const tx6 = await partnerVestingVault.setManager(VESTING_MANAGER);
-    await tx6.wait();
     console.log("Transferring early investor vesting vault timelock role...");
     const tx7 = await partnerVestingVault.setTimelock(timelock.address);
     await tx7.wait();
@@ -77,7 +71,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const tx10 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
     await tx10.wait();
 
-    // ================== ArcadeCoteVoting ==================
+    // ================== ArcadeCoreVoting ==================
     console.log("Decentralize ArcadeCoreVoting...");
     const tx11 = await arcadeCoreVoting.authorize(arcadeGSCCoreVoting.address);
     await tx11.wait();

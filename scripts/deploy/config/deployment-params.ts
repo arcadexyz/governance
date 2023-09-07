@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 
 export const LAUNCH_PARTNER_MULTISIG = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // UPDATE!!!
 export const FOUNDATION_MULTISIG = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // UPDATE!!!
-export const VESTING_MANAGER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563"; // UPDATE!!!
+export const VESTING_MANAGER_MULTISIG = "0x96bE842Abefa10a930F85C6Cf538493199D46a4E"; // UPDATE!!!
 
 export const ADMIN_ROLE = ethers.utils.id("ADMIN");
 export const CORE_VOTING_ROLE = ethers.utils.id("CORE_VOTING");
