@@ -14,7 +14,7 @@ describe("Arcade Treasury", async () => {
     let ctxGovernance: TestContextGovernance;
     let fixtureToken: () => Promise<TestContextToken>;
     let fixtureGov: () => Promise<TestContextGovernance>;
-    const treasuryAmount = ethers.utils.parseEther("25100000");
+    const treasuryAmount = ethers.utils.parseEther("25499484");
 
     beforeEach(async function () {
         fixtureToken = await tokenFixture();

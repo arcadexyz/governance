@@ -27,8 +27,8 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice The Arcade Token contract to be used in token distribution.
     IArcadeToken public arcadeToken;
 
-    /// @notice 25.1% of initial distribution is for the governance treasury
-    uint256 public constant governanceTreasuryAmount = 25_100_000 ether;
+    /// @notice 25.499484% of initial distribution is for the governance treasury
+    uint256 public constant governanceTreasuryAmount = 25_499_484 ether;
     /// @notice A flag to indicate if the governance treasury has already been transferred to
     bool public governanceTreasurySent;
 
@@ -52,13 +52,13 @@ contract ArcadeTokenDistributor is Ownable {
     /// @notice A flag to indicate if the community airdrop contract has already been transferred to
     bool public communityAirdropSent;
 
-    /// @notice 15.61262% of initial distribution is for the Arcade team vesting
-    uint256 public constant vestingTeamAmount = 15_612_620 ether;
+    /// @notice 15.54647% of initial distribution is for the Arcade team vesting
+    uint256 public constant vestingTeamAmount = 15_546_470 ether;
     /// @notice A flag to indicate if the Arcade team vesting have already been transferred to
     bool public vestingTeamSent;
 
-    /// @notice 33.206096% of initial distribution is for Arcade's launch partner vesting
-    uint256 public constant vestingPartnerAmount = 33_206_096 ether;
+    /// @notice 33.872762% of initial distribution is for Arcade's launch partner vesting
+    uint256 public constant vestingPartnerAmount = 32_872_762 ether;
     /// @notice A flag to indicate if Arcade's launch partner vesting has already been transferred to
     bool public vestingPartnerSent;
 
