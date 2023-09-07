@@ -1,5 +1,6 @@
 import { BigNumber } from "ethers";
 import fs from "fs";
+import { mkdirp } from "mkdirp";
 import { ethers } from "hardhat";
 import path from "path";
 
@@ -27,21 +28,21 @@ export async function createVestingData(
     teamAmount: BigNumber,
     investorAmount: BigNumber,
 ) {
-    const deploymentsFolder = `.vesting/data`;
-    const jsonFile = `${process.env.DEPLOYMENT_FILE?.split("/")[2]}`;
+    const vestingFolder = `.vesting/data`;
+    const deploymentsFile = `${process.env.DEPLOYMENT_FILE?.split("/")[2]}`;
 
-    const deploymentsFolderPath = path.join(__dirname, "../../", deploymentsFolder);
-    if (!fs.existsSync(deploymentsFolderPath)) fs.mkdirSync(deploymentsFolderPath);
+    const vestingFolderPath = path.join(__dirname, "../../", vestingFolder);
+    if (!fs.existsSync(vestingFolderPath)) mkdirp.sync(vestingFolderPath);
 
-    const networkFolderPath = path.join(deploymentsFolderPath, NETWORK);
+    const networkFolderPath = path.join(vestingFolderPath, NETWORK);
     if (!fs.existsSync(networkFolderPath)) fs.mkdirSync(networkFolderPath);
 
     // create vesting calldata
     const vestingCalldata = await createData(resources, teamAmount, investorAmount);
 
-    fs.writeFileSync(path.join(networkFolderPath, jsonFile), JSON.stringify(vestingCalldata, undefined, 2));
+    fs.writeFileSync(path.join(networkFolderPath, deploymentsFile), JSON.stringify(vestingCalldata, undefined, 2));
 
-    console.log("Vesting calldata saved to: ", path.join(networkFolderPath, jsonFile));
+    console.log("Vesting calldata saved to: ", path.join(networkFolderPath, deploymentsFile));
 }
 
 export async function createData(
