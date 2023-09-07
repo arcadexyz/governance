@@ -7,7 +7,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/INFTBoostVault.sol";
 
-import { AA_ClaimingExpired, AA_AlreadyClaimed, AA_NonParticipant, AA_ZeroAddress } from "../errors/Airdrop.sol";
+import {
+    AA_ClaimingExpired,
+    AA_AlreadyClaimed,
+    AA_NonParticipant,
+    AA_ZeroAddress,
+    AA_InvalidMerkleRoot
+} from "../errors/Airdrop.sol";
 
 /**
  * @title Arcade Merkle Rewards
@@ -79,6 +85,7 @@ abstract contract ArcadeMerkleRewards {
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
     function claimAndDelegate(address delegate, uint128 totalGrant, bytes32[] calldata merkleProof) external {
+        if (rewardsRoot == bytes32(0)) revert AA_InvalidMerkleRoot();
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();
         // validate the withdraw
