@@ -96,7 +96,6 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "test": "hardhat test",
     "test-deploy": "hardhat clean && hardhat compile && hardhat test scripts/deploy/test/e2e.ts",
-    "test-distribute": "hardhat test scripts/deploy/test/distribute.ts",
     "typechain": "cross-env TS_NODE_TRANSPILE_ONLY=true hardhat typechain",
     "prepare": "husky install"
   },
@@ -109,6 +108,7 @@
     "@rari-capital/solmate": "^6.4.0",
     "ethereum-waffle": "^3.4.4",
     "merkletreejs": "^0.3.9",
+    "mkdirp": "^3.0.1",
     "module-alias": "^2.2.2",
     "solmate": "^6.7.0"
   }

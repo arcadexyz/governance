@@ -1,66 +1,79 @@
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 
 import { BalanceQuery } from "../../src/types";
-import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
-
-export interface SnapshotDeployedResources {
-    balanceQuery: BalanceQuery;
-}
+import { BALANCE_QUERY_OWNER } from "./config/deployment-params";
+import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContracts } from "./test/utils";
 
 /**
+ * This script deploys the BalanceQuery contract and verifies it on Etherscan.
+ * The BalanceQuery contract gives a third party the ability to query the total balance
+ * all the governance voting vaults. For example, Snapshot voting.
+ *
  * To run this script use:
  * `npx hardhat run scripts/deploy/balance-query.ts --network <networkName>`
  */
 
-export async function main(): Promise<SnapshotDeployedResources> {
+export async function deployBalanceQuery(resources: DeployedResources) {
     console.log(SECTION_SEPARATOR);
     console.log("Deploying BalanceQuery contract...");
 
-    // replace addresses below with mainnet contract addresses to query mainnet snapshot
-    const OWNER_ADD = ethers.utils.getAddress("0x6c6F915B21d43107d83c47541e5D29e872d82Da6");
-    const NFTBOOSTVAULT_ADD = ethers.utils.getAddress("0xAf627689923fCB745fB33D84c4B920601C0f0955");
-    const ARCD_VESTINGVAULT_ADD = ethers.utils.getAddress("0xE59Ce21F937aD3F2A2ccf2cF9E50e8F0EA9d62F7");
-    const IMM_VESTINGVAULT_ADD = ethers.utils.getAddress("0xc547C7d049B425F83B96E9696b8756c203fFC90a");
-    const ARCADE_GSCVAULT_ADD = ethers.utils.getAddress("0x2fFA6d2277Faae65782187bb80C92ecA1832AD32");
-
+    // deploy BalanceQuery contract
     const BalanceQueryFactory = await ethers.getContractFactory("BalanceQuery");
     const balanceQuery = <BalanceQuery>(
-        await BalanceQueryFactory.deploy(OWNER_ADD, [
-            NFTBOOSTVAULT_ADD,
-            ARCD_VESTINGVAULT_ADD,
-            IMM_VESTINGVAULT_ADD,
-            ARCADE_GSCVAULT_ADD,
+        await BalanceQueryFactory.deploy(BALANCE_QUERY_OWNER, [
+            resources.nftBoostVault.address,
+            resources.teamVestingVault.address,
+            resources.partnerVestingVault.address,
         ])
     );
     await balanceQuery.deployed();
-    const balanceQueryAddress = balanceQuery.address;
-
-    console.log("BalanceQuery deployed to:", balanceQueryAddress);
+    console.log("BalanceQuery deployed to:", balanceQuery.address);
     console.log(SUBSECTION_SEPARATOR);
 
-    // timeout for 3 seconds to wait for etherscan to index the contract
-    await new Promise(r => setTimeout(r, 3000));
+    console.log("Waiting for 5 block confirmations...");
+    // timeout for 1 min to wait for etherscan to index the contract
+    await new Promise(r => setTimeout(r, 60000));
 
     console.log("Verifying BalanceQuery contract...");
-    await hre.run("verify:verify", {
-        address: balanceQueryAddress,
-        constructorArguments: [
-            OWNER_ADD,
-            [NFTBOOSTVAULT_ADD, ARCD_VESTINGVAULT_ADD, IMM_VESTINGVAULT_ADD, ARCADE_GSCVAULT_ADD],
-        ],
-    });
+    try {
+        await hre.run("verify:verify", {
+            address: balanceQuery.address,
+            constructorArguments: [
+                BALANCE_QUERY_OWNER,
+                [
+                    resources.nftBoostVault.address,
+                    resources.teamVestingVault.address,
+                    resources.partnerVestingVault.address,
+                ],
+            ],
+        });
+    } catch (err) {
+        if (!err.message.match(/already verified/i)) {
+            throw err;
+        } else {
+            console.log("\nContract already verified.");
+        }
+    }
 
     console.log(SECTION_SEPARATOR);
-
-    return {
-        balanceQuery,
-    };
+    console.log("✅ BalanceQuery deployment and verification complete.");
+    console.log(SECTION_SEPARATOR);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 if (require.main === module) {
-    main()
+    // retrieve deployments file from .env
+    const file = process.env.DEPLOYMENT_FILE;
+
+    // if file not in .env, exit
+    if (!file) {
+        console.error("No deployment file provided");
+        process.exit(1);
+    }
+
+    console.log("File:", file);
+
+    void loadContracts(file)
+        .then(deployBalanceQuery)
         .then(() => process.exit(0))
         .catch((error: Error) => {
             console.error(error);

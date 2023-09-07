@@ -3,7 +3,7 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import "./interfaces/IArcadeTreasury.sol";
@@ -41,7 +41,7 @@ import {
  * force spends larger than the small threshold to always be voted on by governance.
  * Additionally, there is a cool down period between each GSC allowance update of 7 days.
  */
-contract ArcadeTreasury is IArcadeTreasury, AccessControl, ReentrancyGuard {
+contract ArcadeTreasury is IArcadeTreasury, AccessControlEnumerable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /// @notice access control roles

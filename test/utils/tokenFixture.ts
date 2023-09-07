@@ -111,13 +111,9 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         // =================================== AIRDROP DEPLOYMENT ==================================
 
         // deploy airdrop contract
-        const arcdAirdrop = <ArcadeAirdrop>await deploy("ArcadeAirdrop", signers[0], [
-            signers[0].address, // in production this is to be the governance timelock address
-            root,
-            arcdToken.address,
-            expiration,
-            mockNFTBoostVault.address,
-        ]);
+        const arcdAirdrop = <ArcadeAirdrop>(
+            await deploy("ArcadeAirdrop", signers[0], [root, arcdToken.address, expiration, mockNFTBoostVault.address])
+        );
         await arcdAirdrop.deployed();
 
         // set airdrop contract in mockNftBoostVault

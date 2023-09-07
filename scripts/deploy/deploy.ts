@@ -3,50 +3,36 @@ import { ethers } from "hardhat";
 import {
     ARCDVestingVault,
     ArcadeAirdrop,
+    ArcadeCoreVoting,
+    ArcadeGSCCoreVoting,
     ArcadeGSCVault,
     ArcadeToken,
     ArcadeTokenDistributor,
+    ArcadeTreasury,
+    ArcadeTreasuryTimelock,
     BadgeDescriptor,
-    CoreVoting,
     ImmutableVestingVault,
     NFTBoostVault,
     ReputationBadge,
     Timelock,
-    Treasury,
-} from "../../typechain";
+} from "../../src/types";
 import {
-    ADMIN_ADDRESS,
     AIRDROP_EXPIRATION,
+    AIRDROP_MERKLE_ROOT,
     BADGE_DESCRIPTOR_BASE_URI,
     BASE_QUORUM,
     BASE_QUORUM_GSC,
+    FOUNDATION_MULTISIG,
     GSC_THRESHOLD,
     MIN_PROPOSAL_POWER_CORE_VOTING,
     MIN_PROPOSAL_POWER_GSC,
-    NFT_BOOST_VAULT_MANAGER,
-    REPUTATION_BADGE_ADMIN,
     STALE_BLOCK_LAG,
-    TEAM_VESTING_VAULT_MANAGER,
     TIMELOCK_WAIT_TIME,
-} from "./deployment-params";
+    VESTING_MANAGER_MULTISIG,
+} from "./config/deployment-params";
+import { DeployedResources } from "./test/utils";
 import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
 import { writeJson } from "./write-json";
-
-export interface DeployedResources {
-    arcadeTokenDistributor: ArcadeTokenDistributor;
-    arcadeToken: ArcadeToken;
-    coreVoting: CoreVoting;
-    arcadeGSCCoreVoting: CoreVoting;
-    timelock: Timelock;
-    teamVestingVault: ARCDVestingVault;
-    partnerVestingVault: ImmutableVestingVault;
-    NFTBoostVault: NFTBoostVault;
-    arcadeGSCVault: ArcadeGSCVault;
-    ArcadeTreasury: Treasury;
-    arcadeAirdrop: ArcadeAirdrop;
-    badgeDescriptor: BadgeDescriptor;
-    reputationBadge: ReputationBadge;
-}
 
 export async function main(): Promise<DeployedResources> {
     // Hardhat always runs the compile task when running scripts through it.
@@ -54,203 +40,233 @@ export async function main(): Promise<DeployedResources> {
     // to make sure everything is compiled
     // await run("compile");
 
-    // ================= TOKEN + AIRDROP =================
+    const [deployer] = await ethers.getSigners();
+
+    // ================= TOKEN + DISTRIBUTOR =================
 
     console.log(SECTION_SEPARATOR);
-    console.log("Deploying ARCD token and Distributor contracts...");
+    console.log("Deploying ARCD token and ArcadeTokenDistributor contracts...");
 
     // token distributor
     const ArcadeTokenDistributorFactory = await ethers.getContractFactory("ArcadeTokenDistributor");
     const arcadeTokenDistributor = <ArcadeTokenDistributor>await ArcadeTokenDistributorFactory.deploy();
     await arcadeTokenDistributor.deployed();
-    const arcadeTokenDistributorAddress = arcadeTokenDistributor.address;
-    console.log("ArcadeTokenDistributor deployed to:", arcadeTokenDistributorAddress);
+    console.log("ArcadeTokenDistributor deployed to:", arcadeTokenDistributor.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // token
     const ArcadeTokenFactory = await ethers.getContractFactory("ArcadeToken");
-    const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(ADMIN_ADDRESS, arcadeTokenDistributor.address);
+    const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(deployer.address, arcadeTokenDistributor.address);
     await arcadeToken.deployed();
-    const arcadeTokenAddress = arcadeToken.address;
-    console.log("ArcadeToken deployed to:", arcadeTokenAddress);
-    console.log(SUBSECTION_SEPARATOR);
+    console.log("ArcadeToken deployed to:", arcadeToken.address);
 
     // ================= GOVERNANCE =================
 
     console.log(SECTION_SEPARATOR);
     console.log("Deploying governance...");
 
-    // // ======= CORE VOTING =======
-
-    // core voting
-    const CoreVotingFactory = await ethers.getContractFactory("CoreVoting");
-    const coreVoting = await CoreVotingFactory.deploy(
-        ADMIN_ADDRESS,
-        BASE_QUORUM,
-        MIN_PROPOSAL_POWER_CORE_VOTING,
-        ethers.constants.AddressZero,
-        [],
-    );
-    await coreVoting.deployed();
-    const coreVotingAddress = coreVoting.address;
-    console.log("CoreVoting deployed to:", coreVotingAddress);
-    console.log(SUBSECTION_SEPARATOR);
-
-    // GSC cote voting
-    const ArcadeGSCCoreVotingFactory = await ethers.getContractFactory("ArcadeGSCCoreVoting");
-    const arcadeGSCCoreVoting = await ArcadeGSCCoreVotingFactory.deploy(
-        ADMIN_ADDRESS,
-        BASE_QUORUM_GSC,
-        MIN_PROPOSAL_POWER_GSC,
-        ethers.constants.AddressZero,
-        [],
-    );
-    await arcadeGSCCoreVoting.deployed();
-    const arcadeGSCCoreVotingAddress = arcadeGSCCoreVoting.address;
-    console.log("ArcadeGSCCoreVoting deployed to:", arcadeGSCCoreVotingAddress);
-    console.log(SUBSECTION_SEPARATOR);
+    // ======= TIMELOCK =======
 
     // timelock
     const TimelockFactory = await ethers.getContractFactory("Timelock");
-    const timelock = await TimelockFactory.deploy(TIMELOCK_WAIT_TIME, ADMIN_ADDRESS, ADMIN_ADDRESS);
+    const timelock = <Timelock>await TimelockFactory.deploy(TIMELOCK_WAIT_TIME, deployer.address, deployer.address);
     await timelock.deployed();
-    const timelockAddress = timelock.address;
-    console.log("Timelock deployed to:", timelockAddress);
+    console.log("Timelock deployed to:", timelock.address);
     console.log(SUBSECTION_SEPARATOR);
 
-    // // ======= VAULTS =======
+    // ======= VAULTS =======
 
-    // team vesting vault (ARCDVestingVault)
+    // ARCDVestingVault
     const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
-    const teamVestingVault = await TeamVestingVaultFactory.deploy(
-        arcadeToken.address,
-        STALE_BLOCK_LAG,
-        TEAM_VESTING_VAULT_MANAGER,
-        timelock.address,
+    const teamVestingVault = <ARCDVestingVault>(
+        await TeamVestingVaultFactory.deploy(
+            arcadeToken.address,
+            STALE_BLOCK_LAG,
+            VESTING_MANAGER_MULTISIG,
+            deployer.address,
+        )
     );
     await teamVestingVault.deployed();
-    const teamVestingVaultAddress = teamVestingVault.address;
-    console.log("ARCDVestingVault deployed to:", teamVestingVaultAddress);
+    console.log("ARCDVestingVault deployed to:", teamVestingVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
-    // partner vesting vault (ImmutableVestingVault)
+    // ImmutableVestingVault
     const PartnerVestingVaultFactory = await ethers.getContractFactory("ImmutableVestingVault");
-    const partnerVestingVault = await PartnerVestingVaultFactory.deploy(
-        arcadeToken.address,
-        STALE_BLOCK_LAG,
-        TEAM_VESTING_VAULT_MANAGER,
-        timelock.address,
+    const partnerVestingVault = <ImmutableVestingVault>(
+        await PartnerVestingVaultFactory.deploy(
+            arcadeToken.address,
+            STALE_BLOCK_LAG,
+            VESTING_MANAGER_MULTISIG,
+            deployer.address,
+        )
     );
     await partnerVestingVault.deployed();
-    const partnerVestingVaultAddress = partnerVestingVault.address;
-    console.log("ImmutableVestingVault deployed to:", partnerVestingVaultAddress);
+    console.log("ImmutableVestingVault deployed to:", partnerVestingVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // NFTBoostVault
     const NFTBoostVaultFactory = await ethers.getContractFactory("NFTBoostVault");
-    const NFTBoostVault = await NFTBoostVaultFactory.deploy(
-        arcadeToken.address,
-        STALE_BLOCK_LAG,
-        timelock.address,
-        NFT_BOOST_VAULT_MANAGER,
+    const nftBoostVault = <NFTBoostVault>(
+        await NFTBoostVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address)
     );
-    await NFTBoostVault.deployed();
-    const NFTBoostVaultAddress = NFTBoostVault.address;
-    console.log("NFTBoostVault deployed to:", NFTBoostVaultAddress);
+    await nftBoostVault.deployed();
+    console.log("NFTBoostVault deployed to:", nftBoostVault.address);
     console.log(SUBSECTION_SEPARATOR);
+
+    // ======= ARCADE CORE VOTING =======
+
+    // arcade core voting
+    const ArcadeCoreVotingFactory = await ethers.getContractFactory("ArcadeCoreVoting");
+    const arcadeCoreVoting = <ArcadeCoreVoting>(
+        await ArcadeCoreVotingFactory.deploy(
+            deployer.address,
+            BASE_QUORUM,
+            MIN_PROPOSAL_POWER_CORE_VOTING,
+            ethers.constants.AddressZero,
+            [teamVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
+            true,
+        )
+    );
+    await arcadeCoreVoting.deployed();
+    console.log("ArcadeCoreVoting deployed to:", arcadeCoreVoting.address);
+    console.log(SUBSECTION_SEPARATOR);
+
+    // ======= ARCADE GSC CORE VOTING =======
 
     // GSC vault
     const ArcadeGSCVaultFactory = await ethers.getContractFactory("ArcadeGSCVault");
-    const arcadeGSCVault = await ArcadeGSCVaultFactory.deploy(coreVoting.address, GSC_THRESHOLD, timelock.address);
+    const arcadeGSCVault = <ArcadeGSCVault>(
+        await ArcadeGSCVaultFactory.deploy(arcadeCoreVoting.address, GSC_THRESHOLD, timelock.address)
+    );
     await arcadeGSCVault.deployed();
-    const arcadeGSCVaultAddress = arcadeGSCVault.address;
-    console.log("ArcadeGSCVault deployed to:", arcadeGSCVaultAddress);
+    console.log("ArcadeGSCVault deployed to:", arcadeGSCVault.address);
+    console.log(SUBSECTION_SEPARATOR);
+
+    // GSC cote voting
+    const ArcadeGSCCoreVotingFactory = await ethers.getContractFactory("ArcadeGSCCoreVoting");
+    const arcadeGSCCoreVoting = <ArcadeGSCCoreVoting>(
+        await ArcadeGSCCoreVotingFactory.deploy(
+            deployer.address,
+            BASE_QUORUM_GSC,
+            MIN_PROPOSAL_POWER_GSC,
+            ethers.constants.AddressZero,
+            [arcadeGSCVault.address],
+        )
+    );
+    await arcadeGSCCoreVoting.deployed();
+    console.log("ArcadeGSCCoreVoting deployed to:", arcadeGSCCoreVoting.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ================= TREASURY =================
 
+    // treasury timelock
+    const ArcadeTreasuryTimelockFactory = await ethers.getContractFactory("ArcadeTreasuryTimelock");
+    const arcadeTreasuryTimelock = <ArcadeTreasuryTimelock>(
+        await ArcadeTreasuryTimelockFactory.deploy(TIMELOCK_WAIT_TIME, FOUNDATION_MULTISIG, arcadeGSCCoreVoting.address)
+    );
+    await arcadeTreasuryTimelock.deployed();
+    console.log("ArcadeTreasuryTimelock deployed to:", arcadeTreasuryTimelock.address);
+    console.log(SUBSECTION_SEPARATOR);
+
     // treasury
     const ArcadeTreasuryFactory = await ethers.getContractFactory("ArcadeTreasury");
-    const arcadeTreasury = await ArcadeTreasuryFactory.deploy(ADMIN_ADDRESS);
+    const arcadeTreasury = <ArcadeTreasury>await ArcadeTreasuryFactory.deploy(deployer.address);
     await arcadeTreasury.deployed();
-    const arcadeTreasuryAddress = arcadeTreasury.address;
-    console.log("ArcadeTreasury deployed to:", arcadeTreasuryAddress);
+    console.log("ArcadeTreasury deployed to:", arcadeTreasury.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ================== AIRDROP ==================
 
     console.log(SECTION_SEPARATOR);
-    console.log("Deploying Airdrop...");
+    console.log("Deploying Airdrop contract...");
 
     // airdrop
     const ArcadeAirdropFactory = await ethers.getContractFactory("ArcadeAirdrop");
-    // deploy with high gas limit
-    const arcadeAirdrop = await ArcadeAirdropFactory.deploy(
-        ADMIN_ADDRESS,
-        ethers.constants.HashZero,
-        arcadeTokenAddress,
-        AIRDROP_EXPIRATION,
-        NFTBoostVaultAddress,
+    const arcadeAirdrop = <ArcadeAirdrop>(
+        await ArcadeAirdropFactory.deploy(
+            AIRDROP_MERKLE_ROOT,
+            arcadeToken.address,
+            AIRDROP_EXPIRATION,
+            nftBoostVault.address,
+        )
     );
     await arcadeAirdrop.deployed();
-    const arcadeAirdropAddress = arcadeAirdrop.address;
-    console.log("ArcadeAirdrop deployed to:", arcadeAirdropAddress);
-    console.log(SECTION_SEPARATOR);
+    console.log("ArcadeAirdrop deployed to:", arcadeAirdrop.address);
 
     // =============== REPUTATION BADGE ===============
+    console.log(SECTION_SEPARATOR);
+    console.log("Deploying ReputationBadge contracts...");
 
     const BadgeDescriptorFactory = await ethers.getContractFactory("BadgeDescriptor");
-    const badgeDescriptor = await BadgeDescriptorFactory.deploy(BADGE_DESCRIPTOR_BASE_URI);
+    const badgeDescriptor = <BadgeDescriptor>await BadgeDescriptorFactory.deploy(BADGE_DESCRIPTOR_BASE_URI);
     await badgeDescriptor.deployed();
-    const badgeDescriptorAddress = badgeDescriptor.address;
-    console.log("BadgeDescriptor deployed to:", badgeDescriptorAddress);
+    console.log("BadgeDescriptor deployed to:", badgeDescriptor.address);
 
     const ReputationBadgeFactory = await ethers.getContractFactory("ReputationBadge");
-    const reputationBadge = await ReputationBadgeFactory.deploy(ADMIN_ADDRESS, badgeDescriptorAddress);
+    const reputationBadge = <ReputationBadge>(
+        await ReputationBadgeFactory.deploy(deployer.address, badgeDescriptor.address)
+    );
     await reputationBadge.deployed();
-    const reputationBadgeAddress = reputationBadge.address;
-    console.log("ReputationBadge deployed to:", reputationBadgeAddress);
+    console.log("ReputationBadge deployed to:", reputationBadge.address);
+    console.log(SECTION_SEPARATOR);
+
+    console.log("✅ Deployment complete.");
+    console.log(SECTION_SEPARATOR);
 
     // ================= SAVE ARTIFACTS =================
 
-    console.log("Writing deployment artifacts...");
-    await writeJson(
-        arcadeTokenDistributorAddress,
-        arcadeTokenAddress,
-        coreVotingAddress,
-        arcadeGSCCoreVotingAddress,
-        timelockAddress,
-        teamVestingVaultAddress,
-        partnerVestingVaultAddress,
-        NFTBoostVaultAddress,
-        arcadeGSCVaultAddress,
-        arcadeTreasuryAddress,
-        arcadeAirdropAddress,
-        badgeDescriptorAddress,
-        reputationBadgeAddress,
-    );
-
-    console.log(SECTION_SEPARATOR);
-
-    return {
+    const resources: DeployedResources = {
         arcadeTokenDistributor,
         arcadeToken,
-        coreVoting,
-        arcadeGSCCoreVoting,
         timelock,
         teamVestingVault,
         partnerVestingVault,
-        NFTBoostVault,
+        nftBoostVault,
+        arcadeCoreVoting,
         arcadeGSCVault,
+        arcadeGSCCoreVoting,
+        arcadeTreasuryTimelock,
         arcadeTreasury,
         arcadeAirdrop,
         badgeDescriptor,
         reputationBadge,
     };
+
+    await writeJson(resources, {
+        arcadeTokenDistributor: [],
+        arcadeToken: [deployer.address, arcadeTokenDistributor.address],
+        timelock: [TIMELOCK_WAIT_TIME, deployer.address, deployer.address],
+        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
+        partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
+        nftBoostVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
+        arcadeCoreVoting: [
+            deployer.address,
+            BASE_QUORUM,
+            MIN_PROPOSAL_POWER_CORE_VOTING,
+            ethers.constants.AddressZero,
+            [teamVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
+            true,
+        ],
+        arcadeGSCVault: [arcadeCoreVoting.address, GSC_THRESHOLD, timelock.address],
+        arcadeGSCCoreVoting: [
+            deployer.address,
+            BASE_QUORUM_GSC,
+            MIN_PROPOSAL_POWER_GSC,
+            ethers.constants.AddressZero,
+            [arcadeGSCVault.address],
+        ],
+        arcadeTreasuryTimelock: [TIMELOCK_WAIT_TIME, FOUNDATION_MULTISIG, arcadeGSCCoreVoting.address],
+        arcadeTreasury: [deployer.address],
+        arcadeAirdrop: [AIRDROP_MERKLE_ROOT, arcadeToken.address, AIRDROP_EXPIRATION, nftBoostVault.address],
+        badgeDescriptor: [BADGE_DESCRIPTOR_BASE_URI],
+        reputationBadge: [deployer.address, badgeDescriptor.address],
+    });
+
+    console.log(SECTION_SEPARATOR);
+
+    return resources;
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 if (require.main === module) {
     main()
         .then(() => process.exit(0))

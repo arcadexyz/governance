@@ -1,285 +1,151 @@
-import { Contract } from "ethers";
-import fs from "fs";
 import { ethers } from "hardhat";
 
 import {
-    ADD_APPROVAL,
-    ADD_APPROVAL_QUORUM,
-    ADD_CALL,
-    ADD_CALL_QUORUM,
-    CALL_WHITELIST_ADDR,
-    CALL_WHITELIST_APPROVALS_ADDR,
-    LARGE_SPEND,
-    LARGE_SPEND_QUORUM,
-    LOAN_CORE_ADDR,
-    MEDIUM_SPEND,
-    MEDIUM_SPEND_QUORUM,
-    MINT_TOKENS,
-    MINT_TOKENS_QUORUM,
-    ORIGINATION_CONTROLLER_ADDR,
-    PAUSE,
-    PAUSE_QUORUM,
-    SET_ALLOWED_PAYABLE_CURRENCIES,
-    SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
-    SET_ALLOWED_VERIFIER,
-    SET_ALLOWED_VERIFIER_BATCH,
-    SET_ALLOWED_VERIFIER_BATCH_QUORUM,
-    SET_ALLOWED_VERIFIER_QUORUM,
-    SET_FEE_CONTROLLER,
-    SET_FEE_CONTROLLER_QUORUM,
-    SET_MINTER,
-    SET_MINTER_QUORUM,
-} from "./custom-quorum-params";
-import {
-    ADMIN_ADDRESS,
-    AIRDROP_MERKLE_ROOT,
-    DISTRIBUTION_MULTISIG,
+    ADMIN_ROLE,
+    BADGE_MANAGER_ROLE,
+    CORE_VOTING_ROLE,
+    FEE_CLAIMER_ROLE,
+    FOUNDATION_MULTISIG,
+    GSC_CORE_VOTING_ROLE,
     GSC_MIN_LOCK_DURATION,
-    REPUTATION_BADGE_ADMIN,
-    REPUTATION_BADGE_MANAGER,
-    REPUTATION_BADGE_RESOURCE_MANAGER,
-} from "./deployment-params";
-import { SECTION_SEPARATOR, SUBSECTION_SEPARATOR } from "./test/utils";
+    LAUNCH_PARTNER_MULTISIG,
+    RESOURCE_MANAGER_ROLE,
+} from "./config/deployment-params";
+import { DeployedResources, SUBSECTION_SEPARATOR, loadContracts } from "./test/utils";
+import { SECTION_SEPARATOR } from "./test/utils";
 
-const jsonContracts: { [key: string]: string } = {
-    ArcadeTokenDistributor: "arcadeTokenDistributor",
-    ArcadeToken: "arcadeToken",
-    CoreVoting: "coreVoting",
-    ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
-    Timelock: "timelock",
-    ARCDVestingVault: "teamVestingVault",
-    ImmutableVestingVault: "partnerVestingVault",
-    NFTBoostVault: "nftBoostVault",
-    ArcadeGSCVault: "arcadeGSCVault",
-    ArcadeTreasury: "arcadeTreasury",
-    ArcadeAirdrop: "arcadeAirdrop",
-    ReputationBadge: "reputationBadge",
-};
+export async function setupRoles(resources: DeployedResources): Promise<void> {
+    const [deployer] = await ethers.getSigners();
+    const {
+        arcadeToken,
+        arcadeTokenDistributor,
+        arcadeCoreVoting,
+        timelock,
+        teamVestingVault,
+        partnerVestingVault,
+        nftBoostVault,
+        arcadeGSCCoreVoting,
+        arcadeTreasury,
+        arcadeAirdrop,
+        badgeDescriptor,
+        reputationBadge,
+    } = resources;
 
-type ContractArgs = {
-    arcadeTokenDistributor: Contract;
-    arcadeToken: Contract;
-    coreVoting: Contract;
-    arcadeGSCCoreVoting: Contract;
-    timelock: Contract;
-    teamVestingVault: Contract;
-    partnerVestingVault: Contract;
-    nftBoostVault: Contract;
-    arcadeGSCVault: Contract;
-    arcadeTreasury: Contract;
-    arcadeAirdrop: Contract;
-    reputationBadge: Contract;
-};
-
-export async function main(
-    arcadeTokenDistributor: Contract,
-    arcadeToken: Contract,
-    coreVoting: Contract,
-    arcadeGSCCoreVoting: Contract,
-    timelock: Contract,
-    teamVestingVault: Contract,
-    partnerVestingVault: Contract,
-    nftBoostVault: Contract,
-    arcadeGSCVault: Contract,
-    arcadeTreasury: Contract,
-    arcadeAirdrop: Contract,
-    reputationBadge: Contract,
-): Promise<void> {
     console.log(SECTION_SEPARATOR);
-    console.log("Setup contract state variables and relinquish control...");
+    console.log("Setup contract permissions and state variables");
+    console.log(SUBSECTION_SEPARATOR);
 
-    // set airdrop merkle root
-    console.log("Setting airdrop merkle root...");
-    const tx1 = await arcadeAirdrop.setMerkleRoot(AIRDROP_MERKLE_ROOT);
+    // ================= ArcadeToken =================
+    console.log("Setting ArcadeToken minter as CoreVoting...");
+    const tx1 = await arcadeToken.setMinter(arcadeCoreVoting.address);
     await tx1.wait();
 
-    console.log("Setting airdrop contract in nftBoostVault...");
-    const tx2 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
+    // ============= ArcadeTokenDistributor ============
+    console.log("Transferring ownership of ArcadeTokenDistributor to launch partner multisig...");
+    const tx2 = await arcadeTokenDistributor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
     await tx2.wait();
 
-    // deployer sets token in distributor
-    console.log("Setting token in ArcadeTokenDistributor...");
-    const tx3 = await arcadeTokenDistributor.setToken(arcadeToken.address);
+    // ================= ArcadeAirdrop =================
+    console.log("Transferring airdrop contract ownership to multisig...");
+    const tx3 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
     await tx3.wait();
 
-    // transfer ownership of arcadeTokenDistributor to multisig
-    console.log("Transferring ownership of ArcadeTokenDistributor to multisig...");
-    const tx4 = await arcadeTokenDistributor.transferOwnership(DISTRIBUTION_MULTISIG);
+    // ================= ARCDVestingVault =================
+    console.log("Transferring team vesting vault timelock role...");
+    const tx4 = await teamVestingVault.setTimelock(timelock.address);
     await tx4.wait();
 
-    // change ArcadeToken minter from deployer to CoreVoting
-    console.log("Changing ArcadeToken minter from deployer to CoreVoting...");
-    const tx5 = await arcadeToken.setMinter(coreVoting.address);
+    // ================= ImmutableVestingVault =================
+    console.log("Transferring early investor vesting vault timelock role...");
+    const tx5 = await partnerVestingVault.setTimelock(timelock.address);
     await tx5.wait();
 
-    // set vaults in core voting
-    console.log("Setting up CoreVoting voting vaults...");
-    const tx6 = await coreVoting.changeVaultStatus(teamVestingVault.address, true);
+    // ================= NFTBoostVault =================
+    console.log("Setting airdrop contract in nftBoostVault...");
+    const tx6 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
     await tx6.wait();
-    const tx7 = await coreVoting.changeVaultStatus(partnerVestingVault.address, true);
+    console.log("Transferring nftBoostVault manager role to multisig...");
+    const tx7 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);
     await tx7.wait();
-    const tx8 = await coreVoting.changeVaultStatus(nftBoostVault.address, true);
+    console.log("Transferring nftBoostVault timelock role to ArcadeCoreVoting...");
+    const tx8 = await nftBoostVault.setTimelock(arcadeCoreVoting.address);
     await tx8.wait();
 
-    // set vaults in arcadeGSCCoreVoting
-    console.log("Setting up ArcadeGSCCoreVoting voting vaults...");
-    const tx9 = await arcadeGSCCoreVoting.changeVaultStatus(arcadeGSCVault.address, true);
+    // ================== ArcadeCoreVoting ==================
+    console.log("Decentralize ArcadeCoreVoting...");
+    const tx9 = await arcadeCoreVoting.authorize(arcadeGSCCoreVoting.address);
     await tx9.wait();
-
-    // change min lock time for GSC proposals from 3 days to 8 hours
-    console.log("Changing min lock time for GSC proposals from 3 days to 8 hours...");
-    const tx10 = await arcadeGSCCoreVoting.setLockDuration(GSC_MIN_LOCK_DURATION);
+    const tx10 = await arcadeCoreVoting.setOwner(timelock.address);
     await tx10.wait();
 
-    // before transferring over ownership, set the custom quorum thresholds
-    console.log("Setting custom quorum thresholds in CoreVoting...");
-    const tx11 = await coreVoting.setCustomQuorum(arcadeToken.address, MINT_TOKENS, MINT_TOKENS_QUORUM);
+    // ================= Timelock =================
+    console.log("Decentralize Timelock...");
+    const tx11 = await timelock.deauthorize(deployer.address);
     await tx11.wait();
-    const tx12 = await coreVoting.setCustomQuorum(arcadeToken.address, SET_MINTER, SET_MINTER_QUORUM);
+    const tx12 = await timelock.authorize(arcadeGSCCoreVoting.address);
     await tx12.wait();
-    const tx13 = await coreVoting.setCustomQuorum(arcadeTreasury.address, MEDIUM_SPEND, MEDIUM_SPEND_QUORUM);
+    const tx13 = await timelock.setOwner(arcadeCoreVoting.address);
     await tx13.wait();
-    const tx14 = await coreVoting.setCustomQuorum(arcadeTreasury.address, LARGE_SPEND, LARGE_SPEND_QUORUM);
-    await tx14.wait();
-    const tx15 = await coreVoting.setCustomQuorum(CALL_WHITELIST_ADDR, ADD_CALL, ADD_CALL_QUORUM);
-    await tx15.wait();
-    const tx16 = await coreVoting.setCustomQuorum(CALL_WHITELIST_APPROVALS_ADDR, ADD_APPROVAL, ADD_APPROVAL_QUORUM);
-    await tx16.wait();
-    const tx17 = await coreVoting.setCustomQuorum(
-        ORIGINATION_CONTROLLER_ADDR,
-        SET_ALLOWED_VERIFIER,
-        SET_ALLOWED_VERIFIER_QUORUM,
-    );
-    await tx17.wait();
-    const tx18 = await coreVoting.setCustomQuorum(
-        ORIGINATION_CONTROLLER_ADDR,
-        SET_ALLOWED_VERIFIER_BATCH,
-        SET_ALLOWED_VERIFIER_BATCH_QUORUM,
-    );
-    await tx18.wait();
-    const tx19 = await coreVoting.setCustomQuorum(
-        ORIGINATION_CONTROLLER_ADDR,
-        SET_ALLOWED_PAYABLE_CURRENCIES,
-        SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
-    );
-    await tx19.wait();
-    const tx20 = await coreVoting.setCustomQuorum(LOAN_CORE_ADDR, PAUSE, PAUSE_QUORUM);
-    await tx20.wait();
-    const tx21 = await coreVoting.setCustomQuorum(LOAN_CORE_ADDR, SET_FEE_CONTROLLER, SET_FEE_CONTROLLER_QUORUM);
-    await tx21.wait();
 
-    // authorize gsc vault and change owner to be the coreVoting contract
-    console.log("Setup CoreVoting permissions...");
-    const tx22 = await coreVoting.deauthorize(ADMIN_ADDRESS);
+    // ================= ArcadeGSCCoreVoting =================
+    console.log("Changing min lock time for GSC proposals from 3 days to 8 hours...");
+    const tx14 = await arcadeGSCCoreVoting.setLockDuration(GSC_MIN_LOCK_DURATION);
+    await tx14.wait();
+    console.log("Decentralize ArcadeGSCCoreVoting...");
+    const tx15 = await arcadeGSCCoreVoting.setOwner(timelock.address);
+    await tx15.wait();
+
+    // ================= ArcadeTreasury =================
+    console.log("Grant ArcadeTreasury permissions to foundation multisig...");
+    const tx16 = await arcadeTreasury.grantRole(GSC_CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
+    await tx16.wait();
+    const tx17 = await arcadeTreasury.grantRole(CORE_VOTING_ROLE, FOUNDATION_MULTISIG);
+    await tx17.wait();
+    const tx18 = await arcadeTreasury.grantRole(ADMIN_ROLE, FOUNDATION_MULTISIG);
+    await tx18.wait();
+    const tx19 = await arcadeTreasury.renounceRole(ADMIN_ROLE, deployer.address);
+    await tx19.wait();
+
+    // ================= ReputationBadge =================
+    console.log("Setup ReputationBadge roles...");
+    const tx20 = await reputationBadge.grantRole(BADGE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
+    await tx20.wait();
+    const tx21 = await reputationBadge.grantRole(RESOURCE_MANAGER_ROLE, LAUNCH_PARTNER_MULTISIG);
+    await tx21.wait();
+    const tx22 = await reputationBadge.grantRole(FEE_CLAIMER_ROLE, arcadeTreasury.address);
     await tx22.wait();
-    const tx23 = await coreVoting.authorize(arcadeGSCCoreVoting.address);
+    const tx23 = await reputationBadge.grantRole(ADMIN_ROLE, LAUNCH_PARTNER_MULTISIG);
     await tx23.wait();
-    const tx24 = await coreVoting.setOwner(timelock.address);
+    const tx24 = await reputationBadge.renounceRole(ADMIN_ROLE, deployer.address);
     await tx24.wait();
 
-    // authorize arcadeGSCCoreVoting and change owner to be the coreVoting contract
-    console.log("Setup Timelock permissions...");
-    const tx25 = await timelock.deauthorize(ADMIN_ADDRESS);
+    // ================ Badge Descriptor ==================
+    console.log("Transferring BadgeDescriptor ownership to multisig...");
+    const tx25 = await badgeDescriptor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
     await tx25.wait();
-    const tx26 = await timelock.authorize(arcadeGSCCoreVoting.address);
-    await tx26.wait();
-    const tx27 = await timelock.setOwner(coreVoting.address);
-    await tx27.wait();
 
-    // set owner in arcadeGSCCoreVoting
-    console.log("Setup ArcadeGSCCoreVoting permissions...");
-    const tx28 = await arcadeGSCCoreVoting.setOwner(timelock.address);
-    await tx28.wait();
-
-    // ArcadeTreasury permissions
-    console.log("Setup ArcadeTreasury permissions...");
-    const tx29 = await arcadeTreasury.grantRole(
-        await arcadeTreasury.GSC_CORE_VOTING_ROLE(),
-        arcadeGSCCoreVoting.address,
-    );
-    await tx29.wait();
-    const tx30 = await arcadeTreasury.grantRole(await arcadeTreasury.CORE_VOTING_ROLE(), coreVoting.address);
-    await tx30.wait();
-    const tx31 = await arcadeTreasury.grantRole(await arcadeTreasury.ADMIN_ROLE(), timelock.address);
-    await tx31.wait();
-    const tx32 = await arcadeTreasury.renounceRole(await arcadeTreasury.ADMIN_ROLE(), ADMIN_ADDRESS);
-    await tx32.wait();
-
-    // ReputationBadge permissions
-    console.log("Setup ReputationBadge permissions...");
-    const tx33 = await reputationBadge.grantRole(await reputationBadge.BADGE_MANAGER_ROLE(), REPUTATION_BADGE_MANAGER);
-    await tx33.wait();
-    const tx34 = await reputationBadge.grantRole(
-        await reputationBadge.RESOURCE_MANAGER_ROLE(),
-        REPUTATION_BADGE_RESOURCE_MANAGER,
-    );
-    await tx34.wait();
-    const tx35 = await reputationBadge.grantRole(await reputationBadge.ADMIN_ROLE(), REPUTATION_BADGE_ADMIN);
-    await tx35.wait();
-    const tx36 = await reputationBadge.renounceRole(await reputationBadge.ADMIN_ROLE(), ADMIN_ADDRESS);
-    await tx36.wait();
-}
-
-async function attachAddresses(jsonFile: string): Promise<ContractArgs> {
-    const readData = fs.readFileSync(jsonFile, "utf-8");
-    const jsonData = JSON.parse(readData);
-    const contracts: { [key: string]: Contract } = {};
-
-    for await (const key of Object.keys(jsonData)) {
-        if (!(key in jsonContracts)) continue;
-
-        const argKey = jsonContracts[key];
-        // console.log(`Key: ${key}, address: ${jsonData[key]["contractAddress"]}`);
-
-        const contract: Contract = await ethers.getContractAt(key, jsonData[key]["contractAddress"]);
-
-        contracts[argKey] = contract;
-    }
-
-    return contracts as ContractArgs;
+    console.log(SECTION_SEPARATOR);
+    console.log("✅ Decentralization complete.");
+    console.log(SECTION_SEPARATOR);
 }
 
 if (require.main === module) {
-    // retrieve command line args array
-    const [, , file] = process.argv;
+    // retrieve deployments file from .env
+    const file = process.env.DEPLOYMENT_FILE;
+
+    // if file not in .env, exit
+    if (!file) {
+        console.error("No deployment file provided");
+        process.exit(1);
+    }
 
     console.log("File:", file);
 
-    // assemble args to access the relevant deployment json in .deployment
-    void attachAddresses(file).then((res: ContractArgs) => {
-        const {
-            arcadeTokenDistributor,
-            arcadeToken,
-            coreVoting,
-            arcadeGSCCoreVoting,
-            timelock,
-            teamVestingVault,
-            partnerVestingVault,
-            nftBoostVault,
-            arcadeGSCVault,
-            arcadeTreasury,
-            arcadeAirdrop,
-            reputationBadge,
-        } = res;
-
-        main(
-            arcadeTokenDistributor,
-            arcadeToken,
-            coreVoting,
-            arcadeGSCCoreVoting,
-            timelock,
-            teamVestingVault,
-            partnerVestingVault,
-            nftBoostVault,
-            arcadeGSCVault,
-            arcadeTreasury,
-            arcadeAirdrop,
-            reputationBadge,
-        )
-            .then(() => process.exit(0))
-            .catch((error: Error) => {
-                console.error(error);
-                process.exit(1);
-            });
-    });
+    void loadContracts(file)
+        .then(setupRoles)
+        .then(() => process.exit(0))
+        .catch((error: Error) => {
+            console.error(error);
+            process.exit(1);
+        });
 }

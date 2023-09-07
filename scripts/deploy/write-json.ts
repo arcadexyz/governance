@@ -1,27 +1,12 @@
-import { BigNumberish } from "ethers";
 import fs from "fs";
 import hre from "hardhat";
 import path from "path";
 
-import {
-    ADMIN_ADDRESS,
-    AIRDROP_EXPIRATION,
-    BADGE_DESCRIPTOR_BASE_URI,
-    BASE_QUORUM,
-    BASE_QUORUM_GSC,
-    GSC_THRESHOLD,
-    MIN_PROPOSAL_POWER_CORE_VOTING,
-    MIN_PROPOSAL_POWER_GSC,
-    NFT_BOOST_VAULT_MANAGER,
-    REPUTATION_BADGE_ADMIN,
-    STALE_BLOCK_LAG,
-    TEAM_VESTING_VAULT_MANAGER,
-    TIMELOCK_WAIT_TIME,
-} from "./deployment-params";
+import { DeployedResources } from "./test/utils";
 
 export interface ContractData {
     contractAddress: string;
-    constructorArgs: BigNumberish[];
+    constructorArgs: any[];
 }
 
 export interface DeploymentData {
@@ -29,19 +14,8 @@ export interface DeploymentData {
 }
 
 export async function writeJson(
-    arcadeTokenDistributorAddress: string,
-    arcadeTokenAddress: string,
-    coreVotingAddress: string,
-    arcadeGSCCoreVotingAddress: string,
-    timelockAddress: string,
-    teamVestingVaultAddress: string,
-    partnerVestingVaultAddress: string,
-    NFTBoostVaultAddress: string,
-    arcadeGSCVaultAddress: string,
-    arcadeTreasuryAddress: string,
-    arcadeAirdropAddress: string,
-    badgeDescriptorAddress: string,
-    reputationBadgeAddress: string,
+    resources: DeployedResources,
+    constructorArgs: { [contractName: string]: any[] },
 ): Promise<void> {
     const timestamp = Math.floor(new Date().getTime() / 1000);
     const networkName = hre.network.name;
@@ -54,113 +28,87 @@ export async function writeJson(
     const networkFolderPath = path.join(deploymentsFolderPath, networkName);
     if (!fs.existsSync(networkFolderPath)) fs.mkdirSync(networkFolderPath);
 
-    const contractInfo = await createInfo(
-        arcadeTokenDistributorAddress,
-        arcadeTokenAddress,
-        coreVotingAddress,
-        arcadeGSCCoreVotingAddress,
-        timelockAddress,
-        teamVestingVaultAddress,
-        partnerVestingVaultAddress,
-        NFTBoostVaultAddress,
-        arcadeGSCVaultAddress,
-        arcadeTreasuryAddress,
-        arcadeAirdropAddress,
-        badgeDescriptorAddress,
-        reputationBadgeAddress,
-    );
+    const contractInfo = await createInfo(resources, constructorArgs);
 
     fs.writeFileSync(path.join(networkFolderPath, jsonFile), JSON.stringify(contractInfo, undefined, 2));
 
-    console.log("Contract info written to: ", path.join(networkFolderPath, jsonFile));
+    console.log("Deployment artifacts saved to: ", path.join(networkFolderPath, jsonFile));
 }
 
 export async function createInfo(
-    arcadeTokenDistributorAddress: string,
-    arcadeTokenAddress: string,
-    coreVotingAddress: string,
-    arcadeGSCCoreVotingAddress: string,
-    timelockAddress: string,
-    teamVestingVaultAddress: string,
-    partnerVestingVaultAddress: string,
-    NFTBoostVaultAddress: string,
-    arcadeGSCVaultAddress: string,
-    arcadeTreasuryAddress: string,
-    arcadeAirdropAddress: string,
-    badgeDescriptorAddress: string,
-    reputationBadgeAddress: string,
+    resources: DeployedResources,
+    constructorArgs: { [contractName: string]: any[] },
 ): Promise<DeploymentData> {
     const contractInfo: DeploymentData = {};
 
     contractInfo["ArcadeTokenDistributor"] = {
-        contractAddress: arcadeTokenDistributorAddress,
+        contractAddress: resources.arcadeTokenDistributor.address,
         constructorArgs: [],
     };
 
     contractInfo["ArcadeToken"] = {
-        contractAddress: arcadeTokenAddress,
-        constructorArgs: [ADMIN_ADDRESS, arcadeTokenDistributorAddress],
-    };
-
-    contractInfo["CoreVoting"] = {
-        contractAddress: coreVotingAddress,
-        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM, MIN_PROPOSAL_POWER_CORE_VOTING, ethers.constants.AddressZero, []],
-    };
-
-    contractInfo["ArcadeGSCCoreVoting"] = {
-        contractAddress: arcadeGSCCoreVotingAddress,
-        constructorArgs: [ADMIN_ADDRESS, BASE_QUORUM_GSC, MIN_PROPOSAL_POWER_GSC, ethers.constants.AddressZero, []],
+        contractAddress: resources.arcadeToken.address,
+        constructorArgs: constructorArgs.arcadeToken,
     };
 
     contractInfo["Timelock"] = {
-        contractAddress: timelockAddress,
-        constructorArgs: [TIMELOCK_WAIT_TIME, ADMIN_ADDRESS, ADMIN_ADDRESS],
+        contractAddress: resources.timelock.address,
+        constructorArgs: constructorArgs.timelock,
     };
 
     contractInfo["ARCDVestingVault"] = {
-        contractAddress: teamVestingVaultAddress,
-        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
+        contractAddress: resources.teamVestingVault.address,
+        constructorArgs: constructorArgs.teamVestingVault,
     };
 
     contractInfo["ImmutableVestingVault"] = {
-        contractAddress: partnerVestingVaultAddress,
-        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, TEAM_VESTING_VAULT_MANAGER, timelockAddress],
+        contractAddress: resources.partnerVestingVault.address,
+        constructorArgs: constructorArgs.partnerVestingVault,
     };
 
     contractInfo["NFTBoostVault"] = {
-        contractAddress: NFTBoostVaultAddress,
-        constructorArgs: [arcadeTokenAddress, STALE_BLOCK_LAG, timelockAddress, NFT_BOOST_VAULT_MANAGER],
+        contractAddress: resources.nftBoostVault.address,
+        constructorArgs: constructorArgs.nftBoostVault,
+    };
+
+    contractInfo["ArcadeCoreVoting"] = {
+        contractAddress: resources.arcadeCoreVoting.address,
+        constructorArgs: constructorArgs.arcadeCoreVoting,
     };
 
     contractInfo["ArcadeGSCVault"] = {
-        contractAddress: arcadeGSCVaultAddress,
-        constructorArgs: [coreVotingAddress, GSC_THRESHOLD, timelockAddress],
+        contractAddress: resources.arcadeGSCVault.address,
+        constructorArgs: constructorArgs.arcadeGSCVault,
+    };
+
+    contractInfo["ArcadeGSCCoreVoting"] = {
+        contractAddress: resources.arcadeGSCCoreVoting.address,
+        constructorArgs: constructorArgs.arcadeGSCCoreVoting,
+    };
+
+    contractInfo["ArcadeTreasuryTimelock"] = {
+        contractAddress: resources.arcadeTreasuryTimelock.address,
+        constructorArgs: constructorArgs.arcadeTreasuryTimelock,
     };
 
     contractInfo["ArcadeTreasury"] = {
-        contractAddress: arcadeTreasuryAddress,
-        constructorArgs: [ADMIN_ADDRESS],
+        contractAddress: resources.arcadeTreasury.address,
+        constructorArgs: constructorArgs.arcadeTreasury,
     };
 
     contractInfo["ArcadeAirdrop"] = {
-        contractAddress: arcadeAirdropAddress,
-        constructorArgs: [
-            ADMIN_ADDRESS,
-            ethers.constants.HashZero,
-            arcadeTokenAddress,
-            AIRDROP_EXPIRATION,
-            NFTBoostVaultAddress,
-        ],
+        contractAddress: resources.arcadeAirdrop.address,
+        constructorArgs: constructorArgs.arcadeAirdrop,
     };
 
     contractInfo["BadgeDescriptor"] = {
-        contractAddress: badgeDescriptorAddress,
-        constructorArgs: [BADGE_DESCRIPTOR_BASE_URI],
+        contractAddress: resources.badgeDescriptor.address,
+        constructorArgs: constructorArgs.badgeDescriptor,
     };
 
     contractInfo["ReputationBadge"] = {
-        contractAddress: reputationBadgeAddress,
-        constructorArgs: [REPUTATION_BADGE_ADMIN, badgeDescriptorAddress],
+        contractAddress: resources.reputationBadge.address,
+        constructorArgs: constructorArgs.reputationBadge,
     };
 
     return contractInfo;
