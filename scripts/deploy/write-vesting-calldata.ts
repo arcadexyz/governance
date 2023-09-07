@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import fs from "fs";
-import { mkdirp } from "mkdirp";
 import { ethers } from "hardhat";
+import { mkdirp } from "mkdirp";
 import path from "path";
 
 import { VESTING_DURATION } from "./config/deployment-params";
