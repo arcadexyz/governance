@@ -80,7 +80,12 @@ export async function main(): Promise<DeployedResources> {
     // ARCDVestingVault
     const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
     const teamVestingVault = <ARCDVestingVault>(
-        await TeamVestingVaultFactory.deploy(arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address)
+        await TeamVestingVaultFactory.deploy(
+            arcadeToken.address,
+            STALE_BLOCK_LAG,
+            VESTING_MANAGER_MULTISIG,
+            deployer.address,
+        )
     );
     await teamVestingVault.deployed();
     console.log("ARCDVestingVault deployed to:", teamVestingVault.address);

@@ -3,7 +3,6 @@ import fs from "fs";
 import { ethers } from "hardhat";
 import path from "path";
 
-
 import { VESTING_DURATION } from "./config/deployment-params";
 import investorVestingData from "./config/vesting-data/investor-vesting-data.json";
 import teamVestingData from "./config/vesting-data/team-vesting-data.json";
@@ -95,7 +94,6 @@ export async function createData(
             },
         ],
     };
-
 
     // global vesting parameters
     const grantDurationInBlocks = VESTING_DURATION;
