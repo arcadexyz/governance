@@ -59,7 +59,6 @@ export async function main(): Promise<DeployedResources> {
     const arcadeToken = <ArcadeToken>await ArcadeTokenFactory.deploy(deployer.address, arcadeTokenDistributor.address);
     await arcadeToken.deployed();
     console.log("ArcadeToken deployed to:", arcadeToken.address);
-    console.log(SUBSECTION_SEPARATOR);
 
     // ================= GOVERNANCE =================
 
@@ -237,8 +236,8 @@ export async function main(): Promise<DeployedResources> {
         arcadeTokenDistributor: [],
         arcadeToken: [deployer.address, arcadeTokenDistributor.address],
         timelock: [TIMELOCK_WAIT_TIME, deployer.address, deployer.address],
-        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
-        partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
+        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
+        partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
         nftBoostVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
         arcadeCoreVoting: [
             deployer.address,

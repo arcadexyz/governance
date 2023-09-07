@@ -7,9 +7,9 @@ import {
     FEE_CLAIMER_ROLE,
     FOUNDATION_MULTISIG,
     GSC_CORE_VOTING_ROLE,
+    GSC_MIN_LOCK_DURATION,
     LAUNCH_PARTNER_MULTISIG,
     RESOURCE_MANAGER_ROLE,
-    VESTING_MANAGER,
 } from "./config/deployment-params";
 import { DeployedResources, SUBSECTION_SEPARATOR, loadContracts } from "./test/utils";
 import { SECTION_SEPARATOR } from "./test/utils";
@@ -88,6 +88,9 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     await tx15.wait();
 
     // ================= ArcadeGSCCoreVoting =================
+    console.log("Changing min lock time for GSC proposals from 3 days to 8 hours...");
+    const tx = await arcadeGSCCoreVoting.setLockDuration(GSC_MIN_LOCK_DURATION);
+    await tx.wait();
     console.log("Decentralize ArcadeGSCCoreVoting...");
     const tx16 = await arcadeGSCCoreVoting.setOwner(timelock.address);
     await tx16.wait();

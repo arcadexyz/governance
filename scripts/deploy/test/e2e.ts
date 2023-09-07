@@ -51,6 +51,8 @@ import {
     REGISTER_CALL_QUORUM,
     RENOUNCE_ROLE,
     REVOKE_ROLE,
+    SET_AIRDROP_CONTRACT,
+    SET_AIRDROP_CONTRACT_QUORUM,
     SET_ALLOWED_PAYABLE_CURRENCIES,
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     SET_ALLOWED_VERIFIERS,
@@ -91,7 +93,7 @@ import {
     RESOURCE_MANAGER_ROLE,
     STALE_BLOCK_LAG,
     TIMELOCK_WAIT_TIME,
-    VESTING_MANAGER,
+    VESTING_MANAGER_MULTISIG,
 } from "../config/deployment-params";
 import {
     APE_ADDRESS,
@@ -179,7 +181,7 @@ describe("Governance Deployment", function () {
         expect(deployment["ARCDVestingVault"].constructorArgs.length).to.eq(4);
         expect(deployment["ARCDVestingVault"].constructorArgs[0]).to.equal(deployment["ArcadeToken"].contractAddress);
         expect(deployment["ARCDVestingVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
-        expect(deployment["ARCDVestingVault"].constructorArgs[2]).to.equal(deployer.address);
+        expect(deployment["ARCDVestingVault"].constructorArgs[2]).to.equal(VESTING_MANAGER_MULTISIG);
         expect(deployment["ARCDVestingVault"].constructorArgs[3]).to.equal(deployer.address);
 
         expect(deployment["ImmutableVestingVault"]).to.exist;
@@ -189,7 +191,7 @@ describe("Governance Deployment", function () {
             deployment["ArcadeToken"].contractAddress,
         );
         expect(deployment["ImmutableVestingVault"].constructorArgs[1]).to.equal(STALE_BLOCK_LAG);
-        expect(deployment["ImmutableVestingVault"].constructorArgs[2]).to.equal(deployer.address);
+        expect(deployment["ImmutableVestingVault"].constructorArgs[2]).to.equal(VESTING_MANAGER_MULTISIG);
         expect(deployment["ImmutableVestingVault"].constructorArgs[3]).to.equal(deployer.address);
 
         expect(deployment["NFTBoostVault"]).to.exist;
@@ -285,7 +287,32 @@ describe("Governance Deployment", function () {
         if (process.env.EXEC) {
             // Run setup, via command-line
             console.log(); // whitespace
-            execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/setup.ts ${filename}`, { stdio: "inherit" });
+            // run distribute-tokens.ts script
+            execSync(
+                `HARDHAT_NETWORK=${NETWORK} DEPLOYMENT_FILE=${filename} ts-node scripts/deploy/distribute-tokens.ts ${filename}`,
+                {
+                    stdio: "inherit",
+                },
+            );
+            // run set-custom-quorums.ts script
+            execSync(
+                `HARDHAT_NETWORK=${NETWORK} DEPLOYMENT_FILE=${filename} ts-node scripts/deploy/set-custom-quorums.ts ${filename}`,
+                {
+                    stdio: "inherit",
+                },
+            );
+            // run set-treasury-thresholds.ts script
+            execSync(
+                `HARDHAT_NETWORK=${NETWORK} DEPLOYMENT_FILE=${filename} ts-node scripts/deploy/set-treasury-thresholds.ts ${filename}`,
+                {
+                    stdio: "inherit",
+                },
+            );
+            // run setup.ts script
+            execSync(
+                `HARDHAT_NETWORK=${NETWORK} DEPLOYMENT_FILE=${filename} ts-node scripts/deploy/setup.ts ${filename}`,
+                { stdio: "inherit" },
+            );
         }
 
         const arcadeToken = <ArcadeToken>(
@@ -349,11 +376,11 @@ describe("Governance Deployment", function () {
         expect(await arcadeAirdrop.isAuthorized(deployer.address)).to.equal(false);
 
         // ARCDVestingVault manager and timelock
-        expect(await teamVestingVault.manager()).to.equal(VESTING_MANAGER);
+        expect(await teamVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
         expect(await teamVestingVault.timelock()).to.equal(timelock.address);
 
         // ImmutableVestingVault manager and timelock
-        expect(await partnerVestingVault.manager()).to.equal(VESTING_MANAGER);
+        expect(await partnerVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
         expect(await partnerVestingVault.timelock()).to.equal(timelock.address);
 
         // NFTBoostVault airdrop contract
@@ -366,6 +393,9 @@ describe("Governance Deployment", function () {
         // ArcadeCoreVoting custom quorums
         expect(await arcadeCoreVoting.quorums(arcadeToken.address, MINT_TOKENS)).to.equal(MINT_TOKENS_QUORUM);
         expect(await arcadeCoreVoting.quorums(arcadeToken.address, SET_MINTER)).to.equal(SET_MINTER_QUORUM);
+        expect(await arcadeCoreVoting.quorums(nftBoostVault.address, SET_AIRDROP_CONTRACT)).to.equal(
+            SET_AIRDROP_CONTRACT_QUORUM,
+        );
         expect(await arcadeCoreVoting.quorums(timelock.address, REGISTER_CALL)).to.equal(REGISTER_CALL_QUORUM);
         expect(await arcadeCoreVoting.quorums(timelock.address, SET_WAIT_TIME)).to.equal(SET_WAIT_TIME_QUORUM);
         expect(await arcadeCoreVoting.quorums(arcadeTreasury.address, MEDIUM_SPEND)).to.equal(MEDIUM_SPEND_QUORUM);
@@ -546,9 +576,12 @@ describe("Governance Deployment", function () {
         if (process.env.EXEC) {
             // Run setup, via command-line
             console.log(); // whitespace
-            execSync(`HARDHAT_NETWORK=${NETWORK} ts-node scripts/deploy/verify-contracts.ts ${filename}`, {
-                stdio: "inherit",
-            });
+            execSync(
+                `HARDHAT_NETWORK=${NETWORK} DEPLOYMENT_FILE=${filename} ts-node scripts/deploy/verify-contracts.ts ${filename}`,
+                {
+                    stdio: "inherit",
+                },
+            );
         }
 
         // For each contract - compare verified ABI against artifact ABI
