@@ -30,11 +30,6 @@ error AA_ClaimingExpired();
 error AA_AlreadyClaimed();
 
 /**
- * @notice Airdropped tokens cannot be claimed to a users wallet.
- */
-error AA_NoClaiming();
-
-/**
  * @notice Merkle proof not verified. User is not a participant in the airdrop.
  */
 error AA_NonParticipant();
@@ -46,3 +41,8 @@ error AA_NonParticipant();
  *                                   address was provided.
  */
 error AA_ZeroAddress(string addressType);
+
+/**
+ * @notice Thrown when the merkle root is set to bytes32(0).
+ */
+error AA_NotInitialized();

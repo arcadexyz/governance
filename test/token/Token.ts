@@ -792,6 +792,33 @@ describe("ArcadeToken", function () {
             ).to.be.revertedWith("AA_ClaimingExpired()");
         });
 
+        it("user tries to claim airdrop without merkle root set", async function () {
+            const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, expiration } = ctxToken;
+
+            // manager sets merkle root to bytes32(0)
+            await expect(arcdAirdrop.connect(deployer).setMerkleRoot(ethers.constants.HashZero, expiration))
+                .to.emit(arcdAirdrop, "SetMerkleRoot")
+                .withArgs(ethers.constants.HashZero, expiration);
+
+            await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
+                .to.emit(arcdDst, "Distribute")
+                .withArgs(arcdToken.address, arcdAirdrop.address, totalAirdropAmount);
+            expect(await arcdDst.communityAirdropSent()).to.be.true;
+
+            // create proof for deployer and other
+            const proofDeployer = merkleTrie.getHexProof(
+                ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+            );
+            // try to claim with invalid proof
+            await expect(
+                arcdAirdrop.connect(deployer).claimAndDelegate(
+                    recipients[0].address, // address to delegate to
+                    recipients[0].value, // total claimable amount
+                    proofDeployer, // invalid merkle proof
+                ),
+            ).to.be.revertedWith("AA_NotInitialized()");
+        });
+
         it("owner reclaims all unclaimed tokens", async function () {
             const {
                 arcdToken,
