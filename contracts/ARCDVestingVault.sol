@@ -347,7 +347,11 @@ contract ARCDVestingVault is IARCDVestingVault, BaseVotingVault {
         // since the sync is only called when tokens are claimed or grant revoked
         int256 change = int256(newVotingPower) - int256(grant.latestVotingPower);
         // we multiply by -1 to avoid underflow when casting
-        votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1), MAX_HISTORY_LENGTH);
+        if (delegateeVotes > uint256(change * -1)) {
+            votingPower.push(grant.delegatee, delegateeVotes - uint256(change * -1), MAX_HISTORY_LENGTH);
+        } else {
+            votingPower.push(grant.delegatee, 0, MAX_HISTORY_LENGTH);
+        }
 
         grant.latestVotingPower = newVotingPower;
 

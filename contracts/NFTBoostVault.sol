@@ -623,9 +623,11 @@ contract NFTBoostVault is INFTBoostVault, BaseVotingVault {
         if (change == 0) return;
         if (change > 0) {
             votingPower.push(registration.delegatee, delegateeVotes + uint256(change), MAX_HISTORY_LENGTH);
-        } else {
+        } else if (delegateeVotes > uint256(change * -1)){
             // if the change is negative, we multiply by -1 to avoid underflow when casting
             votingPower.push(registration.delegatee, delegateeVotes - uint256(change * -1), MAX_HISTORY_LENGTH);
+        } else {
+            votingPower.push(registration.delegatee, 0, MAX_HISTORY_LENGTH);
         }
 
         registration.latestVotingPower = uint128(newVotingPower);
