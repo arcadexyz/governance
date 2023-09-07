@@ -816,7 +816,7 @@ describe("ArcadeToken", function () {
                     recipients[0].value, // total claimable amount
                     proofDeployer, // invalid merkle proof
                 ),
-            ).to.be.revertedWith("AA_InvalidMerkleRoot()");
+            ).to.be.revertedWith("AA_NotInitialized()");
         });
 
         it("owner reclaims all unclaimed tokens", async function () {

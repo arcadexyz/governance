@@ -12,7 +12,7 @@ import {
     AA_AlreadyClaimed,
     AA_NonParticipant,
     AA_ZeroAddress,
-    AA_InvalidMerkleRoot
+    AA_NotInitialized
 } from "../errors/Airdrop.sol";
 
 /**
@@ -85,7 +85,7 @@ abstract contract ArcadeMerkleRewards {
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
     function claimAndDelegate(address delegate, uint128 totalGrant, bytes32[] calldata merkleProof) external {
-        if (rewardsRoot == bytes32(0)) revert AA_InvalidMerkleRoot();
+        if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();
         // validate the withdraw

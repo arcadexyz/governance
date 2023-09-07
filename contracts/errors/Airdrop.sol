@@ -45,4 +45,4 @@ error AA_ZeroAddress(string addressType);
 /**
  * @notice Thrown when the merkle root is set to bytes32(0).
  */
-error AA_InvalidMerkleRoot();
+error AA_NotInitialized();
