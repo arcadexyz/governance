@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import fs from "fs";
 import { MerkleTree } from "merkletreejs";
 
-import repBadgeData from "./data/repBadgeData.json";
+import repBadgeData from "./data/repBadgeDataBronze.json";
 
 /**
  * This script creates a merkle tree from repBadgeData.json file and writes the merkle proofs to a file.
@@ -68,10 +68,10 @@ export async function main() {
         }),
     );
 
-    fs.writeFileSync("./scripts/airdrop/proofs/repBadgeMerkleProofs.json", JSON.stringify(proofs, null, 2));
+    fs.writeFileSync("./scripts/airdrop/proofs/repBadgeMerkleProofsBronze.json", JSON.stringify(proofs, null, 2));
 
     console.log("Merkle Root: ", root);
-    console.log("Proofs written to ./scripts/airdrop/proofs/repBadgeMerkleProofs.json");
+    console.log("Proofs written to ./scripts/airdrop/proofs/repBadgeMerkleProofsBronze.json");
 }
 
 main()

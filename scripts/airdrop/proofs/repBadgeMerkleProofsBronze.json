@@ -1,0 +1,119 @@
+[
+  {
+    "address": "0xE7e9fAdbc0A35A4019297d879c56506835716166",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x478e7ed395e241f994a5d446d6e5ff81614bf3a187656fda58102ecdb7535f6a",
+      "0x9676ce504bc70c3357b76bc0b6e484a01d04af3beae445223c7eca774af03a96",
+      "0x82cb735fba90f396a589f81c99a92fcf0273c7aed04b58cfd617cc827c6b8a7b",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x6f2fc07bef63cbecfaa30af9ff9a5544b6665cc8",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xe27db7eca6397355d376e824c5245c1bb4b7aa5b5de0431abbb4a28dd5996499",
+      "0x9676ce504bc70c3357b76bc0b6e484a01d04af3beae445223c7eca774af03a96",
+      "0x82cb735fba90f396a589f81c99a92fcf0273c7aed04b58cfd617cc827c6b8a7b",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x585BA4bA51818Faf84e4dd823ac363907ed890D6",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xc652456aa162d9a28862d95d49903803b241fd1c60f6bef1c8bc851505221a7c",
+      "0xd07b61c9b3f06b8572a23ede39c9c05a0bc3a6e9fefe4f961f22b5362812fe20",
+      "0x82cb735fba90f396a589f81c99a92fcf0273c7aed04b58cfd617cc827c6b8a7b",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x251e6B86a5946BC09aB71FF3b326C37780780895",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xd765be949031bc92eb9d303caa263a57a27df007809ed874cc230f0ebde46336",
+      "0xd07b61c9b3f06b8572a23ede39c9c05a0bc3a6e9fefe4f961f22b5362812fe20",
+      "0x82cb735fba90f396a589f81c99a92fcf0273c7aed04b58cfd617cc827c6b8a7b",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xbbaf28eabdf5edd8092bc30b7e5f189d86de1536ba49dd35f77fedc45e379a71",
+      "0x3ee42d4b3e33b7217136b8714dfd925e2204c810d38168c2d46b11cce5e51297",
+      "0x1c60d418c65f963e71c9e662edb57a9bff26f2cb6c7ceb08e65316e1563a293a",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x6c6F915B21d43107d83c47541e5D29e872d82Da6",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xec0cd9f5e4e605eef3ff67a6c85e5fdc759272468cb08441d139886d5058adb4",
+      "0x3ee42d4b3e33b7217136b8714dfd925e2204c810d38168c2d46b11cce5e51297",
+      "0x1c60d418c65f963e71c9e662edb57a9bff26f2cb6c7ceb08e65316e1563a293a",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x6402cB41945A662E978c6a8A65d93c0Ab17F7AC9",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0xbebdde1bf5e33023e40c5704a63607d363f71bfe68b5458bc8ea76d3b9c08dcd",
+      "0x631ed20dbcab383aea1416aa29fe00c8b0af9f37a38fb9a0326872158793683a",
+      "0x1c60d418c65f963e71c9e662edb57a9bff26f2cb6c7ceb08e65316e1563a293a",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x91BcAACf3A997E467c8A16Fb8C56a80413d0C207",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x5e87fa59e08a4d06d177f9b21aa46f11892f858000d609443146f472b711aa7d",
+      "0x631ed20dbcab383aea1416aa29fe00c8b0af9f37a38fb9a0326872158793683a",
+      "0x1c60d418c65f963e71c9e662edb57a9bff26f2cb6c7ceb08e65316e1563a293a",
+      "0xe1a28438f736dbe3dcd8b0a0c1c06dd6bd67622c263982e668522c54b6518635"
+    ]
+  },
+  {
+    "address": "0x85c7FB20057CaA6b8052F260176F9067c57Cb624",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x741cfe4779722fd795129c64e07543bc7ac879aa564b2faff8756ab9f7964d82",
+      "0xdf9969118341044594654d87f698aaa916a46e4e8085da637d7ac120b618a84f",
+      "0x724cb011be2201384cf3c165e09d7d989a2b80ab8d303c36035149f745e9f6f8"
+    ]
+  },
+  {
+    "address": "0xAdD93e738a415c5248f7cB044FCFC71d86b18572",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x41506c57637670912eced30137afe18d504ec37fa6b27382231580796ffa35f2",
+      "0xdf9969118341044594654d87f698aaa916a46e4e8085da637d7ac120b618a84f",
+      "0x724cb011be2201384cf3c165e09d7d989a2b80ab8d303c36035149f745e9f6f8"
+    ]
+  },
+  {
+    "address": "0x2Da83839633a07A44119cEde05d87A89983a0bF7",
+    "value": 1,
+    "tokenId": 3,
+    "proof": [
+      "0x56fd347a863ce847fb596fa2d88f81f2131f7ead980ad65d7c056d2e88e7538e",
+      "0x724cb011be2201384cf3c165e09d7d989a2b80ab8d303c36035149f745e9f6f8"
+    ]
+  }
+]

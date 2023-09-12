@@ -56,15 +56,15 @@ export const SET_AIRDROP_CONTRACT_QUORUM = CV_HIGH_QUORUM;
 /////// V3 Lending Protocol ///////
 
 // CallWhitelistAllExtensions
-export const CALL_WHITELIST_ALL_EXTENSIONS_ADDR = "0x28992ca7BA49a83f3bc391E9312730dE78Bf51Ca"; // mainnet
+export const CALL_WHITELIST_ALL_EXTENSIONS_ADDR = "0x7354334e99Dcd64F964510129215Aa28aad887BC"; // goerli
 // Vault factory
-export const VAULT_FACTORY_ADDR = "0x269363665Dbb1582b143099a3cb467E98a476D55"; // mainnet
+export const VAULT_FACTORY_ADDR = "0x8fB52cb2bb677464b3ae9755925dE08a78Ddac18"; // goerli
 // FeeController
-export const FEE_CONTROLLER_ADDR = "0xf764442856Eb3fe68A0828e07246a4B395e800fa"; // mainnet
+export const FEE_CONTROLLER_ADDR = "0xa66Ccb968392Cd6652E32b8768Ae6343A65400cF"; // goerli
 // OriginationController
-export const ORIGINATION_CONTROLLER_ADDR = "0xB7BFcca7D7ff0f371867B770856FAc184B185878"; // mainnet
+export const ORIGINATION_CONTROLLER_ADDR = "0xB74C4B3f3ea71E2FFB382c633FF66527978FDCe8"; // goerli
 // LoanCore
-export const LOAN_CORE_ADDR = "0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF"; // mainnet
+export const LOAN_CORE_ADDR = "0xFfaE061d1e2d416bc3B8320145277052dba68923"; // goerli
 
 // Common AccessControl function selectors
 export const GRANT_ROLE = "0x2f2ff15d";

@@ -1,8 +1,8 @@
 import { ethers } from "hardhat";
 
-export const LAUNCH_PARTNER_MULTISIG = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // UPDATE!!!
-export const FOUNDATION_MULTISIG = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // UPDATE!!!
-export const VESTING_MANAGER_MULTISIG = "0x96bE842Abefa10a930F85C6Cf538493199D46a4E"; // UPDATE!!!
+export const LAUNCH_PARTNER_MULTISIG = "0x56c95514e3BCA2c6F8D5beFF6Bd8E52a633F5E46"; // UPDATE!!!
+export const FOUNDATION_MULTISIG = "0x81ec538F69B73A15361D75d0E4f0568E60F1C347"; // UPDATE!!!
+export const VESTING_MANAGER_MULTISIG = "0xa964F8579773B91057698E012E3B01EAE0191DE3"; // UPDATE!!!
 
 export const ADMIN_ROLE = ethers.utils.id("ADMIN");
 export const CORE_VOTING_ROLE = ethers.utils.id("CORE_VOTING");
@@ -27,7 +27,7 @@ export const VESTING_DURATION = 5229850; // (3600*24*365*2) / 12.06 sec/block ~=
 
 export const AIRDROP_DURATION = 15552000; // ~6 months in seconds
 export const AIRDROP_EXPIRATION = Math.floor(Date.now() / 1000) + AIRDROP_DURATION;
-export const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
+export const AIRDROP_MERKLE_ROOT = "0xcc5c32f767a7d71db85572cd21906b8b15abef1e47cfb082cafa1cae6802ebbb";
 
 export const BADGE_DESCRIPTOR_BASE_URI = ""; // UPDATE!!!
 

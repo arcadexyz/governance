@@ -1,0 +1,50 @@
+[
+  {
+    "address": "0xeE50C24a127B23E28d4C1Ec222d6915298F048eC",
+    "value": 1,
+    "tokenId": 2,
+    "proof": [
+      "0x04b8b3aeccc2fb3b827d9228b4cfc0876fb266469a8e2fa4931d2c168a3390a6",
+      "0xb023ea8b9e0ac8c85d5b70a7b65daca89748deef99cd7b36fc97f8602e0cbf09",
+      "0xb9af69b3da6f6245598089d439c0909aa5fd7c2a068aa1a0dea31e34b340e62b"
+    ]
+  },
+  {
+    "address": "0x57c4921465BD2C5071766954a677fC46D5B09F35",
+    "value": 1,
+    "tokenId": 2,
+    "proof": [
+      "0xc020634ef105647d9386741ed63e99e0def2d9c4f4b96aeb5f9da74032321779",
+      "0xb023ea8b9e0ac8c85d5b70a7b65daca89748deef99cd7b36fc97f8602e0cbf09",
+      "0xb9af69b3da6f6245598089d439c0909aa5fd7c2a068aa1a0dea31e34b340e62b"
+    ]
+  },
+  {
+    "address": "0xff72bE26Db7D64008657e6962248eE837F76a5A3",
+    "value": 1,
+    "tokenId": 2,
+    "proof": [
+      "0x48a3ef70e1a1033fa194cfcd0e272a06d3e7304b539795b39ad253a7bab059af",
+      "0xc04a5051a2ed235c57ff2b58edb693de04d7f150f63d1e3b7e6b433b2c35293d",
+      "0xb9af69b3da6f6245598089d439c0909aa5fd7c2a068aa1a0dea31e34b340e62b"
+    ]
+  },
+  {
+    "address": "0x7c99670ECc3A57Cd1A8D1Bdfc8e2Ff5b4527b382",
+    "value": 1,
+    "tokenId": 2,
+    "proof": [
+      "0x77e175628c917cdb710d8b1c53d179fc3dc961d98fe9275c59b8bf0f366d9466",
+      "0xc04a5051a2ed235c57ff2b58edb693de04d7f150f63d1e3b7e6b433b2c35293d",
+      "0xb9af69b3da6f6245598089d439c0909aa5fd7c2a068aa1a0dea31e34b340e62b"
+    ]
+  },
+  {
+    "address": "0xF36270C2124829fCE84D9aA5D7A7C7a674F29ab1",
+    "value": 1,
+    "tokenId": 2,
+    "proof": [
+      "0x2552129f6b236b29fac6a06e848fb4cbe4f780028a041c905b2d9793a4de7d13"
+    ]
+  }
+]

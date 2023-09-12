@@ -1,0 +1,18 @@
+[
+  {
+    "address": "0x0fbeD7537e4120e1021c0f39F53E9953d5D8973D",
+    "value": 1,
+    "tokenId": 1,
+    "proof": [
+      "0x4a2e1ec55c04e717c8776bf1913685e94ffe57a7c5c75ac299a376aa7c8eddd4"
+    ]
+  },
+  {
+    "address": "0x583BFcE209e0aAac546350C2663a58954a5DD750",
+    "value": 1,
+    "tokenId": 1,
+    "proof": [
+      "0xacf642959899fd03f00819c257b52fa2e678dfe2d39b4c13960487502875d794"
+    ]
+  }
+]
