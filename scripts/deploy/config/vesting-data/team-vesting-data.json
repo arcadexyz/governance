@@ -1,10 +1,62 @@
 [
     {
-        "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-        "value": 10000
+        "address": "0xE7e9fAdbc0A35A4019297d879c56506835716166",
+        "value": 50000
     },
     {
-        "address": "0x0734d56DA60852A03e2Aafae8a36FFd8c12B32f1",
-        "value": 1000
+        "address": "0x0fbeD7537e4120e1021c0f39F53E9953d5D8973D",
+        "value": 60000
+    },
+    {
+        "address": "0x583BFcE209e0aAac546350C2663a58954a5DD750",
+        "value": 70000
+    },
+    {
+        "address": "0x6f2fc07bef63cbecfaa30af9ff9a5544b6665cc8",
+        "value": 80000
+    },
+    {
+        "address": "0xeE50C24a127B23E28d4C1Ec222d6915298F048eC",
+        "value": 90000
+    },
+    {
+        "address": "0x57c4921465BD2C5071766954a677fC46D5B09F35",
+        "value": 100000
+    },
+    {
+        "address": "0x585BA4bA51818Faf84e4dd823ac363907ed890D6",
+        "value": 110000
+    },
+    {
+        "address": "0xff72bE26Db7D64008657e6962248eE837F76a5A3",
+        "value": 120000
+    },
+    {
+        "address": "0x251e6B86a5946BC09aB71FF3b326C37780780895",
+        "value": 50000
+    },
+    {
+        "address": "0x6c6F915B21d43107d83c47541e5D29e872d82Da6",
+        "value": 70000
+    },
+    {
+        "address": "0x7c99670ECc3A57Cd1A8D1Bdfc8e2Ff5b4527b382",
+        "value": 80000
+    },
+    {
+        "address": "0xF36270C2124829fCE84D9aA5D7A7C7a674F29ab1",
+        "value": 90000
+    },
+    {
+        "address": "0x91BcAACf3A997E467c8A16Fb8C56a80413d0C207",
+        "value": 110000
+    },
+    {
+        "address": "0x85c7FB20057CaA6b8052F260176F9067c57Cb624",
+        "value": 120000
+    },
+    {
+        "address": "0x2Da83839633a07A44119cEde05d87A89983a0bF7",
+        "value": 90000
     }
 ]
