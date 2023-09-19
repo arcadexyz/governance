@@ -5,13 +5,16 @@ import { ethers } from "hardhat";
 ///////////////////////////////
 
 // ArcadeCoreVoting
-export const CV_MEDIUM_QUORUM = ethers.utils.parseEther("3000000");
-export const CV_HIGH_QUORUM = ethers.utils.parseEther("6000000");
-export const CV_VERY_HIGH_QUORUM = ethers.utils.parseEther("25000000");
+export const CV_LOW_QUORUM = ethers.utils.parseEther("300000"); // 0.3% of initial supply
+// Default Quorum = 1.5% of initial supply
+export const CV_MEDIUM_QUORUM = ethers.utils.parseEther("3000000"); // 3% of initial supply
+export const CV_HIGH_QUORUM = ethers.utils.parseEther("6000000"); // 6% of initial supply
+export const CV_VERY_HIGH_QUORUM = ethers.utils.parseEther("25000000"); // 25% of initial supply
 
 // ArcadeGSCCoreVoting
-export const GSC_MEDIUM_QUORUM = "6";
-export const GSC_HIGH_QUORUM = "12";
+// Default Quorum = 3 votes
+export const GSC_MEDIUM_QUORUM = "6"; // 6 GSC votes
+export const GSC_HIGH_QUORUM = "12"; // 12 GSC votes
 
 ////////////////////////////
 ////// Custom Quorums //////
@@ -112,6 +115,9 @@ export const SET_ALLOWED_VERIFIERS_QUORUM = CV_HIGH_QUORUM;
 // OriginationController - setAllowedPayableCurrencies
 export const SET_ALLOWED_PAYABLE_CURRENCIES = "0x6db75724";
 export const SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM = CV_HIGH_QUORUM;
+// OriginationController - setAllowedCollateralAddresses
+export const SET_ALLOWED_COLLATERAL_ADDRESSES = "0x687f27e6";
+export const SET_ALLOWED_COLLATERAL_ADDRESSES_QUORUM = CV_LOW_QUORUM;
 // OriginationController - grantRole
 export const OC_GRANT_ROLE_QUORUM = CV_HIGH_QUORUM;
 // OriginationController - revokeRole
