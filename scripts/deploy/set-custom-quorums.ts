@@ -33,6 +33,8 @@ import {
     REVOKE_ROLE,
     SET_AIRDROP_CONTRACT,
     SET_AIRDROP_CONTRACT_QUORUM,
+    SET_ALLOWED_COLLATERAL_ADDRESSES,
+    SET_ALLOWED_COLLATERAL_ADDRESSES_QUORUM,
     SET_ALLOWED_PAYABLE_CURRENCIES,
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     SET_ALLOWED_VERIFIERS,
@@ -169,31 +171,37 @@ export async function setCustomQuorums(resources: DeployedResources) {
         SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     );
     await tx23.wait();
-    const tx24 = await arcadeCoreVoting.setCustomQuorum(ORIGINATION_CONTROLLER_ADDR, GRANT_ROLE, OC_GRANT_ROLE_QUORUM);
+    const tx24 = await arcadeCoreVoting.setCustomQuorum(
+        ORIGINATION_CONTROLLER_ADDR,
+        SET_ALLOWED_COLLATERAL_ADDRESSES,
+        SET_ALLOWED_COLLATERAL_ADDRESSES_QUORUM,
+    );
     await tx24.wait();
-    const tx25 = await arcadeCoreVoting.setCustomQuorum(
+    const tx25 = await arcadeCoreVoting.setCustomQuorum(ORIGINATION_CONTROLLER_ADDR, GRANT_ROLE, OC_GRANT_ROLE_QUORUM);
+    await tx25.wait();
+    const tx26 = await arcadeCoreVoting.setCustomQuorum(
         ORIGINATION_CONTROLLER_ADDR,
         REVOKE_ROLE,
         OC_REVOKE_ROLE_QUORUM,
     );
-    await tx25.wait();
-    const tx26 = await arcadeCoreVoting.setCustomQuorum(
+    await tx26.wait();
+    const tx27 = await arcadeCoreVoting.setCustomQuorum(
         ORIGINATION_CONTROLLER_ADDR,
         RENOUNCE_ROLE,
         OC_RENOUNCE_ROLE_QUORUM,
     );
-    await tx26.wait();
+    await tx27.wait();
 
     console.log(SUBSECTION_SEPARATOR);
 
     // ============= ArcadeGSCCoreVoting =============
     console.log("Setting custom quorum thresholds in ArcadeGSCCoreVoting...");
     // V3 LoanCore
-    const tx27 = await arcadeGSCCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, SHUTDOWN, SHUTDOWN_QUORUM);
-    await tx27.wait();
-    // timelock
-    const tx28 = await arcadeGSCCoreVoting.setCustomQuorum(timelock.address, INCREASE_TIME, INCREASE_TIME_QUORUM);
+    const tx28 = await arcadeGSCCoreVoting.setCustomQuorum(LOAN_CORE_ADDR, SHUTDOWN, SHUTDOWN_QUORUM);
     await tx28.wait();
+    // timelock
+    const tx29 = await arcadeGSCCoreVoting.setCustomQuorum(timelock.address, INCREASE_TIME, INCREASE_TIME_QUORUM);
+    await tx29.wait();
 
     console.log(SECTION_SEPARATOR);
     console.log("✅ All custom quorums have been set.");

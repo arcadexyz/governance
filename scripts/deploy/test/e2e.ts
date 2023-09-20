@@ -53,6 +53,8 @@ import {
     REVOKE_ROLE,
     SET_AIRDROP_CONTRACT,
     SET_AIRDROP_CONTRACT_QUORUM,
+    SET_ALLOWED_COLLATERAL_ADDRESSES,
+    SET_ALLOWED_COLLATERAL_ADDRESSES_QUORUM,
     SET_ALLOWED_PAYABLE_CURRENCIES,
     SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
     SET_ALLOWED_VERIFIERS,
@@ -390,6 +392,9 @@ describe("Governance Deployment", function () {
         );
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_PAYABLE_CURRENCIES)).to.equal(
             SET_ALLOWED_PAYABLE_CURRENCIES_QUORUM,
+        );
+        expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, SET_ALLOWED_COLLATERAL_ADDRESSES)).to.equal(
+            SET_ALLOWED_COLLATERAL_ADDRESSES_QUORUM,
         );
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, GRANT_ROLE)).to.equal(OC_GRANT_ROLE_QUORUM);
         expect(await arcadeCoreVoting.quorums(ORIGINATION_CONTROLLER_ADDR, REVOKE_ROLE)).to.equal(
