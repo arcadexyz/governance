@@ -49,14 +49,8 @@
     "contractAddress": "0x54B7235dB74103395dD48A2c3dd993E3b7d39856",
     "constructorArgs": [
       "0x02C845ac4baC48A6CD1e1c88a84195B7d5805B82",
-      {
-        "type": "BigNumber",
-        "hex": "0x013da329b6336471800000"
-      },
-      {
-        "type": "BigNumber",
-        "hex": "0x043c33c1937564800000"
-      },
+      "1500000000000000000000000",
+      "20000000000000000000000",
       "0x0000000000000000000000000000000000000000",
       [
         "0xae40Af135C060E10b218C617c2d74A370B09C40F",
@@ -70,10 +64,7 @@
     "contractAddress": "0xFd2D1c8809A271e892046A23185423a52A149F62",
     "constructorArgs": [
       "0x54B7235dB74103395dD48A2c3dd993E3b7d39856",
-      {
-        "type": "BigNumber",
-        "hex": "0x7f0e10af47c1c7000000"
-      },
+      "600000000000000000000000",
       "0x47511465C397875deAb7cf8f008d7922D041fF01"
     ]
   },
