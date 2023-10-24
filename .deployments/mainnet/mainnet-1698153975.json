@@ -124,5 +124,16 @@
       "0x02C845ac4baC48A6CD1e1c88a84195B7d5805B82",
       "0xfdAc5cD4b03AacBB8B24ba54C6a95f244fAD13cC"
     ]
+  },
+  "BalanceQuery": {
+    "contractAddress": "0xc7730a89b50779E28b9F06f805874Bf28Ae419c9",
+    "constructorArgs": [
+      "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e",
+      [
+        "0xBe951D1B791C6878eec5d9129ADEB72A28D59E68",
+        "0xae40Af135C060E10b218C617c2d74A370B09C40F",
+        "0xDD7a92062d1939357FB17A66288cdE30b3711E53"
+      ]
+    ]
   }
 }
