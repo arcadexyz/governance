@@ -1,10 +1,82 @@
 [
     {
-        "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-        "value": 10000
+      "address": "0x0302b0bC07E01aDDD585cfcd20A88746d27eea30",
+      "value": 75000
     },
     {
-        "address": "0x0734d56DA60852A03e2Aafae8a36FFd8c12B32f1",
-        "value": 1000
+      "address": "0x097129d8D2dEE23268564bC68A0255E9961a414d",
+      "value": 200000
+    },
+    {
+      "address": "0x0dfbda105EDa2055DD9e58580bCB2e9f04e99849",
+      "value": 30000
+    },
+    {
+      "address": "0x12FF10f54dDF27374E0EAA3354cBf60CE70C5A26",
+      "value": 70000
+    },
+    {
+      "address": "0x1404279DAB1a829C0865B95c2D7D778b189a21cB",
+      "value": 147000
+    },
+    {
+      "address": "0x20091502AdA3cCC55FFDe01bB29376cA3CD9E0A0",
+      "value": 1747081
+    },
+    {
+      "address": "0x2E410D7892c9B0c8642A4469aaC13Ae6A471d035",
+      "value": 200000
+    },
+    {
+      "address": "0x305545a74B6Fa512994F0f13F4E7737D4F40507a",
+      "value": 30000
+    },
+    {
+      "address": "0x3e281920E026F03Da8420E5Dc297cD5d1eC51eD8",
+      "value": 85000
+    },
+    {
+      "address": "0x583BFcE209e0aAac546350C2663a58954a5DD750",
+      "value": 66150
+    },
+    {
+      "address": "0x6888d7Ef74b081060a0165E336A9d03b809098BE",
+      "value": 4463281
+    },
+    {
+      "address": "0x01Ed129EAD911074f7cC24A01743fA90A9752657",
+      "value": 1747081
+    },
+    {
+      "address": "0x7Bff9D8d27e942142b961f4C1578Bf838Fc6749e",
+      "value": 125000
+    },
+    {
+      "address": "0x05fFd0156445EF56cCb601E36E9f6F6490d07B06",
+      "value": 132300
+    },
+    {
+      "address": "0x9103942257b1aCcB6033f5464D56687A5c2623FB",
+      "value": 88215
+    },
+    {
+      "address": "0x4E6cA716057660EF5e5C72c694532Ec4676188A9",
+      "value": 1747081
+    },
+    {
+      "address": "0xaD27234910E9b246d7a4254CA750e9915eEf5f92",
+      "value": 30000
+    },
+    {
+      "address": "0xC191D5714B4f684C49B2313f066ae2cfAbFaFa33",
+      "value": 25000
+    },
+    {
+      "address": "0xcf88FA6eE6D111b04bE9b06ef6fAD6bD6691B88c",
+      "value": 75000
+    },
+    {
+      "address": "0xF70f7c0fCD743b2c03b823672A0B02B6a1e1bA20",
+      "value": 4463281
     }
-]
+  ]
