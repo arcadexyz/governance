@@ -61,7 +61,7 @@ export async function createData(
                 functionName: "approve",
                 description: "Approve ARCDVestingVault to transfer tokens",
                 calldata: resources.arcadeToken.interface.encodeFunctionData("approve", [
-                    resources.teamVestingVault.address,
+                    resources.launchPartnerVestingVault.address,
                     teamAmount,
                 ]),
             },
@@ -77,11 +77,11 @@ export async function createData(
     };
 
     contractInfo["ARCDVestingVault"] = {
-        [resources.teamVestingVault.address]: [
+        [resources.launchPartnerVestingVault.address]: [
             {
                 functionName: "deposit",
                 description: "Deposit tokens into ARCDVestingVault contract",
-                calldata: resources.teamVestingVault.interface.encodeFunctionData("deposit", [teamAmount]),
+                calldata: resources.launchPartnerVestingVault.interface.encodeFunctionData("deposit", [teamAmount]),
             },
         ],
     };
@@ -106,10 +106,10 @@ export async function createData(
     for (const grant of teamVestingData) {
         // calculate cliff amount
         const cliffAmount = grant.value / 2;
-        contractInfo["ARCDVestingVault"][resources.teamVestingVault.address].push({
+        contractInfo["ARCDVestingVault"][resources.launchPartnerVestingVault.address].push({
             functionName: "addGrantAndDelegate",
             description: `Grant tokens to ${grant.address}`,
-            calldata: resources.teamVestingVault.interface.encodeFunctionData("addGrantAndDelegate", [
+            calldata: resources.launchPartnerVestingVault.interface.encodeFunctionData("addGrantAndDelegate", [
                 grant.address,
                 ethers.utils.parseEther(grant.value.toString()),
                 ethers.utils.parseEther(cliffAmount.toString()),

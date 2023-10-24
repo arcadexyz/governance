@@ -22,7 +22,7 @@ export async function deployBalanceQuery(resources: DeployedResources) {
     const balanceQuery = <BalanceQuery>(
         await BalanceQueryFactory.deploy(BALANCE_QUERY_OWNER, [
             resources.nftBoostVault.address,
-            resources.teamVestingVault.address,
+            resources.launchPartnerVestingVault.address,
             resources.partnerVestingVault.address,
         ])
     );
@@ -42,7 +42,7 @@ export async function deployBalanceQuery(resources: DeployedResources) {
                 BALANCE_QUERY_OWNER,
                 [
                     resources.nftBoostVault.address,
-                    resources.teamVestingVault.address,
+                    resources.launchPartnerVestingVault.address,
                     resources.partnerVestingVault.address,
                 ],
             ],

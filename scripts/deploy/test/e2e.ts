@@ -313,6 +313,7 @@ describe("Governance Deployment", function () {
         expect(await arcadeTokenDistributor.vestingTeamSent()).to.equal(true);
         expect(await arcadeTokenDistributor.vestingPartnerSent()).to.equal(true);
         expect(await arcadeTokenDistributor.foundationTreasurySent()).to.equal(true);
+        expect(await arcadeTokenDistributor.devPartnerSent()).to.equal(true);
     });
 
     it("sets custom quorums in core voting and gsc core voting", async () => {
@@ -492,7 +493,7 @@ describe("Governance Deployment", function () {
         const arcadeAirdrop = <ArcadeAirdrop>(
             await ethers.getContractAt("ArcadeAirdrop", deployment["ArcadeAirdrop"].contractAddress)
         );
-        const teamVestingVault = <ARCDVestingVault>(
+        const launchPartnerVestingVault = <ARCDVestingVault>(
             await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
         );
         const partnerVestingVault = <ImmutableVestingVault>(
@@ -535,8 +536,8 @@ describe("Governance Deployment", function () {
         expect(await arcadeAirdrop.isAuthorized(deployer.address)).to.equal(false);
 
         // ARCDVestingVault manager and timelock
-        expect(await teamVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
-        expect(await teamVestingVault.timelock()).to.equal(timelock.address);
+        expect(await launchPartnerVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
+        expect(await launchPartnerVestingVault.timelock()).to.equal(timelock.address);
 
         // ImmutableVestingVault manager and timelock
         expect(await partnerVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
@@ -656,7 +657,6 @@ describe("Governance Deployment", function () {
             const contractData = deployment[contractName];
 
             if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "ArcadeCoreVoting";
-            if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
             if (contractName.includes("ArcadeTreasuryTimelock")) contractName = "Timelock";
 
             const artifact = await artifacts.readArtifact(contractName);

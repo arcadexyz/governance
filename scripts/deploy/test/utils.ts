@@ -26,7 +26,7 @@ export interface DeployedResources {
     arcadeTokenDistributor: ArcadeTokenDistributor;
     arcadeToken: ArcadeToken;
     timelock: Timelock;
-    teamVestingVault: ARCDVestingVault;
+    launchPartnerVestingVault: ARCDVestingVault;
     partnerVestingVault: ImmutableVestingVault;
     nftBoostVault: NFTBoostVault;
     arcadeCoreVoting: ArcadeCoreVoting;
@@ -50,7 +50,7 @@ export const jsonContracts: { [key: string]: string } = {
     ArcadeTokenDistributor: "arcadeTokenDistributor",
     ArcadeToken: "arcadeToken",
     Timelock: "timelock",
-    ARCDVestingVault: "teamVestingVault",
+    ARCDVestingVault: "launchPartnerVestingVault",
     ImmutableVestingVault: "partnerVestingVault",
     NFTBoostVault: "nftBoostVault",
     ArcadeCoreVoting: "arcadeCoreVoting",

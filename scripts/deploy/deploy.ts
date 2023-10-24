@@ -77,17 +77,17 @@ export async function main(): Promise<DeployedResources> {
     // ======= VAULTS =======
 
     // ARCDVestingVault
-    const TeamVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
-    const teamVestingVault = <ARCDVestingVault>(
-        await TeamVestingVaultFactory.deploy(
+    const LaunchPartnerVestingVaultFactory = await ethers.getContractFactory("ARCDVestingVault");
+    const launchPartnerVestingVault = <ARCDVestingVault>(
+        await LaunchPartnerVestingVaultFactory.deploy(
             arcadeToken.address,
             STALE_BLOCK_LAG,
             VESTING_MANAGER_MULTISIG,
             deployer.address,
         )
     );
-    await teamVestingVault.deployed();
-    console.log("ARCDVestingVault deployed to:", teamVestingVault.address);
+    await launchPartnerVestingVault.deployed();
+    console.log("ARCDVestingVault deployed to:", launchPartnerVestingVault.address);
     console.log(SUBSECTION_SEPARATOR);
 
     // ImmutableVestingVault
@@ -123,7 +123,7 @@ export async function main(): Promise<DeployedResources> {
             BASE_QUORUM,
             MIN_PROPOSAL_POWER_CORE_VOTING,
             ethers.constants.AddressZero,
-            [teamVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
+            [launchPartnerVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
             true,
         )
     );
@@ -219,7 +219,7 @@ export async function main(): Promise<DeployedResources> {
         arcadeTokenDistributor,
         arcadeToken,
         timelock,
-        teamVestingVault,
+        launchPartnerVestingVault,
         partnerVestingVault,
         nftBoostVault,
         arcadeCoreVoting,
@@ -236,7 +236,7 @@ export async function main(): Promise<DeployedResources> {
         arcadeTokenDistributor: [],
         arcadeToken: [deployer.address, arcadeTokenDistributor.address],
         timelock: [TIMELOCK_WAIT_TIME, deployer.address, deployer.address],
-        teamVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
+        launchPartnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
         partnerVestingVault: [arcadeToken.address, STALE_BLOCK_LAG, VESTING_MANAGER_MULTISIG, deployer.address],
         nftBoostVault: [arcadeToken.address, STALE_BLOCK_LAG, deployer.address, deployer.address],
         arcadeCoreVoting: [
@@ -244,7 +244,7 @@ export async function main(): Promise<DeployedResources> {
             BASE_QUORUM,
             MIN_PROPOSAL_POWER_CORE_VOTING,
             ethers.constants.AddressZero,
-            [teamVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
+            [launchPartnerVestingVault.address, partnerVestingVault.address, nftBoostVault.address],
             true,
         ],
         arcadeGSCVault: [arcadeCoreVoting.address, GSC_THRESHOLD, timelock.address],
