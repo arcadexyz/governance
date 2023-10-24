@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import fs from "fs";
 import { MerkleTree } from "merkletreejs";
 
@@ -42,9 +42,15 @@ export async function main() {
     const merkleTrie = await getMerkleTree(airdropData);
     const root = merkleTrie.getHexRoot();
 
+    // total all airdrop amounts
+    let totalAirdropAmount: number = 0;
+
     const proofs = await Promise.all(
         airdropData.map(async account => {
             const amount = ethers.utils.parseEther(account.value.toString());
+
+            // add to total airdrop amount
+            totalAirdropAmount = totalAirdropAmount+ (account.value);
 
             const leaf = ethers.utils.solidityKeccak256(["address", "uint256"], [account.address, amount]);
 
@@ -69,6 +75,8 @@ export async function main() {
 
     console.log("Merkle Root: ", root);
     console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs.json");
+    console.log("Total tokens in airdrop: ", totalAirdropAmount);
+    console.log("Total accounts in airdrop: ", proofs.length);
 }
 
 main()
