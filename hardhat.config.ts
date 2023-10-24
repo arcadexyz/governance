@@ -87,9 +87,7 @@ function createMainnetConfig(): NetworkUserConfig {
             mnemonic,
         },
         chainId: chainIds.mainnet,
-        url: "https://ethereum.rpc.thirdweb.com",
-        gasMultiplier: 1.3,
-        gasPrice: 45000000000,
+        url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
     };
 }
 

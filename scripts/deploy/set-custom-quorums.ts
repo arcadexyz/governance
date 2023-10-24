@@ -66,56 +66,55 @@ import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContrac
  */
 
 export async function setCustomQuorums(resources: DeployedResources) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { arcadeToken, arcadeCoreVoting, timelock, nftBoostVault, arcadeGSCCoreVoting, arcadeTreasury } = resources;
 
     console.log(SECTION_SEPARATOR);
 
     // ============= ArcadeCoreVoting =============
     console.log("Setting custom quorum thresholds in ArcadeCoreVoting...");
-    // // ArcadeToken
-    // const tx1 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, MINT_TOKENS, MINT_TOKENS_QUORUM);
-    // await tx1.wait();
-    // const tx2 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, SET_MINTER, SET_MINTER_QUORUM);
-    // await tx2.wait();
-    // // NFTBoostVault
-    // const tx3 = await arcadeCoreVoting.setCustomQuorum(
-    //     nftBoostVault.address,
-    //     SET_AIRDROP_CONTRACT,
-    //     SET_AIRDROP_CONTRACT_QUORUM,
-    // );
-    // await tx3.wait();
-    // // Timelock
-    // const tx4 = await arcadeCoreVoting.setCustomQuorum(timelock.address, REGISTER_CALL, REGISTER_CALL_QUORUM);
-    // await tx4.wait();
-    // const tx5 = await arcadeCoreVoting.setCustomQuorum(timelock.address, SET_WAIT_TIME, SET_WAIT_TIME_QUORUM);
-    // await tx5.wait();
+    // ArcadeToken
+    const tx1 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, MINT_TOKENS, MINT_TOKENS_QUORUM);
+    await tx1.wait();
+    const tx2 = await arcadeCoreVoting.setCustomQuorum(arcadeToken.address, SET_MINTER, SET_MINTER_QUORUM);
+    await tx2.wait();
+    // NFTBoostVault
+    const tx3 = await arcadeCoreVoting.setCustomQuorum(
+        nftBoostVault.address,
+        SET_AIRDROP_CONTRACT,
+        SET_AIRDROP_CONTRACT_QUORUM,
+    );
+    await tx3.wait();
+    // Timelock
+    const tx4 = await arcadeCoreVoting.setCustomQuorum(timelock.address, REGISTER_CALL, REGISTER_CALL_QUORUM);
+    await tx4.wait();
+    const tx5 = await arcadeCoreVoting.setCustomQuorum(timelock.address, SET_WAIT_TIME, SET_WAIT_TIME_QUORUM);
+    await tx5.wait();
     // ArcadeTreasury
     const tx6 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, MEDIUM_SPEND, MEDIUM_SPEND_QUORUM);
     await tx6.wait();
-    // const tx7 = await arcadeCoreVoting.setCustomQuorum(
-    //     arcadeTreasury.address,
-    //     APPROVE_MEDIUM_SPEND,
-    //     APPROVE_MEDIUM_SPEND_QUORUM,
-    // );
-    // await tx7.wait();
-    // const tx8 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, LARGE_SPEND, LARGE_SPEND_QUORUM);
-    // await tx8.wait();
-    // const tx9 = await arcadeCoreVoting.setCustomQuorum(
-    //     arcadeTreasury.address,
-    //     APPROVE_LARGE_SPEND,
-    //     APPROVE_LARGE_SPEND_QUORUM,
-    // );
-    // await tx9.wait();
-    // // V3 CallWhitelistAllExtensions
-    // const tx10 = await arcadeCoreVoting.setCustomQuorum(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, ADD, ADD_QUORUM);
-    // await tx10.wait();
-    // const tx11 = await arcadeCoreVoting.setCustomQuorum(
-    //     CALL_WHITELIST_ALL_EXTENSIONS_ADDR,
-    //     SET_APPROVAL,
-    //     SET_APPROVAL_QUORUM,
-    // );
-    // await tx11.wait();
+    const tx7 = await arcadeCoreVoting.setCustomQuorum(
+        arcadeTreasury.address,
+        APPROVE_MEDIUM_SPEND,
+        APPROVE_MEDIUM_SPEND_QUORUM,
+    );
+    await tx7.wait();
+    const tx8 = await arcadeCoreVoting.setCustomQuorum(arcadeTreasury.address, LARGE_SPEND, LARGE_SPEND_QUORUM);
+    await tx8.wait();
+    const tx9 = await arcadeCoreVoting.setCustomQuorum(
+        arcadeTreasury.address,
+        APPROVE_LARGE_SPEND,
+        APPROVE_LARGE_SPEND_QUORUM,
+    );
+    await tx9.wait();
+    // V3 CallWhitelistAllExtensions
+    const tx10 = await arcadeCoreVoting.setCustomQuorum(CALL_WHITELIST_ALL_EXTENSIONS_ADDR, ADD, ADD_QUORUM);
+    await tx10.wait();
+    const tx11 = await arcadeCoreVoting.setCustomQuorum(
+        CALL_WHITELIST_ALL_EXTENSIONS_ADDR,
+        SET_APPROVAL,
+        SET_APPROVAL_QUORUM,
+    );
+    await tx11.wait();
     const tx12 = await arcadeCoreVoting.setCustomQuorum(
         CALL_WHITELIST_ALL_EXTENSIONS_ADDR,
         SET_REGISTRY,

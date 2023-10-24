@@ -662,7 +662,6 @@ describe("Governance Deployment", function () {
             const artifact = await artifacts.readArtifact(contractName);
 
             const verifiedAbi = await getVerifiedABI(contractData.contractAddress);
-
             expect(artifact.abi).to.deep.equal(verifiedAbi);
         }
     });
