@@ -493,7 +493,7 @@ describe("Governance Deployment", function () {
         const arcadeAirdrop = <ArcadeAirdrop>(
             await ethers.getContractAt("ArcadeAirdrop", deployment["ArcadeAirdrop"].contractAddress)
         );
-        const teamVestingVault = <ARCDVestingVault>(
+        const launchPartnerVestingVault = <ARCDVestingVault>(
             await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
         );
         const partnerVestingVault = <ImmutableVestingVault>(
@@ -536,8 +536,8 @@ describe("Governance Deployment", function () {
         expect(await arcadeAirdrop.isAuthorized(deployer.address)).to.equal(false);
 
         // ARCDVestingVault manager and timelock
-        expect(await teamVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
-        expect(await teamVestingVault.timelock()).to.equal(timelock.address);
+        expect(await launchPartnerVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
+        expect(await launchPartnerVestingVault.timelock()).to.equal(timelock.address);
 
         // ImmutableVestingVault manager and timelock
         expect(await partnerVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);

@@ -57,8 +57,8 @@ export async function createInfo(
     };
 
     contractInfo["ARCDVestingVault"] = {
-        contractAddress: resources.teamVestingVault.address,
-        constructorArgs: constructorArgs.teamVestingVault,
+        contractAddress: resources.launchPartnerVestingVault.address,
+        constructorArgs: constructorArgs.launchPartnerVestingVault,
     };
 
     contractInfo["ImmutableVestingVault"] = {

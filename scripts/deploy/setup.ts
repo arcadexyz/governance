@@ -21,7 +21,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
         arcadeTokenDistributor,
         arcadeCoreVoting,
         timelock,
-        teamVestingVault,
+        launchPartnerVestingVault,
         partnerVestingVault,
         nftBoostVault,
         arcadeGSCCoreVoting,
@@ -52,7 +52,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
 
     // ================= ARCDVestingVault =================
     console.log("Transferring team vesting vault timelock role...");
-    const tx4 = await teamVestingVault.setTimelock(timelock.address);
+    const tx4 = await launchPartnerVestingVault.setTimelock(timelock.address);
     await tx4.wait();
 
     // ================= ImmutableVestingVault =================
