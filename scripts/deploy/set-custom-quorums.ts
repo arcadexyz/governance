@@ -1,5 +1,5 @@
 import {
-    // ADD,
+    ADD,
     ADD_QUORUM,
     APPROVE_LARGE_SPEND,
     APPROVE_LARGE_SPEND_QUORUM,
