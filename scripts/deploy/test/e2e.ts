@@ -637,7 +637,7 @@ describe("Governance Deployment", function () {
         expect(await badgeDescriptor.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
     });
 
-    it.only("verifies all contracts on the proper network", async () => {
+    it("verifies all contracts on the proper network", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 
@@ -657,12 +657,12 @@ describe("Governance Deployment", function () {
             const contractData = deployment[contractName];
 
             if (contractName.includes("ArcadeGSCCoreVoting")) contractName = "ArcadeCoreVoting";
-            if (contractName.includes("ArcadeGSCVault")) contractName = "GSCVault";
             if (contractName.includes("ArcadeTreasuryTimelock")) contractName = "Timelock";
 
             const artifact = await artifacts.readArtifact(contractName);
 
             const verifiedAbi = await getVerifiedABI(contractData.contractAddress);
+
             expect(artifact.abi).to.deep.equal(verifiedAbi);
         }
     });
