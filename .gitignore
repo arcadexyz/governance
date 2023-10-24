@@ -31,3 +31,5 @@ yarn-error.log*
 
 #deployments
 .deployments/hardhat
+
+.DS_Store
