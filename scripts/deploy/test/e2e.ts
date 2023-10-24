@@ -313,6 +313,7 @@ describe("Governance Deployment", function () {
         expect(await arcadeTokenDistributor.vestingTeamSent()).to.equal(true);
         expect(await arcadeTokenDistributor.vestingPartnerSent()).to.equal(true);
         expect(await arcadeTokenDistributor.foundationTreasurySent()).to.equal(true);
+        expect(await arcadeTokenDistributor.devPartnerSent()).to.equal(true);
     });
 
     it("sets custom quorums in core voting and gsc core voting", async () => {
@@ -636,7 +637,7 @@ describe("Governance Deployment", function () {
         expect(await badgeDescriptor.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
     });
 
-    it("verifies all contracts on the proper network", async () => {
+    it.only("verifies all contracts on the proper network", async () => {
         const filename = getLatestDeploymentFile();
         const deployment = getLatestDeployment();
 

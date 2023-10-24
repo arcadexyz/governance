@@ -35,8 +35,10 @@ export async function distributeTokens(resources: DeployedResources) {
     console.log("Distributing ARCD to vesting multisig for foundation vesting...");
     const tx6 = await arcadeTokenDistributor.toFoundationTreasury(VESTING_MANAGER_MULTISIG);
     await tx6.wait();
+    console.log("Distributing ARCD to dev partner multisig for dev partner vesting...");
+    const tx7 = await arcadeTokenDistributor.toDevPartner(VESTING_MANAGER_MULTISIG);
+    await tx7.wait();
     console.log(SUBSECTION_SEPARATOR);
-
     console.log(SECTION_SEPARATOR);
     console.log("✅ Distribution complete.");
     console.log(SECTION_SEPARATOR);
