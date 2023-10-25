@@ -97,10 +97,10 @@ export async function createData(
     };
 
     // global vesting parameters
-    const grantDurationInBlocks = VESTING_DURATION;
-    const currentBlock = await ethers.provider.getBlockNumber();
-    const grantCliffBlock = currentBlock + grantDurationInBlocks / 2;
-    const expirationBlock = currentBlock + grantDurationInBlocks;
+    // const grantDurationInBlocks = VESTING_DURATION;
+    // const currentBlock = await ethers.provider.getBlockNumber();
+    const grantCliffBlock: number = 21037077; // same as team cliff
+    const expirationBlock: number = 23652002; // same as team expiration
 
     // loop through all team grants and add to the contractInfo
     for (const grant of teamVestingData) {
