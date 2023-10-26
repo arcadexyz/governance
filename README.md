@@ -1,10 +1,13 @@
-[Arcade.xyz](https://docs.arcade.xyz/docs/faq) is a platform for autonomous borrowing, lending, and escrow of NFT collateral on EVM blockchains. This repository contains the contracts for a token-based governance system, which can be granted ownership and management authority over the core lending protocol. This governance system is built on the [Council Framework](https://docs.element.fi/governance-council/council-protocol-overview).
+[ArcadeDAO](https://docs.arcadedao.xyz/docs) manages the Arcade Lending Protocol for autonomous borrowing, lending, and escrow of NFT collateral on EVM blockchains. This repository contains the contracts for a token-based governance system, which can be granted ownership and management authority over the core lending protocol. This governance system is built on the [Council Framework](https://github.com/delvtech/council-kit/wiki).
 
 # Relevant Links
 
-- 🌐 [Website](https://www.arcade.xyz) - UI to the Arcade Lending Protocol, hosted by Arcade.xyz.
-- 📝 [Usage Documentation](https://docs.arcade.xyz) - User-facing documentation for the Arcade Lending Protocol.
+- 🌐 [Website](https://www.arcade.xyz) - Interface to the Arcade Lending Protocol.
+- 🌐 [Website](https://arcadedao.xyz/) - ArcadeDAO governance UI.
+- 📝 [Usage Documentation](https://docs.arcadedao.xyz/docs/protocol-overview) - User-facing documentation for the Arcade Lending Protocol.
 - 🐛 [Bug Bounty](https://immunefi.com/bounty/arcade/) - Security disclosure and bounty program for the Arcade Lending Protocol.
+- 💬 [Snapshot](https://snapshot.org/#/arcadedaoxyz.eth/) - ArcadeDAO off-chain voting.
+- 💬 [Discourse](https://arcadedao.discourse.group/) - Join the ArcadeDAO governance forum.
 - 💬 [Discord](https://discord.gg/arcadexyz) - Join the Arcade.xyz community! Great for further technical discussion and real-time support.
 - 🔔 [Twitter](https://twitter.com/arcade_xyz) - Follow us on Twitter for alerts, announcements, and alpha.
 
@@ -14,9 +17,10 @@
 
 The Arcade governance system's smart contracts can be grouped into the following categories:
 
-- __Voting Vaults__: Depositories for voting tokens in the governance system - see [Council's documentation](https://docs.element.fi/governance-council/council-protocol-overview/voting-vaults) for more general information. Each voting vault contract is a separate deployment, which handles its own deposits and vote-counting mechanisms for those deposits. As described below, the Arcade.xyz uses novel vote-counting mechanisms. Voting vaults also support vote delegation: a critical component of the Council governance system.
+- __Voting Vaults__: Depositories for voting tokens in the governance system - see [Council's documentation](https://github.com/delvtech/council-kit/wiki/Voting-Vaults-Overview) for more general information. Each voting vault contract is a separate deployment, which handles its own deposits and vote-counting mechanisms for those deposits. As described below, the Arcade.xyz uses novel vote-counting mechanisms. Voting vaults also support vote delegation: a critical component of the Council governance system.
 - __Core Voting Contracts__: These contracts can be used to submit and vote on proposed governance transactions. When governing a protocol, core voting contracts may either administrate the protocol directly, or may be intermediated by a Timelock contract.
-- __Token Distribution__: The ERC20 governance token, along with contracts required for initial deployment and distribution of the token (airdrop contract, initial distributor contract).
+- __Token__: The ERC20 governance token, along with contracts required for initial deployment and distribution of the token (airdrop contract, initial distributor contract).
+- __NFT__: The ERC1155 token contract along with its tokenURI descriptor contract. The ERC1155 token used in governance to give a multiplier to a user's voting power.
 
 ## Voting Vaults
 
@@ -46,7 +50,7 @@ in cases where obselete boosts may be influencing the outcome of a vote.
 ### ArcadeGSCVotingVault
 
 An instance of Council's `GSCVault`, a voting vault contract for a
-[Governance Steering Council](https://docs.element.fi/governance-council/council-protocol-overview/governance-steering-council).
+[Governance Steering Council](https://github.com/delvtech/council-kit/wiki/Governance-Steering-Council-(GSC)-Vault).
 See Council documentation for more information.
 
 ### ARCDVestingVault
