@@ -59,17 +59,17 @@ contract AirdropSeason1 is ArcadeAirdropBase {
     // ===================================== CLAIM FUNCTIONALITY =======================================
 
     /**
-     * @notice Claims an amount of tokens in the tree and delegates to governance. If the user has
-     *         not received an airdrop, they can claim it and delegate to themselves by passing in
-     *         their address as the delegate or address(0). If a user has claimed before, they must
-     *         use the same delegate address they are already delegating to.
+     * @notice Claims an amount of tokens in the tree and stakes the tokens in the ArcadeSingleSidedStaking
+     *         contract. The caller can choose who to delegate their voting power to by passing in the
+     *         address of their delegate. If a user already has an active stake in the ArcadeSingleSidedStaking
+     *         voting vault they must use the same delegate address they are already delegating to.
      *
      * @param delegate               The address the user will delegate to
      * @param totalGrant             The total amount of tokens the user was granted
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      * @param lock                   The locking period to apply to the staked tokens
      */
-    function claimAndDelegate(
+    function claimAndStake(
         address delegate,
         uint128 totalGrant,
         bytes32[] calldata merkleProof,

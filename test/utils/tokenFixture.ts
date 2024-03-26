@@ -4,10 +4,11 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
+import { ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
+import { AirdropSeason0 } from "../../src/types/contracts/token/airdrop/AirdropSeason1.sol";
 
 type Signer = SignerWithAddress;
 
@@ -21,11 +22,11 @@ export interface TestContextToken {
     communityRewardsPool: Wallet;
     vestingTeamMultisig: Wallet;
     vestingPartner: Wallet;
-    arcdAirdrop: ArcadeAirdrop;
+    arcdAirdrop: AirdropSeason0;
     arcdToken: IArcadeToken;
     arcdDst: ArcadeTokenDistributor;
     mockNFTBoostVault: NFTBoostVault;
-    recipients: Account;
+    recipients: Account[];
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
     expiration: number;
@@ -86,7 +87,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         // ====================================== AIRDROP SETUP =====================================
 
         // airdrop claims data
-        const recipients: Account = [
+        const recipients: Account[] = [
             {
                 address: deployer.address,
                 value: ethers.utils.parseEther("1000"),
@@ -111,8 +112,8 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         // =================================== AIRDROP DEPLOYMENT ==================================
 
         // deploy airdrop contract
-        const arcdAirdrop = <ArcadeAirdrop>(
-            await deploy("ArcadeAirdrop", signers[0], [root, arcdToken.address, expiration, mockNFTBoostVault.address])
+        const arcdAirdrop = <AirdropSeason0>(
+            await deploy("AirdropSeason0", signers[0], [arcdToken.address, root, expiration, mockNFTBoostVault.address])
         );
         await arcdAirdrop.deployed();
 

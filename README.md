@@ -112,7 +112,7 @@ a merkle root, and users can claim tokens by proving ownership in the tree.
 Unclaimed tokens after a set `expiration` time may be reclaimed by governance.
 
 This contract is intended to be extended by a specific airdrop contract
-for each airdrop. The child contract should implement the `claim` functionaility
+for each airdrop. The child contract should implement the `claim` functionality
 to allow users to claim their tokens. The inheriting contract shall dictate where
 claimed tokens are sent.
 

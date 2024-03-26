@@ -47,19 +47,19 @@ describe("ArcadeToken", function () {
             expect(await arcdToken.minter()).to.equal(deployer.address);
         });
 
-        it("Verify the deployer is the owner of ArcadeAirdrop", async () => {
+        it("Verify the deployer is the owner of AirdropSeason0", async () => {
             const { arcdToken, deployer, merkleTrie, expiration, other } = ctxToken;
 
             const governanceAddress = other.address;
 
-            const arcadeAirdropContract = await deploy("ArcadeAirdrop", deployer, [
-                merkleTrie.getHexRoot(),
+            const arcadeAirdropContract = await deploy("AirdropSeason0", deployer, [
                 arcdToken.address,
+                merkleTrie.getHexRoot(),
                 expiration,
                 deployer.address,
             ]);
 
-            // query owner of arcadeAirdrop
+            // query owner of airdropSeason0
             const arcadeAirdropOwner = await arcadeAirdropContract.owner();
 
             // confirm that the returned owner is the address assigned in the constructor
@@ -68,50 +68,50 @@ describe("ArcadeToken", function () {
             // deployer transfers ownership to governance address
             await arcadeAirdropContract.setOwner(governanceAddress);
 
-            // query owner of arcadeAirdrop
+            // query owner of airdropSeason0
             const arcadeAirdropOwnerAfterTransfer = await arcadeAirdropContract.owner();
 
             // confirm that the returned owner is governance address
             expect(arcadeAirdropOwnerAfterTransfer).to.equal(governanceAddress);
         });
 
-        it("Invalid ArcadeAirdrop deployment parameters", async () => {
+        it("Invalid AirdropSeason0 deployment parameters", async () => {
             const { arcdToken, deployer, merkleTrie, expiration } = ctxToken;
 
             // get current block number
             const currentBlock = 10;
 
             await expect(
-                deploy("ArcadeAirdrop", deployer, [
-                    merkleTrie.getHexRoot(),
+                deploy("AirdropSeason0", deployer, [
                     arcdToken.address,
+                    merkleTrie.getHexRoot(),
                     expiration,
                     ethers.constants.AddressZero,
                 ]),
             ).to.be.revertedWith(`AA_ZeroAddress("votingVault")`);
 
             await expect(
-                deploy("ArcadeAirdrop", deployer, [
-                    merkleTrie.getHexRoot(),
+                deploy("AirdropSeason0", deployer, [
                     ethers.constants.AddressZero,
+                    merkleTrie.getHexRoot(),
                     expiration,
                     deployer.address,
                 ]),
             ).to.be.revertedWith(`AA_ZeroAddress("token")`);
 
             await expect(
-                deploy("ArcadeAirdrop", deployer, [
-                    merkleTrie.getHexRoot(),
+                deploy("AirdropSeason0", deployer, [
                     arcdToken.address,
+                    merkleTrie.getHexRoot(),
                     currentBlock,
                     deployer.address,
                 ]),
             ).to.be.revertedWith(`AA_ClaimingExpired()`);
 
             await expect(
-                deploy("ArcadeAirdrop", deployer, [
-                    merkleTrie.getHexRoot(),
+                deploy("AirdropSeason0", deployer, [
                     arcdToken.address,
+                    merkleTrie.getHexRoot(),
                     currentBlock - 5,
                     deployer.address,
                 ]),
