@@ -15,12 +15,7 @@ export async function main() {
     console.log(`Airdrop deployer: ${deployer.address}`);
 
     const airdropFactory = await ethers.getContractFactory(`AirdropSeason${airdropSeason}`);
-    const airdrop = await airdropFactory.deploy(
-        ARCD,
-        AIRDROP_MERKLE_ROOT,
-        AIRDROP_EXPIRATION,
-        VOTING_VAULT,
-    );
+    const airdrop = await airdropFactory.deploy(ARCD, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION, VOTING_VAULT);
     await airdrop.deployed();
     console.log(`AirdropSeason${airdropSeason} deployed to: ${airdrop.address}`);
 

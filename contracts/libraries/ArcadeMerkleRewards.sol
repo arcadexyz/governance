@@ -7,11 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interfaces/INFTBoostVault.sol";
 
-import {
-    AA_ClaimingExpired,
-    AA_AlreadyClaimed,
-    AA_NonParticipant
-} from "../errors/Airdrop.sol";
+import { AA_ClaimingExpired, AA_AlreadyClaimed, AA_NonParticipant } from "../errors/Airdrop.sol";
 
 /**
  * @title Arcade Merkle Rewards

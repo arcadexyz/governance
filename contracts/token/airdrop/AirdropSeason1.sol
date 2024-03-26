@@ -9,11 +9,7 @@ import "./ArcadeAirdropBase.sol";
 
 import "../../external/dao-contracts/interfaces/IAirdropSingleSidedStaking.sol";
 
-import {
-    AA_ZeroAddress,
-    AA_NotInitialized,
-    AA_ClaimingExpired
-} from "../../errors/Airdrop.sol";
+import { AA_ZeroAddress, AA_NotInitialized, AA_ClaimingExpired } from "../../errors/Airdrop.sol";
 
 /**
  * @title Airdrop Season 1

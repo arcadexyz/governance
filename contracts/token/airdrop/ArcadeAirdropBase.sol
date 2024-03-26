@@ -38,11 +38,7 @@ abstract contract ArcadeAirdropBase is ArcadeMerkleRewards, Authorizable {
      * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _expiration           The expiration of the airdrop
      */
-    constructor(
-        IERC20 _token,
-        bytes32 _merkleRoot,
-        uint256 _expiration
-    ) ArcadeMerkleRewards(_merkleRoot, _expiration) {
+    constructor(IERC20 _token, bytes32 _merkleRoot, uint256 _expiration) ArcadeMerkleRewards(_merkleRoot, _expiration) {
         if (address(_token) == address(0)) revert AA_ZeroAddress("token");
 
         token = _token;

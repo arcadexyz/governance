@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import { ethers, waffle } from "hardhat";
 
+import { AirdropSeason1, MockSingleSidedStaking } from "../../src/types";
 import { deploy } from "../utils/deploy";
 import { Account, getMerkleTree } from "../utils/external/council/helpers/merkle";
 import { TestContextToken, tokenFixture } from "../utils/tokenFixture";
-import { AirdropSeason1, MockSingleSidedStaking } from "../../src/types";
 
 const { loadFixture } = waffle;
 /**
@@ -510,13 +510,22 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
                 const proofOther2 = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[2].address, recipients[2].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[2].address, recipients[2].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -559,7 +568,8 @@ describe("ArcadeToken", function () {
             });
 
             it("user claims airdrop then call to addNftAndDelegate reverts", async function () {
-                const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
+                const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } =
+                    ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                     .to.emit(arcdDst, "Distribute")
@@ -568,7 +578,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -620,7 +633,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -668,7 +684,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer
                 const proofDeployer2 = merkleTrie2.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients2[0].address, recipients2[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients2[0].address, recipients2[0].value],
+                    ),
                 );
 
                 await expect(
@@ -683,7 +702,8 @@ describe("ArcadeToken", function () {
             });
 
             it("user claims airdrop and delegates to self using address(0)", async function () {
-                const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
+                const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } =
+                    ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                     .to.emit(arcdDst, "Distribute")
@@ -692,7 +712,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -717,7 +740,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofNotUser = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 // try to claim with invalid proof
                 await expect(
@@ -730,7 +756,8 @@ describe("ArcadeToken", function () {
             });
 
             it("user tries to claim same airdrop twice", async function () {
-                const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } = ctxToken;
+                const { arcdToken, arcdDst, arcdAirdrop, deployer, recipients, merkleTrie, mockNFTBoostVault } =
+                    ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
                     .to.emit(arcdDst, "Distribute")
@@ -739,7 +766,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -781,7 +811,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claims
@@ -809,7 +842,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 // try to claim with invalid proof
                 await expect(
@@ -842,10 +878,16 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
 
                 // claims
@@ -916,10 +958,16 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
 
                 // claims
@@ -1022,9 +1070,9 @@ describe("ArcadeToken", function () {
                 const expirationTime = await blockchainTime.secondsFromNow(0);
 
                 // owner tries to set invalid expiration time
-                await expect(arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot, expirationTime)).to.be.revertedWith(
-                    "AA_ClaimingExpired()",
-                );
+                await expect(
+                    arcdAirdrop.connect(deployer).setMerkleRoot(newMerkleRoot, expirationTime),
+                ).to.be.revertedWith("AA_ClaimingExpired()");
             });
 
             it("non-owner tries to set a new merkle root", async function () {
@@ -1035,9 +1083,9 @@ describe("ArcadeToken", function () {
 
                 // non-owner tries to change merkle root
                 const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
-                await expect(arcdAirdrop.connect(other).setMerkleRoot(newMerkleRoot, expirationTime)).to.be.revertedWith(
-                    "Sender not owner",
-                );
+                await expect(
+                    arcdAirdrop.connect(other).setMerkleRoot(newMerkleRoot, expirationTime),
+                ).to.be.revertedWith("Sender not owner");
             });
         });
 
@@ -1134,15 +1182,7 @@ describe("ArcadeToken", function () {
             });
 
             it("all recipients claim airdrop to vault and delegate to themselves", async function () {
-                const {
-                    arcdToken,
-                    arcdDst,
-                    deployer,
-                    other,
-                    other2,
-                    recipients,
-                    merkleTrie,
-                } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, other2, recipients, merkleTrie } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1151,13 +1191,22 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
                 const proofOther2 = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[2].address, recipients[2].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[2].address, recipients[2].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -1166,7 +1215,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate voting power to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1177,7 +1226,7 @@ describe("ArcadeToken", function () {
                         recipients[1].address, // address to delegate voting power to
                         recipients[1].value, // total claimable amount
                         proofOther, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1187,7 +1236,7 @@ describe("ArcadeToken", function () {
                         recipients[2].address, // address to delegate voting power to
                         recipients[2].value, // total claimable amount
                         proofOther2, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1203,15 +1252,7 @@ describe("ArcadeToken", function () {
             });
 
             it("all recipients claim airdrop to themselves", async function () {
-                const {
-                    arcdToken,
-                    arcdDst,
-                    deployer,
-                    other,
-                    other2,
-                    recipients,
-                    merkleTrie,
-                } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, other2, recipients, merkleTrie } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1220,13 +1261,22 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
                 const proofOther2 = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[2].address, recipients[2].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[2].address, recipients[2].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -1266,15 +1316,7 @@ describe("ArcadeToken", function () {
             });
 
             it("user claims airdrop twice", async function () {
-                const {
-                    arcdToken,
-                    arcdDst,
-                    deployer,
-                    other,
-                    recipients,
-                    merkleTrie,
-                    blockchainTime,
-                } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, recipients, merkleTrie, blockchainTime } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1283,7 +1325,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -1292,7 +1337,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate voting power to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        2
+                        2,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1332,7 +1377,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer
                 const proofDeployer2 = merkleTrie2.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients2[0].address, recipients2[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients2[0].address, recipients2[0].value],
+                    ),
                 );
 
                 await expect(
@@ -1340,7 +1388,7 @@ describe("ArcadeToken", function () {
                         recipients2[0].address, // address to delegate voting power to
                         recipients2[0].value, // total claimable amount
                         proofDeployer2, // merkle proof
-                        2
+                        2,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1357,7 +1405,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofNotUser = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 // try to claim with invalid proof
                 await expect(
@@ -1373,7 +1424,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate voting power to
                         recipients[0].value, // total claimable amount
                         proofNotUser, // invalid merkle proof
-                        2
+                        2,
                     ),
                 ).to.be.revertedWith("AA_NonParticipant()");
             });
@@ -1388,7 +1439,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claim and delegate to self
@@ -1397,7 +1451,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1409,7 +1463,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        2
+                        2,
                     ),
                 ).to.be.revertedWith("AA_AlreadyClaimed()");
 
@@ -1440,7 +1494,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
 
                 // claims
@@ -1449,7 +1506,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        1
+                        1,
                     ),
                 ).to.be.revertedWith("AA_ClaimingExpired()");
 
@@ -1477,7 +1534,10 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 // try to claim with invalid proof
                 await expect(
@@ -1485,7 +1545,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // invalid merkle proof
-                        1
+                        1,
                     ),
                 ).to.be.revertedWith("AA_NotInitialized()");
 
@@ -1499,15 +1559,7 @@ describe("ArcadeToken", function () {
             });
 
             it("owner reclaims all unclaimed tokens", async function () {
-                const {
-                    arcdToken,
-                    arcdDst,
-                    deployer,
-                    other,
-                    recipients,
-                    merkleTrie,
-                    blockchainTime,
-                } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, recipients, merkleTrie, blockchainTime } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1517,10 +1569,16 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
 
                 // claims
@@ -1529,7 +1587,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1540,7 +1598,7 @@ describe("ArcadeToken", function () {
                         recipients[1].address, // address to delegate to
                         recipients[1].value, // total claimable amount
                         proofOther, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1573,15 +1631,7 @@ describe("ArcadeToken", function () {
             });
 
             it("owner tries to reclaim token to zero address", async function () {
-                const {
-                    arcdToken,
-                    arcdDst,
-                    deployer,
-                    other,
-                    recipients,
-                    merkleTrie,
-                    blockchainTime,
-                } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, recipients, merkleTrie, blockchainTime } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1591,10 +1641,16 @@ describe("ArcadeToken", function () {
 
                 // create proof for deployer and other
                 const proofDeployer = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[0].address, recipients[0].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[0].address, recipients[0].value],
+                    ),
                 );
                 const proofOther = merkleTrie.getHexProof(
-                    ethers.utils.solidityKeccak256(["address", "uint256"], [recipients[1].address, recipients[1].value]),
+                    ethers.utils.solidityKeccak256(
+                        ["address", "uint256"],
+                        [recipients[1].address, recipients[1].value],
+                    ),
                 );
 
                 // claims
@@ -1603,7 +1659,7 @@ describe("ArcadeToken", function () {
                         recipients[0].address, // address to delegate to
                         recipients[0].value, // total claimable amount
                         proofDeployer, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1614,7 +1670,7 @@ describe("ArcadeToken", function () {
                         recipients[1].address, // address to delegate to
                         recipients[1].value, // total claimable amount
                         proofOther, // merkle proof
-                        1
+                        1,
                     ),
                 )
                     .to.emit(arcdToken, "Transfer")
@@ -1650,7 +1706,9 @@ describe("ArcadeToken", function () {
                 await blockchainTime.increaseTime(3600);
 
                 // non-owner tries to reclaim tokens
-                await expect(airdropSeason1.connect(other).reclaim(other.address)).to.be.revertedWith("Sender not owner");
+                await expect(airdropSeason1.connect(other).reclaim(other.address)).to.be.revertedWith(
+                    "Sender not owner",
+                );
             });
 
             it("owner tries to reclaim tokens before claiming period is over", async function () {
@@ -1699,9 +1757,9 @@ describe("ArcadeToken", function () {
                 const expirationTime = await blockchainTime.secondsFromNow(0);
 
                 // owner tries to set invalid expiration time
-                await expect(airdropSeason1.connect(deployer).setMerkleRoot(newMerkleRoot, expirationTime)).to.be.revertedWith(
-                    "AA_ClaimingExpired()",
-                );
+                await expect(
+                    airdropSeason1.connect(deployer).setMerkleRoot(newMerkleRoot, expirationTime),
+                ).to.be.revertedWith("AA_ClaimingExpired()");
             });
 
             it("non-owner tries to set a new merkle root", async function () {
@@ -1712,9 +1770,9 @@ describe("ArcadeToken", function () {
 
                 // non-owner tries to change merkle root
                 const newMerkleRoot = ethers.utils.solidityKeccak256(["bytes32"], [ethers.utils.randomBytes(32)]);
-                await expect(airdropSeason1.connect(other).setMerkleRoot(newMerkleRoot, expirationTime)).to.be.revertedWith(
-                    "Sender not owner",
-                );
+                await expect(
+                    airdropSeason1.connect(other).setMerkleRoot(newMerkleRoot, expirationTime),
+                ).to.be.revertedWith("Sender not owner");
             });
         });
     });

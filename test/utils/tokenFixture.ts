@@ -4,7 +4,7 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { ArcadeTokenDistributor, IArcadeToken, NFTBoostVault, AirdropSeason0 } from "../../src/types";
+import { AirdropSeason0, ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
