@@ -4,11 +4,11 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../external/council/libraries/Authorizable.sol";
+import "../../external/council/libraries/Authorizable.sol";
 
-import "../libraries/ArcadeMerkleRewards.sol";
+import "../../libraries/ArcadeMerkleRewards.sol";
 
-import { AA_ClaimingNotExpired, AA_ClaimingExpired, AA_ZeroAddress } from "../errors/Airdrop.sol";
+import { AA_ClaimingNotExpired, AA_ClaimingExpired, AA_ZeroAddress } from "../../errors/Airdrop.sol";
 
 /**
  * @title Arcade Airdrop
@@ -18,8 +18,11 @@ import { AA_ClaimingNotExpired, AA_ClaimingExpired, AA_ZeroAddress } from "../er
  * The contract is ownable, where the owner can reclaim any remaining tokens once the airdrop is
  * over and also change the merkle root and its expiration at their discretion.
  */
-contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
+abstract contract ArcadeAirdropBase is ArcadeMerkleRewards, Authorizable {
     using SafeERC20 for IERC20;
+    // ============================================ STATE ==============================================
+    /// @notice the token to airdrop
+    IERC20 public immutable token;
 
     // ============================================= EVENTS =============================================
 
@@ -32,17 +35,19 @@ contract ArcadeAirdrop is ArcadeMerkleRewards, Authorizable {
      *         an expiration time for claims, and the voting vault that tokens will be
      *         airdropped into.
      *
-     * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _token                The token to airdrop
+     * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _expiration           The expiration of the airdrop
-     * @param _votingVault          The voting vault to deposit tokens to
      */
     constructor(
-        bytes32 _merkleRoot,
         IERC20 _token,
-        uint256 _expiration,
-        INFTBoostVault _votingVault
-    ) ArcadeMerkleRewards(_merkleRoot, _token, _expiration, _votingVault) {}
+        bytes32 _merkleRoot,
+        uint256 _expiration
+    ) ArcadeMerkleRewards(_merkleRoot, _expiration) {
+        if (address(_token) == address(0)) revert AA_ZeroAddress("token");
+
+        token = _token;
+    }
 
     // ===================================== ADMIN FUNCTIONALITY ========================================
 
