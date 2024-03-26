@@ -17,6 +17,10 @@ import {
 /**
  * @title Airdrop Season 1
  * @author Non-Fungible Technologies, Inc.
+ *
+ * This contract is used to distribute tokens to users who have been airdropped
+ * tokens. The tokens are distributed to the users directly, or users can choose
+ * to have thier allocation staked in the ArcadeSingleSidedStaking contract.
  */
 contract AirdropSeason1 is ArcadeAirdropBase {
     using SafeERC20 for IERC20;
@@ -25,7 +29,7 @@ contract AirdropSeason1 is ArcadeAirdropBase {
     /// @notice the voting vault vault which receives airdropped tokens
     IAirdropSingleSidedStaking public immutable votingVault;
 
-    // ============================================= EVENTS ============================================
+    // ============================================ EVENTS =============================================
     event ClaimAndStaked(
         address indexed user,
         uint128 totalGrant,
@@ -83,7 +87,7 @@ contract AirdropSeason1 is ArcadeAirdropBase {
 
         // approve the voting vault to transfer tokens
         token.approve(address(votingVault), uint256(totalGrant));
-        // deposit tokens in voting vault for this msg.sender and delegate
+        // stake tokens in voting vault for this msg.sender and delegate
         votingVault.airdropReceive(msg.sender, totalGrant, delegate, lock);
 
         emit ClaimAndStaked(msg.sender, totalGrant, delegate, lock);
@@ -95,13 +99,14 @@ contract AirdropSeason1 is ArcadeAirdropBase {
      * @param totalGrant             The total amount of tokens the user was granted
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
-    function claim( uint128 totalGrant, bytes32[] calldata merkleProof) external {
+    function claim(uint128 totalGrant, bytes32[] calldata merkleProof) external {
         if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();
         // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
 
+        // transfer tokens to the caller
         token.safeTransfer(msg.sender, totalGrant);
 
         emit Claimed(msg.sender, totalGrant);

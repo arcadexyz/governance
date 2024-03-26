@@ -32,8 +32,7 @@ abstract contract ArcadeAirdropBase is ArcadeMerkleRewards, Authorizable {
 
     /**
      * @notice Initiate the contract with a merkle tree root, a token for distribution,
-     *         an expiration time for claims, and the voting vault that tokens will be
-     *         airdropped into.
+     *         an expiration time for claims.
      *
      * @param _token                The token to airdrop
      * @param _merkleRoot           The merkle root with deposits encoded into it as hash [address, amount]

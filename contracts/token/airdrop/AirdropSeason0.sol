@@ -15,6 +15,9 @@ import {
 /**
  * @title Airdrop Season 0
  * @author Non-Fungible Technologies, Inc.
+ *
+ * This contract is used to distribute tokens to users who have been airdropped
+ * tokens. All airdrop claims are deposited directly to the NFTBoostVault contract.
  */
 contract AirdropSeason0 is ArcadeAirdropBase {
     // ============================================ STATE ==============================================

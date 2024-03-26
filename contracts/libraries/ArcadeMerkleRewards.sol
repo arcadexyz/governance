@@ -10,9 +10,7 @@ import "../interfaces/INFTBoostVault.sol";
 import {
     AA_ClaimingExpired,
     AA_AlreadyClaimed,
-    AA_NonParticipant,
-    AA_ZeroAddress,
-    AA_NotInitialized
+    AA_NonParticipant
 } from "../errors/Airdrop.sol";
 
 /**
@@ -22,10 +20,6 @@ import {
  * This contract validates merkle proofs and allows users to claim their airdrop. It is designed to
  * be inherited by other contracts. This contract does not have a way to transfer tokens out of it
  * or change the merkle root.
- *
- * As users claim their tokens, this contract will deposit them into a voting vault for use in
- * Arcade Governance. When claiming, the user can delegate voting power to themselves or another
- * account.
  */
 abstract contract ArcadeMerkleRewards {
     // ============================================ STATE ==============================================
@@ -41,9 +35,7 @@ abstract contract ArcadeMerkleRewards {
     // ========================================== CONSTRUCTOR ===========================================
 
     /**
-     * @notice Initiate the contract with a merkle tree root, a token for distribution,
-     *         an expiration time for claims, and the voting vault that tokens will be
-     *         airdropped into.
+     * @notice Initiate the contract with a merkle tree root and an expiration time for claims.
      *
      * @param _rewardsRoot           The merkle root with deposits encoded into it as hash [address, amount]
      * @param _expiration            The expiration of the airdrop
