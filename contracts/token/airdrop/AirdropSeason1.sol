@@ -3,6 +3,7 @@
 pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "./ArcadeAirdropBase.sol";
 
@@ -22,7 +23,7 @@ import {
  * tokens. The tokens are distributed to the users directly, or users can choose
  * to have thier allocation staked in the ArcadeSingleSidedStaking contract.
  */
-contract AirdropSeason1 is ArcadeAirdropBase {
+contract AirdropSeason1 is ArcadeAirdropBase, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ============================================ STATE ==============================================
@@ -99,7 +100,7 @@ contract AirdropSeason1 is ArcadeAirdropBase {
      * @param totalGrant             The total amount of tokens the user was granted
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
-    function claim(uint128 totalGrant, bytes32[] calldata merkleProof) external {
+    function claim(uint128 totalGrant, bytes32[] calldata merkleProof) external nonReentrant {
         if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
         // must be before the expiration time
         if (block.timestamp > expiration) revert AA_ClaimingExpired();

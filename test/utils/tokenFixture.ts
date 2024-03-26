@@ -4,11 +4,10 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
+import { ArcadeTokenDistributor, IArcadeToken, NFTBoostVault, AirdropSeason0 } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
-import { AirdropSeason0 } from "../../src/types/contracts/token/airdrop/AirdropSeason1.sol";
 
 type Signer = SignerWithAddress;
 
@@ -30,6 +29,7 @@ export interface TestContextToken {
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
     expiration: number;
+    root: string;
     staleBlockNum: number;
     bootstrapVestingManager: () => Promise<void>;
 }
@@ -154,6 +154,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             blockchainTime,
             merkleTrie,
             expiration,
+            root,
             staleBlockNum,
             bootstrapVestingManager,
         };
