@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.18;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import "./ArcadeAirdropBase.sol";
 
 import "../../external/dao-contracts/interfaces/IAirdropSingleSidedStaking.sol";
@@ -17,9 +19,20 @@ import {
  * @author Non-Fungible Technologies, Inc.
  */
 contract AirdropSeason1 is ArcadeAirdropBase {
+    using SafeERC20 for IERC20;
+
     // ============================================ STATE ==============================================
     /// @notice the voting vault vault which receives airdropped tokens
     IAirdropSingleSidedStaking public immutable votingVault;
+
+    // ============================================= EVENTS ============================================
+    event ClaimAndStaked(
+        address indexed user,
+        uint128 totalGrant,
+        address indexed delegate,
+        IAirdropSingleSidedStaking.Lock lock
+    );
+    event Claimed(address indexed user, uint128 totalGrant);
 
     // ========================================== CONSTRUCTOR ==========================================
     /**
@@ -72,5 +85,25 @@ contract AirdropSeason1 is ArcadeAirdropBase {
         token.approve(address(votingVault), uint256(totalGrant));
         // deposit tokens in voting vault for this msg.sender and delegate
         votingVault.airdropReceive(msg.sender, totalGrant, delegate, lock);
+
+        emit ClaimAndStaked(msg.sender, totalGrant, delegate, lock);
+    }
+
+    /**
+     * @notice Claims an amount of tokens in the tree and send them to the caller.
+     *
+     * @param totalGrant             The total amount of tokens the user was granted
+     * @param merkleProof            The merkle proof showing the user is in the merkle tree
+     */
+    function claim( uint128 totalGrant, bytes32[] calldata merkleProof) external {
+        if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
+        // must be before the expiration time
+        if (block.timestamp > expiration) revert AA_ClaimingExpired();
+        // validate the withdraw
+        _validateWithdraw(totalGrant, merkleProof);
+
+        token.safeTransfer(msg.sender, totalGrant);
+
+        emit Claimed(msg.sender, totalGrant);
     }
 }

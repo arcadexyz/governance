@@ -103,13 +103,18 @@ A contract which receives the initial circulating supply of token, and will
 send tokens to destinations representing distribution according to tokenomics.
 This may include airdrop contracts or vesting vaults.
 
-### ArcadeAirdrop
+### ArcadeAirdropBase
 
 A contract which can receive tokens from the distributor, and release them
 for a second distribution according to a merkle tree. Governance may set
 a merkle root, and users can claim tokens by proving ownership in the tree.
 
 Unclaimed tokens after a set `expiration` time may be reclaimed by governance.
+
+This contract is intended to be extended by a specific airdrop contract
+for each airdrop. The child contract should implement the `claim` functionaility
+to allow users to claim their tokens. The inheriting contract shall dictate where
+claimed tokens are sent.
 
 ### ArcadeTreasury
 
@@ -139,7 +144,7 @@ must be authorized by full community votes.
 * The `ArcadeToken` contract sets a `minter` role, which can mint new tokens
     under certain constraints (see `ArcadeToken` above). The `minter`
     can also transfer the role to another address.
-* The `ArcadeAirdrop` contract as an `owner` that can update the merkle root,
+* The `ArcadeAirdropBase` contract as an `owner` that can update the merkle root,
     as well as reclaim tokens after airdrop expiry. This should be operationally
     managed by a voting contract.
 * The `ArcadeTokenDistributor` contract is owned by an address which can administer
