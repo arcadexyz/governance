@@ -26,7 +26,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
         nftBoostVault,
         arcadeGSCCoreVoting,
         arcadeTreasury,
-        arcadeAirdrop,
+        airdropSeason0,
         badgeDescriptor,
         reputationBadge,
     } = resources;
@@ -45,9 +45,9 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
     const tx2 = await arcadeTokenDistributor.transferOwnership(LAUNCH_PARTNER_MULTISIG);
     await tx2.wait();
 
-    // ================= ArcadeAirdrop =================
+    // ================= AirdropSeason0 =================
     console.log("Transferring airdrop contract ownership to multisig...");
-    const tx3 = await arcadeAirdrop.setOwner(LAUNCH_PARTNER_MULTISIG);
+    const tx3 = await airdropSeason0.setOwner(LAUNCH_PARTNER_MULTISIG);
     await tx3.wait();
 
     // ================= ARCDVestingVault =================
@@ -62,7 +62,7 @@ export async function setupRoles(resources: DeployedResources): Promise<void> {
 
     // ================= NFTBoostVault =================
     console.log("Setting airdrop contract in nftBoostVault...");
-    const tx6 = await nftBoostVault.setAirdropContract(arcadeAirdrop.address);
+    const tx6 = await nftBoostVault.setAirdropContract(airdropSeason0.address);
     await tx6.wait();
     console.log("Transferring nftBoostVault manager role to multisig...");
     const tx7 = await nftBoostVault.setManager(LAUNCH_PARTNER_MULTISIG);

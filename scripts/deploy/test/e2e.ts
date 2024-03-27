@@ -5,7 +5,7 @@ import { artifacts, ethers } from "hardhat";
 
 import {
     ARCDVestingVault,
-    ArcadeAirdrop,
+    AirdropSeason0,
     ArcadeCoreVoting,
     ArcadeGSCCoreVoting,
     ArcadeGSCVault,
@@ -258,16 +258,16 @@ describe("Governance Deployment", function () {
         expect(deployment["ArcadeTreasury"].constructorArgs.length).to.eq(1);
         expect(deployment["ArcadeTreasury"].constructorArgs[0]).to.eq(deployer.address);
 
-        expect(deployment["ArcadeAirdrop"]).to.exist;
-        expect(deployment["ArcadeAirdrop"].contractAddress).to.exist;
-        expect(deployment["ArcadeAirdrop"].constructorArgs.length).to.eq(4);
-        expect(deployment["ArcadeAirdrop"].constructorArgs[0]).to.eq(AIRDROP_MERKLE_ROOT);
-        expect(deployment["ArcadeAirdrop"].constructorArgs[1]).to.eq(deployment["ArcadeToken"].contractAddress);
-        expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.be.lt(
+        expect(deployment["AirdropSeason0"]).to.exist;
+        expect(deployment["AirdropSeason0"].contractAddress).to.exist;
+        expect(deployment["AirdropSeason0"].constructorArgs.length).to.eq(4);
+        expect(deployment["AirdropSeason0"].constructorArgs[0]).to.eq(deployment["ArcadeToken"].contractAddress);
+        expect(deployment["AirdropSeason0"].constructorArgs[1]).to.eq(AIRDROP_MERKLE_ROOT);
+        expect(deployment["AirdropSeason0"].constructorArgs[2]).to.be.lt(
             Math.floor(Date.now() / 1000) + AIRDROP_EXPIRATION,
         ); // cannot use global AIRDROP_EXPIRATION because time has passed
-        expect(deployment["ArcadeAirdrop"].constructorArgs[2]).to.not.eq(0);
-        expect(deployment["ArcadeAirdrop"].constructorArgs[3]).to.eq(deployment["NFTBoostVault"].contractAddress);
+        expect(deployment["AirdropSeason0"].constructorArgs[2]).to.not.eq(0);
+        expect(deployment["AirdropSeason0"].constructorArgs[3]).to.eq(deployment["NFTBoostVault"].contractAddress);
 
         expect(deployment["BadgeDescriptor"]).to.exist;
         expect(deployment["BadgeDescriptor"].contractAddress).to.exist;
@@ -490,8 +490,8 @@ describe("Governance Deployment", function () {
         const arcadeTokenDistributor = <ArcadeTokenDistributor>(
             await ethers.getContractAt("ArcadeTokenDistributor", deployment["ArcadeTokenDistributor"].contractAddress)
         );
-        const arcadeAirdrop = <ArcadeAirdrop>(
-            await ethers.getContractAt("ArcadeAirdrop", deployment["ArcadeAirdrop"].contractAddress)
+        const airdropSeason0 = <AirdropSeason0>(
+            await ethers.getContractAt("AirdropSeason0", deployment["AirdropSeason0"].contractAddress)
         );
         const launchPartnerVestingVault = <ARCDVestingVault>(
             await ethers.getContractAt("ARCDVestingVault", deployment["ARCDVestingVault"].contractAddress)
@@ -531,9 +531,9 @@ describe("Governance Deployment", function () {
         // ArcadeTokenDistributor owner
         expect(await arcadeTokenDistributor.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
 
-        // ArcadeAirdrop owner
-        expect(await arcadeAirdrop.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
-        expect(await arcadeAirdrop.isAuthorized(deployer.address)).to.equal(false);
+        // AirdropSeason0 owner
+        expect(await airdropSeason0.owner()).to.equal(LAUNCH_PARTNER_MULTISIG);
+        expect(await airdropSeason0.isAuthorized(deployer.address)).to.equal(false);
 
         // ARCDVestingVault manager and timelock
         expect(await launchPartnerVestingVault.manager()).to.equal(VESTING_MANAGER_MULTISIG);
@@ -544,7 +544,7 @@ describe("Governance Deployment", function () {
         expect(await partnerVestingVault.timelock()).to.equal(timelock.address);
 
         // NFTBoostVault airdrop contract
-        expect(await nftBoostVault.getAirdropContract()).to.equal(arcadeAirdrop.address);
+        expect(await nftBoostVault.getAirdropContract()).to.equal(airdropSeason0.address);
 
         // NFTBoostVault authorized users
         expect(await nftBoostVault.manager()).to.equal(LAUNCH_PARTNER_MULTISIG);

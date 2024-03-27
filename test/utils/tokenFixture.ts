@@ -4,7 +4,7 @@ import { Wallet } from "ethers";
 import hre from "hardhat";
 import { MerkleTree } from "merkletreejs";
 
-import { ArcadeAirdrop, ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
+import { AirdropSeason0, ArcadeTokenDistributor, IArcadeToken, NFTBoostVault } from "../../src/types";
 import { deploy } from "./contracts";
 import { Account, getMerkleTree } from "./external/council/helpers/merkle";
 import { BlockchainTime } from "./time";
@@ -21,14 +21,15 @@ export interface TestContextToken {
     communityRewardsPool: Wallet;
     vestingTeamMultisig: Wallet;
     vestingPartner: Wallet;
-    arcdAirdrop: ArcadeAirdrop;
+    arcdAirdrop: AirdropSeason0;
     arcdToken: IArcadeToken;
     arcdDst: ArcadeTokenDistributor;
     mockNFTBoostVault: NFTBoostVault;
-    recipients: Account;
+    recipients: Account[];
     blockchainTime: BlockchainTime;
     merkleTrie: MerkleTree;
     expiration: number;
+    root: string;
     staleBlockNum: number;
     bootstrapVestingManager: () => Promise<void>;
 }
@@ -86,7 +87,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         // ====================================== AIRDROP SETUP =====================================
 
         // airdrop claims data
-        const recipients: Account = [
+        const recipients: Account[] = [
             {
                 address: deployer.address,
                 value: ethers.utils.parseEther("1000"),
@@ -111,8 +112,8 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
         // =================================== AIRDROP DEPLOYMENT ==================================
 
         // deploy airdrop contract
-        const arcdAirdrop = <ArcadeAirdrop>(
-            await deploy("ArcadeAirdrop", signers[0], [root, arcdToken.address, expiration, mockNFTBoostVault.address])
+        const arcdAirdrop = <AirdropSeason0>(
+            await deploy("AirdropSeason0", signers[0], [arcdToken.address, root, expiration, mockNFTBoostVault.address])
         );
         await arcdAirdrop.deployed();
 
@@ -153,6 +154,7 @@ export const tokenFixture = (): (() => Promise<TestContextToken>) => {
             blockchainTime,
             merkleTrie,
             expiration,
+            root,
             staleBlockNum,
             bootstrapVestingManager,
         };

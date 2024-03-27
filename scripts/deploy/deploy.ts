@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 
 import {
     ARCDVestingVault,
-    ArcadeAirdrop,
+    AirdropSeason0,
     ArcadeCoreVoting,
     ArcadeGSCCoreVoting,
     ArcadeGSCVault,
@@ -181,17 +181,17 @@ export async function main(): Promise<DeployedResources> {
     console.log("Deploying Airdrop contract...");
 
     // airdrop
-    const ArcadeAirdropFactory = await ethers.getContractFactory("ArcadeAirdrop");
-    const arcadeAirdrop = <ArcadeAirdrop>(
-        await ArcadeAirdropFactory.deploy(
-            AIRDROP_MERKLE_ROOT,
+    const airdropSeason0Factory = await ethers.getContractFactory("AirdropSeason0");
+    const airdropSeason0 = <AirdropSeason0>(
+        await airdropSeason0Factory.deploy(
             arcadeToken.address,
+            AIRDROP_MERKLE_ROOT,
             AIRDROP_EXPIRATION,
             nftBoostVault.address,
         )
     );
-    await arcadeAirdrop.deployed();
-    console.log("ArcadeAirdrop deployed to:", arcadeAirdrop.address);
+    await airdropSeason0.deployed();
+    console.log("AirdropSeason0 deployed to:", airdropSeason0.address);
 
     // =============== REPUTATION BADGE ===============
     console.log(SECTION_SEPARATOR);
@@ -227,7 +227,7 @@ export async function main(): Promise<DeployedResources> {
         arcadeGSCCoreVoting,
         arcadeTreasuryTimelock,
         arcadeTreasury,
-        arcadeAirdrop,
+        airdropSeason0,
         badgeDescriptor,
         reputationBadge,
     };
@@ -257,7 +257,7 @@ export async function main(): Promise<DeployedResources> {
         ],
         arcadeTreasuryTimelock: [TIMELOCK_WAIT_TIME, FOUNDATION_MULTISIG, arcadeGSCCoreVoting.address],
         arcadeTreasury: [deployer.address],
-        arcadeAirdrop: [AIRDROP_MERKLE_ROOT, arcadeToken.address, AIRDROP_EXPIRATION, nftBoostVault.address],
+        airdropSeason0: [arcadeToken.address, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION, nftBoostVault.address],
         badgeDescriptor: [BADGE_DESCRIPTOR_BASE_URI],
         reputationBadge: [deployer.address, badgeDescriptor.address],
     });

@@ -3,7 +3,7 @@ import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContrac
 
 /**
  * This script sets the Arcade Tokens as the token type for distribution in the ArcadeTokenDistributor contract.
- * It also distributes tokens to the ArcadeTreasury, ArcadeAirdrop, and the deployer for vesting setup.
+ * It also distributes tokens to the ArcadeTreasury, AirdropSeason0, and the deployer for vesting setup.
  * Lastly, ownership of the ArcadeTokenDistributor contract is transferred to the Launch Partner Multisig. So,
  * the Launch Partner Multisig can distribute the remainder of the tokens in the distributor.
  *
@@ -13,7 +13,7 @@ import { DeployedResources, SECTION_SEPARATOR, SUBSECTION_SEPARATOR, loadContrac
 
 export async function distributeTokens(resources: DeployedResources) {
     console.log(SECTION_SEPARATOR);
-    const { arcadeTokenDistributor, arcadeToken, arcadeTreasury, arcadeAirdrop } = resources;
+    const { arcadeTokenDistributor, arcadeToken, arcadeTreasury, airdropSeason0 } = resources;
 
     console.log("Setting ArcadeToken in ArcadeTokenDistributor...");
     const tx1 = await arcadeTokenDistributor.setToken(arcadeToken.address);
@@ -23,8 +23,8 @@ export async function distributeTokens(resources: DeployedResources) {
     console.log("Distributing ARCD to ArcadeTreasury...");
     const tx2 = await arcadeTokenDistributor.toGovernanceTreasury(arcadeTreasury.address);
     await tx2.wait();
-    console.log("Distributing ARCD to ArcadeAirdrop...");
-    const tx3 = await arcadeTokenDistributor.toCommunityAirdrop(arcadeAirdrop.address);
+    console.log("Distributing ARCD to AirdropSeason0...");
+    const tx3 = await arcadeTokenDistributor.toCommunityAirdrop(airdropSeason0.address);
     await tx3.wait();
     console.log("Distributing ARCD to vesting multisig for team vesting...");
     const tx4 = await arcadeTokenDistributor.toTeamVesting(VESTING_MANAGER_MULTISIG);
