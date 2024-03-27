@@ -6,7 +6,7 @@ import "./ArcadeAirdropBase.sol";
 
 import "../../interfaces/INFTBoostVault.sol";
 
-import { AA_ZeroAddress, AA_NotInitialized, AA_ClaimingExpired } from "../../errors/Airdrop.sol";
+import { AA_ZeroAddress } from "../../errors/Airdrop.sol";
 
 /**
  * @title Airdrop Season 0
@@ -55,11 +55,9 @@ contract AirdropSeason0 is ArcadeAirdropBase {
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
     function claimAndDelegate(address delegate, uint128 totalGrant, bytes32[] calldata merkleProof) external {
-        if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
-        // must be before the expiration time
-        if (block.timestamp > expiration) revert AA_ClaimingExpired();
-        // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
+
+        _setClaimed(msg.sender, totalGrant);
 
         // approve the voting vault to transfer tokens
         token.approve(address(votingVault), uint256(totalGrant));

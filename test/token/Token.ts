@@ -501,6 +501,7 @@ describe("ArcadeToken", function () {
                     recipients,
                     merkleTrie,
                     mockNFTBoostVault,
+                    root,
                 } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(arcdAirdrop.address))
@@ -527,6 +528,10 @@ describe("ArcadeToken", function () {
                         [recipients[2].address, recipients[2].value],
                     ),
                 );
+
+                expect(await arcdAirdrop.getClaimed(recipients[0].address, root)).to.equal(0);
+                expect(await arcdAirdrop.getClaimed(recipients[1].address, root)).to.equal(0);
+                expect(await arcdAirdrop.getClaimed(recipients[2].address, root)).to.equal(0);
 
                 // claim and delegate to self
                 await expect(
@@ -565,6 +570,10 @@ describe("ArcadeToken", function () {
                     totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value).sub(recipients[2].value),
                 );
                 expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
+
+                expect(await arcdAirdrop.getClaimed(recipients[0].address, root)).to.equal(recipients[0].value);
+                expect(await arcdAirdrop.getClaimed(recipients[1].address, root)).to.equal(recipients[1].value);
+                expect(await arcdAirdrop.getClaimed(recipients[2].address, root)).to.equal(recipients[2].value);
             });
 
             it("user claims airdrop then call to addNftAndDelegate reverts", async function () {
@@ -1182,7 +1191,7 @@ describe("ArcadeToken", function () {
             });
 
             it("all recipients claim airdrop to vault and delegate to themselves", async function () {
-                const { arcdToken, arcdDst, deployer, other, other2, recipients, merkleTrie } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, other2, recipients, merkleTrie, root } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1208,6 +1217,10 @@ describe("ArcadeToken", function () {
                         [recipients[2].address, recipients[2].value],
                     ),
                 );
+
+                expect(await airdropSeason1.getClaimed(recipients[0].address, root)).to.equal(0);
+                expect(await airdropSeason1.getClaimed(recipients[1].address, root)).to.equal(0);
+                expect(await airdropSeason1.getClaimed(recipients[2].address, root)).to.equal(0);
 
                 // claim and delegate to self
                 await expect(
@@ -1249,6 +1262,10 @@ describe("ArcadeToken", function () {
                     totalAirdropAmount.sub(recipients[0].value).sub(recipients[1].value).sub(recipients[2].value),
                 );
                 expect(await arcdToken.balanceOf(recipients[0].address)).to.equal(0);
+
+                expect(await airdropSeason1.getClaimed(recipients[0].address, root)).to.equal(recipients[0].value);
+                expect(await airdropSeason1.getClaimed(recipients[1].address, root)).to.equal(recipients[1].value);
+                expect(await airdropSeason1.getClaimed(recipients[2].address, root)).to.equal(recipients[2].value);
             });
 
             it("all recipients claim airdrop to themselves", async function () {
@@ -1396,7 +1413,7 @@ describe("ArcadeToken", function () {
             });
 
             it("user tries to claim airdrop with invalid proof", async function () {
-                const { arcdToken, arcdDst, deployer, other, recipients, merkleTrie } = ctxToken;
+                const { arcdToken, arcdDst, deployer, other, recipients, merkleTrie, root } = ctxToken;
 
                 await expect(await arcdDst.connect(deployer).toCommunityAirdrop(airdropSeason1.address))
                     .to.emit(arcdDst, "Distribute")
@@ -1410,6 +1427,9 @@ describe("ArcadeToken", function () {
                         [recipients[0].address, recipients[0].value],
                     ),
                 );
+
+                expect(await airdropSeason1.getClaimed(recipients[0].address, root)).to.equal(0);
+
                 // try to claim with invalid proof
                 await expect(
                     airdropSeason1.connect(other).claim(
@@ -1427,6 +1447,8 @@ describe("ArcadeToken", function () {
                         2,
                     ),
                 ).to.be.revertedWith("AA_NonParticipant()");
+
+                expect(await airdropSeason1.getClaimed(recipients[0].address, root)).to.equal(0);
             });
 
             it("user tries to claim same airdrop twice", async function () {

@@ -9,7 +9,7 @@ import "./ArcadeAirdropBase.sol";
 
 import "../../external/dao-contracts/interfaces/IAirdropSingleSidedStaking.sol";
 
-import { AA_ZeroAddress, AA_NotInitialized, AA_ClaimingExpired } from "../../errors/Airdrop.sol";
+import { AA_ZeroAddress } from "../../errors/Airdrop.sol";
 
 /**
  * @title Airdrop Season 1
@@ -27,12 +27,7 @@ contract AirdropSeason1 is ArcadeAirdropBase, ReentrancyGuard {
     IAirdropSingleSidedStaking public immutable votingVault;
 
     // ============================================ EVENTS =============================================
-    event ClaimAndStaked(
-        address indexed user,
-        uint128 totalGrant,
-        address indexed delegate,
-        IAirdropSingleSidedStaking.Lock lock
-    );
+
     event Claimed(address indexed user, uint128 totalGrant);
 
     // ========================================== CONSTRUCTOR ==========================================
@@ -76,18 +71,16 @@ contract AirdropSeason1 is ArcadeAirdropBase, ReentrancyGuard {
         bytes32[] calldata merkleProof,
         IAirdropSingleSidedStaking.Lock lock
     ) external {
-        if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
-        // must be before the expiration time
-        if (block.timestamp > expiration) revert AA_ClaimingExpired();
-        // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
+
+        _setClaimed(msg.sender, totalGrant);
 
         // approve the voting vault to transfer tokens
         token.approve(address(votingVault), uint256(totalGrant));
         // stake tokens in voting vault for this msg.sender and delegate
         votingVault.airdropReceive(msg.sender, totalGrant, delegate, lock);
 
-        emit ClaimAndStaked(msg.sender, totalGrant, delegate, lock);
+        emit Claimed(msg.sender, totalGrant);
     }
 
     /**
@@ -97,11 +90,9 @@ contract AirdropSeason1 is ArcadeAirdropBase, ReentrancyGuard {
      * @param merkleProof            The merkle proof showing the user is in the merkle tree
      */
     function claim(uint128 totalGrant, bytes32[] calldata merkleProof) external nonReentrant {
-        if (rewardsRoot == bytes32(0)) revert AA_NotInitialized();
-        // must be before the expiration time
-        if (block.timestamp > expiration) revert AA_ClaimingExpired();
-        // validate the withdraw
         _validateWithdraw(totalGrant, merkleProof);
+
+        _setClaimed(msg.sender, totalGrant);
 
         // transfer tokens to the caller
         token.safeTransfer(msg.sender, totalGrant);
