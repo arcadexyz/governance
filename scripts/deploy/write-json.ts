@@ -96,9 +96,9 @@ export async function createInfo(
         constructorArgs: constructorArgs.arcadeTreasury,
     };
 
-    contractInfo["ArcadeAirdrop"] = {
-        contractAddress: resources.arcadeAirdrop.address,
-        constructorArgs: constructorArgs.arcadeAirdrop,
+    contractInfo["AirdropSeason0"] = {
+        contractAddress: resources.airdropSeason0.address,
+        constructorArgs: constructorArgs.airdropSeason0,
     };
 
     contractInfo["BadgeDescriptor"] = {

@@ -8,7 +8,7 @@ import { URLSearchParams } from "url";
 
 import {
     ARCDVestingVault,
-    ArcadeAirdrop,
+    AirdropSeason0,
     ArcadeCoreVoting,
     ArcadeGSCCoreVoting,
     ArcadeGSCVault,
@@ -34,7 +34,7 @@ export interface DeployedResources {
     arcadeGSCCoreVoting: ArcadeGSCCoreVoting;
     arcadeTreasuryTimelock: Timelock;
     arcadeTreasury: ArcadeTreasury;
-    arcadeAirdrop: ArcadeAirdrop;
+    airdropSeason0: AirdropSeason0;
     badgeDescriptor: BadgeDescriptor;
     reputationBadge: ReputationBadge;
 }
@@ -58,7 +58,7 @@ export const jsonContracts: { [key: string]: string } = {
     ArcadeGSCCoreVoting: "arcadeGSCCoreVoting",
     ArcadeTreasuryTimelock: "arcadeTreasuryTimelock",
     ArcadeTreasury: "arcadeTreasury",
-    ArcadeAirdrop: "arcadeAirdrop",
+    AirdropSeason0: "airdropSeason0",
     BadgeDescriptor: "badgeDescriptor",
     ReputationBadge: "reputationBadge",
 };
