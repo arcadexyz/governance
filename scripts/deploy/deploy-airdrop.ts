@@ -1,21 +1,21 @@
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
+import { AirdropSeason1L2 } from "../../src/types";
 
 // Deployment parameters
 const airdropSeason = "1";
-const ARCD = "0xe020B01B6fbD83066aa2e8ee0CCD1eB8d9Cc70bF";
-const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
-const AIRDROP_EXPIRATION = 1711477843; // timestamp
-const VOTING_VAULT = "0x";
+const ARCD = "0x4ed4e862860bed51a9570b96d89af5e1b0efefed"; // set address after the tokens are bridged to base
+const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero; // set after the merkle root is generated
+const AIRDROP_EXPIRATION = 1811477843; // timestamp
 
 // Post-deployment configuration parameters
-const OWNER = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // launch partner multisig
+const OWNER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 
 export async function main() {
     const [deployer] = await ethers.getSigners();
     console.log(`Airdrop deployer: ${deployer.address}`);
 
-    const airdropFactory = await ethers.getContractFactory(`AirdropSeason${airdropSeason}`);
-    const airdrop = await airdropFactory.deploy(ARCD, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION, VOTING_VAULT);
+    const airdropFactory = await ethers.getContractFactory(`AirdropSeason${airdropSeason}L2`);
+    const airdrop = <AirdropSeason1L2>await airdropFactory.deploy(ARCD, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION);
     await airdrop.deployed();
     console.log(`AirdropSeason${airdropSeason} deployed to: ${airdrop.address}`);
 
@@ -33,6 +33,12 @@ export async function main() {
     if (isAuthorized) {
         throw new Error(`Deployer is authorized`);
     }
+
+    // verify
+    await hre.run("verify:verify", {
+        address: airdrop.address,
+        constructorArguments: [ARCD, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION],
+    });
 }
 
 if (require.main === module) {

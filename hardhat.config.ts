@@ -1,24 +1,19 @@
-import "@nomicfoundation/hardhat-toolbox";
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@openzeppelin/hardhat-upgrades";
 import "@typechain/hardhat";
-import { config as dotenvConfig } from "dotenv";
+import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
-import { HardhatUserConfig } from "hardhat/config";
-import { HardhatNetworkUserConfig, NetworkUserConfig } from "hardhat/types";
-import { resolve } from "path";
 import "solidity-coverage";
+import "@nomiclabs/hardhat-ethers";
+import "@nomiclabs/hardhat-etherscan";
 
-import "./tasks/accounts";
-import "./tasks/deploy";
+import { resolve } from "path";
+
+import { config as dotenvConfig } from "dotenv";
+import { HardhatUserConfig } from "hardhat/config";
+import { NetworkUserConfig, HardhatNetworkUserConfig } from "hardhat/types";
 
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 const chainIds = {
-    arbitrumOne: 42161,
-    optimism: 10,
-    polygon: 137,
     ganache: 1337,
     goerli: 5,
     hardhat: 1337,
@@ -27,6 +22,9 @@ const chainIds = {
     mainnet: 1,
     rinkeby: 4,
     ropsten: 3,
+    sepolia: 11155111,
+    base: 8453,
+    base_sepolia: 84532
 };
 
 // Ensure that we have all the environment variables we need.
@@ -46,20 +44,38 @@ if (forkMainnet && !process.env.ALCHEMY_API_KEY) {
     alchemyApiKey = process.env.ALCHEMY_API_KEY;
 }
 
+// create testnet network
 function createTestnetConfig(network: keyof typeof chainIds): NetworkUserConfig {
-    const url = `https://eth-${network}.alchemyapi.io/v2/${alchemyApiKey}`;
+    let url: string;
+    switch(network) {
+        case "sepolia":
+            url = `https://rpc.sepolia.org/`;
+            break;
+        case "base":
+            url = `https://mainnet.base.org`;
+            break;
+        case "base_sepolia":
+            url = `https://sepolia.base.org`;
+            break;
+        default:
+            url = `https://${network}.infura.io/v3/${process.env.INFURA_API_KEY}`;
+            break;
+    }
+
     return {
         accounts: {
             count: 10,
             initialIndex: 0,
             mnemonic,
-            path: "m/44'/60'/0'/0",
+            path: "m/44'/60'/0'/0", // HD derivation path
         },
         chainId: chainIds[network],
         url,
+        gasPrice: 1000000000,
     };
 }
 
+// create local network config
 function createHardhatConfig(): HardhatNetworkUserConfig {
     const config = {
         accounts: {
@@ -67,13 +83,19 @@ function createHardhatConfig(): HardhatNetworkUserConfig {
         },
         allowUnlimitedContractSize: true,
         chainId: chainIds.hardhat,
+        contractSizer: {
+            alphaSort: true,
+            disambiguatePaths: false,
+            runOnCompile: true,
+            strict: true,
+            only: [":ERC20$"],
+        },
     };
 
     if (forkMainnet) {
         return Object.assign(config, {
             forking: {
                 url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
-                // blockNumber: 13837533,
             },
         });
     }
@@ -93,21 +115,8 @@ function createMainnetConfig(): NetworkUserConfig {
 
 const optimizerEnabled = process.env.DISABLE_OPTIMIZER ? false : true;
 
-const config: HardhatUserConfig = {
+export const config: HardhatUserConfig = {
     defaultNetwork: "hardhat",
-    etherscan: {
-        apiKey: {
-            arbitrumOne: process.env.ARBISCAN_API_KEY || "",
-            avalanche: process.env.SNOWTRACE_API_KEY || "",
-            bsc: process.env.BSCSCAN_API_KEY || "",
-            mainnet: process.env.ETHERSCAN_API_KEY || "",
-            goerli: process.env.ETHERSCAN_API_KEY || "",
-            optimisticEthereum: process.env.OPTIMISM_API_KEY || "",
-            polygon: process.env.POLYGONSCAN_API_KEY || "",
-            polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
-            rinkeby: process.env.ETHERSCAN_API_KEY || "",
-        },
-    },
     gasReporter: {
         currency: "USD",
         enabled: process.env.REPORT_GAS ? true : false,
@@ -123,6 +132,9 @@ const config: HardhatUserConfig = {
         kovan: createTestnetConfig("kovan"),
         rinkeby: createTestnetConfig("rinkeby"),
         ropsten: createTestnetConfig("ropsten"),
+        sepolia: createTestnetConfig("sepolia"),
+        base: createTestnetConfig("base"),
+        base_sepolia: createTestnetConfig("base_sepolia"),
         localhost: {
             accounts: {
                 mnemonic,
@@ -151,16 +163,51 @@ const config: HardhatUserConfig = {
                     // https://hardhat.org/hardhat-network/#solidity-optimizer-support
                     optimizer: {
                         enabled: optimizerEnabled,
-                        runs: 999999,
+                        runs: 200,
                     },
-                    //viaIR: true, // experimental compiler feature to reduce stack 2 deep intolerance
                 },
+            },
+            {
+                version: "0.7.0",
+            },
+            {
+                version: "0.4.12",
+            },
+            {
+                version: "0.4.18",
             },
         ],
     },
     typechain: {
-        outDir: "src/types",
+        outDir: "typechain",
         target: "ethers-v5",
+    },
+    etherscan: {
+        apiKey: {
+            "base-sepolia": process.env.BASESCAN_API_KEY ?? "",
+            "base": process.env.BASESCAN_API_KEY ?? "",
+        },
+        customChains: [
+            {
+                network: "base-sepolia",
+                chainId: 84532,
+                urls: {
+                    apiURL: "https://api-sepolia.basescan.org/api",
+                    browserURL: "https://sepolia.basescan.org"
+                }
+            },
+            {
+                network: "base",
+                chainId: 8453,
+                urls: {
+                    apiURL: "https://api.basescan.org/api",
+                    browserURL: "https://basescan.org"
+                }
+            }
+        ]
+    },
+    mocha: {
+        timeout: 100000,
     },
 };
 
