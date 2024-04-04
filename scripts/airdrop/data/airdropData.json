@@ -1,10 +1,46 @@
 [
     {
-        "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
-        "value": 10000
+        "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
+        "value": "1000000000000000000000"
     },
     {
-        "address": "0x0734d56DA60852A03e2Aafae8a36FFd8c12B32f1",
-        "value": 1000
+        "address": "0x6F2Fc07bEF63cbeCFaA30AF9FF9a5544b6665cC8",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0xb4bAC1b660E2161F3692FdF6cB362e93396899a7",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0xAdD93e738a415c5248f7cB044FCFC71d86b18572",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0x0fbeD7537e4120e1021c0f39F53E9953d5D8973D",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0xB73cAbadEd9b14310Df017F88fD35902979397f9",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0x6c6F915B21d43107d83c47541e5D29e872d82Da6",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0x91BcAACf3A997E467c8A16Fb8C56a80413d0C207",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0x6402cB41945A662E978c6a8A65d93c0Ab17F7AC9",
+        "value": "1000000000000000000000"
+    },
+    {
+        "address": "0xB6631E52E513eEE0b8c932d7c76F8ccfA607a28e",
+        "value": "1000000000000000000000"
     }
 ]

@@ -1,15 +1,22 @@
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 
 // Deployment parameters
 const airdropSeason = "1";
-const ARCD = "0xe020B01B6fbD83066aa2e8ee0CCD1eB8d9Cc70bF";
-const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
-const AIRDROP_EXPIRATION = 1711477843; // timestamp
-const VOTING_VAULT = "0x";
+const ARCD = "0x26839364Ea94a8F5758539605E75dCf2522CF34e"; // Sepolia
+const AIRDROP_MERKLE_ROOT = "0xc90144e92e6e1ac18d38d380b497cb110d58656fca962ac72c7002530d05c3dd"; // 8 team accounts for testing
+const AIRDROP_EXPIRATION = 1727820209; // timestamp
+const VOTING_VAULT = "0xe430896c67241fb2349922619764DAEe6aeB412c"; // ArcadeSingleSidedStaking Sepolia
 
 // Post-deployment configuration parameters
-const OWNER = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // launch partner multisig
+const OWNER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
 
+
+/**
+ * Deploys and configures an airdrop contract.
+ *
+ * To run this script, use the following command:
+ * npx hardhat run scripts/deploy/deploy-airdrop.ts --network [network]
+ */
 export async function main() {
     const [deployer] = await ethers.getSigners();
     console.log(`Airdrop deployer: ${deployer.address}`);
@@ -17,6 +24,7 @@ export async function main() {
     const airdropFactory = await ethers.getContractFactory(`AirdropSeason${airdropSeason}`);
     const airdrop = await airdropFactory.deploy(ARCD, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION, VOTING_VAULT);
     await airdrop.deployed();
+    const airdropAddress = airdrop.address;
     console.log(`AirdropSeason${airdropSeason} deployed to: ${airdrop.address}`);
 
     const setOwnerTx = await airdrop.setOwner(OWNER);
@@ -33,6 +41,13 @@ export async function main() {
     if (isAuthorized) {
         throw new Error(`Deployer is authorized`);
     }
+
+    // verify contract on etherscan
+    await hre.run("verify:verify", {
+        address: airdropAddress,
+        constructorArguments: [ARCD, AIRDROP_MERKLE_ROOT, AIRDROP_EXPIRATION, VOTING_VAULT],
+    });
+
 }
 
 if (require.main === module) {
