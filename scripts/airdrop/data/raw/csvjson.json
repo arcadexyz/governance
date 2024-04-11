@@ -1,3798 +1,3798 @@
 [
   {
     "address": "0xf4fb9fa23edb32215e5284cf7dbfdb5607d51a5b",
-    "value": "150000000000000000000000"
+    "value": 150000
   },
   {
     "address": "0x8264e9e0f4cbcbbbb3f8ecaec0a625b590ae790e",
-    "value": "122794700000000000000000"
+    "value": 122794.7
   },
   {
     "address": "0xcffc336e6d019c1af58257a0b10bf2146a3f42a4",
-    "value": "120308400000000000000000"
+    "value": 120308.4
   },
   {
     "address": "0xe125a055afe10adb508ab87cb6dbe1dcd702b0e9",
-    "value": "115977500000000000000000"
+    "value": 115977.5
   },
   {
     "address": "0x148216a1800ab3d71668b4126b4244a9a909955f",
-    "value": "109436300000000000000000"
+    "value": 109436.3
   },
   {
     "address": "0x179730c6106b450c29e6b22f504be3261207de56",
-    "value": "95364900000000000000000"
+    "value": 95364.9
   },
   {
     "address": "0x73a1bb338613291ac6530870fe2c5d354bfec17e",
-    "value": "92713000000000000000000"
+    "value": 92713
   },
   {
     "address": "0x55016d5d800b17f18244f94817e81b7f88f86c3a",
-    "value": "88195800000000000000000"
+    "value": 88195.8
   },
   {
     "address": "0x5b20dce335d131c6de0cc11b481ace2aade788df",
-    "value": "85693400000000000000000"
+    "value": 85693.4
   },
   {
     "address": "0xa9cdfc16685a90074c7ce329fea4fd36b47bb87d",
-    "value": "61446000000000000000000"
+    "value": 61446
   },
   {
     "address": "0xd711bea94d3de3cf379109ef32caa0abdff0fff8",
-    "value": "59720000000000000000000"
+    "value": 59720
   },
   {
     "address": "0xd79b937791724e47f193f67162b92cdfbf7abdfd",
-    "value": "49628000000000000000000"
+    "value": 49628
   },
   {
     "address": "0xF3477a11f998d51Df1b667B78Fee8c2302D14bb0",
-    "value": "45000000000000000000000"
+    "value": 45000
   },
   {
     "address": "0x852C29C4bCD5E4297839380Ebb784cc48e4f81F7",
-    "value": "45000000000000000000000"
+    "value": 45000
   },
   {
     "address": "0x57bfaa4781E2f5aD8955fe01E2bB2e5c40F6c354",
-    "value": "45000000000000000000000"
+    "value": 45000
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "45000000000000000000000"
+    "value": 45000
   },
   {
     "address": "0xbec69dfce4c1fa8b7843fee1ca85788d84a86b06",
-    "value": "41874000000000000000000"
+    "value": 41874
   },
   {
     "address": "0xbb2d6d4c7eb53f17f4366db8e08aba7579ef327f",
-    "value": "37028000000000000000000"
+    "value": 37028
   },
   {
     "address": "0xbeffddcf2e84106f77c2b60445dc257d65e19a26",
-    "value": "36516000000000000000000"
+    "value": 36516
   },
   {
     "address": "0x18beceb3674f20ee3f75c03ef06542c8c882d088",
-    "value": "34316000000000000000000"
+    "value": 34316
   },
   {
     "address": "0xc6cf0a45ad27d4c3dfd1d3ce00f44ded58c7a3e9",
-    "value": "28036000000000000000000"
+    "value": 28036
   },
   {
     "address": "0x5ef397f941e8e41117cf0cd46e4dc192adf805b0",
-    "value": "27670000000000000000000"
+    "value": 27670
   },
   {
     "address": "0xd1e8a92f44bdc83bc620c56a7913fd97de5abe10",
-    "value": "25186000000000000000000"
+    "value": 25186
   },
   {
     "address": "0x24611Fad669350cA869FBed4B62877d1a409dA12",
-    "value": "22500000000000000000000"
+    "value": 22500
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "22500000000000000000000"
+    "value": 22500
   },
   {
     "address": "0xa20442124a3ebb4cc81468fa7ed9e4c4643fd4e6",
-    "value": "19480000000000000000000"
+    "value": 19480
   },
   {
     "address": "0xe38a6f2045738ea9f5ad425e63537ba7679eb82e",
-    "value": "19442000000000000000000"
+    "value": 19442
   },
   {
     "address": "0x009b34D1a81174762653102c15988F26cE83ab10",
-    "value": "19096800000000000000000"
+    "value": 19096.8
   },
   {
     "address": "0x0a26E8a4305Ad5D9e6844e9D2aaD05262b1285E6",
-    "value": "19096800000000000000000"
+    "value": 19096.8
   },
   {
     "address": "0x8c9977e49a8f068f61cfdc3605ef452b1337bbba",
-    "value": "16972000000000000000000"
+    "value": 16972
   },
   {
     "address": "0x8685c4fb3938862d26ce93ec7dccbef5140064a4",
-    "value": "16420000000000000000000"
+    "value": 16420
   },
   {
     "address": "0x12e6ad13e280779264e2c4ee0b40b312d4b97142",
-    "value": "15720000000000000000000"
+    "value": 15720
   },
   {
     "address": "0xe376409fd6a7f4074df27020e7093b4b37bfa8f9",
-    "value": "15680000000000000000000"
+    "value": 15680
   },
   {
     "address": "0xC7463a4ac3eD8a87A3e8797F5817C0e412A8dA37",
-    "value": "15300000000000000000000"
+    "value": 15300
   },
   {
     "address": "0x24611Fad669350cA869FBed4B62877d1a409dA12",
-    "value": "15300000000000000000000"
+    "value": 15300
   },
   {
     "address": "0x6Ebd6fBFA6954AF6dE4971E4DF8f3e6073DB00b8",
-    "value": "15300000000000000000000"
+    "value": 15300
   },
   {
     "address": "0x94B35D942ADaBb3c493C58227f5e36e074fDCe29",
-    "value": "15300000000000000000000"
+    "value": 15300
   },
   {
     "address": "0x94B35D942ADaBb3c493C58227f5e36e074fDCe29",
-    "value": "15300000000000000000000"
+    "value": 15300
   },
   {
     "address": "0x66ceac5EE8F093059C4BC9628C06e63076505B15",
-    "value": "15300000000000000000000"
+    "value": 15300
   },
   {
     "address": "0x5d42e7637582b01dc3e913a3ef3a5bc0ea99e64e",
-    "value": "19004600000000000000000"
+    "value": 19004.6
   },
   {
     "address": "0xF3477a11f998d51Df1b667B78Fee8c2302D14bb0",
-    "value": "14400000000000000000000"
+    "value": 14400
   },
   {
     "address": "0x57bfaa4781E2f5aD8955fe01E2bB2e5c40F6c354",
-    "value": "14400000000000000000000"
+    "value": 14400
   },
   {
     "address": "0xfede5ecbad4a767ad576c7597034a9f5383fdc7b",
-    "value": "14260000000000000000000"
+    "value": 14260
   },
   {
     "address": "0x703527e5847acb192807b4f63579401409638e27",
-    "value": "14230000000000000000000"
+    "value": 14230
   },
   {
     "address": "0x625219f5a3912a698780f814b40e20304528836e",
-    "value": "13240000000000000000000"
+    "value": 13240
   },
   {
     "address": "0xbb01bfa9171ca3f3acf86393bf51e871812d1684",
-    "value": "12870000000000000000000"
+    "value": 12870
   },
   {
     "address": "0x98e639b648144a51b3b8bd88810f272d79b8695f",
-    "value": "12866000000000000000000"
+    "value": 12866
   },
   {
     "address": "0xd2498b4dc8402789736f7c94caf969ea65badfa2",
-    "value": "12114000000000000000000"
+    "value": 12114
   },
   {
     "address": "0x7a65cd0ad11e7329f534b5b65113997cf75e3546",
-    "value": "11650000000000000000000"
+    "value": 11650
   },
   {
     "address": "0x7eb29af9bab59b56c6ed152c3d583a8e742b8d0d",
-    "value": "9994250000000000000000"
+    "value": 9994.25
   },
   {
     "address": "0xdc3b2dce95ebd1e7c18eaa37780d10d240146660",
-    "value": "9325800000000000000000"
+    "value": 9325.8
   },
   {
     "address": "0x1e8fd4c82adae5aeeafca2df14252d1610322179",
-    "value": "9281250000000000000000"
+    "value": 9281.25
   },
   {
     "address": "0x6e3AA85dB95BBA36276a37ED93B12B7AB0782aFB",
-    "value": "9075000000000000000000"
+    "value": 9075
   },
   {
     "address": "0x2142D846641B9434786cC64b510D825f7dFe2d33",
-    "value": "9075000000000000000000"
+    "value": 9075
   },
   {
     "address": "0x4ed175874b72fd2d6fb7ed36af9c401a27c68c8a",
-    "value": "8976000000000000000000"
+    "value": 8976
   },
   {
     "address": "0xadd55d98b14bb9e545978138c6b29f84c6e1d0af",
-    "value": "8743350000000000000000"
+    "value": 8743.35
   },
   {
     "address": "0x47cf584925b637b1023f63b6141f795cbaa1ae79",
-    "value": "8621250000000000000000"
+    "value": 8621.25
   },
   {
     "address": "0x631f1a569adc029ee9aeca46a5b864f2612bc64c",
-    "value": "8418300000000000000000"
+    "value": 8418.3
   },
   {
     "address": "0xbddb878b393bf91f8d34b2edf7087ca529e3ccaf",
-    "value": "8391900000000000000000"
+    "value": 8391.9
   },
   {
     "address": "0x403afdf9ea925d3b48e719a44610da1679a57651",
-    "value": "8360550000000000000000"
+    "value": 8360.55
   },
   {
     "address": "0x6073ae7059582fb08ae030663c33d026b3ad0766",
-    "value": "8254950000000000000000"
+    "value": 8254.95
   },
   {
     "address": "0x2edA8CfFE2e184eDB9d3e83418F3F7cBbfEC43F5",
-    "value": "8019000000000000000000"
+    "value": 8019
   },
   {
     "address": "0x7ff01463B0B9E85a6775C91b7E3Be08f47fe3808",
-    "value": "8019000000000000000000"
+    "value": 8019
   },
   {
     "address": "0x258855d09cf445835769f21370230652c4294a92",
-    "value": "7934850000000000000000"
+    "value": 7934.85
   },
   {
     "address": "0xf450db9a0da11fa1a105e4c12a2435fafd8aba91",
-    "value": "7390350000000000000000"
+    "value": 7390.35
   },
   {
     "address": "0x9e45e28522842265b6b0f534164fd73cd77993fd",
-    "value": "7324350000000000000000"
+    "value": 7324.35
   },
   {
     "address": "0xd44ad91fc2712abb7c601deaa4ca6f1280c8ec84",
-    "value": "7301250000000000000000"
+    "value": 7301.25
   },
   {
     "address": "0xf5f16440f1569a835400af06cf1187297badff45",
-    "value": "7276500000000000000000"
+    "value": 7276.5
   },
   {
     "address": "0xa85d0aae0ce0091e3dd78e0f5d5c39777f717d43",
-    "value": "7215450000000000000000"
+    "value": 7215.45
   },
   {
     "address": "0xface8470aa72239043f7e4e1b27601bc1c01d4c8",
-    "value": "7137900000000000000000"
+    "value": 7137.9
   },
   {
     "address": "0x40fef8e0a18eb5326f91a865bf016f642358de80",
-    "value": "6923400000000000000000"
+    "value": 6923.4
   },
   {
     "address": "0x210144c4af4d1624f7375f30a0c2822856be116a",
-    "value": "6915150000000000000000"
+    "value": 6915.15
   },
   {
     "address": "0x919ec4c26f9427151839ec949219ea0aa2631ced",
-    "value": "6735300000000000000000"
+    "value": 6735.3
   },
   {
     "address": "0x2432dec171d8b538ee4592ac8b2db56d02511f5b",
-    "value": "6727050000000000000000"
+    "value": 6727.05
   },
   {
     "address": "0x7d32111f7587d429efa49e455cde4ec1375da17f",
-    "value": "6677550000000000000000"
+    "value": 6677.55
   },
   {
     "address": "0x39e087caf9d36a3fa2ae0a16dd71001c23a1c710",
-    "value": "14273800000000000000000"
+    "value": 14273.8
   },
   {
     "address": "0x6e3AA85dB95BBA36276a37ED93B12B7AB0782aFB",
-    "value": "6600000000000000000000"
+    "value": 6600
   },
   {
     "address": "0x8cCAf951C46899Aa11E96435261C271c3E5Ba963",
-    "value": "6600000000000000000000"
+    "value": 6600
   },
   {
     "address": "0xe4df0a2c2175e255bbda76aa4da6c2089734a2a2",
-    "value": "6553800000000000000000"
+    "value": 6553.8
   },
   {
     "address": "0x984879991a9d5a257fbb2b3b173936f974fe2c3f",
-    "value": "6435000000000000000000"
+    "value": 6435
   },
   {
     "address": "0x82e4d78c6c62d461251fa5a1d4deb9f0fe378e30",
-    "value": "6435000000000000000000"
+    "value": 6435
   },
   {
     "address": "0xebab411f36a9ef61f320b1f5889733d8317ace64",
-    "value": "6307950000000000000000"
+    "value": 6307.95
   },
   {
     "address": "0x1f8a8ac54244e4016a376152b2f92d467552fa7b",
-    "value": "6253500000000000000000"
+    "value": 6253.5
   },
   {
     "address": "0x5223ed5c0b77474b9445ea0e2d33f3fa2e126cdf",
-    "value": "6164400000000000000000"
+    "value": 6164.4
   },
   {
     "address": "0xcb87bb26e7d3ce94d0c3abe6672bbaa54a6a0996",
-    "value": "6063750000000000000000"
+    "value": 6063.75
   },
   {
     "address": "0x4d94de22f1e9cfa7bc0878e4bdbec2a0b410dfef",
-    "value": "6060450000000000000000"
+    "value": 6060.45
   },
   {
     "address": "0x3203e254149d9ce8bc370647ea5077efa17a4195",
-    "value": "5974650000000000000000"
+    "value": 5974.65
   },
   {
     "address": "0x806afa648543775d3c582ee6e0b350948e66ead3",
-    "value": "5940000000000000000000"
+    "value": 5940
   },
   {
     "address": "0xfe0cacf19d41d1e418718772023de3fa12ad8491",
-    "value": "5940000000000000000000"
+    "value": 5940
   },
   {
     "address": "0x14f3ff4737cd18d47b838645cc7a3ba737dbec06",
-    "value": "5883900000000000000000"
+    "value": 5883.9
   },
   {
     "address": "0x2940aec2db0706b0f8b24eec2241bd98a57cc244",
-    "value": "5725500000000000000000"
+    "value": 5725.5
   },
   {
     "address": "0x8a2e49c2d3faa280ac96966021dd815d1bb56935",
-    "value": "5682600000000000000000"
+    "value": 5682.6
   },
   {
     "address": "0xc0d92f633ee8c8439783f5d2c06aafdb70e781b8",
-    "value": "5643000000000000000000"
+    "value": 5643
   },
   {
     "address": "0x8937c6f6764e15b0172282a14d00076d47b89124",
-    "value": "5628150000000000000000"
+    "value": 5628.15
   },
   {
     "address": "0xcd8826a0298cfcd4eeb3a0c118a8aa664316cd7a",
-    "value": "5610000000000000000000"
+    "value": 5610
   },
   {
     "address": "0x1dd882200cc37da7774f1998564241c80fbfcb6e",
-    "value": "5474700000000000000000"
+    "value": 5474.7
   },
   {
     "address": "0x2c2ed4b3876c442fee80bee76ce0ee2ca2a512af",
-    "value": "5445000000000000000000"
+    "value": 5445
   },
   {
     "address": "0x825f23921dcff36944d8b0b0ca23ac7d05fb86cb",
-    "value": "10964100000000000000000"
+    "value": 10964.1
   },
   {
     "address": "0xEC2a882E35C4195FBD2e87289f8f3208Ab83c8bF",
-    "value": "5346000000000000000000"
+    "value": 5346
   },
   {
     "address": "0x87d0D170eE8fAa515fc9288cf1Ac7D85c510f632",
-    "value": "5022000000000000000000"
+    "value": 5022
   },
   {
     "address": "0x58ff6950ecf6521729addc597f50d0405fdb2652",
-    "value": "4783300000000000000000"
+    "value": 4783.3
   },
   {
     "address": "0xd4e26683635bf3dc9ead5f31b935c33cc1ce1838",
-    "value": "4527550000000000000000"
+    "value": 4527.55
   },
   {
     "address": "0xa6e92699c715776d7fbfb3ad2fc038f62fa8682c",
-    "value": "4526000000000000000000"
+    "value": 4526
   },
   {
     "address": "0x7959a834c13a9201a8226213b70ef12415f60d78",
-    "value": "4512050000000000000000"
+    "value": 4512.05
   },
   {
     "address": "0x0e3bcd1efd366092248ac733af93f57fdaba5a12",
-    "value": "4479500000000000000000"
+    "value": 4479.5
   },
   {
     "address": "0x440631dbdc0753e45241569c6d63552eac8e3130",
-    "value": "4468650000000000000000"
+    "value": 4468.65
   },
   {
     "address": "0x437b7a67cd177acdfae47b9b223deee91135bf42",
-    "value": "4456250000000000000000"
+    "value": 4456.25
   },
   {
     "address": "0x90d61e3efc07161b1397eeb278d1bc9355774f96",
-    "value": "4422150000000000000000"
+    "value": 4422.15
   },
   {
     "address": "0x1102dca63e83869773f9eb32e1e799ef9c404a92",
-    "value": "4346200000000000000000"
+    "value": 4346.2
   },
   {
     "address": "0x3f11dd0266165820282f28d4996b6e246b3bbe10",
-    "value": "4330700000000000000000"
+    "value": 4330.7
   },
   {
     "address": "0x2d83252a038d9b1b6f1b9e0f264cfd4a859dd4ce",
-    "value": "4284200000000000000000"
+    "value": 4284.2
   },
   {
     "address": "0x575740f581038f792425670fa6bfebcc8e4dcdff",
-    "value": "4247000000000000000000"
+    "value": 4247
   },
   {
     "address": "0x11773e0a25a96711d3b126c89ba8fed505c9e312",
-    "value": "4247000000000000000000"
+    "value": 4247
   },
   {
     "address": "0xbA1c8Ca13Ab5d8a150ec7233694EE00c18243a53",
-    "value": "4059450000000000000000"
+    "value": 4059.45
   },
   {
     "address": "0x9ddbdcD3C5123E673E4B96992101F8CEafCd95A0",
-    "value": "4059450000000000000000"
+    "value": 4059.45
   },
   {
     "address": "0xdaf28ddb794373f3124ee2b0b69c2aaf478aeb89",
-    "value": "4030000000000000000000"
+    "value": 4030
   },
   {
     "address": "0x15a878789630fa59d41b0efc397f16a9b2ff3c3f",
-    "value": "4030000000000000000000"
+    "value": 4030
   },
   {
     "address": "0xba15e9b644685cb845af18a738abd40c6bcd78ed",
-    "value": "4017600000000000000000"
+    "value": 4017.6
   },
   {
     "address": "0xf666f2b56dc938a97122eac2e014fbfce2e99715",
-    "value": "8220200000000000000000"
+    "value": 8220.2
   },
   {
     "address": "0xea651e5b72751f1d2e36255f5f59792c84cd856f",
-    "value": "3968000000000000000000"
+    "value": 3968
   },
   {
     "address": "0x3d6dffef94f04a5f19366319abab6c30f0a8ed26",
-    "value": "3961800000000000000000"
+    "value": 3961.8
   },
   {
     "address": "0xe39027f26b33b91317b03427b892224d2c65a05e",
-    "value": "3898250000000000000000"
+    "value": 3898.25
   },
   {
     "address": "0x9cd074f0192bb2a477da3271ba03db4fc5cd38c7",
-    "value": "3895150000000000000000"
+    "value": 3895.15
   },
   {
     "address": "0x847768fa647de3f5735d6fb7638979ead0948aea",
-    "value": "3840900000000000000000"
+    "value": 3840.9
   },
   {
     "address": "0xbbb6e8eabfbf4d1a6ebf16801b62cf7bdf70ce57",
-    "value": "3836250000000000000000"
+    "value": 3836.25
   },
   {
     "address": "0xa335ade338308b8e071cf2c8f3ca5e50f6563c60",
-    "value": "3795950000000000000000"
+    "value": 3795.95
   },
   {
     "address": "0x6a75bc3ac8b3f35e84289431cc19f26c9612443e",
-    "value": "3788200000000000000000"
+    "value": 3788.2
   },
   {
     "address": "0x5a4301c420818ca653b7aaf6cc439c3ade0f7474",
-    "value": "3735500000000000000000"
+    "value": 3735.5
   },
   {
     "address": "0x6e3AA85dB95BBA36276a37ED93B12B7AB0782aFB",
-    "value": "3720000000000000000000"
+    "value": 3720
   },
   {
     "address": "0x8cCAf951C46899Aa11E96435261C271c3E5Ba963",
-    "value": "3720000000000000000000"
+    "value": 3720
   },
   {
     "address": "0xde85a5176870a81d84de1c0f59a7ccd114bf7dd7",
-    "value": "3706050000000000000000"
+    "value": 3706.05
   },
   {
     "address": "0x66c7a7348250f453a37cf86410a946f9668de386",
-    "value": "3696750000000000000000"
+    "value": 3696.75
   },
   {
     "address": "0xede3e7ccb35fb5a904f9d181fee7b5005fcc870e",
-    "value": "3696750000000000000000"
+    "value": 3696.75
   },
   {
     "address": "0xd4a399788637518ac3826da5bd648056c4b9f993",
-    "value": "3614600000000000000000"
+    "value": 3614.6
   },
   {
     "address": "0x40eb2d2c6f330ae244800accbb31f608f82cbcc9",
-    "value": "3611500000000000000000"
+    "value": 3611.5
   },
   {
     "address": "0xc6903cd1f45ebb58534f8499479e9f0633265410",
-    "value": "3599100000000000000000"
+    "value": 3599.1
   },
   {
     "address": "0x7c030347b22afbcdc047d8e068b19175cea9ee12",
-    "value": "3565000000000000000000"
+    "value": 3565
   },
   {
     "address": "0x55ab7ec373fd9f3c0cfe027f08ec68d8e5e014a8",
-    "value": "3547950000000000000000"
+    "value": 3547.95
   },
   {
     "address": "0x29f088cff86f03036220393c869519329bf69ca7",
-    "value": "3503000000000000000000"
+    "value": 3503
   },
   {
     "address": "0xce62d4010fde530b6405ddaa55c8228b31aa1e78",
-    "value": "3482850000000000000000"
+    "value": 3482.85
   },
   {
     "address": "0xa1b18d734c3defa7dc61803417cf878517a56c57",
-    "value": "3419300000000000000000"
+    "value": 3419.3
   },
   {
     "address": "0x4d1572ea399cfcb0a4b25b364df2c5ba68697e18",
-    "value": "3403800000000000000000"
+    "value": 3403.8
   },
   {
     "address": "0xacddfa95e1ee463125fe8aecadebc27d1f6ce463",
-    "value": "5054550000000000000000"
+    "value": 5054.55
   },
   {
     "address": "0xf86eb5215f14af0ec2708653dc8a7c6714648eb1",
-    "value": "3341800000000000000000"
+    "value": 3341.8
   },
   {
     "address": "0x2b394fdbc131cfa09c10ad1165145e780d202857",
-    "value": "3307700000000000000000"
+    "value": 3307.7
   },
   {
     "address": "0xfab9868d7c57a30514d3b6bcbfd780dec756d140",
-    "value": "3259650000000000000000"
+    "value": 3259.65
   },
   {
     "address": "0x303dfcca6ac8ea71129e0f747af637e43cd88446",
-    "value": "3247250000000000000000"
+    "value": 3247.25
   },
   {
     "address": "0x1ec627158650ff5db5d6fce7c1ed6e0086d94f5f",
-    "value": "3242600000000000000000"
+    "value": 3242.6
   },
   {
     "address": "0xc087195a816e1f247f1865189d76c6be0aed9982",
-    "value": "3234850000000000000000"
+    "value": 3234.85
   },
   {
     "address": "0x2142d846641b9434786cc64b510d825f7dfe2d33",
-    "value": "3222450000000000000000"
+    "value": 3222.45
   },
   {
     "address": "0x745eda30af44327424a1686f5aefd6a83d67d182",
-    "value": "3189900000000000000000"
+    "value": 3189.9
   },
   {
     "address": "0x3a54426f47d411a5fa3e68a9eab44e02642c420f",
-    "value": "3131000000000000000000"
+    "value": 3131
   },
   {
     "address": "0xf263bbb6d5d8324596156ff95e929d60f699c3ff",
-    "value": "3014750000000000000000"
+    "value": 3014.75
   },
   {
     "address": "0xd2e80d60aff5377587e49ff32c9bad639d6f68bc",
-    "value": "2991500000000000000000"
+    "value": 2991.5
   },
   {
     "address": "0x3e60c12997d3bb062530e5f7e7f0400fbb9aeca5",
-    "value": "2976000000000000000000"
+    "value": 2976
   },
   {
     "address": "0x07cd101a8cd329a170d3a762d9d1645a2adb7f7a",
-    "value": "2945000000000000000000"
+    "value": 2945
   },
   {
     "address": "0x054b198f53817caf7b4736bc8d4b449f6ba595f9",
-    "value": "2898500000000000000000"
+    "value": 2898.5
   },
   {
     "address": "0x985a12342a07627a92d3927e44476c3bb0a1302d",
-    "value": "2856650000000000000000"
+    "value": 2856.65
   },
   {
     "address": "0x2e2dBDa311F6b34a2a17fCDCEcFf86597c6bDf40",
-    "value": "2790000000000000000000"
+    "value": 2790
   },
   {
     "address": "0x24611Fad669350cA869FBed4B62877d1a409dA12",
-    "value": "2790000000000000000000"
+    "value": 2790
   },
   {
     "address": "0x94B35D942ADaBb3c493C58227f5e36e074fDCe29",
-    "value": "2790000000000000000000"
+    "value": 2790
   },
   {
     "address": "0x94B35D942ADaBb3c493C58227f5e36e074fDCe29",
-    "value": "2790000000000000000000"
+    "value": 2790
   },
   {
     "address": "0x23f13a4379803da17f9dbfec3a54de2acea013d1",
-    "value": "2779150000000000000000"
+    "value": 2779.15
   },
   {
     "address": "0xe35e2e4624987575dfd263b124a3999e180b8b89",
-    "value": "2765200000000000000000"
+    "value": 2765.2
   },
   {
     "address": "0xa27c8e38a5b577d4c1aadd0426363ca83255c6d7",
-    "value": "2762100000000000000000"
+    "value": 2762.1
   },
   {
     "address": "0x9303e9d4e405d5a906acf47bf61447013315a539",
-    "value": "2712500000000000000000"
+    "value": 2712.5
   },
   {
     "address": "0x26c1e466ce41070585d6876dc17b7bd9295c41d5",
-    "value": "2712500000000000000000"
+    "value": 2712.5
   },
   {
     "address": "0xf32e0e22ff269a62aedb1b9cda736d6749efd63e",
-    "value": "2690800000000000000000"
+    "value": 2690.8
   },
   {
     "address": "0xc2f094439cd1fc45af3e8a679984927abab0d3d9",
-    "value": "2673750000000000000000"
+    "value": 2673.75
   },
   {
     "address": "0xd55503d8936ba289628e208c285ac046b8378881",
-    "value": "2650500000000000000000"
+    "value": 2650.5
   },
   {
     "address": "0x550c969c528c6b7c1b7ea733e57d780d081f5c20",
-    "value": "2573000000000000000000"
+    "value": 2573
   },
   {
     "address": "0x8d0123637062f8c15fd6afde6f834c85f4afeede",
-    "value": "2571450000000000000000"
+    "value": 2571.45
   },
   {
     "address": "0xd6c8dad836d2800ca00419eba4d371ddbfa29499",
-    "value": "2421100000000000000000"
+    "value": 2421.1
   },
   {
     "address": "0xf7b18e107eb36797f4ce36de756630b9c30969ad",
-    "value": "2399400000000000000000"
+    "value": 2399.4
   },
   {
     "address": "0x269669e17f349182d691a7607e5a3f095425ee35",
-    "value": "2349800000000000000000"
+    "value": 2349.8
   },
   {
     "address": "0x931385cb7beeef891184215b7a92763181178617",
-    "value": "2325000000000000000000"
+    "value": 2325
   },
   {
     "address": "0x6186290b28d511bff971631c916244a9fc539cfe",
-    "value": "2325000000000000000000"
+    "value": 2325
   },
   {
     "address": "0x04d4f52d965c42bb79e270f0f2295601a7014beb",
-    "value": "2309500000000000000000"
+    "value": 2309.5
   },
   {
     "address": "0x8626632f1e9826540b318305b9028ddf521c1333",
-    "value": "5750000000000000000000"
+    "value": 5750
   },
   {
     "address": "0x3e25dac1092031116e2a7d59953dcec2824a6c6a",
-    "value": "2263000000000000000000"
+    "value": 2263
   },
   {
     "address": "0xfc7d36f09f0610ca72457aaa85e933ed07629b5f",
-    "value": "2219600000000000000000"
+    "value": 2219.6
   },
   {
     "address": "0x6f435a9421653b27f048957b8ba2092d65a711f9",
-    "value": "2216500000000000000000"
+    "value": 2216.5
   },
   {
     "address": "0x36dac8c9d9ba6ecf704462ba24f7a136c180f209",
-    "value": "2208750000000000000000"
+    "value": 2208.75
   },
   {
     "address": "0xfa621bbc0e434c400aa45d631b9bb97be11e44c3",
-    "value": "2166900000000000000000"
+    "value": 2166.9
   },
   {
     "address": "0x787349b0c7d3bdf2583f2ba586b4990074593be1",
-    "value": "2134350000000000000000"
+    "value": 2134.35
   },
   {
     "address": "0xa94b5260b05087b0921d24c59c2a1cc4cef4187b",
-    "value": "2117300000000000000000"
+    "value": 2117.3
   },
   {
     "address": "0x78ef03aa529550967c2a8fb0a6242f6762b9f0ea",
-    "value": "2077000000000000000000"
+    "value": 2077
   },
   {
     "address": "0xfb6c769a5844d19d6228023a09f9f4f09e5f1f94",
-    "value": "2046000000000000000000"
+    "value": 2046
   },
   {
     "address": "0xfccba679d3c8aaf521fbc69aedba9666174a7584",
-    "value": "2030500000000000000000"
+    "value": 2030.5
   },
   {
     "address": "0x07370f353fe1d14b8becefb6c49b32a993d7d60f",
-    "value": "2028950000000000000000"
+    "value": 2028.95
   },
   {
     "address": "0xe878792792e9b7feee21cca5d7b9472a079c33d0",
-    "value": "2019650000000000000000"
+    "value": 2019.65
   },
   {
     "address": "0xa11f2694c030a00d020d2bc1bee3bb6aa3076131",
-    "value": "2013450000000000000000"
+    "value": 2013.45
   },
   {
     "address": "0x97cf97169a2f64a84c30587393f4df84c3282756",
-    "value": "2001050000000000000000"
+    "value": 2001.05
   },
   {
     "address": "0x8f5fbdc4a08d48cacc468b30b55705529944bc8c",
-    "value": "1968500000000000000000"
+    "value": 1968.5
   },
   {
     "address": "0x04573e7aa439e3d8581ea011fe1432b13f81a2bd",
-    "value": "1937500000000000000000"
+    "value": 1937.5
   },
   {
     "address": "0x2232e8d705f08e29fdb837206680454ae5368e98",
-    "value": "1915800000000000000000"
+    "value": 1915.8
   },
   {
     "address": "0x7b38f14a5076f2a996a926fe7d041305f2280c86",
-    "value": "1853800000000000000000"
+    "value": 1853.8
   },
   {
     "address": "0x93857ad03a9ab1226d909ffa49bca37e70e4d32d",
-    "value": "2909500000000000000000"
+    "value": 2909.5
   },
   {
     "address": "0xce43a7498e65b6f6c8741fd9a7efc3f78efc78c4",
-    "value": "1835200000000000000000"
+    "value": 1835.2
   },
   {
     "address": "0xc2380ded7219198f5195117c395d18c2b1ed50a3",
-    "value": "1830550000000000000000"
+    "value": 1830.55
   },
   {
     "address": "0xc6de698d90598b8fe60e0d8c7c674f2d839769d4",
-    "value": "1824350000000000000000"
+    "value": 1824.35
   },
   {
     "address": "0xc15add7eb1ba708bc7189cef6a4c47200b77a52b",
-    "value": "1810400000000000000000"
+    "value": 1810.4
   },
   {
     "address": "0x892f25b51f2c990797c1ab5bc6d3e27a20c8524f",
-    "value": "4756400000000000000000"
+    "value": 4756.4
   },
   {
     "address": "0xd3c8c9a7f804ac0018eca6d65cc89f9382c1d79e",
-    "value": "1784050000000000000000"
+    "value": 1784.05
   },
   {
     "address": "0x0bad329cb915575f2fc954da0f31a3ad06d0883d",
-    "value": "1754600000000000000000"
+    "value": 1754.6
   },
   {
     "address": "0x49E5EB4A279E6caDD3Fe2F3D4cfe25E97aD8dde7",
-    "value": "1743750000000000000000"
+    "value": 1743.75
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "1743750000000000000000"
+    "value": 1743.75
   },
   {
     "address": "0xa69f62a2e45baa788b1063e34b9ceaa0cdf693be",
-    "value": "1725150000000000000000"
+    "value": 1725.15
   },
   {
     "address": "0xde2014a9fa88ccc5a987be1f258220d18275d27c",
-    "value": "1722050000000000000000"
+    "value": 1722.05
   },
   {
     "address": "0x1df428833f2c9fb1ef098754e5d710432450d706",
-    "value": "2840500000000000000000"
+    "value": 2840.5
   },
   {
     "address": "0x86c74d223d990827f0e8ae7eef855660eff7fd1d",
-    "value": "1714300000000000000000"
+    "value": 1714.3
   },
   {
     "address": "0x5cadce51db28ab261e50743feb881a3f7aca0a69",
-    "value": "1627500000000000000000"
+    "value": 1627.5
   },
   {
     "address": "0x836eb56fef4d247bc4411ae6417c41e6c95449fb",
-    "value": "3266000000000000000000"
+    "value": 3266
   },
   {
     "address": "0x20b38b163765c3a9afef81781f06cae22fef3290",
-    "value": "1616650000000000000000"
+    "value": 1616.65
   },
   {
     "address": "0x007ce5c372cc6fcc47d2aac5665a94a2b165a1b5",
-    "value": "1588750000000000000000"
+    "value": 1588.75
   },
   {
     "address": "0x40a32b4cd4e218b9322a25c8feedcccf39505f5d",
-    "value": "1573250000000000000000"
+    "value": 1573.25
   },
   {
     "address": "0xa18030d2850f4efbb3dccea76350fc86eae8e613",
-    "value": "1539150000000000000000"
+    "value": 1539.15
   },
   {
     "address": "0x7b0b8e48e5629528626dc3d8e9518a92a1158b6b",
-    "value": "2868100000000000000000"
+    "value": 2868.1
   },
   {
     "address": "0x9e66c867e1730a98285703a8a10d916541a8baf9",
-    "value": "2318400000000000000000"
+    "value": 2318.4
   },
   {
     "address": "0xcce9863cfb538e367751eecfe8cff0632d7191c5",
-    "value": "1501950000000000000000"
+    "value": 1501.95
   },
   {
     "address": "0x56bb55aaa1102801742af12bdb66072e8b547e85",
-    "value": "1480250000000000000000"
+    "value": 1480.25
   },
   {
     "address": "0x874aa93981c04cdf855268f0c5621f1941e1dc7c",
-    "value": "1472500000000000000000"
+    "value": 1472.5
   },
   {
     "address": "0xa223903593e4ae4a7019f97abc3301ab6fc06c08",
-    "value": "1472500000000000000000"
+    "value": 1472.5
   },
   {
     "address": "0x3Df8bCB3c65016E25ae0f7A72F0edc91CE9c01CF",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0x063132E1D536793A8d1E8F0D850af809FD7858c6",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0x24611Fad669350cA869FBed4B62877d1a409dA12",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0x24611Fad669350cA869FBed4B62877d1a409dA12",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0x4B5d2C264220Fa0b30d6579eDa16da9e838fA6D4",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "1464750000000000000000"
+    "value": 1464.75
   },
   {
     "address": "0x5265b165e09236286263ac36266c50db5ba0a710",
-    "value": "1461650000000000000000"
+    "value": 1461.65
   },
   {
     "address": "0xd45a8e8c1f2deabb74a86f3b7ea60afce7a1dd90",
-    "value": "1458550000000000000000"
+    "value": 1458.55
   },
   {
     "address": "0x7e8dec1092f7fac6ad0803568505f59ba658dc94",
-    "value": "1458550000000000000000"
+    "value": 1458.55
   },
   {
     "address": "0x18f42999bad7debade85cd4d876b522649631e5b",
-    "value": "1458550000000000000000"
+    "value": 1458.55
   },
   {
     "address": "0x3Df8bCB3c65016E25ae0f7A72F0edc91CE9c01CF",
-    "value": "1443825000000000000000"
+    "value": 1443.825
   },
   {
     "address": "0xDbdBee00d81B4320E7D00CAf6Af1738347Fc1238",
-    "value": "1443825000000000000000"
+    "value": 1443.825
   },
   {
     "address": "0x79afab79b346e7b944c8b1a09d00cece5ce2e7c3",
-    "value": "1441500000000000000000"
+    "value": 1441.5
   },
   {
     "address": "0x752579c6cb68f413eaa193478d984ef84773fd76",
-    "value": "1418250000000000000000"
+    "value": 1418.25
   },
   {
     "address": "0x943b28a07259b7f368657e47185693ac0021b639",
-    "value": "1410500000000000000000"
+    "value": 1410.5
   },
   {
     "address": "0x9509f960e4357146770cd3a1a1952431f23126fa",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0xe21f7e1F0dA94ffAd549b544827Ea5fecf49cf31",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0xf56345338Cb4CddaF915ebeF3bfde63E70FE3053",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0xf56345338Cb4CddaF915ebeF3bfde63E70FE3053",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0x357FEF6dEb4a0d501793EC0eA289A15343B19Ec3",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0x2142D846641B9434786cC64b510D825f7dFe2d33",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "1395000000000000000000"
+    "value": 1395
   },
   {
     "address": "0x7845fc524ecc473b93341597cf82b8ea5f53e66f",
-    "value": "1351600000000000000000"
+    "value": 1351.6
   },
   {
     "address": "0x81b7e988d083390f93a0ebf7b5925dd92c96e348",
-    "value": "1984000000000000000000"
+    "value": 1984
   },
   {
     "address": "0xfe25a36c25883693205849bc643d5383a18eaac1",
-    "value": "1333000000000000000000"
+    "value": 1333
   },
   {
     "address": "0xa1313a9d6ab08d24e03c2251817b72676df4c3bb",
-    "value": "1319050000000000000000"
+    "value": 1319.05
   },
   {
     "address": "0x54793c8f80f642ed4e200177bf845c61915ebc55",
-    "value": "1302000000000000000000"
+    "value": 1302
   },
   {
     "address": "0x92be9a3f9f5b3ba7d8d18430723d3c4f82539e74",
-    "value": "1297350000000000000000"
+    "value": 1297.35
   },
   {
     "address": "0x27684cfc20021e3783dc1921a5ed31a454e17e02",
-    "value": "1286500000000000000000"
+    "value": 1286.5
   },
   {
     "address": "0xfeb41f7dc10c98fb5a7995fd9c5de7c83e02dde7",
-    "value": "1271000000000000000000"
+    "value": 1271
   },
   {
     "address": "0x8da555dcb53e65b34a5c86360259601312e59ebb",
-    "value": "1269450000000000000000"
+    "value": 1269.45
   },
   {
     "address": "0xBE03aB0c13af2fD997B437425f0061c046F18f1A",
-    "value": "1255500000000000000000"
+    "value": 1255.5
   },
   {
     "address": "0xA335ADE338308B8e071Cf2c8F3cA5e50F6563C60",
-    "value": "1255500000000000000000"
+    "value": 1255.5
   },
   {
     "address": "0xb3d60e3e2555f0093edd2a9113a3c37df5629a30",
-    "value": "1240000000000000000000"
+    "value": 1240
   },
   {
     "address": "0x2ae4f87745c3431005babffc94d5b0c5090b0365",
-    "value": "1233800000000000000000"
+    "value": 1233.8
   },
   {
     "address": "0xe6b69d0e8a62ac9edcbe651b675fe3605ecc4b36",
-    "value": "1219850000000000000000"
+    "value": 1219.85
   },
   {
     "address": "0xb51f56dbec3505e00f53015d4aa077469c2a2a31",
-    "value": "1215200000000000000000"
+    "value": 1215.2
   },
   {
     "address": "0x932a824a4d3d0680e0b352de150e6f212b8ac841",
-    "value": "1209000000000000000000"
+    "value": 1209
   },
   {
     "address": "0x8981a87033bc2344f2704ce3f8f0c5d1bf009dfb",
-    "value": "1827450000000000000000"
+    "value": 1827.45
   },
   {
     "address": "0x08e61677363e7228adfa967bb542b1bcc02bcf4f",
-    "value": "1147000000000000000000"
+    "value": 1147
   },
   {
     "address": "0x74333fb3f1339b838321dd766b07990f6768fb87",
-    "value": "1116000000000000000000"
+    "value": 1116
   },
   {
     "address": "0x6678980412c45d8f3ce85e2777e8cd06090fcaae",
-    "value": "1114450000000000000000"
+    "value": 1114.45
   },
   {
     "address": "0x448a8c3c6f72b22af077b0c003d973816acf38a4",
-    "value": "1111350000000000000000"
+    "value": 1111.35
   },
   {
     "address": "0xc67f4387b22debb0252f1c462e772ba01cec210e",
-    "value": "1111350000000000000000"
+    "value": 1111.35
   },
   {
     "address": "0x46371cf3140927be722325fcf8cc323be13c4e98",
-    "value": "1095850000000000000000"
+    "value": 1095.85
   },
   {
     "address": "0x6d2259154e92cf71cac6286c99e528ee03f591e9",
-    "value": "1069500000000000000000"
+    "value": 1069.5
   },
   {
     "address": "0x8dfa76a3e8f290e6224b93beba163b90449b0e38",
-    "value": "1069500000000000000000"
+    "value": 1069.5
   },
   {
     "address": "0x64795aff7a9cf4c8586b081578c18bcad1f454b1",
-    "value": "1066400000000000000000"
+    "value": 1066.4
   },
   {
     "address": "0xb28b92cdd97f5b162471cc97b3c058dbe4a11ee8",
-    "value": "1038500000000000000000"
+    "value": 1038.5
   },
   {
     "address": "0x6872d36a512f5c823ddd1b0c455801453889ca90",
-    "value": "1023000000000000000000"
+    "value": 1023
   },
   {
     "address": "0x0b2ec8f000f56ec4467a25b5f5575b2260802f89",
-    "value": "981150000000000000000"
+    "value": 981.15
   },
   {
     "address": "0x2541308283b063c816d32657787a734275288678",
-    "value": "971850000000000000000"
+    "value": 971.85
   },
   {
     "address": "0xf9107317b0ff77ed5b7adea15e50514a3564002b",
-    "value": "930000000000000000000"
+    "value": 930
   },
   {
     "address": "0x035458D0209e7e4ce25E8A0126A4c423D9eEB9a4",
-    "value": "906750000000000000000"
+    "value": 906.75
   },
   {
     "address": "0x357FEF6dEb4a0d501793EC0eA289A15343B19Ec3",
-    "value": "906750000000000000000"
+    "value": 906.75
   },
   {
     "address": "0x1ce2304369d957fc1f0dd32c983f445e449f4c7a",
-    "value": "905200000000000000000"
+    "value": 905.2
   },
   {
     "address": "0x83c690b058c09b07f355c2bac9135462d2623432",
-    "value": "899000000000000000000"
+    "value": 899
   },
   {
     "address": "0x03c27b42773d3bef3d3615a7a6b61b3b9a180914",
-    "value": "899000000000000000000"
+    "value": 899
   },
   {
     "address": "0x6a4e5fd0ecb1ac6bf980c0e2952e71e09ccd1898",
-    "value": "894350000000000000000"
+    "value": 894.35
   },
   {
     "address": "0x769035f7182ad95c917dd8ab6ebd29a16ce238bd",
-    "value": "891250000000000000000"
+    "value": 891.25
   },
   {
     "address": "0x700c72ca8db6f4c93a827a79b48c3ef4847b048a",
-    "value": "883500000000000000000"
+    "value": 883.5
   },
   {
     "address": "0x6daccc452902b0668bc35bfe3afb44fd9f768d29",
-    "value": "868000000000000000000"
+    "value": 868
   },
   {
     "address": "0x887b86b6b6957f7bbea88b8cefd392f39236a88c",
-    "value": "868000000000000000000"
+    "value": 868
   },
   {
     "address": "0xb3b778d7e46f4fed04261a341ffc474265f9c0b1",
-    "value": "868000000000000000000"
+    "value": 868
   },
   {
     "address": "0xd073248561a79c81e5011b1acfdf3229eeb27465",
-    "value": "868000000000000000000"
+    "value": 868
   },
   {
     "address": "0x88289555ae9d944f2ea69572a05bb10f7788abac",
-    "value": "868000000000000000000"
+    "value": 868
   },
   {
     "address": "0xe201a952487ae18f47ff08b891d5dd99bc4c52e0",
-    "value": "868000000000000000000"
+    "value": 868
   },
   {
     "address": "0x5c04911ba3a457de6fa0357b339220e4e034e8f7",
-    "value": "840100000000000000000"
+    "value": 840.1
   },
   {
     "address": "0x4cfe698f946d323c371fda7072922aad90684729",
-    "value": "837000000000000000000"
+    "value": 837
   },
   {
     "address": "0x3Df8bCB3c65016E25ae0f7A72F0edc91CE9c01CF",
-    "value": "837000000000000000000"
+    "value": 837
   },
   {
     "address": "0x3Df8bCB3c65016E25ae0f7A72F0edc91CE9c01CF",
-    "value": "837000000000000000000"
+    "value": 837
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "837000000000000000000"
+    "value": 837
   },
   {
     "address": "0xD4E26683635bf3dc9EAD5F31B935c33cC1Ce1838",
-    "value": "837000000000000000000"
+    "value": 837
   },
   {
     "address": "0x869ce3c7415f06db4ff6d599d629c1a9c7c8a820",
-    "value": "833900000000000000000"
+    "value": 833.9
   },
   {
     "address": "0x3fe87f5d1490273d7a6b6975ac023220105683b4",
-    "value": "829250000000000000000"
+    "value": 829.25
   },
   {
     "address": "0x1c22e514203bd6157c7db84c616f3746bd03b431",
-    "value": "821500000000000000000"
+    "value": 821.5
   },
   {
     "address": "0x31d75becb2fe9cc60eb4877b44110aa1cdae90a5",
-    "value": "821500000000000000000"
+    "value": 821.5
   },
   {
     "address": "0xfb10df58c750b140b09d833bcff487d32a07e31b",
-    "value": "810650000000000000000"
+    "value": 810.65
   },
   {
     "address": "0x91bd4c2aab7de9d5e2f450c1bd5096ccc8f63cce",
-    "value": "806000000000000000000"
+    "value": 806
   },
   {
     "address": "0xd43da7f8fe7e1c665942006a871b043d93ba327b",
-    "value": "806000000000000000000"
+    "value": 806
   },
   {
     "address": "0xfd1b7c0f6fbaeb20fcc6c02a027fd3d8959e648e",
-    "value": "1667500000000000000000"
+    "value": 1667.5
   },
   {
     "address": "0x5540813d37ae3f54a2e9a91745351e09921d80d8",
-    "value": "806000000000000000000"
+    "value": 806
   },
   {
     "address": "0x044c8f54235e5293db95ac58ac6155578b8a695e",
-    "value": "798250000000000000000"
+    "value": 798.25
   },
   {
     "address": "0x5e74a7803ad99f6f13ba31a9d7147e3802d8c97a",
-    "value": "796700000000000000000"
+    "value": 796.7
   },
   {
     "address": "0x50c74245da642223e191e90426abfe8e778fc523",
-    "value": "790500000000000000000"
+    "value": 790.5
   },
   {
     "address": "0x7bda21f2f3a9c9604e6c8fd80b7a4f529e5ff805",
-    "value": "784300000000000000000"
+    "value": 784.3
   },
   {
     "address": "0x4341f1bdd076760013ffc1aeff9fcf1c2c815fab",
-    "value": "776550000000000000000"
+    "value": 776.55
   },
   {
     "address": "0xe0d209b7324d982bacb757f724ebe00a9792ac28",
-    "value": "775000000000000000000"
+    "value": 775
   },
   {
     "address": "0x883c981dc0af66bdfd9460d52a063a327423ab7a",
-    "value": "775000000000000000000"
+    "value": 775
   },
   {
     "address": "0x09af383265202582450e74f0aadcf7a648a92609",
-    "value": "770350000000000000000"
+    "value": 770.35
   },
   {
     "address": "0x3b7f246d8340de4fe0495bfd243fbea798503c7f",
-    "value": "759500000000000000000"
+    "value": 759.5
   },
   {
     "address": "0x998514951f0062e981fa4d9150f602ecea457b80",
-    "value": "759500000000000000000"
+    "value": 759.5
   },
   {
     "address": "0xd331397355c6e67e0f1be93396fb382ae3ace02d",
-    "value": "759500000000000000000"
+    "value": 759.5
   },
   {
     "address": "0xc35f3f92a9f27a157b309a9656cfea30e5c9cce3",
-    "value": "748650000000000000000"
+    "value": 748.65
   },
   {
     "address": "0x6f4e3617db82be3aa2f470de50051f7b3f95be9b",
-    "value": "728500000000000000000"
+    "value": 728.5
   },
   {
     "address": "0x236e7810d1c1d9f7c6d24b6da4f4fa214fa4c681",
-    "value": "726950000000000000000"
+    "value": 726.95
   },
   {
     "address": "0x9e46f015427df1e237025ecc006f4811fded7016",
-    "value": "697500000000000000000"
+    "value": 697.5
   },
   {
     "address": "0x44306c23fc2ea97da18c349042dc62f504923a63",
-    "value": "697500000000000000000"
+    "value": 697.5
   },
   {
     "address": "0xC264880faD20D56Eb6C5c18BcB2F3d50F72c7663",
-    "value": "697500000000000000000"
+    "value": 697.5
   },
   {
     "address": "0x24611Fad669350cA869FBed4B62877d1a409dA12",
-    "value": "697500000000000000000"
+    "value": 697.5
   },
   {
     "address": "0x2142D846641B9434786cC64b510D825f7dFe2d33",
-    "value": "697500000000000000000"
+    "value": 697.5
   },
   {
     "address": "0x1791d5ebBdfd565f136e60A3c43269b148f92B44",
-    "value": "697500000000000000000"
+    "value": 697.5
   },
   {
     "address": "0x180b52fd66f7896bf40ddeaf5778331bd62af540",
-    "value": "682000000000000000000"
+    "value": 682
   },
   {
     "address": "0xdce2121bd7191a011f1d89a1c329059d3980077a",
-    "value": "666500000000000000000"
+    "value": 666.5
   },
   {
     "address": "0x5c24b7308637513f593b6e5005135186c85e9c11",
-    "value": "666500000000000000000"
+    "value": 666.5
   },
   {
     "address": "0x81ec8da41b01950b41ea37382dba0143da990f96",
-    "value": "666500000000000000000"
+    "value": 666.5
   },
   {
     "address": "0xf461b7e6cc342d2942379cab5332671d4b9eefee",
-    "value": "651000000000000000000"
+    "value": 651
   },
   {
     "address": "0xead3dd83ed1e107e02e1d0a307d4f1ba8a2af12d",
-    "value": "651000000000000000000"
+    "value": 651
   },
   {
     "address": "0x2670564fba3ab966da74b08abecb84eae6ecaab3",
-    "value": "629300000000000000000"
+    "value": 629.3
   },
   {
     "address": "0x1f28b5f85042d55b504c19b25ff411db6e29ed1c",
-    "value": "604500000000000000000"
+    "value": 604.5
   },
   {
     "address": "0x35ae571f6682fde614b853320291c35fbd510fb2",
-    "value": "604500000000000000000"
+    "value": 604.5
   },
   {
     "address": "0x90259636b13d7b0ab56f91771726f0afb861dddb",
-    "value": "604500000000000000000"
+    "value": 604.5
   },
   {
     "address": "0x27b2a467e943e4ff32b35b5229ae12f4359227ee",
-    "value": "604500000000000000000"
+    "value": 604.5
   },
   {
     "address": "0x7213e9962b40b219f2d7daf6ce83eb8fbde7abdd",
-    "value": "604500000000000000000"
+    "value": 604.5
   },
   {
     "address": "0x6582a0fae4931833aa1f663785da13cbfcb90ab6",
-    "value": "604500000000000000000"
+    "value": 604.5
   },
   {
     "address": "0x27ded67d88c0da8c6b0fb0f7c78d87926d71119a",
-    "value": "2065400000000000000000"
+    "value": 2065.4
   },
   {
     "address": "0x699b4ef52404a5f69b27328c4a0998ed7cd79965",
-    "value": "589000000000000000000"
+    "value": 589
   },
   {
     "address": "0x9d31271a1c1a30b115bfee7c611a772b416a096a",
-    "value": "584350000000000000000"
+    "value": 584.35
   },
   {
     "address": "0xcc5de602a32469f0e32c8aa01757793746bd11a1",
-    "value": "579700000000000000000"
+    "value": 579.7
   },
   {
     "address": "0x533c5c699fea1fd6cd7610ec05ae59c5ca4e42bf",
-    "value": "578150000000000000000"
+    "value": 578.15
   },
   {
     "address": "0xa02de3133877d68f68f95826e319477523b0c2d5",
-    "value": "573500000000000000000"
+    "value": 573.5
   },
   {
     "address": "0xdb9a26cd9e6c2a2acd8896670e6a71d505209415",
-    "value": "573500000000000000000"
+    "value": 573.5
   },
   {
     "address": "0x7e35fe41789a6bc7668b8c5a44928b29ed7f41e2",
-    "value": "559550000000000000000"
+    "value": 559.55
   },
   {
     "address": "0x6e88c16794cb212bdcfd6b6f8901af2f83237d3b",
-    "value": "558000000000000000000"
+    "value": 558
   },
   {
     "address": "0x7f08d733a2c4e65e88975aef8f80fa694ef339c1",
-    "value": "553350000000000000000"
+    "value": 553.35
   },
   {
     "address": "0xf1a0e48b8999061051a5d54daa1d75d539f3db0d",
-    "value": "547150000000000000000"
+    "value": 547.15
   },
   {
     "address": "0x6f2fc07bef63cbecfaa30af9ff9a5544b6665cc8",
-    "value": "542500000000000000000"
+    "value": 542.5
   },
   {
     "address": "0xd9a232edb7fabc84751948604d3e59ee618eb612",
-    "value": "542500000000000000000"
+    "value": 542.5
   },
   {
     "address": "0x2d2e04e8d67058a71fbb8a98baeb9c72da1dad87",
-    "value": "530100000000000000000"
+    "value": 530.1
   },
   {
     "address": "0xab2ff0e26c7efea613fda33a6c38f60eeaddb423",
-    "value": "502200000000000000000"
+    "value": 502.2
   },
   {
     "address": "0x3Df8bCB3c65016E25ae0f7A72F0edc91CE9c01CF",
-    "value": "502200000000000000000"
+    "value": 502.2
   },
   {
     "address": "0x19BD0ac8d147dFD963B069d06C7D272069495231",
-    "value": "502200000000000000000"
+    "value": 502.2
   },
   {
     "address": "0xeb9fad97e4a214a159674f585f07009ce6684d0f",
-    "value": "496000000000000000000"
+    "value": 496
   },
   {
     "address": "0xa07873b25689f1d7d4b91f1d5db9cd8c277c5e23",
-    "value": "478950000000000000000"
+    "value": 478.95
   },
   {
     "address": "0x87b358bc6fa785995b096afa045d02a5b7ade714",
-    "value": "465000000000000000000"
+    "value": 465
   },
   {
     "address": "0xd7f4083e8aed2497c73a540172e39e256de3d716",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x11802ea465e45ee8901080e0ac44ee56dd7da7c2",
-    "value": "465000000000000000000"
+    "value": 465
   },
   {
     "address": "0x2e2dBDa311F6b34a2a17fCDCEcFf86597c6bDf40",
-    "value": "465000000000000000000"
+    "value": 465
   },
   {
     "address": "0x1791d5ebBdfd565f136e60A3c43269b148f92B44",
-    "value": "465000000000000000000"
+    "value": 465
   },
   {
     "address": "0x353d1af0fa732f6230ff4ab0eb2a6a3dcf4c54f2",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0x3ff1b862cf31f391d59ca29199b46cad85c2831e",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0xef4a0ce8123650aacf03120c3c5684b65bc380c2",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0x820c38acb5cd0e19601632efbc6b54a48bfa2d35",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0x45f2e08b35a959a87833c57c4bacbf58f95eefb7",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0xccd6b8e11f1abc13efa7ff0367d801bc53b98f77",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0x7d30f535fa43da4e75c324a62d9b513fc50ca070",
-    "value": "434000000000000000000"
+    "value": 434
   },
   {
     "address": "0x7a0be0f6d003187c278390633660528cf0ff831b",
-    "value": "423150000000000000000"
+    "value": 423.15
   },
   {
     "address": "0x5b83353bbff34389ea85f2262b568f52d30d5ae2",
-    "value": "420050000000000000000"
+    "value": 420.05
   },
   {
     "address": "0x88696C4985f64Ea1EBfb9E46c1B47197F7a244AB",
-    "value": "418500000000000000000"
+    "value": 418.5
   },
   {
     "address": "0x786f7Da0E3B75Ca98709556A1eFe9820b4a301d2",
-    "value": "418500000000000000000"
+    "value": 418.5
   },
   {
     "address": "0x7119e78e874bcb396ec5407cd9b38c9f1a369c93",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0x5567ee57a914916c83c561c99d396864c1ec37fe",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0x1a08ba6d9dea10e5b502208c78513c4753ad67a6",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0x9a1ee67e454bb963183884e7e2872fc0016613d3",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0xbe821f03701a98c2f3fe900b5c0753802f9fa4de",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0x2256b007622c7bb4036ae325c5adf51e12879262",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0x695a1eac6e69a1142bd564278951c221f218f3f6",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0xa865bb60019a5c55d46f19974b47a99b7e5aca31",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0xbbb589796d01ef05f24c49f57d53125d4382ab62",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0xbc1be5ac62ca0637676f2b592bcd0a29bbf4e427",
-    "value": "403000000000000000000"
+    "value": 403
   },
   {
     "address": "0xe1f604ce82e480c9ee55a9f005d18de0364bb8cd",
-    "value": "396800000000000000000"
+    "value": 396.8
   },
   {
     "address": "0x35f09f57fd5c6106da70f4ed8e14312614747efc",
-    "value": "387500000000000000000"
+    "value": 387.5
   },
   {
     "address": "0xc14d1d58f7d40eb287ea898595dc0f6177765db7",
-    "value": "387500000000000000000"
+    "value": 387.5
   },
   {
     "address": "0xd797d6c8fd0bfbc7a8625ff49125167485c307d7",
-    "value": "387500000000000000000"
+    "value": 387.5
   },
   {
     "address": "0xa76b00d8fe77807edc51a87dbceabb623701d9d7",
-    "value": "384400000000000000000"
+    "value": 384.4
   },
   {
     "address": "0x12b89eb82a9647bff2ba181a11caac2b7c33a6c1",
-    "value": "382850000000000000000"
+    "value": 382.85
   },
   {
     "address": "0xbca646f6c0c20940e1f347bc5aac3b959d0ae9c9",
-    "value": "376650000000000000000"
+    "value": 376.65
   },
   {
     "address": "0xf0cb696c0225d7756bffedf79931e5a61379b676",
-    "value": "372000000000000000000"
+    "value": 372
   },
   {
     "address": "0x760f4befb83dd2e9813554c28c3c111b6020031f",
-    "value": "372000000000000000000"
+    "value": 372
   },
   {
     "address": "0x7800ef298408adb373014cacb0dbf90143501b03",
-    "value": "372000000000000000000"
+    "value": 372
   },
   {
     "address": "0x1352b3af249ecbb4e6f319c2d3da7d76e5ca271d",
-    "value": "372000000000000000000"
+    "value": 372
   },
   {
     "address": "0x56023bc0d392ac5ccb77e7dd4d139428a9df1ed7",
-    "value": "362700000000000000000"
+    "value": 362.7
   },
   {
     "address": "0x9b244c5bb4bfc83500a30a8c1afbb176cf14b6ef",
-    "value": "359600000000000000000"
+    "value": 359.6
   },
   {
     "address": "0xb20fadace091ecef17080d6934d306d4cdb870a9",
-    "value": "356500000000000000000"
+    "value": 356.5
   },
   {
     "address": "0xd3770a917176446d5c0a3bd12db8e9327333c2e3",
-    "value": "356500000000000000000"
+    "value": 356.5
   },
   {
     "address": "0x93b50f731355058661ee6ee7d8cc9b32dd3093ee",
-    "value": "356500000000000000000"
+    "value": 356.5
   },
   {
     "address": "0x242559cceece552cc790bd3f2f9d890921ed6125",
-    "value": "348750000000000000000"
+    "value": 348.75
   },
   {
     "address": "0x0c54a765c77a88d9cda0bd7ad9b10422848d92ef",
-    "value": "344100000000000000000"
+    "value": 344.1
   },
   {
     "address": "0x3b17edca12b0b72145412d86d08e8366291c59cf",
-    "value": "341000000000000000000"
+    "value": 341
   },
   {
     "address": "0x5a136336c6e4b50d47c7740394b7e8c6756874b2",
-    "value": "341000000000000000000"
+    "value": 341
   },
   {
     "address": "0xd58d6fce4c27ccb96a27d337b5a8acf10229fdff",
-    "value": "341000000000000000000"
+    "value": 341
   },
   {
     "address": "0x804a0f3d69365ab0f79afc079e7ee3263bc7ad92",
-    "value": "341000000000000000000"
+    "value": 341
   },
   {
     "address": "0xb951da3870f7b7d1e3f9249c18e93d5cc5c3565c",
-    "value": "330150000000000000000"
+    "value": 330.15
   },
   {
     "address": "0xce890516fffe965ba2bcd873db871a5ed537d82f",
-    "value": "311550000000000000000"
+    "value": 311.55
   },
   {
     "address": "0x82f0b74da307d033bdf8cccb4d8139d43034eae9",
-    "value": "310000000000000000000"
+    "value": 310
   },
   {
     "address": "0x59dbce846aa40f138d805a7cebe2afb0c33066a3",
-    "value": "306900000000000000000"
+    "value": 306.9
   },
   {
     "address": "0xcde960e12d87521395a6ef671ac6d4a935905dc7",
-    "value": "305350000000000000000"
+    "value": 305.35
   },
   {
     "address": "0xf9556c167f50b59251a35fff3f7ce69934ef8ab3",
-    "value": "294500000000000000000"
+    "value": 294.5
   },
   {
     "address": "0xa2667daedbcbd2262e68b6e29e87f27d228d8b69",
-    "value": "294500000000000000000"
+    "value": 294.5
   },
   {
     "address": "0xa390baf0840b52aa57e97cd06c69459bea974947",
-    "value": "294500000000000000000"
+    "value": 294.5
   },
   {
     "address": "0x93af1b9bdd5a98ba92d746dbb8217e652309c857",
-    "value": "292950000000000000000"
+    "value": 292.95
   },
   {
     "address": "0x8ccaf951c46899aa11e96435261c271c3e5ba963",
-    "value": "271250000000000000000"
+    "value": 271.25
   },
   {
     "address": "0x246d806c5d1f05e065a6896fd687cbedbff1c0f8",
-    "value": "271250000000000000000"
+    "value": 271.25
   },
   {
     "address": "0x7a9505aeec08c6172a600c54889a4ca489462995",
-    "value": "263500000000000000000"
+    "value": 263.5
   },
   {
     "address": "0x30b07357285ce832d676de355a0b82ec4b2c380b",
-    "value": "234050000000000000000"
+    "value": 234.05
   },
   {
     "address": "0x66ceac5ee8f093059c4bc9628c06e63076505b15",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x2cf6422bb11496f5905f8c81753ffcc448e67dff",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0xaae8c50d76c76fb8947c9a203103d28b55862977",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x75e09d2306eeec90dcb531bb58007bff7ab170af",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x3d826e692d336578bd4e1a4b7ba57aca8668c79f",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x2c948ba87dff86588057865f291f31e62ed33a6d",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x1cc3195c46c2f6af665ae281ad861eab88ed8fb5",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0xd791427e372186e90637caf1d6d6afb054beec7a",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x88f882faeabaa2c4c74df4d41f2145b785e637d6",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x73f2e04f047931e85b62e4f2652b156199000e14",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x99e1376e43dabaa36afd58d3640024565a11b781",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0xc2eea87d6aa3e7293524afb9d60d1df0b557ee09",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0xedca41feb4728ab427a54dda6507533fe41b83de",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x041c36713d3142b520aed45cbd3ffc5b91311eef",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x69ac04ef8d3130f963f375d0d38b08f19bcc5f3a",
-    "value": "232500000000000000000"
+    "value": 232.5
   },
   {
     "address": "0x3745f70bea919e4c73844e2b172822f3877656b6",
-    "value": "220100000000000000000"
+    "value": 220.1
   },
   {
     "address": "0xc75bd8cff6e9f74447ebcbce13d73f9762c88b21",
-    "value": "217000000000000000000"
+    "value": 217
   },
   {
     "address": "0xb94ba002073fe808867457bd26996d2e25733991",
-    "value": "217000000000000000000"
+    "value": 217
   },
   {
     "address": "0xf5a93410e7e32bbf28a8eaafbd7f241cf0b290fb",
-    "value": "217000000000000000000"
+    "value": 217
   },
   {
     "address": "0x984d83456cf40d40ca95da473f1784d6c6218e13",
-    "value": "215450000000000000000"
+    "value": 215.45
   },
   {
     "address": "0x993869ea0d7ebf0fecd90ffe455f3c5aa497d08d",
-    "value": "213900000000000000000"
+    "value": 213.9
   },
   {
     "address": "0x8d7bbfa0506ea95c73d864310818acc3e5fa05d9",
-    "value": "210800000000000000000"
+    "value": 210.8
   },
   {
     "address": "0xf2a564be238c8eab5d854946b99fb48878750fa3",
-    "value": "204600000000000000000"
+    "value": 204.6
   },
   {
     "address": "0x7dcb39fe010a205f16ee3249f04b24d74c4f44f1",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x1ce99932fd278e00911814dc4bd403e1293d8ed2",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x0bfb2b2c30a3536791be4b9c2f5396909739e186",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x165b731b10ebf961bdbc40564c394bbc41f749ad",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xf5d0cae907e26d6bb1b5fd9b354e2642e35d0e07",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x640b362c1ea20716ef9a9cdf8b19ea371ab18e20",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xc5ac2b1d6fe495063c976aef6d17d995e542a11e",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xdc751f77ded0298937f14bbfecf7d6bf5f21571a",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xf20d5af994ad64448c660b457db3babc9ea20ba4",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x21d2ae3f2d85d0f6e72d71a7864a2f22b4784dbf",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xea52feea53a00b19cd3f0575f821528c9e142c3a",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xcbb48e6d1594e36c88b5dbd14179f2017530012d",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x01022cbde7a6cd57d08dbd8c42d54c9304c9fa8f",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xccdc08484bb52cfbc73c8288858e406776424b2e",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x40958d3e21e4fb0fb4ad7baedf6830e9b81d7385",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x2f5170deea823099d75f200ae0524b30c3701881",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x1ef4c3b60d9b922f4113e73d36740d6df870ae8c",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xc216bf3423bc19a03b06f1e5bc9e4f00d0e806c2",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xfe89ed7103b377bc30c9dee7a100103a59ea4c42",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x0a913a9f3af3c3643a684adc0a0db8a5277507ca",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xba1a192ccb2f58868ce617e6102eda6b56d831ea",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x94dc9025a523b6b2cb1b70b7cf79428cbb7128d0",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x647595f04851186936023b706d7f1a9d4ec3330e",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xfa2b6215530aae393315443e1934c82bf103aca0",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xbe8e73dc12d336854c33129cab1d676a2c3e911f",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x6f9bb71b5f85c26e9a8a7cc647c5943a1b07d6ed",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x7f9d595ca2ecc3b072e3cf06d836d8eb37592d46",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xaa94101c658351b56012dec900a2ac7be443824e",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xe9b0b621b7c4e09d20a7c727f212b49aa294be66",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x7868f8dafcfd47ad2dec38bb980579d019df3dc1",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x8cc167979469bd5241835ea9936fabdf73e87ea7",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xade50b661ea668b2ea13c1c801d2466a3f90ceb9",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x98817e88a18159dde7716d2a1b3edf01fae4d399",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xaf98f6947f1655d6514b0c25b6cd20200c614beb",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xd61d1d9f172f7221d282d503e89a2e2e456f55f3",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x6077b5c4fdd6d590d17e025bd6e657f7427dcc4b",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0xb25322fc6f45c3ce46506a86e30fb64897d781a6",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x7f6f039097b26363ce0804a709d15d6385b1ddd2",
-    "value": "201500000000000000000"
+    "value": 201.5
   },
   {
     "address": "0x910d6252aa59e588f4c9ecba7264c31ca5ceb21f",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0xcda9a81be757ebbcfc5e32c0b1adff00c4c04972",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0xb4bac1b660e2161f3692fdf6cb362e93396899a7",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0xdb80bcc99db1e4ae4415d56fbc016c8ffb2c728b",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x75aab913a30298fa9744c10b1366cf2b766474dc",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x94b95d45b3f82120f5465e83a70016c26438b3fd",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x8e5c8769a9aa06a27a22191ff69659fdf643b0df",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x2168b2295e912a27c0015bad9f09f090ebce1a99",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x6a99dadc216a83adb0191c264a1774e82fd31aff",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x0bb8c49b33c732657e9fa0f21118f2ddde1f3341",
-    "value": "186000000000000000000"
+    "value": 186
   },
   {
     "address": "0x621f2a5ef987e064e76da1eb378e7193cefc0baa",
-    "value": "173600000000000000000"
+    "value": 173.6
   },
   {
     "address": "0x5d6036a8508d283f9910d83b8abbc2d03a4f3b36",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x4853f81413eeff3c53baef6e9efe7383ac6a24fd",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x5f2dcc6d0065fddc3750a9f54cffadd1e1cd524c",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x3a0fdad873682e1f8650dab7ce02b1a04e224b04",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x51e794fa7883cad673ee53ed7a6b47b8ff059672",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x4193dcf34907e9f2880695947125667c891954b7",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x2e6eb60c647f64799de4f1a92fab815b58087bc2",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xa811c417506720d045523c76cbf448407301a595",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x3ee1c068fc9653489a5d03ab925047efeeb4bc26",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x4ee988712cfea3e18f4b1a56b7aea7c31464ab45",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xa9a9c36c583f1290fa2163da5367e2d644b40101",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xd283ac6b8dd58cde7ede41002219d976115dca36",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xab2b6c264bee88b72a35719e18dbefa5e78f0bf1",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xe1ccd64c452096538b07fc68e89196fb6309e01c",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x94aff1b7568c63d38c8f07981fba16d83b2b22ba",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xe91cbc483a8fda6bc377ad8b8c717f386a93d349",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x9837555500f4679141cfa1fb638f707466777b21",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xb08db2426fa61d7397199487a6360a73164230d3",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x774cc749f95344d80ebfa3dc2fa99b739ff188a7",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xa3f143742ad0cec5840dac4dc62cc67170d9d7c2",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0xb527ba7a88f1fc475c10a1029c106baa89f373c3",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x6a6b02858ddd1bb5800fa7ece9ee27009c4d2d01",
-    "value": "170500000000000000000"
+    "value": 170.5
   },
   {
     "address": "0x9d7f194b92a0a040c6bcb2762a286cef6f342131",
-    "value": "155000000000000000000"
+    "value": 155
   },
   {
     "address": "0x2f7749bfdebf3dfe2c7f1adc2e052fe1740502bd",
-    "value": "155000000000000000000"
+    "value": 155
   },
   {
     "address": "0x56a284acbd7318380fc8a380cd5695bb14b5a0ce",
-    "value": "124000000000000000000"
+    "value": 124
   },
   {
     "address": "0x792ef94923e089b7fbead0896ad41a9e059fbf23",
-    "value": "120900000000000000000"
+    "value": 120.9
   },
   {
     "address": "0x0386f71eaaf98594c83584893de48a20c1a34e47",
-    "value": "93000000000000000000"
+    "value": 93
   },
   {
     "address": "0xa462942e574c255263fb9b2aa714d172175751be",
-    "value": "63550000000000000000"
+    "value": 63.55
   },
   {
     "address": "0xc4a0307fe3411281dce75bdd22cf4cc611bc61a3",
-    "value": "62000000000000000000"
+    "value": 62
   },
   {
     "address": "0x130fb0fc36fd3c58d72d7140d3049e16b343eda4",
-    "value": "55800000000000000000"
+    "value": 55.8
   },
   {
     "address": "0x07bb3de051b9e1627b243ff1e16522033d31b118",
-    "value": "55800000000000000000"
+    "value": 55.8
   },
   {
     "address": "0x209327b591aa003f4a7e3ae14d4e0e7198002c1a",
-    "value": "49600000000000000000"
+    "value": 49.6
   },
   {
     "address": "0xe9bab3816a139827fe218d58699097b359680380",
-    "value": "43400000000000000000"
+    "value": 43.4
   },
   {
     "address": "0x26d7b4fe67f4601643304b5023b3caf3a72e8504",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0x1d47677297b2dd9fba122cd7bb90c1d8960d4ad1",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0xbc9ca5bd0f07700929f8d538233b0a9e60f4ddc5",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xce841f783dc6d9df256af36b1cf6b3a52aa57cdc",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0x2cac9e6d1d630a35cb8019779daf4c5fd96135ca",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0x13f16ae446ebfd96a02a98317638ae231a19ab2f",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0xd18762683fde24685bd73d0b1eaa4f082e7e2b2b",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0x776660c9807a8befc130dfb3ca698386fd018ea3",
-    "value": "31000000000000000000"
+    "value": 31
   },
   {
     "address": "0xF5f08Ba7F46e2a86b5ef3BFD56c2097C9f4276D7",
-    "value": "25110000000000000000"
+    "value": 25.11
   },
   {
     "address": "0x167539702B5501aADd9B0B85E53532Fd57cC71a9",
-    "value": "25110000000000000000"
+    "value": 25.11
   },
   {
     "address": "0x683987EE37b9B5F0e33aBE07D4049727B7659851",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xDEcC75A69fdddbF35deD93c1efb8BF124D28C361",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x2856BcA7E7D1e55EdD9ffa3d2B7425AEA802A4cf",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xcbEcd6EeaD99eB2300dA0226ED2Eb7D55A8f3c1f",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xc02614D7afc127fB3115A2DAC37aB18fA1702fd0",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x3a43525a3873D7FB415CFf57613D22Ed5cCFA368",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xA31952e6B3edeE58d5304816Fa0D7e3CaFA3149A",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xA49A394A148C9e24D4625689148C4510d1739ed8",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xc752cd05A8698A9193C36bCfb082eDD5B6740dEc",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x0154570F4516e5D57d025c4cDE55bE1c83964Fa0",
-    "value": "1250000000000000000000"
+    "value": 1250
   },
   {
     "address": "0xF07A18e93d5b3aCD53fB5377ade8CFf3670598e4",
-    "value": "7750000000000000000000"
+    "value": 7750
   },
   {
     "address": "0x5ec2928722525C80e2acBCE03Ff7af6B5301063b",
-    "value": "3100000000000000000000"
+    "value": 3100
   },
   {
     "address": "0xA3c3082bc954f0889DfEA1Fa2cA02D2a507f7776",
-    "value": "1240000000000000000000"
+    "value": 1240
   },
   {
     "address": "0x91dDda87AdBFecCE62A5c803e0C1E7C91E8f37Db",
-    "value": "775000000000000000000"
+    "value": 775
   },
   {
     "address": "0x3E03E86E82B611046331E7b16f3e05ACF5a3eF6b",
-    "value": "775000000000000000000"
+    "value": 775
   },
   {
     "address": "0x79C39331Bf0d2356db53CeE2dc8a5b42CF8dcE36",
-    "value": "775000000000000000000"
+    "value": 775
   },
   {
     "address": "0x3e95fef1176acf5e5d2ef67d9c856e4ecac73e1f",
-    "value": "2500000000000000000000"
+    "value": 2500
   },
   {
     "address": "0x1b8670077a950159b0d98587f9f00f7223108d9e",
-    "value": "2000000000000000000000"
+    "value": 2000
   },
   {
     "address": "0x50f7a0fb31a45ced7393c447bcf6eb07078c1d3e",
-    "value": "2000000000000000000000"
+    "value": 2000
   },
   {
     "address": "0x65dcf7782260aa1d6642a85f36c0bc9545182f1e",
-    "value": "1550000000000000000000"
+    "value": 1550
   },
   {
     "address": "0x033485ae1cce7a1fbc9024469062fa5a9e7c0799",
-    "value": "1250000000000000000000"
+    "value": 1250
   },
   {
     "address": "0xe8c6cee0408d8fcb1e09dc13149b6d516c32ff70",
-    "value": "1100000000000000000000"
+    "value": 1100
   },
   {
     "address": "0x3ee1c068fc9653489a5d03ab925047efeeb4bc26",
-    "value": "1000000000000000000000"
+    "value": 1000
   },
   {
     "address": "0xd22f473a88430f626d60d70fd96d51b2e7190601",
-    "value": "950000000000000000000"
+    "value": 950
   },
   {
     "address": "0x3ba53331f1084ad49b5b13da7882165b52879ba9",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0xbc1be5ac62ca0637676f2b592bcd0a29bbf4e427",
-    "value": "750000000000000000000"
+    "value": 750
   },
   {
     "address": "0x2cd46bae54cbc59ec6f0baa562e5813dfc1af690",
-    "value": "700000000000000000000"
+    "value": 700
   },
   {
     "address": "0x1b640c003d3f8bba7ad69c9121ccbc94203eb3c4",
-    "value": "600000000000000000000"
+    "value": 600
   },
   {
     "address": "0xa37fad0c2302ed045d40ba6133514c664fc63979",
-    "value": "600000000000000000000"
+    "value": 600
   },
   {
     "address": "0x0a9002bdb732fc3fc537b36482da6c0915c55296",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x0edef718166d6b239f965229c8dd306ea52626e4",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x21ef788a7ab1988dc9e34661a3016358107957db",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x2534d157aa918294890eba03602b32a98c60d394",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x34bbf3b83f82342f16ac3c5d7d3256f9be9441bc",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x3e1659b2334ba21f070305a92bfebed3eec78242",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x52f349edd4dcb7a3c60bf3066ce9a23962726d25",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x54793c8f80f642ed4e200177bf845c61915ebc55",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0x5daa225fc200c2cba897ae80616be066151c184f",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0xa17d53d78a2bbe050b8ebb00ceddb1d3d7bf7b32",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0xb0f69d9dcf8d4203178864a86d47d1137262cc8a",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0xbeffddcf2e84106f77c2b60445dc257d65e19a26",
-    "value": "500000000000000000000"
+    "value": 500
   },
   {
     "address": "0xcb17c8e39ec71ec7d9d0738275eb0963a9abc680",
-    "value": "450000000000000000000"
+    "value": 450
   },
   {
     "address": "0xe4983450d2cb3398331a3d8e8b8d09f52abddee5",
-    "value": "450000000000000000000"
+    "value": 450
   },
   {
     "address": "0xf2469963bdb886dd37917ec1f0693abdf1fce30f",
-    "value": "450000000000000000000"
+    "value": 450
   },
   {
     "address": "0x1cf33ad3fe57074c0a4a71a352757b1e481e6b91",
-    "value": "400000000000000000000"
+    "value": 400
   },
   {
     "address": "0xb3623d62ff30fadb5b2e127c07cab0d1b0808276",
-    "value": "400000000000000000000"
+    "value": 400
   },
   {
     "address": "0xe52ee356e4320dbc467d72a5e7931c1f24be2912",
-    "value": "400000000000000000000"
+    "value": 400
   },
   {
     "address": "0x2e97778b97db81b62eb64103813e019f353537cd",
-    "value": "350000000000000000000"
+    "value": 350
   },
   {
     "address": "0xb288090e6b2427e2e4b52afb0590f0f22ea0f6d4",
-    "value": "350000000000000000000"
+    "value": 350
   },
   {
     "address": "0x38b79b472819e696bc0f41f828f8dea29dc694de",
-    "value": "300000000000000000000"
+    "value": 300
   },
   {
     "address": "0xf5a44b26b747faf0f00efa091fc3b49dd42f4fe3",
-    "value": "300000000000000000000"
+    "value": 300
   },
   {
     "address": "0x0aebb1ab0ec2d46beeffb8f515f6345bf79648d6",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x0b0f6c957415422462bc8a21540fd9f82fa7c52b",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x0c72d3404dc10d594a7d00086cde7b1c48e4c0d4",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x2c3474bfe64cd9748be69d24c30cc91639265e68",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x371cf89c169609cc03d175fa27df16ce7b3244cc",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x37a70ff76247d7c31f683952cd002a0fe0de3a3a",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x3abfc7ffa744edc456d361be957f972d1bac4991",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x4170aef5c413915bafdc1980dc2f62c501559132",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x41afdc422831dccc8505762c75e69da983b83f92",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x52029325ab640c933e86fea95002c1b9a774a6b5",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x563153823d702516f92fc24edd9358d6973f60f9",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x5b97106fa5d8686a447b3bc6a98fd0fba35dd314",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x5fd2c02689d138547b7b1b9e7d9a309d5a03edcd",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x6bce25b13268702c60c0165b2e43e63e1f6bffbb",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x88889778402dcf6cf363bb9ac47f7a2d8e77a2af",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x8a68bcfa762a1a9d81118f65bf30450ece79cb47",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0xab30a9c41b1093098d1669d62b5f9daf96fe1b42",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0xb5921f08fa327fe9ae4ba22a165095e2d04c1fe9",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0xde13b85a461fb3c42e5dc58e228e737c47c56435",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0xde9f6c68d750ab97f1261d9348222d24936471e6",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0xee7c4aca7d64075550f1b119b4bb4a0aa889c340",
-    "value": "250000000000000000000"
+    "value": 250
   },
   {
     "address": "0x0b5dd26f44d36141d97a3bf6841e7ba63c092af9",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x27db134012676a0542c667c610920e269afe89b9",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x39436e22ec425e93eb5c5136389b04854c142310",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x46a20e03f47ec67d2c8e73819c12a6b0c4bbd081",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x4ce6cc11344be5e020a8c3011a1b47b47c7bc311",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x5d120e0929dbbf2315c97a4d93067e2dd9128ce4",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x6b99bd6c33fb1312d338dd6fe29055313f6fa201",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x6c584a08058918bf14f9e5292e92d866b437d5fc",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0xb9c2cb57dfe51f8a2fb588f333bdc89d8d90ca9b",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0xbd57fdbfb4e067992aa0c0da44dfdb10424f3dd6",
-    "value": "200000000000000000000"
+    "value": 200
   },
   {
     "address": "0x05d3f97c72909e85092856b4e4e63d8e17c7a5d3",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x0990cc53f3503281737a57e3fd4fa09aaa63f8e2",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x0c93929360ff8b46a46c2de1c8edea9541b78eb3",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x19703d938e10b18573ddb46252041f802e13e9fe",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x26631dc0506a8451646f7fdda599141f07273205",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x2b2c869539188c28c202d086fe99c554493f72dd",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x3e9f1fda1c53c255fb3ab1848ec9ab7591506fb0",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x425df118975af86fea2a8451f4ff61c3e703f55d",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x4832606179a3506f3e64c1b04dfbe3a13a55d0f1",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x49ef04a636b18e14ad5b0607c833a05d04ba7cec",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x552b6ad871f27a9729162c18d769050363f2d57e",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x5de440bc5f7523fc153f00b9dbced00cc6878976",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x6699364a1421a41ab5612d556f172e9475c93302",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x6812ffaad65c18008c0547caa32d355f0bb3fb6b",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x6e061d17c6299c5366e2d7729761f8c2295bc428",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x6f69f79cea418024b9e0acfd18bd8de26f9bbe39",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0xa2dd196ecadc66f86e650f6be8b0e95ed07362b2",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0xc8f1a199eeb0eccedfb0f401b828ee6fb894aaa7",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0xd8b07bc1bc3bae553bca5e94e99935dc12df24ff",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0xea94dace59ede50c55d53cc90c26d8ec4ff0b685",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0xef9c39bba1d95e4f6a99135f8f67276ac85bb018",
-    "value": "150000000000000000000"
+    "value": 150
   },
   {
     "address": "0x05d1d57f3bb2be4e9d457713c6178a3d11447924",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x08046e2349017615d53d3977c307d39ab4eeb3cf",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x0a386e172de366d03ce8da32f6b88ab0cf99b893",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x1bdc2ee071e91d69cbbbc493876322efefbe55b7",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x1c8989e6e80137f81d9459310bd4cf7ca1f9f87f",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x1f8f4c41f8680d3058323559001139dcfcaf3a15",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x20977658df98841d72d001bae43c5501553eabe9",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x27da71433b4049a3fa255ddc4a86d5e5e889128c",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x32e2f310dd2996ac37fe0ce255e5ce1c1ffcda76",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x43a89130cc4055b6ed8aad05b83ffa6958fe244d",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x43f62e6d697870b17ede3f322a90fd6c4a0431f0",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x483ab5854cab0846f401666525faa2c1c3c5c534",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x4cf7b7d2a108977e9682b80cb362947e4f3706a7",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x4e8ab7312d7763360e4db9b931ce5dcccc364115",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x4fa632a33fc9de073ed769ea24741303a30732ab",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x53bebd20781aaa3a831f45b3c6889010a706ff9f",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x577adacfc2abc51e98568d55916461655adf3fd0",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x616ed054e0e0fdbfcad3fa2f42daed3d7d4ee448",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x690a8f4592a2cd0715865e8600c1f48bc4eb1d4b",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x8e32736429d2f0a39179214c826deef5b8a37861",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xa2b9deb9ceeb06b110adb189446e7c4f4b1d6532",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xb92c953b6990dee330937ee49ca39845254741b8",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xbb34666407e47f87a44e4540ee765909506cb105",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xc348f4b6dbf1b156d802810db2f6d59f36c837bf",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xc4f6e94928876b7dddb9f52b0af625896b7c5375",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xc6ade353c837eba0cb2a85419b7ab50e59eb2a95",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xc8d2f3ff5d8feac92b77b792b47c11eb27369eda",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xd182b793dce8b91346a1971a35c00c5bffaa978f",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xd598e0ccbbc94714422d544f1caf162234c296ba",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xdb27d37572ea22a7c2b82d15101d6cabdb0b6f74",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xdca5f851119da0391bcc769a3299de0ca7c78944",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xe09539e178d0f8419d758c148b61f9b0c08e10ec",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xe63c54ac48b2e7a307257942c8604b97d86de10b",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xecb511e9d30b10264353b142096c9af83229e40a",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xf203840d1d187d2a6fe4e9e2f62a5181a0e07061",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xf2177e53db73cdaa0bd15d891d3d3378a4098376",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xf27c10488b579e5bcd6ec8cc2922315c2d799c6f",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xf2fc892056888e637cb2d77f0cd03b05676dbd5e",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xf5e730823d47bb3d27c5e2da8ca7ab66d4ceccbf",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0xfd1d7482375c7f91594b21adb67c4573746dd9f8",
-    "value": "100000000000000000000"
+    "value": 100
   },
   {
     "address": "0x0178274ec3e22cb684a35d829f5e15f66441e71a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x059576e052fda76df317771ffdfb6663d1509e04",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x06e13bd0a3cba08e61028f2326b9ea2ca2539900",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x0cc4cfacfbfda1ff5ea003e5a59d17b4c55a5050",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x0d08d3fe6fca58e82982ac4d0eada1f457f4e929",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x0d9bc5d496c805bc6b49126111fcb538a4ec360d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x0df7f3240b722c8da1bfa2aab5b4cb1bb7332012",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x0e8f8f13b3ecc224a8cdf030580c4bb5478349c1",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x0fa2c1bb56f8cb423d56c0ba2e54596e8dd6305f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x102f468314e062958c2ff7555a62356f505c1d1e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x119123544f603dd6b8642baa8ebf56945be13347",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1238c6938bfef91fdd4149128c26fe3a6f03aff8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1247620ae3681c4038efedb17d4517e889860ced",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x137331ed7e7c9ffffb24f738c6d0fb52bedd97f9",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1684427375f4b67a03b15721f9269d3a79217e96",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x16f2bacf87654067e6b0559bc8ffc09f3cf1c5d1",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x18acc7e09e5b4adaf4d51dce21bc2ac616ea9440",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x18aeb8064beca45c264342ef13355df535f8fa37",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x18dff00a8b2894ddbd7e0d74a5057fe2e76c250d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1a29e7a7aa2380d3898733458549bb7f15650285",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1a78376c99dcdc068ce15f7168deabb7f25532d8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1c0a5a979b88b868b76eb7e34022a40bf48fcfd8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1c3c8ff2ab9d89f7e7f46af6598d9009818b42c1",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1c8130a86451838360eeff40f8bb90ef54728695",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1cbd1cd53dd1a91b15ade97f5d78bb54db598538",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1d08720069615ce2f8e871c8b27fb94dddfd7ab5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x1fdbffd0d8e237e64e68a904c2a6f447a1ad5c90",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x200404d036525ce6f2056ce4c4cf8e25cc50b6d6",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x21941ae82cb4866500ff4ee2c5ebbf041c346e65",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x21b9c7556376efdbf9ee316a4ede0c8257fb7533",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x23effbad3a6d926846e964c9ab9580e5068857c4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x24b263ba5230f1a9699c7269a2bf541ce50e2691",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2504407012559909eb9ea18273d2617d0c658243",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2550d50d0fa9477e4bcdc21626f2edfb94f3cbf7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x260db26a5d85e9e6983257e8af71a60e95873d6b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x26f128ca082cc1c28670000e6274f275723c8f1e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2750f8238648a3a383a886954b9d88e370e62bd3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x27e15abc9644c11bdad575748f7839e6783acdd5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x287ba556041ea72e3fb89e328709bb991b2cb8a2",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x28a97280875b16ea73a4e21f3e119bcd77fa0e9a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x28d604a4205549ea2510d03f2addc673ded2187f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x299a26432ceb4a18283793c345c9abcacc7daf56",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x29bd2d1bc9382ab20ee799b6a8beaf9de1a8e929",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2a5ad14250f9eeb2cd6598c59e2786f70c171b65",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2c79ac9f76c3310b59d4c5e3fd214a73aec68553",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2ec947e55ca4128ed4f78f3193d01a882602f16d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x2fe35fba17c3ad1ad389bef1bf3c96a62238e375",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3090a8da23358422a98a0cc2ddeda51ebdeb27d0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x31039c8c741a1a4b9ab81f67f8bc0ab523c68ac4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3136cac0b116fde768e51492e38571de29692133",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x31d96e0b8be865ac6a31d4a83480bc8e29394404",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x323bfe9f384e88111e83f37ed7a854d0cc5f99d7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x32f1406809e2c6967e41ac44c8bde46ab597de3c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x338728d20753c014c68e75baf35f09e2f66047fd",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x33cc5926289066c0bc7080e3ef133cf761d527bd",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x34bcc35db447ef4352274c9fbaca94a787d0cf0b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x353b0b8ef73bec7e8991cc775c63422ca6462259",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3635b3d38b971ed37b17e6e1ac685af87bc8d930",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x376a74169cac97bb5314112a0ec790ce1995c001",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x37d27c00ff4d9b7f5dddf877cc14e7f919a6490d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x381b0a70687c60bffeea61d2fe1b9b340c506f71",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x38b8f8008cce8a43eb223d7971ddc0800b940886",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x39261792f9c017aae383cc33cb80154e93c0bb09",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x39f8c1f090e6739966e01a4d2fc210b110c9bf8e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3a04e66f6a805f3f0645beca0a1d4f0024eb70c4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3ae3b9372f39990c556ee348424745095fa02814",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3b5a21dc86a0a03d8a355f7d81a73b67a675a8f1",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3b9cb7834aa15c9650723828fd6f62f2fc14f10e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3bbe81acdbe40fe06c388e6166d32dcf534c3a0d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3d010781df9efe1b2ec90adbd7189f4b640de626",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3d6e4a3857edb49d0704e1940cacf5b8512d121b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x3df364ed7e8a887f7f9c240f7e281a4ea05ce03f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4018cfbefee7eed9e6d3b22851e619c28d4d64d4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x411ed5fbc0be25c5c03945ac4a29585cd91153b3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x41955ab7d12f9f6c03de972b91d9b895d9c2eaf8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x433e23480f440ef14f37c2b134133f3556c09e87",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4382bd0d6800d192826bb040e5c5057375d5aaa4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4394b956f78ad75d7a0cf434fe5eff0a4e1d52df",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x44de03c876d575344417ff01e8a943d561e8df5a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4597a5b17a4c8986149ccb986f627cd0ee45478f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x45a5c8a2ea84f48537a74e2e8f96790c90a0046c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4714a7d9baa8233b4cb6a7e29b8fd39f1de85680",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x485f9b0fded2ccaf298648af38ea84a76225ac4b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x487869b7557f0fdecbc5141da1d7c48c15c5b8eb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x49607a5ed83276a636ffddac07ce990ff98fe844",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4b92e36ced303eeb59bd6c5dac555b2be13fe2b6",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4e9d12d71e293c90d9c0bf93fa64f1f8579149dc",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4f8382f3d38108128e98b621f7370179dd99e1b6",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x4fde6e0af241816a38346ee014482f88311d0451",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x511574ead936a4996b41fce7bec957c1ad3c50de",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x513aedace44cc9a0724ca276a8ceeee950903576",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x52afe4863f88337fee4b5122223a741e2a631af0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x52cc7e33ad49a9fff67048844bcb7224b378fc80",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x541ceeded157f6590befa1b6a34ab87beda66aa7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x549ebbb808b95e7cd2065d3706a57a81692b22db",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x54a0dd33c5a5e850910b566c7a54e9f900d186df",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x559b1eeed0c02dbaa2ddd3a936419917309d5732",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x56d79fe635196e734ce29d7a8ccd8014865e790c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x579cc65493d7a0dff7d5b27a51b1d429ec8c10d6",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x58a70842436823e0e9662f9c70b8add631d0a2e8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x58c5a30e228a26aa2e982bc50f8e2f2ae226caa5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x59ac5ff2d0edf0ff9a315be9511fad0fad42e944",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x59d511d7922ad7dc295f42ea44eb3580b0d9316e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x5ae70cfb1bbbd5f7ed9256b5863a995ad624a5ce",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x5d47e5d242a8f66a6286b0a2353868875f5d6068",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x5defe4f60965528030ee48bba305ed017ab84998",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x5e11534344b8c1fda947b37dc57b8734232a6b1c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x5f7fcb87bff096adfde013551e22a10537f0d175",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x60e0d49585cc2fa9755325230f200b957e0c4ef7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x616b958904940c789e104cb39bd2bff82427cccb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x62af590649b7abe80f8c6dffbb92e0875b65e37c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x638cfa283e3805dcb13e5c407e8e0485fccf33dc",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x65a6627217b5fa69439b7ead2b703b83b4b291a5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x661045d9286a4db874f7e3bdd5d2534f19bf4604",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x66e8fb7660793f6e1f4f76e00e2a0a8ba67633cb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x671e4d58f407be00fcc383732c020a7ac1afde73",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x675cad16cb1213c0690d9282bcb442a645244f99",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x6cfa87610052c224c1e5373d887c32304108e886",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x6e3e73eaab673de4ba44d98b567843fd0e8f3cd4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x6e980fe3be119301b7ac4d6e09f7ec126e5d198d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x6f449ffe7701fce3ffb8c52a38490114125180f5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x6fcc6a63d5a88d11db950dd030e78a20969ef28e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x71d059c0550485c0a6bf2884ef55365338d25aa7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x730864ac8c3d92681eed50408ae9c10c6f58e46a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x73a62d728249cb42bacd3725d138e2eab72ba052",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x73f2e04f047931e85b62e4f2652b156199000e14",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x740aa434b8453cfa823daa14a2d3a899ce57e7e8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x750554c8cd238765fcde9467e33e6e6d595265f2",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7672bd6a396425b9f6c3c5376c619f0f09c11f14",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x786f5f93db421a49d6906dd3f174d0778df758aa",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x78bb65ed1476ae1b7168193699ae94b766a121ee",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x79768519f1bc08c3108199e06b126e5881316b3a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x79de94f7db2800b4d8a56fd8a5becef416bbd02b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7a35b1e5d7e0161038545ed4e4c08f6d3ebde239",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7a9cfbe245101b3fed8e74aad121deeca6acf224",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7b75bc70b928472856047fdef0d08d5b5816aefd",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7d62cf2e7fe9de04aaefbb7b158abff76f786f27",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7ee89caa2cdfebdcebcb18761f00b4a5da149a4c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x7f7902ae1d2136bf201a906522bb6312910c296d",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x814d709e8ce997c2c43c765d3e8b1339ce8136a8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x81b55fbe66c5ffbb8468328e924af96a84438f14",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x8347d573a2041489e2ae6c71663f2a5b0cbaeebd",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x850e87b42efe94f871120e955fcfebbbb09978da",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x85789ef93518e217598257130d6d9d4279f2776e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x8638baf6a9c3e04718adb42896ed38eeb2dda91b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x87e5501c5fa7caa0a45390f1887ab2392d33d545",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x88193fc66f2cab15e03add807d11adc08b5352df",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x8874174a2366668d54fea6343f71709389563c8a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x8924ac1196e2ae89603925b6e001dd14e3f7fdff",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x89438dc80efe81c3d8a9d7134b949797c1597ab0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x8bbc42da742e9a5e0ee458a63be0bcd23f0b5912",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x90294dca1861b78d8aaa4acd1abf4c9b535c490e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x91109b6dbf893f28b3623ecd16f634a1f8d5b6f5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x929ba70d5becf4a9c292fa28811122fb2cb51aa5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x92aaea5b7c87fa2b0091f02accd417c9b8fe2159",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x95316d7b255e7749d6b2cc9a493d4d412a00f423",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x969842fe11edda79ab247669b8eaf02c88f6650a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x99f36d88e47265763f7c23749ca2b2916f01801b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9b03ca95cb5c04ab97c2388905d0462a4fb5c899",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9d329bb9536101c919adf92efae13056ef92f0b3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9de10850ec22f4d1398dfb5cbc6b5cb0602086b7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9f041fbbc6fd007115dae9bd1ce6001b26747797",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9f5a66b6f8f0c609256f15f23dfe40e8400d2126",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9fa058f77477be67ede3210b6c01d5245c0ff2d3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x9fa8a5bd92b207165d461d3eeff51e7d7107244e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa1cd4d12147091678e4fc749f903838810814d04",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa3b1ae895b114ee3004c2b9ed54574791b07097a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa3f330dadcbafcfe0bb23c63fc44eb45a1bf3961",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa40c45d93f9640999f6de1a92893db319d8d3cd4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa42e1debeba42786a4d2b8226927291462271e96",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa469490afa01b09b15f90b6c56569a2d4a64b031",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa5b65ab4084eb8037cbbc84c180b992bc770f7bc",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa6086b7d8d84363380b64f9ef323b22e7a2efb02",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa636319bafec2b5fb5410e4bd84fb03b778e29c8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa65001b4b6a1f7d0db139f1739896e811900047f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa710b72bc9561932e144bceb9c2e62e6c2f05844",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa74e0407df0f886362b37d262c1e9ea3a48de195",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa8220e3f8f2537d2c3c4db3922ab83e0ddb34c60",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xa8879c580a54f190ed53b43d30de269097ad7543",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xaafb164259d27122530aef535dcd059f5b3dc844",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xaba63d38e25ce9b6cbdaadcaaa4d81808a64f532",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xabda23f351c043f14b9310544f9caed6434bf1df",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xad1e365152589d3501340af5c004bfa1ef0d724a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xae29c6d6aaa6bc0697e47c491e6587047ff02da8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb067b042b3728c7ff4f35c81d63d3eed5621a579",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb122cc8b0f4648cbd2bd74ba8c78485a75a50d45",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb28fa18cfbfebbd02b53a0e01d2acb0018e47e3c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb4719b40e5e839e58476a32c6b25b60e4d9f9e82",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb7bd84b71fbe6f2ade449508b2b78cae45a18dc0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb830b2fd1518b04310d264704a4e46f9e083b41e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb9449c39686a1e59821adc4c4be7963bb0efa62f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xb9b1cded6e81e1433b17f5db96ec1104d7ea42ad",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xbb9ef5b10693c8f5f0be0a7014543bdbf842c490",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xbbe30b36eb676eeac610400d247c771d48976ffe",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xbd3bcf36e0df2f0bc502b7c57f1f34b3218cb78b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xbdf407529a6ed5f14736286699d58ec72b337315",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xbfa56b2ce312b4b63f8f31d2b72ebc326486ca00",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc0452507b41d2da08a1630394d064b45617017c6",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc105b1478bd8d2a5aa21031737dd2f6c2b1f22de",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc177efaeb3552c7ca175e591ec98b2c3ec200f43",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc1e7e70d394e6ee05ce5ceb0f55bb7113af195f5",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc1eccb200494a359aafc05873b51d295f1525078",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc24af843f0997f95155e1d5f35a6bb872aed8141",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc2ccc7066d5702c6e1bbeb4eab9f85dbc561cb09",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc32a0f03e5dce30ce058f45ce34125fe35a75f4e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc3bf005eda7bcf56a138cc555ff77efa4c3a20eb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc41a6568889fd2017650efcb959653a55a46018b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc4ba62e906e8c0ceb76cd5b46f659abfe39ecb88",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc6970d8f15463079c5202ecf48b4e126b169079a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc6cfedaaa225bb433e00d762fe898707a3c077ad",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc6f96f7171fec66e261fa20af7848904646cfdc9",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xc84334f3f28003e02af3c2cb08e2b8d076419766",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xcba202f6c6684c497c3fb7740a6f6ba14041cde8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xcc7842f66fa9a8ab6920854ec3db9517aad9bbce",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xce431f34dfd634e8ed90e54875dd4f9f655c04e7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd18726362edcce1f03ef232980f4e257aa8dec79",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd2c3786c78f72feff2ffea550ef18e1284611408",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd300c26001713e0a18666bac77da807f8f24a4ad",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd42df3de241baafb395e8c3cbda448083a91c226",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd4d8c6a21f71de026e68c160d75cfd1d720d22bb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd5b48157c83bd9f39b8263e62299313137b04cf8",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd705578dc879e8ab3f4aec8381188dfbf21f64bc",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd731c06394dd2822ef89bbe6c9a84440cfb12c47",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd809433f949b5f52ae26768cca08a09208bae41f",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd88cbc622a0bc7421975e83d1dab6bf6f945f00a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd91f11acaa8110b0bf6ee14f344dd5ae305097b3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xd9aaadec3413e887f5768b589c224ba8e6b9c1fe",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xda23ab0b2636c3f9806a868278d73aef2439ab60",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xda8b4b02090c91ce706e00529955e5a317a686d4",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xdb1186e1713a6aeca9a1506a39b516181c51687e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xdb432d0aa38ddd4ecc0d9e2b41433a284ba1d14b",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xdce62b21a8b1a9b39dd3ded27c876d416cc91b3e",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xdd58754cafc2e1688516d632a369545a0c283a75",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xdeeba212b56427ddbd2d2a1c74d49aa75cbccbbe",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xdf8d910ca8caf9d3c7dea9b62d36400b38003c61",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xe022a6e87e23ae4296e2a2bae39d45d233dd2b06",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xe1741af00daa46ce344228dffcaf2e2f8847c7df",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xe9f832425bf6817c79decaaefcb0773a9b278898",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xea8aefad88634cae6cbda4c21489ded05a7779f0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xeb5d5bd750ba52b8ea39d4dbb746fa5cf981aa17",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xeb6f3eaa5d0e30f1b860b913fcab911f904907c9",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xec36697c3c8c8e385b37e17df40dbcbe2dbd9ffc",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xec49acef2f63a7c257d752cb0bb9df38f2d3977a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xecad3101db0dc55b906659136b9f690303d52047",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xed36ea8e42ae0a0e90169ea30ec14ce7b338adb1",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xed3afd345ee37b6a0881db261b0e9f7513695b32",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xed8e924735f590572361b52657abd9a3260f35a0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xee91d62eb5aaea933efbfd0790613af5db305006",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf031fe723fc214aaad0a2d7d299d23766c2324c7",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf12e01a67bdb198748c520f4642eab5ccc5e3906",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf20be84c9e82df3c323e10968a254e448f71b518",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf424dd28154ad4461d075e3374649a85b8362ed0",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf44e8ff03f794774cd67c937fec72080b05d0aed",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf530cb2cc7e42c0abe288668c41962c6261c44b9",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf6fbf4f33ad18af8e72b267c0b7c10ddc3df94fb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf84b938e3b753ce0cd93cdeb1b79a5ad35c2d795",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf85d965e9fd4607b000110253214f49231f0031a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf95a8f3dbf92ef2ef95fa0c57dd9bd89d5574cee",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf9a77d955071da2dcd8128dccf7a3e06ebf21dd3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xf9a9a403b039996082049394935f815523157330",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xfab5d803b921a646efd6882e55f8811430f9fbd2",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xfdc2b224cc1fd65d6cdccdd896510a7d89af81c3",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xff545952ab70d5be626a169b976ef80923b53e1c",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xff768d53f1c652f321075a14967a423221467908",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xffaa07a1c4313c706183f9370b6dc508d0332b26",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xffb0a17e69cb382175503cfe0b029b179658a06a",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0xffb89dcd7fb5d919e04c6834f0f544ebd83085bb",
-    "value": "50000000000000000000"
+    "value": 50
   },
   {
     "address": "0x41f422d760099ca0bd94b3ecae71b42e8c8f9a74",
-    "value": "15320300000000000000000"
+    "value": 15320.3
   },
   {
     "address": "0xff2310ae4e2325ca0e60a4591d3e5c4aab0e3cf8",
-    "value": "5543000000000000000000"
+    "value": 5543
   },
   {
     "address": "0xaa53fc83a445356c7aa22bfaf1ca7b7a71fa6d62",
-    "value": "1973400000000000000000"
+    "value": 1973.4
   },
   {
     "address": "0x934593EAf0c9355C7E1d42c71D618F102030675a",
-    "value": "750000000000000000000"
+    "value": 750
   }
 ]
