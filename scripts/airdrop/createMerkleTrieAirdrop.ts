@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import fs from "fs";
 import { MerkleTree } from "merkletreejs";
 
-import airdropData from "./data/airdropData.json";
+import airdropData from "./data/airdropDataFinalBase.json";
 
 /**
  * This script creates a merkle tree from airdropData.json file and writes the merkle proofs to a file.

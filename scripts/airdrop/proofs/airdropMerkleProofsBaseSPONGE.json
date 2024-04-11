@@ -1,0 +1,25 @@
+[
+  {
+    "address": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+    "value": 100,
+    "proof": [
+      "0x504c8c2b7d8d9439dcad979c8156ab6b4931ee3df0129bd6cb143f37ded96eeb",
+      "0xfbb18568db8c25530060365849e4b6077e7049b07bedc07b7b0b8d76fb5d9257"
+    ]
+  },
+  {
+    "address": "0x0a606524006a48C4D93662aA935AEC203CaC98C1",
+    "value": 100,
+    "proof": [
+      "0x41883f58c3d04febdde94736759e24638760c9d910ae43f13520812a388dd3a4",
+      "0xfbb18568db8c25530060365849e4b6077e7049b07bedc07b7b0b8d76fb5d9257"
+    ]
+  },
+  {
+    "address": "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563",
+    "value": 100,
+    "proof": [
+      "0xf272dcbf94f8c3636dafbe746b0c9c17e8876edaa7c2f598fd0457e98aa023dc"
+    ]
+  }
+]
