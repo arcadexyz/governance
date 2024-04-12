@@ -59,7 +59,7 @@ export async function main() {
 
             return {
                 address: account.address,
-                value: account.value,
+                value: amount.toString(),
                 proof: proof,
             };
         }),
@@ -68,7 +68,7 @@ export async function main() {
     fs.writeFileSync("./scripts/airdrop/proofs/airdropMerkleProofs.json", JSON.stringify(proofs, null, 2));
 
     console.log("Merkle Root: ", root);
-    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs.json");
+    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs2.json");
 }
 
 main()
