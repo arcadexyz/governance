@@ -73,7 +73,7 @@ export async function main() {
     fs.writeFileSync("./scripts/airdrop/proofs/airdropMerkleProofs.json", JSON.stringify(proofs, null, 2));
 
     console.log("Merkle Root: ", root);
-    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs2.json");
+    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs.json");
     console.log("Total value: ", ethers.utils.formatEther(totalValue));
     console.log("Total users: ", totalUsers);
 }

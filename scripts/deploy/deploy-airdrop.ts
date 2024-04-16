@@ -3,9 +3,9 @@ import { AirdropSeason1L2 } from "../../src/types";
 
 // Deployment parameters
 const airdropSeason = "1";
-const ARCD = "0x9a5894c1Fa45614122FAf77F74ba7746A763Af12"; // NOTE: set address after the tokens are bridged to base
-const AIRDROP_MERKLE_ROOT = "0xc24f8725849e23850e2f61c165e348cf908e692b922c2f5b834cb73f42b7f944"; // airdropDataFinalBase.json merkle root
-const AIRDROP_EXPIRATION = 1728609062; // airdrop expiration timestamp
+const ARCD = "0x1A37249C4209A6fc1A8f531BaA6Cd3Dda027FC64"; // bridged token on base
+const AIRDROP_MERKLE_ROOT = "0xc24f8725849e23850e2f61c165e348cf908e692b922c2f5b834cb73f42b7f944"; // airdropDataFinalBase.json merkle root snapshot taken 4/12/2024
+const AIRDROP_EXPIRATION = 1715896450; // 1 month from 4/16/2024
 
 // Post-deployment configuration parameters
 const OWNER = "0x21aDafAA34d250a4fa0f8A4d2E2424ABa0cEE563";
