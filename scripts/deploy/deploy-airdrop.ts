@@ -3,9 +3,9 @@ import { ethers } from "hardhat";
 // Deployment parameters
 const airdropSeason = "1";
 const ARCD = "0xe020B01B6fbD83066aa2e8ee0CCD1eB8d9Cc70bF";
-const AIRDROP_MERKLE_ROOT = ethers.constants.HashZero;
-const AIRDROP_EXPIRATION = 1711477843; // timestamp
-const VOTING_VAULT = "0x";
+const AIRDROP_MERKLE_ROOT = "0x6132c21a5d8c33218fb0866c9d46fc215d26968637c97ced2d7383871dd85fd3";
+const AIRDROP_EXPIRATION = 1718561446; // timestamp
+const VOTING_VAULT = "0x72854FBb44d3dd87109D46a9298AEB0d018740f0";
 
 // Post-deployment configuration parameters
 const OWNER = "0x398e92C827C5FA0F33F171DC8E20570c5CfF330e"; // launch partner multisig
