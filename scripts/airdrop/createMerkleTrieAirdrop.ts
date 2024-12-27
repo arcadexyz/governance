@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import fs from "fs";
 import { MerkleTree } from "merkletreejs";
 
-import airdropData from "./data/airdropData.json";
+import airdropData from "./data/combined/combined_airdrop_data_bn.json";
 
 /**
  * This script creates a merkle tree from airdropData.json file and writes the merkle proofs to a file.
@@ -13,7 +13,7 @@ import airdropData from "./data/airdropData.json";
 
 interface Account {
     address: string;
-    value: number;
+    value: string;
 }
 
 async function getMerkleTree(accounts: Account[]) {
@@ -21,7 +21,7 @@ async function getMerkleTree(accounts: Account[]) {
         accounts.map(account =>
             ethers.utils.solidityKeccak256(
                 ["address", "uint256"],
-                [account.address, ethers.utils.parseEther(account.value.toString())],
+                [account.address, BigNumber.from(account.value)],
             ),
         ),
     );
@@ -44,9 +44,7 @@ export async function main() {
 
     const proofs = await Promise.all(
         airdropData.map(async account => {
-            const amount = ethers.utils.parseEther(account.value.toString());
-
-            const leaf = ethers.utils.solidityKeccak256(["address", "uint256"], [account.address, amount]);
+            const leaf = ethers.utils.solidityKeccak256(["address", "uint256"], [account.address, account.value]);
 
             const proof = merkleTrie.getHexProof(leaf);
 
@@ -65,10 +63,10 @@ export async function main() {
         }),
     );
 
-    fs.writeFileSync("./scripts/airdrop/proofs/airdropMerkleProofs.json", JSON.stringify(proofs, null, 2));
+    fs.writeFileSync("./scripts/airdrop/proofs/airdropMerkleProofsFinalSzn.json", JSON.stringify(proofs, null, 2));
 
     console.log("Merkle Root: ", root);
-    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofs.json");
+    console.log("Proofs written to ./scripts/airdrop/proofs/airdropMerkleProofsFinalSzn.json");
 }
 
 main()
