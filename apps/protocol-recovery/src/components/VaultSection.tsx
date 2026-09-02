@@ -169,6 +169,16 @@ function VaultCard({ vault }: { vault: VaultInfo }) {
     });
   };
 
+  const handleWithdrawERC1155 = () => {
+    if (!withdrawToken || !withdrawTokenId || !address) return;
+    writeContract({
+      address: vault.address as `0x${string}`,
+      abi: assetVaultAbi,
+      functionName: 'withdrawERC1155',
+      args: [withdrawToken as `0x${string}`, BigInt(withdrawTokenId), address],
+    });
+  };
+
   const handleWithdrawERC20 = () => {
     if (!withdrawToken || !address) return;
     writeContract({
@@ -239,13 +249,26 @@ function VaultCard({ vault }: { vault: VaultInfo }) {
             />
           </div>
 
+          <p className="text-gray-500 text-xs mb-2">
+            NFT withdrawals need both the token contract address and the token ID. Use the ERC1155
+            button for multi-token contracts such as the OpenSea Shared Storefront; ERC721 reverts on
+            those.
+          </p>
+
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={handleWithdrawERC721}
               disabled={isPending || isConfirming || !withdrawToken || !withdrawTokenId}
               className="arcade-btn arcade-btn-secondary px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Withdraw NFT
+              Withdraw NFT (ERC721)
+            </button>
+            <button
+              onClick={handleWithdrawERC1155}
+              disabled={isPending || isConfirming || !withdrawToken || !withdrawTokenId}
+              className="arcade-btn arcade-btn-secondary px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Withdraw NFT (ERC1155)
             </button>
             <button
               onClick={handleWithdrawERC20}
