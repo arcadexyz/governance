@@ -60,6 +60,16 @@ export function ManualSection() {
     });
   };
 
+  const handleVaultWithdrawERC1155 = () => {
+    if (!vaultAddress || !tokenAddress || !tokenId || !address) return;
+    writeContract({
+      address: vaultAddress as `0x${string}`,
+      abi: assetVaultAbi,
+      functionName: 'withdrawERC1155',
+      args: [tokenAddress as `0x${string}`, BigInt(tokenId), address],
+    });
+  };
+
   const handleVaultWithdrawERC20 = () => {
     if (!vaultAddress || !tokenAddress || !address) return;
     writeContract({
@@ -259,7 +269,14 @@ export function ManualSection() {
                 disabled={isPending || isConfirming || !vaultAddress || !tokenAddress || !tokenId}
                 className="arcade-btn arcade-btn-secondary px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Withdraw NFT
+                Withdraw NFT (ERC721)
+              </button>
+              <button
+                onClick={handleVaultWithdrawERC1155}
+                disabled={isPending || isConfirming || !vaultAddress || !tokenAddress || !tokenId}
+                className="arcade-btn arcade-btn-secondary px-3 py-1.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Withdraw NFT (ERC1155)
               </button>
               <button
                 onClick={handleVaultWithdrawERC20}
