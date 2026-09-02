@@ -3,8 +3,8 @@ export const CONTRACTS = {
   loanCoreV3: '0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF' as const,
   repaymentControllerV3: '0x74241e1A9c021643289476426B9B70229Ab40D53' as const,
   vaultFactoryV3: '0x269363665Dbb1582b143099a3cb467E98a476D55' as const,
-  lenderNoteV3: '0x0bf1bF15C8C09e8BdED44b5b15DBbbb6a16eB8bb' as const,
-  borrowerNoteV3: '0xF9b5C7ce978e0aD6e33da2a94f51Df82FfDd5fE1' as const,
+  lenderNoteV3: '0x92ED78b41537C902Ad287608d8535bb6780A7618' as const,
+  borrowerNoteV3: '0xe5B12BEfaf3a91065DA7FDD461dEd2d8F8ECb7BE' as const,
 
   // V2 Contracts
   loanCoreV2: '0x81b2F8Fc75Bab64A6b144aa6d2fAa127B4Fa7fD9' as const,
@@ -18,7 +18,7 @@ export const CONTRACTS = {
 export const TOKENS = {
   USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as const,
   WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2' as const,
-  DAI: '0x6B175474E89094C44Da98b954EescdeCB5BadD3d' as const,
+  DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F' as const,
 };
 
 // Minimal ABIs - only the functions we need

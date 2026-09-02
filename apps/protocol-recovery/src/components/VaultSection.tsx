@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACTS, vaultFactoryAbi, assetVaultAbi } from '@/lib/contracts';
 import { publicClient } from '@/lib/publicClient';
 import { shortenAddress } from '@/lib/utils';
@@ -17,89 +17,104 @@ export function VaultSection() {
   const { address } = useAccount();
   const [vaults, setVaults] = useState<VaultInfo[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const { data: vaultV3Balance } = useReadContract({
-    address: CONTRACTS.vaultFactoryV3,
-    abi: vaultFactoryAbi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-  });
-
-  const { data: vaultV2Balance } = useReadContract({
-    address: CONTRACTS.vaultFactoryV2,
-    abi: vaultFactoryAbi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-  });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchVaults = async () => {
-      if (!address) return;
+      if (!address) {
+        setVaults([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
+      setError(null);
 
-      const allVaults: VaultInfo[] = [];
-
+      // Balances are read through publicClient rather than the wallet's
+      // connected chain. Looking up vaults is a read-only mainnet query and
+      // must not depend on which network the wallet happens to be on.
       const fetchVaultIds = async (
         factoryAddress: `0x${string}`,
-        balance: bigint | undefined,
         version: 'V2' | 'V3'
       ) => {
+        const balance = await publicClient.readContract({
+          address: factoryAddress,
+          abi: vaultFactoryAbi,
+          functionName: 'balanceOf',
+          args: [address],
+        });
         if (!balance || balance === 0n) return [];
         const vaultInfos: VaultInfo[] = [];
 
         for (let i = 0n; i < balance; i++) {
+          const tokenId = await publicClient.readContract({
+            address: factoryAddress,
+            abi: vaultFactoryAbi,
+            functionName: 'tokenOfOwnerByIndex',
+            args: [address, i],
+          });
+
+          const vaultAddress = await publicClient.readContract({
+            address: factoryAddress,
+            abi: vaultFactoryAbi,
+            functionName: 'instanceAt',
+            args: [tokenId],
+          });
+
+          let withdrawEnabled = false;
           try {
-            const tokenId = await publicClient.readContract({
-              address: factoryAddress,
-              abi: vaultFactoryAbi,
-              functionName: 'tokenOfOwnerByIndex',
-              args: [address, i],
+            withdrawEnabled = await publicClient.readContract({
+              address: vaultAddress,
+              abi: assetVaultAbi,
+              functionName: 'withdrawEnabled',
             });
-
-            const vaultAddress = await publicClient.readContract({
-              address: factoryAddress,
-              abi: vaultFactoryAbi,
-              functionName: 'instanceAt',
-              args: [tokenId],
-            });
-
-            let withdrawEnabled = false;
-            try {
-              withdrawEnabled = await publicClient.readContract({
-                address: vaultAddress,
-                abi: assetVaultAbi,
-                functionName: 'withdrawEnabled',
-              });
-            } catch (e) {
-              // A vault that cannot answer withdrawEnabled is still worth showing.
-              console.error('Error reading withdrawEnabled:', e);
-            }
-
-            vaultInfos.push({ tokenId, address: vaultAddress, version, withdrawEnabled });
           } catch (e) {
-            console.error('Error fetching vault:', e);
+            // A vault that cannot answer withdrawEnabled is still worth showing.
+            console.error('Error reading withdrawEnabled:', e);
           }
+
+          vaultInfos.push({ tokenId, address: vaultAddress, version, withdrawEnabled });
         }
         return vaultInfos;
       };
 
-      const [v3Vaults, v2Vaults] = await Promise.all([
-        fetchVaultIds(CONTRACTS.vaultFactoryV3, vaultV3Balance, 'V3'),
-        fetchVaultIds(CONTRACTS.vaultFactoryV2, vaultV2Balance, 'V2'),
-      ]);
+      try {
+        const [v3Vaults, v2Vaults] = await Promise.all([
+          fetchVaultIds(CONTRACTS.vaultFactoryV3, 'V3'),
+          fetchVaultIds(CONTRACTS.vaultFactoryV2, 'V2'),
+        ]);
+        setVaults([...v3Vaults, ...v2Vaults]);
+      } catch (e) {
+        // Surface the failure. Reporting "no vaults found" when the lookup
+        // itself broke is how the previous bug stayed hidden.
+        console.error('Error fetching vaults:', e);
+        setError(e instanceof Error ? e.message : String(e));
+        setVaults([]);
+      }
 
-      setVaults([...v3Vaults, ...v2Vaults]);
       setLoading(false);
     };
 
     fetchVaults();
-  }, [address, vaultV3Balance, vaultV2Balance]);
+  }, [address]);
 
   if (loading) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin h-8 w-8 border-2 border-gray-700 border-t-arcade-mint mx-auto mb-4"></div>
         <p className="text-gray-400">Loading your vaults...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-arcade-pink">Could not load your vaults.</p>
+        <p className="text-gray-500 text-sm mt-2 break-all">{error}</p>
+        <p className="text-gray-500 text-sm mt-2">
+          This is a lookup failure, not a confirmation that you have no vaults. Try again, or use
+          the Manual tab if you know your vault address.
+        </p>
       </div>
     );
   }

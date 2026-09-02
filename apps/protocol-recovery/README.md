@@ -49,8 +49,8 @@ Or deploy directly via Vercel CLI or GitHub integration.
 - LoanCore: `0x89bc08BA00f135d608bc335f6B33D7a9ABCC98aF`
 - RepaymentController: `0x74241e1A9c021643289476426B9B70229Ab40D53`
 - VaultFactory: `0x269363665Dbb1582b143099a3cb467E98a476D55`
-- LenderNote: `0x0bf1bF15C8C09e8BdED44b5b15DBbbb6a16eB8bb`
-- BorrowerNote: `0xF9b5C7ce978e0aD6e33da2a94f51Df82FfDd5fE1`
+- LenderNote: `0x92ED78b41537C902Ad287608d8535bb6780A7618`
+- BorrowerNote: `0xe5B12BEfaf3a91065DA7FDD461dEd2d8F8ECb7BE`
 
 ### V2 Contracts
 - LoanCore: `0x81b2F8Fc75Bab64A6b144aa6d2fAa127B4Fa7fD9`

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import {
   CONTRACTS,
   promissoryNoteAbi,
@@ -31,143 +31,143 @@ export function LoanSection() {
   const { address } = useAccount();
   const [loans, setLoans] = useState<LoanInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Get note balances for all note contracts
-  const { data: borrowerNoteV3Balance } = useReadContract({
-    address: CONTRACTS.borrowerNoteV3,
-    abi: promissoryNoteAbi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-  });
-
-  const { data: lenderNoteV3Balance } = useReadContract({
-    address: CONTRACTS.lenderNoteV3,
-    abi: promissoryNoteAbi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-  });
-
-  const { data: borrowerNoteV2Balance } = useReadContract({
-    address: CONTRACTS.borrowerNoteV2,
-    abi: promissoryNoteAbi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-  });
-
-  const { data: lenderNoteV2Balance } = useReadContract({
-    address: CONTRACTS.lenderNoteV2,
-    abi: promissoryNoteAbi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-  });
-
-  // Build list of loan IDs to fetch
   useEffect(() => {
     const fetchLoans = async () => {
-      if (!address) return;
+      if (!address) {
+        setLoans([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
+      setError(null);
 
       const allLoans: LoanInfo[] = [];
 
-      // Helper to fetch loan IDs from a note contract
+      // Note balances are read through publicClient rather than the wallet's
+      // connected chain, so the lookup works regardless of the wallet network.
       const fetchLoanIds = async (
         noteAddress: `0x${string}`,
-        balance: bigint | undefined,
         version: 'V2' | 'V3',
         role: 'borrower' | 'lender'
       ) => {
+        const balance = await publicClient.readContract({
+          address: noteAddress,
+          abi: promissoryNoteAbi,
+          functionName: 'balanceOf',
+          args: [address],
+        });
         if (!balance || balance === 0n) return [];
         const ids: { id: bigint; version: 'V2' | 'V3'; role: 'borrower' | 'lender' }[] = [];
         for (let i = 0n; i < balance; i++) {
-          try {
-            const id = await publicClient.readContract({
-              address: noteAddress,
-              abi: promissoryNoteAbi,
-              functionName: 'tokenOfOwnerByIndex',
-              args: [address, i],
-            });
-            ids.push({ id, version, role });
-          } catch (e) {
-            console.error('Error fetching loan ID:', e);
-          }
+          const id = await publicClient.readContract({
+            address: noteAddress,
+            abi: promissoryNoteAbi,
+            functionName: 'tokenOfOwnerByIndex',
+            args: [address, i],
+          });
+          ids.push({ id, version, role });
         }
         return ids;
       };
 
-      // Fetch all loan IDs
-      const [borrowerV3Ids, lenderV3Ids, borrowerV2Ids, lenderV2Ids] = await Promise.all([
-        fetchLoanIds(CONTRACTS.borrowerNoteV3, borrowerNoteV3Balance, 'V3', 'borrower'),
-        fetchLoanIds(CONTRACTS.lenderNoteV3, lenderNoteV3Balance, 'V3', 'lender'),
-        fetchLoanIds(CONTRACTS.borrowerNoteV2, borrowerNoteV2Balance, 'V2', 'borrower'),
-        fetchLoanIds(CONTRACTS.lenderNoteV2, lenderNoteV2Balance, 'V2', 'lender'),
-      ]);
+      try {
+        const [borrowerV3Ids, lenderV3Ids, borrowerV2Ids, lenderV2Ids] = await Promise.all([
+          fetchLoanIds(CONTRACTS.borrowerNoteV3, 'V3', 'borrower'),
+          fetchLoanIds(CONTRACTS.lenderNoteV3, 'V3', 'lender'),
+          fetchLoanIds(CONTRACTS.borrowerNoteV2, 'V2', 'borrower'),
+          fetchLoanIds(CONTRACTS.lenderNoteV2, 'V2', 'lender'),
+        ]);
 
-      const allIds = [...borrowerV3Ids, ...lenderV3Ids, ...borrowerV2Ids, ...lenderV2Ids];
+        const allIds = [...borrowerV3Ids, ...lenderV3Ids, ...borrowerV2Ids, ...lenderV2Ids];
 
-      // Fetch loan details for each. Decoding goes through the contract ABIs so
-      // struct layouts are never assumed from hardcoded byte offsets.
-      for (const { id, version, role } of allIds) {
-        try {
-          if (version === 'V3') {
-            const loan = await publicClient.readContract({
-              address: CONTRACTS.loanCoreV3,
-              abi: loanCoreV3Abi,
-              functionName: 'getLoan',
-              args: [id],
-            });
+        // Decoding goes through the contract ABIs so struct layouts are never
+        // assumed from hardcoded byte offsets.
+        for (const { id, version, role } of allIds) {
+          try {
+            if (version === 'V3') {
+              const loan = await publicClient.readContract({
+                address: CONTRACTS.loanCoreV3,
+                abi: loanCoreV3Abi,
+                functionName: 'getLoan',
+                args: [id],
+              });
 
-            allLoans.push({
-              id,
-              version,
-              role,
-              state: Number(loan.state),
-              startDate: Number(loan.startDate),
-              principal: loan.terms.principal,
-              payableCurrency: loan.terms.payableCurrency,
-              collateralAddress: loan.terms.collateralAddress,
-              collateralId: loan.terms.collateralId,
-              durationSecs: Number(loan.terms.durationSecs),
-              interestRate: loan.terms.proratedInterestRate,
-            });
-          } else {
-            const loan = await publicClient.readContract({
-              address: CONTRACTS.loanCoreV2,
-              abi: loanCoreV2Abi,
-              functionName: 'getLoan',
-              args: [id],
-            });
+              allLoans.push({
+                id,
+                version,
+                role,
+                state: Number(loan.state),
+                startDate: Number(loan.startDate),
+                principal: loan.terms.principal,
+                payableCurrency: loan.terms.payableCurrency,
+                collateralAddress: loan.terms.collateralAddress,
+                collateralId: loan.terms.collateralId,
+                durationSecs: Number(loan.terms.durationSecs),
+                interestRate: loan.terms.proratedInterestRate,
+              });
+            } else {
+              const loan = await publicClient.readContract({
+                address: CONTRACTS.loanCoreV2,
+                abi: loanCoreV2Abi,
+                functionName: 'getLoan',
+                args: [id],
+              });
 
-            allLoans.push({
-              id,
-              version,
-              role,
-              state: Number(loan.state),
-              startDate: Number(loan.startDate),
-              principal: loan.terms.principal,
-              payableCurrency: loan.terms.payableCurrency,
-              collateralAddress: loan.terms.collateralAddress,
-              collateralId: loan.terms.collateralId,
-              durationSecs: Number(loan.terms.durationSecs),
-              interestRate: loan.terms.interestRate,
-            });
+              allLoans.push({
+                id,
+                version,
+                role,
+                state: Number(loan.state),
+                startDate: Number(loan.startDate),
+                principal: loan.terms.principal,
+                payableCurrency: loan.terms.payableCurrency,
+                collateralAddress: loan.terms.collateralAddress,
+                collateralId: loan.terms.collateralId,
+                durationSecs: Number(loan.terms.durationSecs),
+                interestRate: loan.terms.interestRate,
+              });
+            }
+          } catch (e) {
+            console.error('Error fetching loan details:', e);
           }
-        } catch (e) {
-          console.error('Error fetching loan details:', e);
         }
+
+        setLoans(allLoans);
+      } catch (e) {
+        // Surface the failure rather than rendering an empty state that looks
+        // like a confirmed "you have no loans".
+        console.error('Error fetching loans:', e);
+        setError(e instanceof Error ? e.message : String(e));
+        setLoans([]);
       }
 
-      setLoans(allLoans);
       setLoading(false);
     };
 
     fetchLoans();
-  }, [address, borrowerNoteV3Balance, lenderNoteV3Balance, borrowerNoteV2Balance, lenderNoteV2Balance]);
+  }, [address]);
 
   if (loading) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin h-8 w-8 border-2 border-gray-700 border-t-arcade-mint mx-auto mb-4"></div>
         <p className="text-gray-400">Loading your loans...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-arcade-pink">Could not load your loans.</p>
+        <p className="text-gray-500 text-sm mt-2 break-all">{error}</p>
+        <p className="text-gray-500 text-sm mt-2">
+          This is a lookup failure, not a confirmation that you have no loans. Try again, or use the
+          Manual tab if you know your loan ID.
+        </p>
       </div>
     );
   }
