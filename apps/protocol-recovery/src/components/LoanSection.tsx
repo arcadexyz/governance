@@ -7,7 +7,10 @@ import {
   promissoryNoteAbi,
   repaymentControllerV3Abi,
   repaymentControllerV2Abi,
+  loanCoreV3Abi,
+  loanCoreV2Abi,
 } from '@/lib/contracts';
+import { publicClient } from '@/lib/publicClient';
 import { formatAmount, formatDate, getLoanStateLabel, LoanState } from '@/lib/utils';
 
 interface LoanInfo {
@@ -68,7 +71,7 @@ export function LoanSection() {
 
       // Helper to fetch loan IDs from a note contract
       const fetchLoanIds = async (
-        noteAddress: string,
+        noteAddress: `0x${string}`,
         balance: bigint | undefined,
         version: 'V2' | 'V3',
         role: 'borrower' | 'lender'
@@ -77,26 +80,13 @@ export function LoanSection() {
         const ids: { id: bigint; version: 'V2' | 'V3'; role: 'borrower' | 'lender' }[] = [];
         for (let i = 0n; i < balance; i++) {
           try {
-            const response = await fetch(`https://eth.llamarpc.com`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_call',
-                params: [
-                  {
-                    to: noteAddress,
-                    data: `0x2f745c59${address.slice(2).padStart(64, '0')}${i.toString(16).padStart(64, '0')}`,
-                  },
-                  'latest',
-                ],
-                id: 1,
-              }),
+            const id = await publicClient.readContract({
+              address: noteAddress,
+              abi: promissoryNoteAbi,
+              functionName: 'tokenOfOwnerByIndex',
+              args: [address, i],
             });
-            const data = await response.json();
-            if (data.result) {
-              ids.push({ id: BigInt(data.result), version, role });
-            }
+            ids.push({ id, version, role });
           } catch (e) {
             console.error('Error fetching loan ID:', e);
           }
@@ -114,59 +104,52 @@ export function LoanSection() {
 
       const allIds = [...borrowerV3Ids, ...lenderV3Ids, ...borrowerV2Ids, ...lenderV2Ids];
 
-      // Fetch loan details for each
+      // Fetch loan details for each. Decoding goes through the contract ABIs so
+      // struct layouts are never assumed from hardcoded byte offsets.
       for (const { id, version, role } of allIds) {
         try {
-          const loanCoreAddress = version === 'V3' ? CONTRACTS.loanCoreV3 : CONTRACTS.loanCoreV2;
-          const response = await fetch(`https://eth.llamarpc.com`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              jsonrpc: '2.0',
-              method: 'eth_call',
-              params: [
-                {
-                  to: loanCoreAddress,
-                  data: `0x20ede9cc${id.toString(16).padStart(64, '0')}`,
-                },
-                'latest',
-              ],
-              id: 1,
-            }),
-          });
-          const data = await response.json();
-          if (data.result && data.result !== '0x') {
-            const result = data.result.slice(2);
-            if (version === 'V3') {
-              const state = parseInt(result.slice(0, 64), 16);
-              const startDate = parseInt(result.slice(64, 128), 16);
-              const proratedInterestRate = BigInt('0x' + result.slice(128, 192));
-              const principal = BigInt('0x' + result.slice(192, 256));
-              const collateralAddress = '0x' + result.slice(280, 320);
-              const durationSecs = parseInt(result.slice(320, 344), 16);
-              const collateralId = BigInt('0x' + result.slice(344, 408));
-              const payableCurrency = '0x' + result.slice(432, 472);
+          if (version === 'V3') {
+            const loan = await publicClient.readContract({
+              address: CONTRACTS.loanCoreV3,
+              abi: loanCoreV3Abi,
+              functionName: 'getLoan',
+              args: [id],
+            });
 
-              allLoans.push({
-                id, version, role, state, principal, payableCurrency,
-                collateralAddress, collateralId, startDate, durationSecs,
-                interestRate: proratedInterestRate,
-              });
-            } else {
-              const state = parseInt(result.slice(0, 64), 16);
-              const startDate = parseInt(result.slice(128, 192), 16);
-              const durationSecs = parseInt(result.slice(192, 200), 16);
-              const interestRate = BigInt('0x' + result.slice(224, 264));
-              const principal = BigInt('0x' + result.slice(264, 328));
-              const collateralAddress = '0x' + result.slice(352, 392);
-              const collateralId = BigInt('0x' + result.slice(392, 456));
-              const payableCurrency = '0x' + result.slice(480, 520);
+            allLoans.push({
+              id,
+              version,
+              role,
+              state: Number(loan.state),
+              startDate: Number(loan.startDate),
+              principal: loan.terms.principal,
+              payableCurrency: loan.terms.payableCurrency,
+              collateralAddress: loan.terms.collateralAddress,
+              collateralId: loan.terms.collateralId,
+              durationSecs: Number(loan.terms.durationSecs),
+              interestRate: loan.terms.proratedInterestRate,
+            });
+          } else {
+            const loan = await publicClient.readContract({
+              address: CONTRACTS.loanCoreV2,
+              abi: loanCoreV2Abi,
+              functionName: 'getLoan',
+              args: [id],
+            });
 
-              allLoans.push({
-                id, version, role, state, principal, payableCurrency,
-                collateralAddress, collateralId, startDate, durationSecs, interestRate,
-              });
-            }
+            allLoans.push({
+              id,
+              version,
+              role,
+              state: Number(loan.state),
+              startDate: Number(loan.startDate),
+              principal: loan.terms.principal,
+              payableCurrency: loan.terms.payableCurrency,
+              collateralAddress: loan.terms.collateralAddress,
+              collateralId: loan.terms.collateralId,
+              durationSecs: Number(loan.terms.durationSecs),
+              interestRate: loan.terms.interestRate,
+            });
           }
         } catch (e) {
           console.error('Error fetching loan details:', e);

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { CONTRACTS, vaultFactoryAbi, assetVaultAbi } from '@/lib/contracts';
+import { publicClient } from '@/lib/publicClient';
 import { shortenAddress } from '@/lib/utils';
 
 interface VaultInfo {
@@ -39,7 +40,7 @@ export function VaultSection() {
       const allVaults: VaultInfo[] = [];
 
       const fetchVaultIds = async (
-        factoryAddress: string,
+        factoryAddress: `0x${string}`,
         balance: bigint | undefined,
         version: 'V2' | 'V3'
       ) => {
@@ -48,62 +49,31 @@ export function VaultSection() {
 
         for (let i = 0n; i < balance; i++) {
           try {
-            const tokenIdResponse = await fetch(`https://eth.llamarpc.com`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_call',
-                params: [
-                  {
-                    to: factoryAddress,
-                    data: `0x2f745c59${address.slice(2).padStart(64, '0')}${i.toString(16).padStart(64, '0')}`,
-                  },
-                  'latest',
-                ],
-                id: 1,
-              }),
+            const tokenId = await publicClient.readContract({
+              address: factoryAddress,
+              abi: vaultFactoryAbi,
+              functionName: 'tokenOfOwnerByIndex',
+              args: [address, i],
             });
-            const tokenIdData = await tokenIdResponse.json();
-            if (!tokenIdData.result) continue;
 
-            const tokenId = BigInt(tokenIdData.result);
-
-            const instanceResponse = await fetch(`https://eth.llamarpc.com`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_call',
-                params: [
-                  {
-                    to: factoryAddress,
-                    data: `0x11f5dcd4${tokenId.toString(16).padStart(64, '0')}`,
-                  },
-                  'latest',
-                ],
-                id: 1,
-              }),
+            const vaultAddress = await publicClient.readContract({
+              address: factoryAddress,
+              abi: vaultFactoryAbi,
+              functionName: 'instanceAt',
+              args: [tokenId],
             });
-            const instanceData = await instanceResponse.json();
-            if (!instanceData.result) continue;
 
-            const vaultAddress = '0x' + instanceData.result.slice(26);
-
-            const withdrawEnabledResponse = await fetch(`https://eth.llamarpc.com`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                jsonrpc: '2.0',
-                method: 'eth_call',
-                params: [{ to: vaultAddress, data: `0x438b6300` }, 'latest'],
-                id: 1,
-              }),
-            });
-            const withdrawEnabledData = await withdrawEnabledResponse.json();
-            const withdrawEnabled =
-              withdrawEnabledData.result ===
-              '0x0000000000000000000000000000000000000000000000000000000000000001';
+            let withdrawEnabled = false;
+            try {
+              withdrawEnabled = await publicClient.readContract({
+                address: vaultAddress,
+                abi: assetVaultAbi,
+                functionName: 'withdrawEnabled',
+              });
+            } catch (e) {
+              // A vault that cannot answer withdrawEnabled is still worth showing.
+              console.error('Error reading withdrawEnabled:', e);
+            }
 
             vaultInfos.push({ tokenId, address: vaultAddress, version, withdrawEnabled });
           } catch (e) {
