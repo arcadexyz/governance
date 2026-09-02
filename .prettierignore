@@ -1,5 +1,6 @@
 # directories
 .yarn/
+apps/
 **/.coverage_artifacts
 **/.coverage_cache
 **/.coverage_contracts

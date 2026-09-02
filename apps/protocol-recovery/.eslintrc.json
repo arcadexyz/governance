@@ -1,0 +1,9 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "prettier/prettier": "off",
+    "import/no-unused-modules": "off",
+    "unused-imports/no-unused-imports-ts": "off",
+    "@typescript-eslint/no-unused-vars": "warn"
+  }
+}

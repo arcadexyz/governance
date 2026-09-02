@@ -11,6 +11,23 @@
 - 💬 [Discord](https://discord.gg/arcadexyz) - Join the Arcade.xyz community! Great for further technical discussion and real-time support.
 - 🔔 [Twitter](https://twitter.com/arcade_xyz) - Follow us on Twitter for alerts, announcements, and alpha.
 
+# Apps
+
+### `apps/protocol-recovery`
+
+A standalone Next.js app ("Arcade Protocol Recovery UI") that lets users interact directly with
+the Arcade Lending Protocol contracts on Ethereum mainnet after the main UI was sunset. It supports
+repaying loans, claiming collateral from defaulted loans, and enabling withdrawals and withdrawing
+NFTs, ERC20 tokens, and ETH from asset vaults, plus a manual contract-call section for advanced
+users and a written migration guide at `/guide`.
+
+The app is self-contained: it has its own `package.json`, lockfile, lint/format config, and Vercel
+config, and is built and deployed independently of the Hardhat contracts in this repo. It is
+excluded from the root `eslint`/`prettier` pipelines via `.eslintignore` and `.prettierignore`.
+Ported from `arcadexyz/arcade-station`. See `apps/protocol-recovery/README.md` for setup and the
+V2/V3 contract addresses it targets.
+
+
 # Overview of Contracts
 
 ### ___See natspec for technical detail.___
