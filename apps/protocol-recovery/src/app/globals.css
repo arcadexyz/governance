@@ -1,0 +1,524 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Pixel Operator Font */
+@font-face {
+  font-family: 'Pixel Operator';
+  src: url('/fonts/PixelOperator.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Pixel Operator';
+  src: url('/fonts/PixelOperator-Bold.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Arcade Brand Colors */
+  --arcade-blue: #0094FF;
+  --arcade-purple: #7E0CDC;
+  --arcade-pink: #FF337C;
+  --arcade-mint: #42EFCF;
+  --arcade-black: #05080A;
+  --arcade-white: #fff;
+
+  /* Grayscale */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-850: #1a1f2e;
+  --gray-900: #111827;
+  --gray-950: #0d1117;
+
+  /* Elevation backgrounds (dark theme) */
+  --elv0: #1f2937;
+  --elv1: #1a1f2e;
+  --elv2: #161b26;
+  --elv3: #13171f;
+  --elv4: #111419;
+  --elv5: #0f1114;
+  --elv14: #05080A;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  color: var(--arcade-white);
+  background: var(--elv14);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Arcade-style button */
+.arcade-btn {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+  border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 400;
+  transition: all 0.15s ease;
+}
+
+.arcade-btn-primary {
+  background: var(--arcade-blue);
+  color: var(--arcade-white);
+  border: 3px solid var(--arcade-blue);
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.24),
+              inset 0px -1px 1px rgba(16, 23, 38, 0.64),
+              inset 0px 2px 1px rgba(55, 65, 81, 0.64);
+}
+
+.arcade-btn-primary:hover:not(:disabled) {
+  background: #0080e6;
+  border-color: #0080e6;
+}
+
+.arcade-btn-secondary {
+  background: transparent;
+  color: var(--arcade-white);
+  border: 2px solid var(--gray-600);
+}
+
+.arcade-btn-secondary:hover:not(:disabled) {
+  border-color: var(--gray-400);
+  background: var(--elv2);
+}
+
+.arcade-btn-mint {
+  background: var(--arcade-mint);
+  color: var(--arcade-black);
+  border: 3px solid var(--arcade-mint);
+}
+
+.arcade-btn-mint:hover:not(:disabled) {
+  background: #35d4b8;
+  border-color: #35d4b8;
+}
+
+.arcade-btn-pink {
+  background: var(--arcade-pink);
+  color: var(--arcade-white);
+  border: 3px solid var(--arcade-pink);
+}
+
+.arcade-btn-pink:hover:not(:disabled) {
+  background: #e62d6f;
+  border-color: #e62d6f;
+}
+
+/* Arcade card styling */
+.arcade-card {
+  background: var(--elv3);
+  border: 1px solid var(--gray-700);
+  border-radius: 0;
+}
+
+.arcade-card-elevated {
+  background: var(--elv1);
+  border: 1px solid var(--gray-600);
+  border-radius: 0;
+}
+
+/* Pixel font utility */
+.font-pixel {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+}
+
+/* Status badges */
+.badge-mint {
+  background: rgba(66, 239, 207, 0.15);
+  color: var(--arcade-mint);
+  border: 1px solid rgba(66, 239, 207, 0.3);
+}
+
+.badge-pink {
+  background: rgba(255, 51, 124, 0.15);
+  color: var(--arcade-pink);
+  border: 1px solid rgba(255, 51, 124, 0.3);
+}
+
+.badge-blue {
+  background: rgba(0, 148, 255, 0.15);
+  color: var(--arcade-blue);
+  border: 1px solid rgba(0, 148, 255, 0.3);
+}
+
+.badge-gray {
+  background: rgba(107, 114, 128, 0.15);
+  color: var(--gray-400);
+  border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+/* Input styling */
+input, select {
+  font-family: 'Inter', sans-serif;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--arcade-blue) !important;
+  box-shadow: 0 0 0 1px var(--arcade-blue);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--elv5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+/* Loading spinner */
+.arcade-spinner {
+  border-color: var(--gray-700);
+  border-top-color: var(--arcade-mint);
+}
+
+/* Tab styling */
+.arcade-tab {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.arcade-tab-active {
+  background: var(--arcade-blue);
+  color: var(--arcade-white);
+}
+
+/* Guide page backgrounds */
+.bg-guide-sidebar {
+  background: #1a1f2e;
+}
+
+.bg-guide-content {
+  background: #242b3d;
+}
+
+/* Guide content styling (GitBook-like) */
+.guide-content {
+  color: #e2e8f0;
+  line-height: 1.85;
+  font-size: 1.0625rem;
+}
+
+.guide-content h1 {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+  font-size: 2.25rem;
+  color: #fff;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--arcade-blue);
+}
+
+.guide-content h2 {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+  font-size: 1.5rem;
+  color: var(--arcade-mint);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #3d4663;
+}
+
+.guide-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.guide-content h4 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.guide-content p {
+  margin-bottom: 1.25rem;
+}
+
+.guide-content strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.guide-content code {
+  background: #1e2536;
+  padding: 0.2em 0.45em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  color: var(--arcade-mint);
+  border: 1px solid #3d4663;
+}
+
+.guide-content pre {
+  background: #1e2536;
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border: 1px solid #3d4663;
+  border-radius: 6px;
+}
+
+.guide-content pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.guide-content ul, .guide-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.75rem;
+}
+
+.guide-content li {
+  margin-bottom: 0.5rem;
+}
+
+.guide-content li::marker {
+  color: var(--arcade-blue);
+}
+
+.guide-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.guide-content th, .guide-content td {
+  border: 1px solid #3d4663;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.guide-content th {
+  background: #1e2536;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.guide-content td {
+  background: #2a3349;
+}
+
+.guide-content tr:hover td {
+  background: #323b54;
+}
+
+.guide-content a {
+  color: var(--arcade-blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.guide-content a:hover {
+  color: var(--arcade-mint);
+  border-bottom-color: var(--arcade-mint);
+}
+
+.guide-content hr {
+  border: none;
+  border-top: 1px solid #3d4663;
+  margin: 3rem 0;
+}
+
+.guide-content blockquote {
+  border-left: 4px solid var(--arcade-blue);
+  padding-left: 1.5rem;
+  margin-left: 0;
+  margin-bottom: 1.5rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.guide-content input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: var(--arcade-mint);
+}
+
+/* Legacy markdown-content class (kept for backwards compatibility) */
+.markdown-content {
+  color: var(--gray-100);
+  line-height: 1.8;
+  font-size: 1.125rem;
+}
+
+.markdown-content h1 {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+  font-size: 2.5rem;
+  color: var(--arcade-white);
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--arcade-blue);
+  padding-bottom: 0.75rem;
+}
+
+.markdown-content h2 {
+  font-family: 'Pixel Operator', 'Inter', sans-serif;
+  font-size: 1.75rem;
+  color: var(--arcade-mint);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--gray-700);
+}
+
+.markdown-content h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  color: var(--arcade-white);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-200);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content p {
+  margin-bottom: 1.25rem;
+}
+
+.markdown-content strong {
+  color: var(--arcade-white);
+  font-weight: 600;
+}
+
+.markdown-content code {
+  background: var(--elv1);
+  padding: 0.25em 0.5em;
+  border-radius: 0;
+  font-size: 0.9em;
+  color: var(--arcade-mint);
+  border: 1px solid var(--gray-700);
+}
+
+.markdown-content pre {
+  background: var(--elv1);
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--gray-600);
+}
+
+.markdown-content pre code {
+  background: transparent;
+  padding: 0;
+  border: none;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 2rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content li::marker {
+  color: var(--arcade-blue);
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.markdown-content th, .markdown-content td {
+  border: 1px solid var(--gray-600);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.markdown-content th {
+  background: var(--elv1);
+  color: var(--arcade-white);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.markdown-content td {
+  background: var(--elv3);
+}
+
+.markdown-content tr:hover td {
+  background: var(--elv2);
+}
+
+.markdown-content a {
+  color: var(--arcade-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-content a:hover {
+  color: var(--arcade-mint);
+}
+
+.markdown-content hr {
+  border: none;
+  border-top: 2px solid var(--gray-700);
+  margin: 3rem 0;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid var(--arcade-blue);
+  padding-left: 1.5rem;
+  margin-left: 0;
+  margin-bottom: 1.5rem;
+  color: var(--gray-300);
+  font-style: italic;
+}
+
+.markdown-content input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: var(--arcade-mint);
+}
